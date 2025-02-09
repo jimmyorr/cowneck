@@ -54,31 +54,15 @@
         <tbody id="table-body">
         </tbody>
     </table>
-
     <script>
-        function sortTable(n) {
-            let table = document.getElementById("mcu-table");
-            let rows = Array.from(table.querySelector("tbody").rows);
-            let dir = table.dataset.sortDir === "asc" ? "desc" : "asc";
-            table.dataset.sortDir = dir;
-            rows.sort((a, b) => {
-                let x = a.cells[n].innerText;
-                let y = b.cells[n].innerText;
-                return isNaN(x) || isNaN(y) ? x.localeCompare(y) * (dir === "asc" ? 1 : -1) : (x - y) * (dir === "asc" ? 1 : -1);
-            });
-            rows.forEach(row => table.querySelector("tbody").appendChild(row));
-        }
-
         document.addEventListener("DOMContentLoaded", function () {
-            const checkboxes = document.querySelectorAll("input[type='checkbox']");
-            checkboxes.forEach(checkbox => {
-                const savedState = localStorage.getItem(checkbox.id);
-                if (savedState === "true") {
-                    checkbox.checked = true;
+            const tableBody = document.getElementById("table-body");
+
+            // Delegate change events to checkboxes within the table body
+            tableBody.addEventListener("change", function (event) {
+                if (event.target.matches("input[type='checkbox']")) {
+                    localStorage.setItem(event.target.id, event.target.checked);
                 }
-                checkbox.addEventListener("change", function () {
-                    localStorage.setItem(checkbox.id, checkbox.checked);
-                });
             });
         });
 
@@ -94,22 +78,22 @@
 
         function populateTable() {
             const tableBody = document.getElementById("table-body");
-            // Clear table before populating
             tableBody.innerHTML = "";
 
             movies.forEach(movie => {
                 const row = `<tr>
-                <td><input type="checkbox" id="${movie.id}"></td>
-                <td>${movie.name}</td>
-                <td>${movie.releaseDate}</td>
-                <td>${movie.phase}</td>
-                <td>${movie.budget}</td>
-                <td>${movie.boxOffice}</td>
-            </tr>`;
+                    <td><input type="checkbox" id="${movie.id}" ${localStorage.getItem(movie.id) === "true" ? "checked" : ""}></td>
+                    <td>${movie.name}</td>
+                    <td>${movie.releaseDate}</td>
+                    <td>${movie.phase}</td>
+                    <td>${movie.budget}</td>
+                    <td>${movie.boxOffice}</td>
+                </tr>`;
                 tableBody.innerHTML += row;
             });
         }
     </script>
+
 </body>
 
 </html>
