@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCU Checklist</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            cursor: pointer;
+            background-color: #f4f4f4;
+        }
+
+        .asc::after {
+            content: "▲";
+        }
+
+        .desc::after {
+            content: "▼";
+        }
+    </style>
+</head>
+
+<body>
+    <table id="mcu-table">
+        <thead>
+            <tr>
+                <th>Watched</th>
+                <th onclick="sortTable(1)" class="sortable">Movie</th>
+                <th onclick="sortTable(2)" class="sortable">Release Date</th>
+                <th onclick="sortTable(3)" class="sortable">Phase</th>
+                <th onclick="sortTable(4)" class="sortable">Budget (M$)</th>
+                <th onclick="sortTable(5)" class="sortable">Box Office (M$)</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+    </table>
+
+    <script>
+        const movies = [
+            // Phase 1
+            { id: "iron-man", name: "Iron Man", releaseDate: "2008-05-02", phase: 1, budget: 140, boxOffice: 585 },
+            { id: "the-incredible-hulk", name: "The Incredible Hulk", releaseDate: "2008-06-13", phase: 1, budget: 150, boxOffice: 264 },
+            { id: "iron-man-2", name: "Iron Man 2", releaseDate: "2010-05-07", phase: 1, budget: 200, boxOffice: 624 },
+            { id: "thor", name: "Thor", releaseDate: "2011-05-06", phase: 1, budget: 150, boxOffice: 449 },
+            { id: "captain-america-the-first-avenger", name: "Captain America: The First Avenger", releaseDate: "2011-07-22", phase: 1, budget: 140, boxOffice: 370 },
+            { id: "the-avengers", name: "The Avengers", releaseDate: "2012-05-04", phase: 1, budget: 220, boxOffice: 1518 },
+
+            // Phase 2
+            { id: "iron-man-3", name: "Iron Man 3", releaseDate: "2013-05-03", phase: 2, budget: 200, boxOffice: 1215 },
+            { id: "thor-the-dark-world", name: "Thor: The Dark World", releaseDate: "2013-11-08", phase: 2, budget: 170, boxOffice: 644 },
+            { id: "captain-america-the-winter-soldier", name: "Captain America: The Winter Soldier", releaseDate: "2014-04-04", phase: 2, budget: 170, boxOffice: 714 },
+            { id: "guardians-of-the-galaxy", name: "Guardians of the Galaxy", releaseDate: "2014-08-01", phase: 2, budget: 170, boxOffice: 773 },
+            { id: "avengers-age-of-ultron", name: "Avengers: Age of Ultron", releaseDate: "2015-05-01", phase: 2, budget: 365, boxOffice: 1405 },
+            { id: "ant-man", name: "Ant-Man", releaseDate: "2015-07-17", phase: 2, budget: 130, boxOffice: 519 },
+
+            // Phase 3
+            { id: "captain-america-civil-war", name: "Captain America: Civil War", releaseDate: "2016-05-06", phase: 3, budget: 250, boxOffice: 1153 },
+            { id: "doctor-strange", name: "Doctor Strange", releaseDate: "2016-11-04", phase: 3, budget: 165, boxOffice: 677 },
+            { id: "guardians-of-the-galaxy-vol-2", name: "Guardians of the Galaxy Vol. 2", releaseDate: "2017-05-05", phase: 3, budget: 200, boxOffice: 863 },
+            { id: "spider-man-homecoming", name: "Spider-Man: Homecoming", releaseDate: "2017-07-07", phase: 3, budget: 175, boxOffice: 880 },
+            { id: "thor-ragnarok", name: "Thor: Ragnarok", releaseDate: "2017-11-03", phase: 3, budget: 180, boxOffice: 855 },
+            { id: "black-panther", name: "Black Panther", releaseDate: "2018-02-16", phase: 3, budget: 200, boxOffice: 1347 },
+            { id: "avengers-infinity-war", name: "Avengers: Infinity War", releaseDate: "2018-04-27", phase: 3, budget: 325, boxOffice: 2048 },
+            { id: "ant-man-and-the-wasp", name: "Ant-Man and the Wasp", releaseDate: "2018-07-06", phase: 3, budget: 130, boxOffice: 622 },
+            { id: "captain-marvel", name: "Captain Marvel", releaseDate: "2019-03-08", phase: 3, budget: 152, boxOffice: 1128 },
+            { id: "avengers-endgame", name: "Avengers: Endgame", releaseDate: "2019-04-26", phase: 3, budget: 356, boxOffice: 2797 },
+            { id: "spider-man-far-from-home", name: "Spider-Man: Far From Home", releaseDate: "2019-07-02", phase: 3, budget: 160, boxOffice: 1131 },
+
+            // Phase 4
+            { id: "black-widow", name: "Black Widow", releaseDate: "2021-07-09", phase: 4, budget: 200, boxOffice: 379 },
+            { id: "shang-chi-and-the-legend-of-the-ten-rings", name: "Shang-Chi and the Legend of the Ten Rings", releaseDate: "2021-09-03", phase: 4, budget: 150, boxOffice: 432 },
+            { id: "eternals", name: "Eternals", releaseDate: "2021-11-05", phase: 4, budget: 200, boxOffice: 402 },
+            { id: "spider-man-no-way-home", name: "Spider-Man: No Way Home", releaseDate: "2021-12-17", phase: 4, budget: 200, boxOffice: 1910 },
+            { id: "doctor-strange-in-the-multiverse-of-madness", name: "Doctor Strange in the Multiverse of Madness", releaseDate: "2022-05-06", phase: 4, budget: 200, boxOffice: 955 },
+            { id: "thor-love-and-thunder", name: "Thor: Love and Thunder", releaseDate: "2022-07-08", phase: 4, budget: 250, boxOffice: 760 },
+            { id: "black-panther-wakanda-forever", name: "Black Panther: Wakanda Forever", releaseDate: "2022-11-11", phase: 4, budget: 200, boxOffice: 859 },
+
+            // Phase 5
+            { id: "ant-man-and-the-wasp-quantumania", name: "Ant-Man and the Wasp: Quantumania", releaseDate: "2023-02-17", phase: 5, budget: 200, boxOffice: 471 },
+            { id: "guardians-of-the-galaxy-vol-3", name: "Guardians of the Galaxy Vol. 3", releaseDate: "2023-05-05", phase: 5, budget: 250, boxOffice: 845 },
+            { id: "the-marvels", name: "The Marvels", releaseDate: "2023-11-10", phase: 5, budget: 275, boxOffice: 205 }
+        ];
+
+        function sortTable(n) {
+            let table = document.getElementById("mcu-table");
+            let rows = Array.from(table.querySelector("tbody").rows);
+            let dir = table.dataset.sortDir === "asc" ? "desc" : "asc";
+            table.dataset.sortDir = dir;
+            rows.sort((a, b) => {
+                let x = a.cells[n].innerText;
+                let y = b.cells[n].innerText;
+                return isNaN(x) || isNaN(y) ? x.localeCompare(y) * (dir === "asc" ? 1 : -1) : (x - y) * (dir === "asc" ? 1 : -1);
+            });
+            rows.forEach(row => table.querySelector("tbody").appendChild(row));
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const checkboxes = document.querySelectorAll("input[type='checkbox']");
+            checkboxes.forEach(checkbox => {
+                const savedState = localStorage.getItem(checkbox.id);
+                if (savedState === "true") {
+                    checkbox.checked = true;
+                }
+                checkbox.addEventListener("change", function () {
+                    localStorage.setItem(checkbox.id, checkbox.checked);
+                });
+            });
+        });
+
+        const tableBody = document.getElementById("table-body");
+        movies.forEach(movie => {
+            const row = `<tr>
+                <td><input type="checkbox" id="${movie.id}"></td>
+                <td>${movie.name}</td>
+                <td>${movie.releaseDate}</td>
+                <td>${movie.phase}</td>
+                <td>${movie.budget}</td>
+                <td>${movie.boxOffice}</td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+    </script>
+</body>
+
+</html>
