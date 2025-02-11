@@ -100,10 +100,14 @@
                     <td>${movie.name}</td>
                     <td>${movie.releaseDate}</td>
                     <td>${movie.phase}</td>
-                    <td>${movie.budget}</td>
-                    <td>${movie.boxOffice}</td>
-                    <td><a href="https://www.imdb.com/title/${movie.imdbId}" target="_blank">${movie.imdbScore.toFixed(1)}</a></td>
-                </tr>`;
+                    <td>${movie.budget !== null ? movie.budget : "N/A"}</td>
+                    <td>${movie.boxOffice !== null ? movie.boxOffice : "N/A"}</td>
+                    <td>
+                        <a href="https://www.imdb.com/title/${movie.imdbId}" target="_blank">
+                            ${movie.imdbScore !== null ? movie.imdbScore.toFixed(1) : "N/A"}
+                        </a>
+                    </td>
+                    </tr>`;
                 tableBody.innerHTML += row;
             });
         }

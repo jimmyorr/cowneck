@@ -328,5 +328,35 @@
         "boxOffice": 205,
         "imdbScore": 6.0,
         "imdbId": "tt10676048"
+    },
+    {
+        "id": "deadpool-and-wolverine",
+        "name": "Deadpool & Wolverine",
+        "releaseDate": "2024-07-26",
+        "phase": 5,
+        "budget": 200,
+        "boxOffice": 1338,
+        "imdbScore": 7.6,
+        "imdbId": "tt6263850"
+    },
+    {
+        "id": "captain-america-brave-new-world",
+        "name": "Captain America: Brave New World",
+        "releaseDate": "2025-02-14",
+        "phase": 5,
+        "budget": 180,
+        "boxOffice": null,
+        "imdbScore": null,
+        "imdbId": "tt14513868"
+    },
+    {
+        "id": "thunderbolts",
+        "name": "Thunderbolts",
+        "releaseDate": "2025-05-02",
+        "phase": 5,
+        "budget": null,
+        "boxOffice": null,
+        "imdbScore": null,
+        "imdbId": "tt19302400"
     }
 ]
