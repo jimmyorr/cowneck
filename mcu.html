@@ -55,6 +55,19 @@
         </tbody>
     </table>
     <script>
+        function sortTable(n) {
+            let table = document.getElementById("mcu-table");
+            let rows = Array.from(table.querySelector("tbody").rows);
+            let dir = table.dataset.sortDir === "asc" ? "desc" : "asc";
+            table.dataset.sortDir = dir;
+            rows.sort((a, b) => {
+                let x = a.cells[n].innerText;
+                let y = b.cells[n].innerText;
+                return isNaN(x) || isNaN(y) ? x.localeCompare(y) * (dir === "asc" ? 1 : -1) : (x - y) * (dir === "asc" ? 1 : -1);
+            });
+            rows.forEach(row => table.querySelector("tbody").appendChild(row));
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             const tableBody = document.getElementById("table-body");
 
