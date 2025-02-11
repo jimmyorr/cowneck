@@ -49,6 +49,7 @@
                 <th onclick="sortTable(3)" class="sortable">Phase</th>
                 <th onclick="sortTable(4)" class="sortable">Budget (M$)</th>
                 <th onclick="sortTable(5)" class="sortable">Box Office (M$)</th>
+                <th onclick="sortTable(6)" class="sortable">IMDb</th>
             </tr>
         </thead>
         <tbody id="table-body">
@@ -101,6 +102,7 @@
                     <td>${movie.phase}</td>
                     <td>${movie.budget}</td>
                     <td>${movie.boxOffice}</td>
+                    <td>${movie.imdbScore.toFixed(1)}</td>
                 </tr>`;
                 tableBody.innerHTML += row;
             });
