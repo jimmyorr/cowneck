@@ -102,7 +102,7 @@
                     <td>${movie.phase}</td>
                     <td>${movie.budget}</td>
                     <td>${movie.boxOffice}</td>
-                    <td>${movie.imdbScore.toFixed(1)}</td>
+                    <td><a href="https://www.imdb.com/title/${movie.imdbId}" target="_blank">${movie.imdbScore.toFixed(1)}</a></td>
                 </tr>`;
                 tableBody.innerHTML += row;
             });
