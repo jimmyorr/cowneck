@@ -6,7 +6,8 @@
         "phase": 1,
         "budget": 140,
         "boxOffice": 585,
-        "imdbScore": 7.9
+        "imdbScore": 7.9,
+        "imdbId": "tt0371746"
     },
     {
         "id": "the-incredible-hulk",
@@ -15,7 +16,8 @@
         "phase": 1,
         "budget": 150,
         "boxOffice": 264,
-        "imdbScore": 6.6
+        "imdbScore": 6.6,
+        "imdbId": "tt0800080"
     },
     {
         "id": "iron-man-2",
@@ -24,7 +26,8 @@
         "phase": 1,
         "budget": 200,
         "boxOffice": 624,
-        "imdbScore": 6.9
+        "imdbScore": 6.9,
+        "imdbId": "tt1228705"
     },
     {
         "id": "thor",
@@ -33,7 +36,8 @@
         "phase": 1,
         "budget": 150,
         "boxOffice": 449,
-        "imdbScore": 7.0
+        "imdbScore": 7.0,
+        "imdbId": "tt0800369"
     },
     {
         "id": "captain-america-the-first-avenger",
@@ -42,7 +46,8 @@
         "phase": 1,
         "budget": 140,
         "boxOffice": 370,
-        "imdbScore": 6.9
+        "imdbScore": 6.9,
+        "imdbId": "tt0458339"
     },
     {
         "id": "the-avengers",
@@ -51,7 +56,8 @@
         "phase": 1,
         "budget": 220,
         "boxOffice": 1518,
-        "imdbScore": 8.0
+        "imdbScore": 8.0,
+        "imdbId": "tt0848228"
     },
     {
         "id": "iron-man-3",
@@ -60,7 +66,8 @@
         "phase": 2,
         "budget": 200,
         "boxOffice": 1215,
-        "imdbScore": 7.1
+        "imdbScore": 7.1,
+        "imdbId": "tt1300854"
     },
     {
         "id": "thor-the-dark-world",
@@ -69,7 +76,8 @@
         "phase": 2,
         "budget": 170,
         "boxOffice": 644,
-        "imdbScore": 6.8
+        "imdbScore": 6.8,
+        "imdbId": "tt1981115"
     },
     {
         "id": "captain-america-the-winter-soldier",
@@ -78,7 +86,8 @@
         "phase": 2,
         "budget": 170,
         "boxOffice": 714,
-        "imdbScore": 7.8
+        "imdbScore": 7.8,
+        "imdbId": "tt1843866"
     },
     {
         "id": "guardians-of-the-galaxy",
@@ -87,7 +96,8 @@
         "phase": 2,
         "budget": 170,
         "boxOffice": 773,
-        "imdbScore": 8.0
+        "imdbScore": 8.0,
+        "imdbId": "tt2015381"
     },
     {
         "id": "avengers-age-of-ultron",
@@ -96,7 +106,8 @@
         "phase": 2,
         "budget": 365,
         "boxOffice": 1405,
-        "imdbScore": 7.3
+        "imdbScore": 7.3,
+        "imdbId": "tt2395427"
     },
     {
         "id": "ant-man",
@@ -105,7 +116,8 @@
         "phase": 2,
         "budget": 130,
         "boxOffice": 519,
-        "imdbScore": 7.3
+        "imdbScore": 7.3,
+        "imdbId": "tt0478970"
     },
     {
         "id": "captain-america-civil-war",
@@ -114,7 +126,8 @@
         "phase": 3,
         "budget": 250,
         "boxOffice": 1153,
-        "imdbScore": 7.8
+        "imdbScore": 7.8,
+        "imdbId": "tt3498820"
     },
     {
         "id": "doctor-strange",
@@ -123,7 +136,8 @@
         "phase": 3,
         "budget": 165,
         "boxOffice": 677,
-        "imdbScore": 7.5
+        "imdbScore": 7.5,
+        "imdbId": "tt1211837"
     },
     {
         "id": "guardians-of-the-galaxy-vol-2",
@@ -132,7 +146,8 @@
         "phase": 3,
         "budget": 200,
         "boxOffice": 863,
-        "imdbScore": 7.6
+        "imdbScore": 7.6,
+        "imdbId": "tt3896198"
     },
     {
         "id": "spider-man-homecoming",
@@ -141,7 +156,8 @@
         "phase": 3,
         "budget": 175,
         "boxOffice": 880,
-        "imdbScore": 7.4
+        "imdbScore": 7.4,
+        "imdbId": "tt2250912"
     },
     {
         "id": "thor-ragnarok",
@@ -150,7 +166,8 @@
         "phase": 3,
         "budget": 180,
         "boxOffice": 855,
-        "imdbScore": 7.9
+        "imdbScore": 7.9,
+        "imdbId": "tt3501632"
     },
     {
         "id": "black-panther",
@@ -159,7 +176,8 @@
         "phase": 3,
         "budget": 200,
         "boxOffice": 1347,
-        "imdbScore": 7.3
+        "imdbScore": 7.3,
+        "imdbId": "tt1825683"
     },
     {
         "id": "avengers-infinity-war",
@@ -168,7 +186,8 @@
         "phase": 3,
         "budget": 325,
         "boxOffice": 2048,
-        "imdbScore": 8.4
+        "imdbScore": 8.4,
+        "imdbId": "tt4154756"
     },
     {
         "id": "ant-man-and-the-wasp",
@@ -177,7 +196,8 @@
         "phase": 3,
         "budget": 130,
         "boxOffice": 622,
-        "imdbScore": 7.0
+        "imdbScore": 7.0,
+        "imdbId": "tt5095030"
     },
     {
         "id": "captain-marvel",
@@ -186,7 +206,8 @@
         "phase": 3,
         "budget": 152,
         "boxOffice": 1128,
-        "imdbScore": 6.8
+        "imdbScore": 6.8,
+        "imdbId": "tt4154664"
     },
     {
         "id": "avengers-endgame",
@@ -195,7 +216,8 @@
         "phase": 3,
         "budget": 356,
         "boxOffice": 2797,
-        "imdbScore": 8.4
+        "imdbScore": 8.4,
+        "imdbId": "tt4154796"
     },
     {
         "id": "spider-man-far-from-home",
@@ -204,7 +226,8 @@
         "phase": 3,
         "budget": 160,
         "boxOffice": 1131,
-        "imdbScore": 7.4
+        "imdbScore": 7.4,
+        "imdbId": "tt6320628"
     },
     {
         "id": "black-widow",
@@ -213,7 +236,8 @@
         "phase": 4,
         "budget": 200,
         "boxOffice": 379,
-        "imdbScore": 6.7
+        "imdbScore": 6.7,
+        "imdbId": "tt3480822"
     },
     {
         "id": "shang-chi-and-the-legend-of-the-ten-rings",
@@ -222,7 +246,8 @@
         "phase": 4,
         "budget": 150,
         "boxOffice": 432,
-        "imdbScore": 7.4
+        "imdbScore": 7.4,
+        "imdbId": "tt9376612"
     },
     {
         "id": "eternals",
@@ -231,7 +256,8 @@
         "phase": 4,
         "budget": 200,
         "boxOffice": 402,
-        "imdbScore": 6.3
+        "imdbScore": 6.3,
+        "imdbId": "tt9032400"
     },
     {
         "id": "spider-man-no-way-home",
@@ -240,7 +266,8 @@
         "phase": 4,
         "budget": 200,
         "boxOffice": 1910,
-        "imdbScore": 8.2
+        "imdbScore": 8.2,
+        "imdbId": "tt10872600"
     },
     {
         "id": "doctor-strange-in-the-multiverse-of-madness",
@@ -249,7 +276,8 @@
         "phase": 4,
         "budget": 200,
         "boxOffice": 955,
-        "imdbScore": 6.9
+        "imdbScore": 6.9,
+        "imdbId": "tt9419884"
     },
     {
         "id": "thor-love-and-thunder",
@@ -258,7 +286,8 @@
         "phase": 4,
         "budget": 250,
         "boxOffice": 760,
-        "imdbScore": 6.3
+        "imdbScore": 6.3,
+        "imdbId": "tt10648342"
     },
     {
         "id": "black-panther-wakanda-forever",
@@ -267,7 +296,8 @@
         "phase": 4,
         "budget": 200,
         "boxOffice": 859,
-        "imdbScore": 7.2
+        "imdbScore": 7.2,
+        "imdbId": "tt9114286"
     },
     {
         "id": "ant-man-and-the-wasp-quantumania",
@@ -276,7 +306,8 @@
         "phase": 5,
         "budget": 200,
         "boxOffice": 471,
-        "imdbScore": 6.1
+        "imdbScore": 6.1,
+        "imdbId": "tt10954600"
     },
     {
         "id": "guardians-of-the-galaxy-vol-3",
@@ -285,7 +316,8 @@
         "phase": 5,
         "budget": 250,
         "boxOffice": 845,
-        "imdbScore": 8.0
+        "imdbScore": 8.0,
+        "imdbId": "tt6791350"
     },
     {
         "id": "the-marvels",
@@ -294,6 +326,7 @@
         "phase": 5,
         "budget": 275,
         "boxOffice": 205,
-        "imdbScore": 6.0
+        "imdbScore": 6.0,
+        "imdbId": "tt10676048"
     }
 ]
