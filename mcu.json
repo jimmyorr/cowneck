@@ -345,18 +345,18 @@
         "releaseDate": "2025-02-14",
         "phase": 5,
         "budget": 180,
-        "boxOffice": null,
-        "imdbScore": null,
-        "imdbId": "tt14513868"
+        "boxOffice": 415.1,
+        "imdbScore": 5.7,
+        "imdbId": "tt14513804"
     },
     {
         "id": "thunderbolts",
         "name": "Thunderbolts",
         "releaseDate": "2025-05-02",
         "phase": 5,
-        "budget": null,
-        "boxOffice": null,
-        "imdbScore": null,
-        "imdbId": "tt19302400"
+        "budget": 180,
+        "boxOffice": 353,
+        "imdbScore": 7.6,
+        "imdbId": "tt20969586"
     }
 ]
