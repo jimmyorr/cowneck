@@ -2,8 +2,9 @@
 
 ## Running tests
 
-Use Python's built-in `unittest` module to run the tests:
+Install the required dependencies and run all tests with Python's built-in `unittest` discovery:
 
 ```bash
-python -m unittest tests/test_mcu_json.py
+pip install -r requirements.txt
+python -m unittest discover tests
 ```
