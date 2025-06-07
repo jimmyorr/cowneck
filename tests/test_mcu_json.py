@@ -17,5 +17,20 @@ class TestMCUJson(unittest.TestCase):
         ids = [entry.get('id') for entry in self.data]
         self.assertEqual(len(ids), len(set(ids)), "Duplicate id values found")
 
+    def test_required_fields_present(self):
+        required_keys = {
+            'id',
+            'name',
+            'releaseDate',
+            'phase',
+            'budget',
+            'boxOffice',
+            'imdbScore',
+            'imdbId',
+        }
+        for movie in self.data:
+            for key in required_keys:
+                self.assertIn(key, movie)
+
 if __name__ == '__main__':
     unittest.main()
