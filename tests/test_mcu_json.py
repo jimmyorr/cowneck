@@ -4,7 +4,7 @@ import unittest
 
 class TestMCUJson(unittest.TestCase):
     def setUp(self):
-        # Load the JSON file once for tests
+        # Load the JSON file before each test
         json_path = os.path.join(os.path.dirname(__file__), '..', 'mcu.json')
         with open(json_path, 'r', encoding='utf-8') as f:
             self.data = json.load(f)
