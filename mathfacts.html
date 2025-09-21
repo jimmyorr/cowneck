@@ -49,6 +49,32 @@
     .fill{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), #b08cff)}
     .phase-answer .fill{background: linear-gradient(90deg, #19c37d, #7dd3a4)}
 
+    .answer-input{
+      width:140px;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:#0c0f22;
+      color:var(--ink);
+      font-size: clamp(20px, 4vw, 32px);
+      text-align:center;
+      font-weight:600;
+      box-shadow: inset 0 4px 16px rgba(0,0,0,0.25);
+    }
+    .answer-input::-webkit-outer-spin-button,
+    .answer-input::-webkit-inner-spin-button{
+      -webkit-appearance:none;
+      margin:0;
+    }
+    .answer-input[type=number]{
+      -moz-appearance:textfield;
+    }
+    .answer-input:focus{
+      outline:none;
+      border-color:rgba(124,156,255,0.8);
+      box-shadow: inset 0 4px 18px rgba(0,0,0,0.35), 0 0 0 2px rgba(124,156,255,0.35);
+    }
+
     /* Fade / swap animation */
     .fade{opacity:0; transform:translateY(8px); filter:blur(4px)}
     .show{opacity:1; transform:none; filter:none; transition:opacity .5s ease, transform .5s ease, filter .5s ease}
@@ -84,7 +110,7 @@
     </div>
 
     <div class="card center" id="card">
-      <div class="sub" id="helper">Press <span class="kbd">Enter</span> to start • During answer: <span class="kbd">Y</span> = correct, <span class="kbd">N</span> = wrong</div>
+      <div class="sub" id="helper">Press <span class="kbd">Enter</span> to start • Type answers then press <span class="kbd">Enter</span> or click Submit</div>
       <div class="fact fade" id="display">Ready?</div>
       <div class="bars" aria-hidden="true">
         <div class="bar"><div class="fill" id="progress"></div></div>
@@ -94,9 +120,9 @@
         <button id="startBtn" class="primary">Start</button>
         <button id="resetBtn" class="ghost">Reset Scores</button>
       </div>
-      <div class="row" id="answerControls" style="margin-top:12px; display:none">
-        <button id="rightBtn" class="success">I was Right (Y)</button>
-        <button id="wrongBtn" class="danger">I was Wrong (N)</button>
+      <div class="row" id="answerRow" style="margin-top:12px; display:none">
+        <input id="answerInput" class="answer-input" type="number" inputmode="numeric" aria-label="Your answer" placeholder="Answer" />
+        <button id="submitBtn" type="button" class="success">Submit Answer</button>
       </div>
     </div>
 
@@ -112,14 +138,16 @@
     const phaseClock = el('phaseClock');
     const startBtn = el('startBtn');
     const resetBtn = el('resetBtn');
-    const rightBtn = el('rightBtn');
-    const wrongBtn = el('wrongBtn');
-    const answerControls = el('answerControls');
+    const answerRow = el('answerRow');
+    const answerInput = el('answerInput');
+    const submitBtn = el('submitBtn');
     const qSecsInput = el('qSecs');
     const aSecsInput = el('aSecs');
 
     const correctCount = el('correctCount');
     const wrongCount = el('wrongCount');
+
+    const questionPrompt = 'Type the answer and press <span class="kbd">Enter</span> or click Submit.';
 
     // Persist scores across reloads
     const SCORES_KEY = 'multfacts:scores';
@@ -140,6 +168,7 @@
       timers: [],
       startedAt: 0,
       phaseDurMs: 0,
+      answered: false,
     };
 
     function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
@@ -170,16 +199,26 @@
         progress.style.width = (pct*100).toFixed(2)+'%';
         const remaining = Math.max(0, (state.phaseDurMs - elapsed)/1000);
         phaseClock.textContent = remaining.toFixed(1)+'s';
-        if(elapsed>=state.phaseDurMs){ clearInterval(id); state.timers = state.timers.filter(x=>x!==id); if(phase==='question'){ showAnswer(); } else { nextQuestion(); } }
+        if(elapsed>=state.phaseDurMs){
+          clearInterval(id);
+          state.timers = state.timers.filter(x=>x!==id);
+          if(phase==='question'){
+            gradeAnswer(null, {timedOut:true});
+          } else {
+            nextQuestion();
+          }
+        }
       }, 1000/60);
       state.timers.push(id);
     }
 
     function showQuestion(){
       pickQuestion();
+      state.answered = false;
       const q = `${state.a} × ${state.b}`;
-      helper.textContent = 'Think of the answer…';
-      answerControls.style.display = 'none';
+      helper.innerHTML = questionPrompt;
+      answerRow.style.display = 'flex';
+      answerInput.value = '';
       display.classList.remove('show');
       display.classList.add('fade');
       requestAnimationFrame(()=>{ // allow style flush
@@ -188,12 +227,25 @@
         display.classList.add('show');
       });
       setPhase('question', Number(qSecsInput.value)||10);
+      setTimeout(()=>{ answerInput.focus({preventScroll:true}); }, 50);
     }
 
-    function showAnswer(){
+    function showAnswer({typedAnswer=null, isCorrect=false, timedOut=false}={}){
       const ans = state.a * state.b;
-      helper.innerHTML = 'Mark yourself: <span class="kbd">Y</span> right, <span class="kbd">N</span> wrong';
-      answerControls.style.display = 'flex';
+      answerRow.style.display = 'none';
+      answerInput.value = '';
+      answerInput.blur();
+
+      let feedback = '';
+      if(timedOut){
+        feedback = '<span style="color:var(--bad);font-weight:600">Time is up!</span> You didn\'t enter an answer. The correct answer is below.';
+      }else if(isCorrect){
+        feedback = `<span style="color:var(--good);font-weight:600">Correct!</span> You answered <b>${typedAnswer}</b>.`;
+      }else{
+        feedback = `<span style="color:var(--bad);font-weight:600">Not quite.</span> You answered <b>${typedAnswer}</b>.`;
+      }
+      helper.innerHTML = feedback + ' <span class="muted">Press <span class="kbd">Enter</span> to continue.</span>';
+
       display.classList.remove('show');
       display.classList.add('fade');
       requestAnimationFrame(()=>{
@@ -204,25 +256,69 @@
       setPhase('answer', Number(aSecsInput.value)||3);
     }
 
+    function gradeAnswer(answerValue, {timedOut=false}={}){
+      if(state.phase!=='question' || state.answered) return;
+
+      state.answered = true;
+      const correctAnswer = state.a * state.b;
+      const typedAnswer = timedOut ? null : answerValue;
+      const isCorrect = !timedOut && typedAnswer === correctAnswer;
+
+      if(isCorrect){
+        correctCount.textContent = (Number(correctCount.textContent)||0)+1;
+      }else{
+        wrongCount.textContent = (Number(wrongCount.textContent)||0)+1;
+      }
+      saveScores();
+      showAnswer({typedAnswer, isCorrect, timedOut});
+    }
+
+    function submitAnswer(){
+      if(state.phase!=='question' || state.answered) return;
+      const raw = answerInput.value.trim();
+      if(raw===''){
+        helper.innerHTML = '<span style="color:var(--bad);font-weight:600">Please enter an answer before submitting.</span>';
+        return;
+      }
+      const numeric = Number(raw);
+      if(!Number.isFinite(numeric)){
+        helper.innerHTML = '<span style="color:var(--bad);font-weight:600">Answers must be numbers.</span>';
+        return;
+      }
+      gradeAnswer(numeric);
+    }
+
     function nextQuestion(){ showQuestion(); }
 
     function start(){ if(state.phase==='idle'){ showQuestion(); } }
 
-    function addRight(){ correctCount.textContent = (Number(correctCount.textContent)||0)+1; saveScores(); nextQuestion(); }
-    function addWrong(){ wrongCount.textContent = (Number(wrongCount.textContent)||0)+1; saveScores(); nextQuestion(); }
-
     // Event wiring
     startBtn.addEventListener('click', start);
     resetBtn.addEventListener('click', ()=>{ correctCount.textContent=0; wrongCount.textContent=0; saveScores(); });
-    rightBtn.addEventListener('click', addRight);
-    wrongBtn.addEventListener('click', addWrong);
+    submitBtn.addEventListener('click', submitAnswer);
+    answerInput.addEventListener('input', ()=>{
+      if(state.phase==='question' && !state.answered){
+        helper.innerHTML = questionPrompt;
+      }
+    });
 
     // Keyboard shortcuts
     window.addEventListener('keydown', (e)=>{
-      if(e.key==='Enter') start();
-      if(state.phase==='answer'){
-        if(e.key.toLowerCase()==='y') addRight();
-        if(e.key.toLowerCase()==='n') addWrong();
+      if(e.key!=='Enter') return;
+
+      if(state.phase==='idle'){
+        e.preventDefault();
+        start();
+      }else if(state.phase==='question'){
+        e.preventDefault();
+        if(document.activeElement!==answerInput){
+          answerInput.focus({preventScroll:true});
+        }
+        submitAnswer();
+      }else if(state.phase==='answer'){
+        e.preventDefault();
+        clearTimers();
+        nextQuestion();
       }
     });
 
