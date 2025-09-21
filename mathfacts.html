@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Multiplication Facts Trainer (to 12×12)</title>
+  <style>
+    :root{
+      --bg: #0f1222;
+      --card: #171a2b;
+      --ink: #e8ecff;
+      --muted: #a7b0d9;
+      --accent: #7c9cff;
+      --good: #19c37d;
+      --bad: #ff5c5c;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;
+      background: radial-gradient(1200px 800px at 80% -20%, #1a1e36 0%, #0b0e1a 60%, var(--bg) 100%);
+      color:var(--ink);
+      display:flex; align-items:center; justify-content:center; padding:18px;
+    }
+    .app{width:min(960px, 100%);}
+    .hud{display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:16px}
+    .pill{background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); padding:8px 12px; border-radius:999px; display:flex; gap:10px; align-items:center}
+    .pill b{font-variant-numeric:tabular-nums}
+    .card{background:var(--card); border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:24px; box-shadow:0 8px 32px rgba(0,0,0,.35)}
+    .center{display:grid; place-items:center}
+
+    .fact{font-size: clamp(40px, 9vw, 120px); line-height:1; letter-spacing:1px; margin:28px 0; font-weight:800; text-shadow:0 10px 30px rgba(0,0,0,.5)}
+    .sub{font-size: clamp(13px, 2.2vw, 18px); color:var(--muted)}
+
+    .row{display:flex; gap:12px; flex-wrap:wrap; justify-content:center}
+    button{
+      border:0; border-radius:14px; padding:14px 18px; font-weight:700; cursor:pointer; color:white; background:#242842;
+      transition:transform .08s ease, filter .2s ease, background .2s ease;
+    }
+    button:hover{filter:brightness(1.1)}
+    button:active{transform:translateY(1px)}
+    .primary{background: linear-gradient(180deg, #8ba7ff, #6b87ff)}
+    .success{background: linear-gradient(180deg, #1ed68e, #19a06e)}
+    .danger{background: linear-gradient(180deg, #ff7373, #e05555)}
+    .ghost{background:rgba(255,255,255,0.06)}
+
+    .bars{display:flex; gap:10px; align-items:center; margin-top:8px}
+    .bar{height:8px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden; width:200px}
+    .fill{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), #b08cff)}
+    .phase-answer .fill{background: linear-gradient(90deg, #19c37d, #7dd3a4)}
+
+    /* Fade / swap animation */
+    .fade{opacity:0; transform:translateY(8px); filter:blur(4px)}
+    .show{opacity:1; transform:none; filter:none; transition:opacity .5s ease, transform .5s ease, filter .5s ease}
+
+    .stats{display:flex; gap:10px}
+    .stat{padding:10px 14px; border-radius:12px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08)}
+    .stat.good{border-color:rgba(25,195,125,.45)}
+    .stat.bad{border-color:rgba(255,92,92,.45)}
+
+    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#111427; border:1px solid rgba(255,255,255,0.12); padding:2px 6px; border-radius:6px; font-size:.9em}
+    .muted{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="hud">
+      <div class="pill" role="status" aria-live="polite">
+        <span>Mode:</span> <b id="modeLabel">Waiting</b>
+      </div>
+      <div class="stats">
+        <div class="stat good">Correct: <b id="correctCount">0</b></div>
+        <div class="stat bad">Wrong: <b id="wrongCount">0</b></div>
+      </div>
+      <div class="pill">
+        <span>Durations</span>
+        <label class="muted" style="display:flex;gap:6px;align-items:center">
+          Q <input id="qSecs" type="number" min="3" max="30" step="1" value="10" style="width:58px;background:#0c0f22;color:var(--ink);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px"/>s
+        </label>
+        <label class="muted" style="display:flex;gap:6px;align-items:center">
+          A <input id="aSecs" type="number" min="1" max="10" step="1" value="3" style="width:58px;background:#0c0f22;color:var(--ink);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px"/>s
+        </label>
+      </div>
+    </div>
+
+    <div class="card center" id="card">
+      <div class="sub" id="helper">Press <span class="kbd">Enter</span> to start • During answer: <span class="kbd">Y</span> = correct, <span class="kbd">N</span> = wrong</div>
+      <div class="fact fade" id="display">Ready?</div>
+      <div class="bars" aria-hidden="true">
+        <div class="bar"><div class="fill" id="progress"></div></div>
+        <div class="muted" id="phaseClock">0.0s</div>
+      </div>
+      <div class="row" style="margin-top:22px">
+        <button id="startBtn" class="primary">Start</button>
+        <button id="resetBtn" class="ghost">Reset Scores</button>
+      </div>
+      <div class="row" id="answerControls" style="margin-top:12px; display:none">
+        <button id="rightBtn" class="success">I was Right (Y)</button>
+        <button id="wrongBtn" class="danger">I was Wrong (N)</button>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:12px; text-align:center">Facts are up to 12×12 inclusive. Progress bar shows time left in the current phase.</p>
+  </div>
+
+  <script>
+    const el = (id)=>document.getElementById(id);
+    const display = el('display');
+    const helper  = el('helper');
+    const modeLabel = el('modeLabel');
+    const progress = el('progress');
+    const phaseClock = el('phaseClock');
+    const startBtn = el('startBtn');
+    const resetBtn = el('resetBtn');
+    const rightBtn = el('rightBtn');
+    const wrongBtn = el('wrongBtn');
+    const answerControls = el('answerControls');
+    const qSecsInput = el('qSecs');
+    const aSecsInput = el('aSecs');
+
+    const correctCount = el('correctCount');
+    const wrongCount = el('wrongCount');
+
+    // Persist scores across reloads
+    const SCORES_KEY = 'multfacts:scores';
+    function loadScores(){
+      try{
+        const s = JSON.parse(localStorage.getItem(SCORES_KEY)||'{"right":0,"wrong":0}');
+        correctCount.textContent = s.right|0; wrongCount.textContent = s.wrong|0;
+      }catch{ correctCount.textContent = 0; wrongCount.textContent = 0; }
+    }
+    function saveScores(){
+      const s = {right: Number(correctCount.textContent)||0, wrong: Number(wrongCount.textContent)||0};
+      localStorage.setItem(SCORES_KEY, JSON.stringify(s));
+    }
+
+    let state = {
+      phase: 'idle',   // 'idle' | 'question' | 'answer'
+      a: 0, b: 0,
+      timers: [],
+      startedAt: 0,
+      phaseDurMs: 0,
+    };
+
+    function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+    function pickQuestion(){
+      state.a = randInt(0,12); // include 0×n edge if you want only 1..12, change to 1
+      state.b = randInt(0,12);
+      // If you prefer 1..12 only, uncomment:
+      // state.a = randInt(1,12); state.b = randInt(1,12);
+    }
+
+    function clearTimers(){ state.timers.forEach(clearInterval); state.timers.length=0; }
+
+    function setPhase(phase, durationSec){
+      state.phase = phase;
+      document.body.classList.toggle('phase-answer', phase==='answer');
+      modeLabel.textContent = phase.charAt(0).toUpperCase()+phase.slice(1);
+      state.startedAt = performance.now();
+      state.phaseDurMs = (durationSec*1000)|0;
+      progress.style.width = '0%';
+      phaseClock.textContent = `${durationSec.toFixed(1)}s`;
+
+      clearTimers();
+      // progress updater at 60fps
+      const id = setInterval(()=>{
+        const elapsed = performance.now()-state.startedAt;
+        const pct = Math.min(1, elapsed/state.phaseDurMs);
+        progress.style.width = (pct*100).toFixed(2)+'%';
+        const remaining = Math.max(0, (state.phaseDurMs - elapsed)/1000);
+        phaseClock.textContent = remaining.toFixed(1)+'s';
+        if(elapsed>=state.phaseDurMs){ clearInterval(id); state.timers = state.timers.filter(x=>x!==id); if(phase==='question'){ showAnswer(); } else { nextQuestion(); } }
+      }, 1000/60);
+      state.timers.push(id);
+    }
+
+    function showQuestion(){
+      pickQuestion();
+      const q = `${state.a} × ${state.b}`;
+      helper.textContent = 'Think of the answer…';
+      answerControls.style.display = 'none';
+      display.classList.remove('show');
+      display.classList.add('fade');
+      requestAnimationFrame(()=>{ // allow style flush
+        display.textContent = q;
+        display.classList.remove('fade');
+        display.classList.add('show');
+      });
+      setPhase('question', Number(qSecsInput.value)||10);
+    }
+
+    function showAnswer(){
+      const ans = state.a * state.b;
+      helper.innerHTML = 'Mark yourself: <span class="kbd">Y</span> right, <span class="kbd">N</span> wrong';
+      answerControls.style.display = 'flex';
+      display.classList.remove('show');
+      display.classList.add('fade');
+      requestAnimationFrame(()=>{
+        display.textContent = `${state.a} × ${state.b} = ${ans}`;
+        display.classList.remove('fade');
+        display.classList.add('show');
+      });
+      setPhase('answer', Number(aSecsInput.value)||3);
+    }
+
+    function nextQuestion(){ showQuestion(); }
+
+    function start(){ if(state.phase==='idle'){ showQuestion(); } }
+
+    function addRight(){ correctCount.textContent = (Number(correctCount.textContent)||0)+1; saveScores(); nextQuestion(); }
+    function addWrong(){ wrongCount.textContent = (Number(wrongCount.textContent)||0)+1; saveScores(); nextQuestion(); }
+
+    // Event wiring
+    startBtn.addEventListener('click', start);
+    resetBtn.addEventListener('click', ()=>{ correctCount.textContent=0; wrongCount.textContent=0; saveScores(); });
+    rightBtn.addEventListener('click', addRight);
+    wrongBtn.addEventListener('click', addWrong);
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter') start();
+      if(state.phase==='answer'){
+        if(e.key.toLowerCase()==='y') addRight();
+        if(e.key.toLowerCase()==='n') addWrong();
+      }
+    });
+
+    // Initialize
+    loadScores();
+  </script>
+</body>
+</html>
