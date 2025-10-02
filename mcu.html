@@ -29,17 +29,18 @@
             background-color: #f4f4f4;
         }
 
-        .asc::after {
-            content: "▲";
+        .sortable.asc::after {
+            content: " \25B2";
         }
 
-        .desc::after {
-            content: "▼";
+        .sortable.desc::after {
+            content: " \25BC";
         }
     </style>
 </head>
 
 <body>
+    <h1>MCU Checklist</h1>
     <table id="mcu-table">
         <thead>
             <tr>
@@ -59,13 +60,43 @@
         function sortTable(n) {
             let table = document.getElementById("mcu-table");
             let rows = Array.from(table.querySelector("tbody").rows);
-            let dir = table.dataset.sortDir === "asc" ? "desc" : "asc";
-            table.dataset.sortDir = dir;
+            let header = table.querySelector("thead").rows[0].cells[n];
+            let currentSortDir = header.classList.contains("asc") ? "asc" : "desc";
+            let newSortDir = currentSortDir === "asc" ? "desc" : "asc";
+
+            // Remove existing sort classes from all headers
+            table.querySelectorAll("th").forEach(th => {
+                th.classList.remove("asc", "desc");
+            });
+
+            // Add new sort class to the clicked header
+            header.classList.add(newSortDir);
+
             rows.sort((a, b) => {
                 let x = a.cells[n].innerText;
                 let y = b.cells[n].innerText;
-                return isNaN(x) || isNaN(y) ? x.localeCompare(y) * (dir === "asc" ? 1 : -1) : (x - y) * (dir === "asc" ? 1 : -1);
+
+                // Handle date sorting
+                if (n === 2) { // Assuming Release Date is the 3rd column (index 2)
+                    x = new Date(x);
+                    y = new Date(y);
+                }
+                // Handle numeric sorting for Budget, Box Office, IMDb Score
+                else if (n === 3 || n === 4 || n === 5 || n === 6) {
+                    x = parseFloat(x.replace(/[^0-9.-]+/g, ""));
+                    y = parseFloat(y.replace(/[^0-9.-]+/g, ""));
+                    // Handle N/A values for numeric columns
+                    x = isNaN(x) ? (newSortDir === "asc" ? -Infinity : Infinity) : x;
+                    y = isNaN(y) ? (newSortDir === "asc" ? -Infinity : Infinity) : y;
+                }
+
+                if (newSortDir === "asc") {
+                    return x > y ? 1 : -1;
+                } else {
+                    return x < y ? 1 : -1;
+                }
             });
+
             rows.forEach(row => table.querySelector("tbody").appendChild(row));
         }
 
@@ -94,6 +125,7 @@
             const tableBody = document.getElementById("table-body");
             tableBody.innerHTML = "";
 
+            let rowsHtml = [];
             movies.forEach(movie => {
                 const row = `<tr>
                     <td><input type="checkbox" id="${movie.id}" ${localStorage.getItem(movie.id) === "true" ? "checked" : ""}></td>
@@ -108,8 +140,9 @@
                         </a>
                     </td>
                     </tr>`;
-                tableBody.innerHTML += row;
+                rowsHtml.push(row);
             });
+            tableBody.innerHTML = rowsHtml.join('');
         }
     </script>
 
