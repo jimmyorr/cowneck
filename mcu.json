@@ -358,5 +358,15 @@
         "boxOffice": 353,
         "imdbScore": 7.6,
         "imdbId": "tt20969586"
+    },
+    {
+        "id": "the-fantastic-four-first-steps",
+        "name": "The Fantastic Four: First Steps",
+        "releaseDate": "2025-07-25",
+        "phase": 6,
+        "budget": 200,
+        "boxOffice": 521.4,
+        "imdbScore": 6.5,
+        "imdbId": "tt10676052"
     }
 ]
