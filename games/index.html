@@ -3,97 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Games</title>
+    <title>Cowneck</title>
     <style>
+        /* --- RESET & BASE --- */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212; /* Deep dark background */
+            background-image: radial-gradient(circle at 50% 0%, #2a2a2a 0%, #121212 70%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        /* --- HEADER --- */
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 0px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        p.subtitle {
+            margin-top: 10px;
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        /* --- GRID CONTAINER --- */
+        main {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
         }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 30px;
-        }
-        h1 {
-            margin: 0;
-        }
+
         .games-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            gap: 30px;
+            padding-bottom: 60px;
         }
+
+        /* --- GAME CARD --- */
         .game-card {
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+
+        /* Hover Effect: Pop up and glow */
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            border-color: #555;
+        }
+
         .game-card h2 {
             margin-top: 0;
-            color: #333;
+            margin-bottom: 10px;
+            color: #fff;
+            font-size: 1.5rem;
         }
+
         .game-card p {
-            color: #666;
+            color: #aaa;
             line-height: 1.6;
+            font-size: 0.95rem;
+            flex-grow: 1; /* Pushes the button to the bottom */
+            margin-bottom: 20px;
         }
+
+        /* --- BUTTONS --- */
         .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #007bff;
+            display: block;
+            width: 100%;
+            padding: 12px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-decoration: none;
-            border-radius: 4px;
-            margin-top: 10px;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: filter 0.2s, transform 0.1s;
+            border: none;
         }
+
         .btn:hover {
-            background-color: #0056b3;
+            filter: brightness(1.2);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* --- BACK LINK --- */
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
+            padding-bottom: 40px;
+        }
+        .back-link:hover {
+            color: #fff;
+        }
+
+        /* --- MOBILE TWEAKS --- */
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .games-container { gap: 20px; }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Games</h1>
-        <p>Welcome to our games collection</p>
+        <h1>Cowneck</h1>
+        <p class="subtitle">Select a game to load</p>
     </header>
 
     <main>
         <div class="games-container">
+            
             <div class="game-card">
-                <h2>Math Facts</h2>
+                <h2>🔢 Math Facts</h2>
                 <p>Test your arithmetic skills with quick challenges.</p>
-                <a href="math-facts.html" class="btn">Play now</a>
+                <a href="math-facts.html" class="btn">PLAY NOW</a>
             </div>
 
             <div class="game-card">
-                <h2>Neon Drifter</h2>
+                <h2>🌃 Neon Drifter</h2>
                 <p>A retro text-based adventure with a cyberpunk aesthetic.</p>
-                <a href="neon-drifter.html" class="btn">Play now</a>
+                <a href="neon-drifter.html" class="btn">PLAY NOW</a>
             </div>
 
             <div class="game-card">
-                <h2>Cyberpup 2067</h2>
+                <h2>🤖 Cyberpup 2067</h2>
                 <p>A pixel-art platformer where you pilot a Corgi Mech.</p>
-                <a href="cyberpup-2067.html" class="btn">Play now</a>
+                <a href="cyberpup-2067.html" class="btn">PLAY NOW</a>
             </div>
 
             <div class="game-card">
-                <h2>Cyberpup Returns</h2>
-                <p>The sequel. Faster. Tastier. Spookier. Battle ghost puppies and chocolate rockets across three action-packed levels with powerups and strategic platforming.</p>
-                <a href="cyberpup-returns.html" class="btn">Play now</a>
+                <h2>🍫 Cyberpup Returns</h2>
+                <p>The sequel. Faster. Tastier. Spookier. Battle ghost puppies and chocolate rockets across three action-packed levels.</p>
+                <a href="cyberpup-returns.html" class="btn">PLAY NOW</a>
             </div>
 
             <div class="game-card">
-                <h2>Meow Royale</h2>
-                <p>Battle of the Kittens. Play solo Battle Royale against 12 AI bots or challenge a friend in split-screen 1v1. 3D action with dynamic storm mechanics and strategic combat.</p>
-                <a href="meow-royale.html" class="btn">Play now</a>
+                <h2>😼 Meow Royale</h2>
+                <p>Battle of the Kittens. 1v1 split-screen or 12 AI bots. 3D action with dynamic storm mechanics.</p>
+                <a href="meow-royale.html" class="btn">PLAY NOW</a>
             </div>
+
         </div>
+
+        <a href="/" class="back-link">← Return to Cowneck.com</a>
     </main>
 </body>
 </html>
