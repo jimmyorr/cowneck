@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyberpup Returns</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1a1a2e;
+            font-family: 'Courier New', Courier, monospace;
+            touch-action: none; /* Prevent pull-to-refresh on mobile */
+        }
+        canvas {
+            display: block;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .hud-text {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #000;
+        }
+        #center-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 40px;
+            border-radius: 10px;
+            border: 2px solid #00d4ff;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            color: #fff;
+        }
+        .hidden { display: none !important; }
+        button {
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        button:hover {
+            background: #fff;
+        }
+        .level-btn {
+            margin: 5px;
+            background: #ff0055;
+            color: white;
+        }
+        .controls-hint {
+            font-size: 14px;
+            color: #aaa;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div class="hud-text">
+            HP: <span id="hp-display">3</span> | SCORE: <span id="score-display">0</span>
+        </div>
+        <div class="hud-text" style="text-align: right; color: #ffff00;" id="zoomies-hud"></div>
+    </div>
+
+    <div id="center-message">
+        <h1 style="margin:0; font-size: 40px; color:#00d4ff;">CYBERPUP RETURNS</h1>
+        <p>The sequel. Faster. Tastier. Spookier.</p>
+        <div id="level-select">
+            <button class="level-btn" onclick="startGame(0)">The Dessert</button>
+            <button class="level-btn" onclick="startGame(1)">The Dojo</button>
+            <button class="level-btn" onclick="startGame(2)">The Race Track</button>
+        </div>
+        <div class="controls-hint">Arrows/WASD to Move & Jump<br>Touch: Left to Run, Right to Jump</div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+/**
+ * CYBERPUP RETURNS
+ * A Single File HTML5 Game
+ */
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const uiHP = document.getElementById('hp-display');
+const uiScore = document.getElementById('score-display');
+const uiZoomies = document.getElementById('zoomies-hud');
+const menuOverlay = document.getElementById('center-message');
+
+// Game Constants
+const GRAVITY = 0.6;
+const FRICTION = 0.8;
+const PLAYER_SPEED = 6;
+const JUMP_FORCE = -14;
+const ZOOMIES_SPEED_MULT = 2.5;
+const ZOOMIES_DURATION = 300; // Frames (approx 5 sec)
+
+// State
+let gameState = 'MENU'; // MENU, PLAYING, GAMEOVER, WIN
+let frame = 0;
+let score = 0;
+let currentLevelIdx = 0;
+
+// Inputs
+const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, a: false, s: false, d: false, " ": false };
+
+// Camera
+let camera = { x: 0, y: 0 };
+
+// Game Objects
+let player;
+let platforms = [];
+let enemies = [];
+let rockets = [];
+let particles = [];
+let powerups = [];
+let goal;
+
+/* --- CLASSES --- */
+
+class Player {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.w = 40;
+        this.h = 40;
+        this.vx = 0;
+        this.vy = 0;
+        this.grounded = false;
+        this.hp = 3;
+        this.maxHp = 3;
+        this.facingRight = true;
+        
+        // Powerup State
+        this.zoomiesActive = false;
+        this.zoomiesTimer = 0;
+        this.invincibleTimer = 0;
+        this.hasShield = false;
+    }
+
+    update() {
+        // Horizontal Movement
+        if (keys.ArrowLeft || keys.a || touchInput.left) {
+            this.vx -= 1;
+            this.facingRight = false;
+        }
+        if (keys.ArrowRight || keys.d || touchInput.right) {
+            this.vx += 1;
+            this.facingRight = true;
+        }
+
+        // Friction & Speed Caps
+        this.vx *= FRICTION;
+        
+        let maxSpeed = PLAYER_SPEED;
+        if (this.zoomiesActive) maxSpeed *= ZOOMIES_SPEED_MULT;
+
+        if (this.vx > maxSpeed) this.vx = maxSpeed;
+        if (this.vx < -maxSpeed) this.vx = -maxSpeed;
+
+        // Jump
+        if ((keys.ArrowUp || keys.w || keys[" "] || touchInput.jump) && this.grounded) {
+            this.vy = JUMP_FORCE;
+            this.grounded = false;
+            createParticles(this.x + this.w/2, this.y + this.h, 5, '#fff');
+        }
+
+        // Gravity
+        this.vy += GRAVITY;
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Wall collisions (Basic world bounds)
+        if (this.y > 2000) this.die(); // Fall off world
+
+        // Platform Collisions
+        this.grounded = false;
+        for (let p of platforms) {
+            let dir = colCheck(this, p);
+            if (dir === "b") {
+                this.grounded = true;
+                this.vy = 0;
+            } else if (dir === "t") {
+                this.vy *= -1;
+            }
+        }
+
+        // Powerup Logic
+        if (this.zoomiesActive) {
+            this.zoomiesTimer--;
+            // Create speed trail
+            if (frame % 3 === 0) {
+                createParticles(this.x + this.w/2, this.y + this.h/2, 1, '#00d4ff', 20);
+            }
+            if (this.zoomiesTimer <= 0) {
+                this.zoomiesActive = false;
+            }
+        }
+
+        if (this.invincibleTimer > 0) this.invincibleTimer--;
+
+        // Interaction with Enemies (Ghost Puppies)
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            let e = enemies[i];
+            if (boxCol(this, e)) {
+                this.handleEnemyCollision(e, i, enemies);
+            }
+        }
+
+        // Interaction with Rockets
+        for (let i = rockets.length - 1; i >= 0; i--) {
+            let r = rockets[i];
+            // Check if jumping on top
+            if (boxCol(this, r)) {
+                 // Check if player is falling onto the rocket
+                if (this.vy > 0 && this.y + this.h - this.vy <= r.y + r.h * 0.5) {
+                    // Stomp logic
+                    this.vy = -10; // Bounce
+                    createParticles(r.x + r.w/2, r.y + r.h/2, 10, '#8b4513'); // Chocolate crumbs
+                    rockets.splice(i, 1);
+                    score += 200;
+                } else {
+                    this.handleEnemyCollision(r, i, rockets);
+                }
+            }
+        }
+
+        // Interaction with Powerups
+        for (let i = powerups.length - 1; i >= 0; i--) {
+            let p = powerups[i];
+            if (boxCol(this, p)) {
+                if (p.type === 'zoomies') {
+                    this.zoomiesActive = true;
+                    this.zoomiesTimer = ZOOMIES_DURATION;
+                    createParticles(this.x, this.y, 20, '#ffff00');
+                    score += 50;
+                } else if (p.type === 'bone') {
+                    score += 10;
+                } else if (p.type === 'heart') {
+                    if (this.hp < this.maxHp) this.hp++;
+                    createParticles(this.x, this.y, 10, '#ff0000');
+                } else if (p.type === 'shield') {
+                    this.hasShield = true;
+                    createParticles(this.x, this.y, 10, '#0000ff');
+                }
+                powerups.splice(i, 1);
+            }
+        }
+
+        // Goal
+        if (goal && boxCol(this, goal)) {
+            levelComplete();
+        }
+    }
+
+    handleEnemyCollision(entity, index, array) {
+        if (this.zoomiesActive) {
+            // Destroy enemy
+            createParticles(entity.x + entity.w/2, entity.y + entity.h/2, 10, '#ff0055');
+            array.splice(index, 1);
+            score += 100;
+        } else if (this.invincibleTimer <= 0) {
+            if (this.hasShield) {
+                this.hasShield = false;
+                this.invincibleTimer = 60;
+                createParticles(this.x, this.y, 15, '#0000ff');
+                // Knockback
+                this.vy = -5;
+                this.vx = this.x < entity.x ? -10 : 10;
+            } else {
+                // Take damage
+                this.hp--;
+                this.invincibleTimer = 60;
+                this.vy = -5;
+                this.vx = this.x < entity.x ? -10 : 10; // Knockback
+                if (this.hp <= 0) this.die();
+            }
+        }
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(Math.round(this.x - camera.x), Math.round(this.y - camera.y));
+
+        if (this.invincibleTimer > 0 && frame % 4 === 0) {
+            ctx.globalAlpha = 0.5;
+        }
+
+        // Shield Bubble
+        if (this.hasShield) {
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.w/2, this.h/2, 35, 0, Math.PI*2);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+            ctx.fill();
+        }
+
+        // Zoomies Aura
+        if (this.zoomiesActive) {
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#ffff00";
+            ctx.strokeStyle = "#ffff00";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(this.w/2, this.h/2, 30, 0, Math.PI*2);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        // Cyberpup Body
+        ctx.fillStyle = '#ccc';
+        ctx.fillRect(5, 10, 30, 20); // Body
+
+        // Head
+        ctx.fillStyle = '#eee';
+        let headX = this.facingRight ? 25 : -5;
+        ctx.fillRect(headX, 0, 20, 20);
+
+        // Cyber Visor
+        ctx.fillStyle = this.zoomiesActive ? '#ffff00' : '#00d4ff';
+        let visorX = this.facingRight ? 35 : -5;
+        ctx.fillRect(visorX, 5, 10, 5);
+
+        // Ears (Robot style)
+        ctx.fillStyle = '#999';
+        let earX = this.facingRight ? 28 : -2;
+        ctx.beginPath();
+        ctx.moveTo(earX, 0);
+        ctx.lineTo(earX + 5, -10);
+        ctx.lineTo(earX + 10, 0);
+        ctx.fill();
+
+        // Legs (Animated)
+        ctx.fillStyle = '#888';
+        let legOffset = Math.sin(frame * 0.5) * 5;
+        if (Math.abs(this.vx) < 0.1) legOffset = 0;
+        ctx.fillRect(10 + legOffset, 30, 8, 10);
+        ctx.fillRect(25 - legOffset, 30, 8, 10);
+
+        // Tail
+        ctx.strokeStyle = '#999';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        let tailX = this.facingRight ? 5 : 35;
+        ctx.moveTo(tailX, 15);
+        ctx.lineTo(tailX - (this.facingRight ? 10 : -10), 10 + Math.sin(frame*0.5)*5);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    die() {
+        gameState = 'GAMEOVER';
+        showMenu("GAME OVER", "Ghost Puppies got you.", true);
+    }
+}
+
+class GhostPuppy {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.w = 30;
+        this.h = 30;
+        this.speed = 1.5; // Slow
+        this.floatOffset = Math.random() * 100;
+    }
+
+    update() {
+        let dx = (player.x + player.w/2) - (this.x + this.w/2);
+        let dy = (player.y + player.h/2) - (this.y + this.h/2);
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        
+        if (dist < 600) {
+            this.x += (dx / dist) * this.speed;
+            this.y += (dy / dist) * this.speed;
+        }
+        this.y += Math.sin((frame + this.floatOffset) * 0.05) * 0.5;
+    }
+
+    draw() {
+        let drawX = Math.round(this.x - camera.x);
+        let drawY = Math.round(this.y - camera.y);
+
+        if (drawX < -50 || drawX > canvas.width + 50) return; 
+
+        ctx.save();
+        ctx.translate(drawX, drawY);
+        ctx.globalAlpha = 0.7; 
+        
+        // Body (Sheet shape)
+        ctx.fillStyle = '#ccffff';
+        ctx.beginPath();
+        ctx.arc(15, 15, 15, Math.PI, 0); 
+        ctx.lineTo(30, 30);
+        ctx.lineTo(25, 25);
+        ctx.lineTo(20, 30);
+        ctx.lineTo(15, 25);
+        ctx.lineTo(10, 30);
+        ctx.lineTo(5, 25);
+        ctx.lineTo(0, 30);
+        ctx.fill();
+
+        // Eyes
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.arc(10, 12, 3, 0, Math.PI*2);
+        ctx.arc(20, 12, 3, 0, Math.PI*2);
+        ctx.fill();
+
+        // Mouth
+        if (frame % 60 < 30) {
+            ctx.strokeStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(15, 20, 3, 0, Math.PI, false);
+            ctx.stroke();
+        } else {
+             ctx.fillStyle = '#ff5555';
+             ctx.beginPath();
+             ctx.arc(15, 20, 4, 0, Math.PI*2);
+             ctx.fill();
+        }
+        ctx.restore();
+    }
+}
+
+class ChocoRocket {
+    constructor(x, y, speed) {
+        this.x = x;
+        this.y = y;
+        this.w = 40;
+        this.h = 20;
+        this.vx = speed;
+        this.startX = x;
+        this.range = 800; // How far it travels before resetting (or simple screen wrapping)
+    }
+
+    update() {
+        this.x += this.vx;
+        
+        // If it goes too far from player/camera, maybe wrap or bounce?
+        // Let's make them patrol fixed zones or just fly indefinitely in one direction
+        // For this game, let's make them respawn if they go too far off screen relative to player
+        
+        let distFromCam = this.x - camera.x;
+        // Simple wrap around logic for endless stream illusion if needed, 
+        // or just let them fly. Let's make them patrol a wide area.
+        if (Math.abs(this.x - this.startX) > 1000) {
+            // Reset position to loop
+            this.x = this.startX;
+        }
+    }
+
+    draw() {
+        let drawX = Math.round(this.x - camera.x);
+        let drawY = Math.round(this.y - camera.y);
+
+        if (drawX < -100 || drawX > canvas.width + 100) return;
+
+        ctx.save();
+        ctx.translate(drawX, drawY);
+        
+        // Rocket Body
+        ctx.fillStyle = '#5D4037'; // Dark Chocolate
+        ctx.beginPath();
+        // Nose cone
+        if (this.vx > 0) {
+             ctx.moveTo(40, 10);
+             ctx.lineTo(30, 0);
+             ctx.lineTo(30, 20);
+             ctx.fillRect(0, 0, 30, 20);
+        } else {
+             ctx.moveTo(0, 10);
+             ctx.lineTo(10, 0);
+             ctx.lineTo(10, 20);
+             ctx.fillRect(10, 0, 30, 20);
+        }
+        ctx.fill();
+        
+        // Highlights
+        ctx.fillStyle = '#8D6E63'; 
+        ctx.fillRect(this.vx > 0 ? 5 : 15, 5, 20, 4);
+
+        // Exhaust Flame
+        ctx.fillStyle = frame % 10 < 5 ? '#FF5722' : '#FFC107';
+        if (this.vx > 0) {
+            ctx.beginPath();
+            ctx.moveTo(0, 5);
+            ctx.lineTo(-10, 10);
+            ctx.lineTo(0, 15);
+            ctx.fill();
+        } else {
+            ctx.beginPath();
+            ctx.moveTo(40, 5);
+            ctx.lineTo(50, 10);
+            ctx.lineTo(40, 15);
+            ctx.fill();
+        }
+        
+        ctx.restore();
+    }
+}
+
+class Platform {
+    constructor(x, y, w, h, type) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.type = type; // 'normal', 'cookie', 'road', 'wood'
+    }
+
+    draw() {
+        let drawX = Math.round(this.x - camera.x);
+        let drawY = Math.round(this.y - camera.y);
+        
+        if (drawX + this.w < 0 || drawX > canvas.width) return;
+
+        if (this.type === 'cookie') {
+            ctx.fillStyle = '#d2691e'; // Chocolate
+            ctx.beginPath();
+            ctx.roundRect(drawX, drawY, this.w, this.h, 10);
+            ctx.fill();
+            // Chips
+            ctx.fillStyle = '#3e2723';
+            for(let i=0; i<this.w; i+=30) {
+                ctx.beginPath();
+                ctx.arc(drawX + i + 10, drawY + 10, 5, 0, Math.PI*2);
+                ctx.fill();
+            }
+        } else if (this.type === 'wood') {
+            ctx.fillStyle = '#8b4513';
+            ctx.fillRect(drawX, drawY, this.w, this.h);
+            ctx.fillStyle = '#a0522d'; // Grain
+            ctx.fillRect(drawX, drawY+5, this.w, 2);
+            ctx.fillRect(drawX, drawY+15, this.w, 2);
+        } else if (this.type === 'road') {
+            ctx.fillStyle = '#333';
+            ctx.fillRect(drawX, drawY, this.w, this.h);
+            ctx.fillStyle = '#fff'; // Dash
+            for(let i=0; i<this.w; i+=60) {
+                ctx.fillRect(drawX + i + 10, drawY + 5, 30, 5);
+            }
+        } else {
+            ctx.fillStyle = '#555';
+            ctx.fillRect(drawX, drawY, this.w, this.h);
+        }
+    }
+}
+
+class Powerup {
+    constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.w = 30;
+        this.h = 30;
+        this.type = type; // 'zoomies', 'bone', 'heart', 'shield'
+    }
+    
+    draw() {
+        let drawX = Math.round(this.x - camera.x);
+        let drawY = Math.round(this.y - camera.y);
+        let bob = Math.sin(frame * 0.1) * 5;
+
+        if (this.type === 'zoomies') {
+            ctx.fillStyle = '#ffff00';
+            ctx.strokeStyle = '#ffa500';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(drawX + 15, drawY + bob);
+            ctx.lineTo(drawX + 5, drawY + 15 + bob);
+            ctx.lineTo(drawX + 15, drawY + 15 + bob);
+            ctx.lineTo(drawX + 10, drawY + 30 + bob);
+            ctx.lineTo(drawX + 25, drawY + 10 + bob);
+            ctx.lineTo(drawX + 15, drawY + 10 + bob);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        } else if (this.type === 'bone') {
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(drawX + 5, drawY + 10 + bob, 5, 0, Math.PI*2);
+            ctx.arc(drawX + 5, drawY + 20 + bob, 5, 0, Math.PI*2);
+            ctx.fillRect(drawX + 5, drawY + 8 + bob, 20, 14);
+            ctx.arc(drawX + 25, drawY + 10 + bob, 5, 0, Math.PI*2);
+            ctx.arc(drawX + 25, drawY + 20 + bob, 5, 0, Math.PI*2);
+            ctx.fill();
+        } else if (this.type === 'heart') {
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.moveTo(drawX + 15, drawY + 25 + bob);
+            ctx.bezierCurveTo(drawX + 15, drawY + 25 + bob, drawX + 30, drawY + 5 + bob, drawX + 15, drawY + 5 + bob);
+            ctx.bezierCurveTo(drawX, drawY + 5 + bob, drawX + 15, drawY + 25 + bob, drawX + 15, drawY + 25 + bob);
+            ctx.fill();
+        } else if (this.type === 'shield') {
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(drawX + 15, drawY + 15 + bob, 12, 0, Math.PI*2);
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+    }
+}
+
+class Particle {
+    constructor(x, y, color, life) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 4;
+        this.vy = (Math.random() - 0.5) * 4;
+        this.color = color;
+        this.life = life || 30;
+        this.maxLife = this.life;
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life--;
+    }
+    draw() {
+        let drawX = this.x - camera.x;
+        let drawY = this.y - camera.y;
+        ctx.globalAlpha = this.life / this.maxLife;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(drawX, drawY, 4, 4);
+        ctx.globalAlpha = 1;
+    }
+}
+
+/* --- FUNCTIONS --- */
+
+function createParticles(x, y, count, color, life) {
+    for (let i = 0; i < count; i++) {
+        particles.push(new Particle(x, y, color, life));
+    }
+}
+
+function boxCol(rect1, rect2) {
+    return (rect1.x < rect2.x + rect2.w &&
+            rect1.x + rect1.w > rect2.x &&
+            rect1.y < rect2.y + rect2.h &&
+            rect1.y + rect1.h > rect2.y);
+}
+
+function colCheck(shapeA, shapeB) {
+    let vX = (shapeA.x + (shapeA.w / 2)) - (shapeB.x + (shapeB.w / 2)),
+        vY = (shapeA.y + (shapeA.h / 2)) - (shapeB.y + (shapeB.h / 2)),
+        hWidths = (shapeA.w / 2) + (shapeB.w / 2),
+        hHeights = (shapeA.h / 2) + (shapeB.h / 2),
+        colDir = null;
+
+    if (Math.abs(vX) < hWidths && Math.abs(vY) < hHeights) {
+        let oX = hWidths - Math.abs(vX),
+            oY = hHeights - Math.abs(vY);
+        if (oX >= oY) {
+            if (vY > 0) {
+                colDir = "t";
+                shapeA.y += oY;
+            } else {
+                colDir = "b";
+                shapeA.y -= oY;
+            }
+        } else {
+            if (vX > 0) {
+                colDir = "l";
+                shapeA.x += oX;
+            } else {
+                colDir = "r";
+                shapeA.x -= oX;
+            }
+        }
+    }
+    return colDir;
+}
+
+/* --- LEVEL DATA --- */
+
+function loadLevel(index) {
+    platforms = [];
+    enemies = [];
+    rockets = [];
+    powerups = [];
+    player = new Player(50, 200);
+    particles = [];
+    frame = 0;
+    
+    let type = 'normal';
+    
+    const addPlat = (x, y, w, h, t) => platforms.push(new Platform(x, y, w, h, t));
+    const addEnemy = (x, y) => enemies.push(new GhostPuppy(x, y));
+    const addRocket = (x, y, s) => rockets.push(new ChocoRocket(x, y, s));
+    const addPower = (x, y, t) => powerups.push(new Powerup(x, y, t));
+
+    if (index === 0) { // Dessert
+        type = 'cookie';
+        addPlat(0, 500, 1000, 50, type);
+        addPlat(1150, 450, 400, 50, type);
+        addPlat(1600, 300, 200, 50, type);
+        addPlat(1900, 500, 800, 50, type);
+        
+        addPlat(300, 350, 100, 20, type);
+        addPlat(500, 250, 100, 20, type);
+        addPlat(700, 150, 100, 20, type);
+        
+        addEnemy(600, 200);
+        addEnemy(1300, 400);
+        addEnemy(2200, 400);
+        
+        // Choco Rockets
+        addRocket(800, 100, -3); // Flies left
+        addRocket(1800, 250, -4);
+        
+        addPower(720, 110, 'shield'); // New Powerup
+        addPower(1200, 410, 'zoomies'); 
+        addPower(2000, 450, 'heart'); // New Powerup
+        
+        goal = { x: 2600, y: 400, w: 50, h: 100 };
+    } 
+    else if (index === 1) { // Dojo
+        type = 'wood';
+        addPlat(0, 500, 500, 50, type);
+        addPlat(600, 450, 150, 20, type);
+        addPlat(800, 350, 150, 20, type);
+        addPlat(1000, 250, 150, 20, type);
+        addPlat(1200, 200, 800, 30, type);
+        addPlat(1300, 550, 1000, 50, type);
+
+        addEnemy(1400, 150);
+        addEnemy(1800, 150);
+        addEnemy(1600, 500);
+        
+        addRocket(1500, 300, -3);
+
+        addPower(1050, 210, 'bone');
+        addPower(1500, 160, 'zoomies');
+        addPower(50, 460, 'shield');
+        
+        goal = { x: 2200, y: 450, w: 50, h: 100 };
+    } 
+    else if (index === 2) { // Race Track
+        type = 'road';
+        addPlat(0, 500, 2000, 50, type);
+        addPlat(800, 450, 50, 50, type);
+        addPlat(1400, 450, 50, 50, type);
+        addPlat(1900, 450, 50, 50, type);
+        addPlat(2100, 400, 2000, 50, type);
+        
+        addEnemy(500, 400);
+        addEnemy(900, 400);
+        addEnemy(1200, 400);
+        addEnemy(2500, 300);
+        addEnemy(3000, 300);
+        
+        // Fast Rockets
+        addRocket(1000, 400, -5);
+        addRocket(2500, 350, -6);
+        addRocket(3000, 350, -6);
+        
+        addPower(200, 460, 'zoomies');
+        addPower(2300, 360, 'zoomies');
+        addPower(1000, 460, 'bone');
+        addPower(3500, 360, 'heart');
+
+        goal = { x: 4000, y: 300, w: 50, h: 100 };
+    }
+}
+
+function startGame(levelIndex) {
+    currentLevelIdx = levelIndex;
+    loadLevel(levelIndex);
+    score = 0;
+    gameState = 'PLAYING';
+    menuOverlay.classList.add('hidden');
+}
+
+function showMenu(title, subtitle, isEnd) {
+    gameState = 'MENU';
+    menuOverlay.classList.remove('hidden');
+    menuOverlay.querySelector('h1').innerText = title;
+    menuOverlay.querySelector('p').innerText = subtitle;
+}
+
+function levelComplete() {
+    gameState = 'WIN';
+    setTimeout(() => {
+        showMenu("LEVEL COMPLETE", "Score: " + score, true);
+    }, 500);
+}
+
+
+/* --- MAIN LOOP --- */
+
+function update() {
+    if (gameState === 'PLAYING') {
+        frame++;
+        
+        player.update();
+        
+        enemies.forEach(e => e.update());
+        rockets.forEach(r => r.update());
+        
+        particles.forEach((p, i) => {
+            p.update();
+            if(p.life <= 0) particles.splice(i, 1);
+        });
+
+        // Camera Follow
+        let targetX = player.x - canvas.width / 2 + player.w / 2;
+        let targetY = player.y - canvas.height / 2 + player.h / 2;
+        
+        camera.x += (targetX - camera.x) * 0.1;
+        camera.y = Math.min(Math.max(targetY, 0), 100); 
+
+        // Update HUD
+        uiHP.innerText = player.hp;
+        uiScore.innerText = score;
+        if (player.zoomiesActive) {
+            uiZoomies.innerText = "ZOOMIES: " + Math.ceil(player.zoomiesTimer/60);
+        } else {
+            uiZoomies.innerText = "";
+        }
+    }
+}
+
+function drawBackground() {
+    if (currentLevelIdx === 0) {
+        ctx.fillStyle = '#ffc0cb'; // Pink
+    } else if (currentLevelIdx === 1) {
+        ctx.fillStyle = '#f0e68c'; // Khaki
+    } else {
+        ctx.fillStyle = '#222'; // Dark
+    }
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    for(let i=0; i<10; i++) {
+        let x = ((i * 300) - (camera.x * 0.5)) % (canvas.width + 300);
+        if (x < -200) x += canvas.width + 300;
+        ctx.beginPath();
+        if (currentLevelIdx === 0) ctx.arc(x, 100, 50, 0, Math.PI*2);
+        if (currentLevelIdx === 1) ctx.fillRect(x, 50, 20, 400);
+        if (currentLevelIdx === 2) ctx.fillRect(x, 200, 100, 20);
+        ctx.fill();
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    drawBackground();
+
+    platforms.forEach(p => p.draw());
+    powerups.forEach(p => p.draw());
+    
+    if (goal) {
+        ctx.fillStyle = '#00ff00';
+        ctx.fillRect(goal.x - camera.x, goal.y - camera.y, goal.w, goal.h);
+        ctx.fillStyle = '#fff';
+        ctx.font = '20px Arial';
+        ctx.fillText("EXIT", goal.x - camera.x + 5, goal.y - camera.y - 10);
+    }
+
+    enemies.forEach(e => e.draw());
+    rockets.forEach(r => r.draw());
+    particles.forEach(p => p.draw());
+    
+    if (gameState === 'PLAYING' || gameState === 'WIN') {
+        player.draw();
+    }
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+loop();
+
+
+/* --- INPUT HANDLING --- */
+
+window.addEventListener('keydown', e => {
+    if(keys.hasOwnProperty(e.key)) keys[e.key] = true;
+});
+
+window.addEventListener('keyup', e => {
+    if(keys.hasOwnProperty(e.key)) keys[e.key] = false;
+});
+
+const touchInput = { left: false, right: false, jump: false };
+
+canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        let t = e.changedTouches[i];
+        if (t.clientX < window.innerWidth / 2) {
+            if (t.clientX < window.innerWidth / 4) {
+                touchInput.left = true;
+                touchInput.right = false;
+            } else {
+                touchInput.right = true;
+                touchInput.left = false;
+            }
+        } else {
+            touchInput.jump = true;
+        }
+    }
+}, {passive: false});
+
+canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    touchInput.left = false;
+    touchInput.right = false;
+    touchInput.jump = false;
+}, {passive: false});
+
+</script>
+</body>
+</html>
