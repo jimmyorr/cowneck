@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberpup 2067: Ultimate Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #202020;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            color: white;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            border: 4px solid #444;
+        }
+
+        canvas {
+            display: block;
+            background-color: #5c94fc;
+            image-rendering: pixelated;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 780px;
+            pointer-events: none;
+            text-shadow: 2px 2px 0 #000;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .hidden { display: none !important; }
+        
+        #start-screen, #game-over-screen, #level-screen, #import-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 10;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 15px 30px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            background: #e76f51;
+            color: white;
+            border: 4px solid #fff;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.95); }
+        button.secondary { background: #264653; font-size: 10px; padding: 10px 20px; }
+        
+        .hud-group { display: flex; gap: 20px; }
+        
+        #comms-box {
+            font-size: 10px;
+            color: #4cc9f0;
+            background: rgba(0,0,0,0.6);
+            padding: 8px;
+            border: 2px solid #4cc9f0;
+            max-width: 300px;
+            min-width: 200px;
+            text-align: right;
+            border-radius: 4px;
+        }
+
+        #ai-loading {
+            font-size: 10px;
+            color: #aaa;
+            margin-top: 10px;
+            animation: blink 1s infinite;
+        }
+        
+        /* Editor Toolbar */
+        #editor-ui {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-top: 2px solid #fff;
+        }
+        
+        .tool-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #555;
+            background: #333;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .tool-btn.selected { border-color: #e76f51; background: #555; }
+        .tool-btn:hover { background: #444; }
+
+        #level-code-area {
+            width: 600px;
+            height: 100px;
+            background: #222;
+            color: #4cc9f0;
+            font-family: monospace;
+            border: 1px solid #fff;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes blink { 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas" width="800" height="480"></canvas>
+    
+    <div id="ui-layer">
+        <div class="hud-group">
+            <span id="score-display">SCORE: 0</span>
+            <span id="power-display">SUIT: BASE</span>
+            <span id="level-display">L: 1</span>
+        </div>
+        <div id="comms-box">SYSTEM: ONLINE</div>
+    </div>
+
+    <!-- Editor Toolbar -->
+    <div id="editor-ui" class="hidden">
+        <div class="tool-btn selected" data-tool="ground" title="Ground">🧱</div>
+        <div class="tool-btn" data-tool="eraser" title="Eraser">🧼</div>
+        <div class="tool-btn" data-tool="choco" title="Enemy">🍫</div>
+        <div class="tool-btn" data-tool="bone" title="Bone">🦴</div>
+        <div class="tool-btn" data-tool="hydrant" title="Hydrant">🧯</div>
+        <div class="tool-btn" data-tool="claws" title="Claws">⚔️</div>
+        <div style="width:20px"></div>
+        <button id="play-test-btn" style="margin:0; padding: 10px; font-size:10px;">▶ PLAY</button>
+        <button id="export-btn" style="margin:0; padding: 10px; font-size:10px; background:#2a9d8f;">💾 SAVE</button>
+        <button id="clear-btn" style="margin:0; padding: 10px; font-size:10px; background:#e63946;">🗑️ CLEAR</button>
+    </div>
+
+    <div id="start-screen">
+        <h1 style="color:#e76f51; font-size: 35px; margin-bottom: 10px;">CYBERPUP 2067</h1>
+        <p style="color:#f4a261; font-size: 12px; margin-bottom: 20px;">ULTIMATE EDITION</p>
+        <button id="start-btn">STORY MODE</button>
+        <button id="maker-btn" style="background:#2a9d8f;">MAP MAKER</button>
+        <button id="load-btn" class="secondary">LOAD LEVEL CODE</button>
+    </div>
+
+    <div id="level-screen" class="hidden">
+        <h2 id="level-title">LEVEL 1</h2>
+        <p id="level-desc" style="margin-bottom: 20px; color: #4cc9f0;">The Meadow</p>
+        <p id="ai-mission-brief" style="font-size: 12px; color: #ccc; max-width: 600px; line-height: 1.6;">Establishing Uplink...</p>
+        <div id="ai-loading">✨ DECRYPTING INTEL...</div>
+    </div>
+
+    <div id="game-over-screen" class="hidden">
+        <h1 style="color: #e63946;">SYSTEM FAILURE</h1>
+        <p id="final-score">SCORE: 0</p>
+        <p id="ai-death-msg" style="margin-top: 20px; font-size: 12px; color: #aaa; max-width: 500px;">Analyzing black box data...</p>
+        <button id="restart-btn">REBOOT</button>
+        <button id="back-home-btn" class="secondary">MAIN MENU</button>
+    </div>
+
+    <div id="import-screen" class="hidden">
+        <h2>LOAD SIMULATION</h2>
+        <textarea id="level-code-area" placeholder="Paste Level JSON here..."></textarea>
+        <div>
+            <button id="confirm-load-btn">LOAD</button>
+            <button id="cancel-load-btn" class="secondary">CANCEL</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * GEMINI API INTEGRATION
+ */
+const apiKey = ""; // Injected by environment
+
+async function askGemini(prompt) {
+    if (!apiKey) return "COMMUNICATIONS OFFLINE.";
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        const data = await response.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "DATA CORRUPTED.";
+    } catch (error) { return "SIGNAL LOST."; }
+}
+
+function updateComms(text) {
+    const box = document.getElementById('comms-box');
+    box.innerText = text.toUpperCase();
+    box.style.borderColor = '#fff';
+    setTimeout(() => box.style.borderColor = '#4cc9f0', 200);
+}
+
+/**
+ * Game Setup
+ */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const TILE_SIZE = 32;
+const GRAVITY = 0.5;
+const FRICTION = 0.8;
+const MOVE_SPEED = 0.5;
+const JUMP_FORCE = -14; // High Jump enabled!
+const MAX_SPEED = 5;
+const TERMINAL_VELOCITY = 12;
+
+// Input State
+const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false, z: false };
+const mouse = { x: 0, y: 0, isDown: false };
+
+// Game State
+let gameState = 'START'; // START, PLAYING, EDITOR, LEVEL_TRANSITION, GAMEOVER
+let currentLevelIdx = 0;
+let score = 0;
+let animationFrameId;
+let projectiles = [], particles = [], entities = [], powerups = [];
+let levelMap = [];
+
+// Editor State
+let editorTool = 'ground';
+let editorCameraX = 0;
+
+/**
+ * Classes
+ */
+class Camera {
+    constructor(width, height) {
+        this.x = 0;
+        this.y = 0;
+        this.width = width;
+        this.height = height;
+    }
+    follow(targetX, mapWidth) {
+        this.x = targetX - this.width / 2;
+        this.x = Math.max(0, Math.min(this.x, mapWidth - this.width));
+    }
+}
+
+class Particle {
+    constructor(x, y, color, speed) {
+        this.x = x; this.y = y; this.color = color;
+        this.vx = (Math.random() - 0.5) * speed;
+        this.vy = (Math.random() - 0.5) * speed;
+        this.life = 1.0; this.size = Math.random() * 4 + 2;
+    }
+    update() { this.x += this.vx; this.y += this.vy; this.life -= 0.05; }
+    draw(ctx, camX) {
+        ctx.globalAlpha = Math.max(0, this.life);
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x - camX, this.y, this.size, this.size);
+        ctx.globalAlpha = 1.0;
+    }
+}
+
+class Projectile {
+    constructor(x, y, dir, type) {
+        this.x = x; this.y = y; this.vx = dir * 8; this.type = type; this.active = true;
+        this.width = 10; this.height = 10;
+    }
+    update(mapWidth) {
+        this.x += this.vx;
+        if (this.x < 0 || this.x > mapWidth) this.active = false;
+        if (Math.random() > 0.5) particles.push(new Particle(this.x, this.y, '#4cc9f0', 2));
+    }
+    draw(ctx, camX) {
+        ctx.fillStyle = '#4cc9f0'; ctx.beginPath();
+        ctx.arc(this.x - camX, this.y + 5, 5, 0, Math.PI * 2); ctx.fill();
+    }
+}
+
+class PowerUp {
+    constructor(x, y, type) {
+        this.x = x; this.y = y; this.type = type; this.active = true;
+        this.width = TILE_SIZE; this.height = TILE_SIZE; this.floatOffset = 0;
+    }
+    update() { this.floatOffset = Math.sin(Date.now() / 200) * 3; }
+    draw(ctx, camX) {
+        const drawX = this.x - camX; const drawY = this.y + this.floatOffset;
+        ctx.font = '24px serif';
+        const icon = this.type === 'bone' ? '🦴' : (this.type === 'hydrant' ? '🧯' : '⚔️');
+        ctx.fillText(icon, drawX, drawY + 24);
+    }
+}
+
+class Enemy {
+    constructor(x, y, type) {
+        this.x = x; this.y = y; this.type = type; this.active = true;
+        this.width = 32; this.height = 32; this.vx = -2; this.vy = 0;
+        this.grounded = false; this.color = '#5c3a21';
+    }
+    update(map, player) {
+        this.vy = Math.min(this.vy + GRAVITY, TERMINAL_VELOCITY);
+        this.x += this.vx; this.y += this.vy;
+        
+        // AI: Aggro
+        if (this.type === 'choco' && Math.abs(player.x - this.x) < 400) {
+            this.vx = player.x > this.x ? Math.min(this.vx + 0.1, 3) : Math.max(this.vx - 0.1, -3);
+            if (Math.random() > 0.9) particles.push(new Particle(this.x + 16, this.y, '#d62828', 2));
+        }
+        
+        this.handleCollisions(map);
+        if (this.y > canvas.height + 100) this.active = false;
+    }
+    handleCollisions(map) {
+        let row = Math.floor((this.y + this.height) / TILE_SIZE);
+        let colLeft = Math.floor(this.x / TILE_SIZE);
+        let colRight = Math.floor((this.x + this.width) / TILE_SIZE);
+        
+        if (map[row] && (map[row][colLeft] === 1 || map[row][colRight] === 1)) {
+            this.y = row * TILE_SIZE - this.height; this.vy = 0; this.grounded = true;
+        } else { this.grounded = false; }
+        
+        let rowHead = Math.floor(this.y / TILE_SIZE);
+        if (map[rowHead] && (map[rowHead][colLeft] === 1 || map[rowHead][colRight] === 1)) this.vx *= -1;
+    }
+    draw(ctx, camX) {
+        const drawX = this.x - camX;
+        ctx.fillStyle = this.color; ctx.fillRect(drawX, this.y, this.width, this.height); // Body
+        ctx.fillStyle = '#f1faee'; ctx.fillRect(drawX + 5, this.y + 5, 22, 5); // Wrapper
+        ctx.fillStyle = '#e63946'; ctx.beginPath(); // Fin
+        ctx.moveTo(drawX - 5, this.y + 32); ctx.lineTo(drawX + 5, this.y + 10); ctx.lineTo(drawX + 5, this.y + 32); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.fillRect(drawX + (this.vx > 0 ? 18 : 6), this.y + 12, 4, 4); // Eye
+    }
+}
+
+class Player {
+    constructor(x, y) {
+        this.x = x; this.y = y; this.width = 32; this.height = 32;
+        this.vx = 0; this.vy = 0; this.grounded = false; this.powerup = 'none';
+        this.facingRight = true; this.invulnerable = 0; this.attackCooldown = 0;
+    }
+    update(map) {
+        if (keys.ArrowLeft) { this.vx -= MOVE_SPEED; this.facingRight = false; }
+        if (keys.ArrowRight) { this.vx += MOVE_SPEED; this.facingRight = true; }
+        this.vx = Math.max(Math.min(this.vx * FRICTION, MAX_SPEED), -MAX_SPEED);
+        this.vy = Math.min(this.vy + GRAVITY, TERMINAL_VELOCITY);
+        this.x += this.vx; this.y += this.vy;
+        
+        if (keys.ArrowUp && this.grounded) { this.vy = JUMP_FORCE; this.grounded = false; }
+        if (this.attackCooldown > 0) this.attackCooldown--;
+        if (keys.z && this.attackCooldown <= 0) this.useAbility();
+        if (this.invulnerable > 0) this.invulnerable--;
+
+        this.handleCollisions(map);
+        if (this.y > canvas.height + 50) triggerGameOver();
+    }
+    useAbility() {
+        if (this.powerup === 'hydrant') {
+            projectiles.push(new Projectile(this.x + (this.facingRight ? 32 : 0), this.y + 10, this.facingRight ? 1 : -1, 'water'));
+            this.attackCooldown = 20;
+        } else if (this.powerup === 'claws') {
+            const hitX = this.facingRight ? this.x + 32 : this.x - 40;
+            for(let i=0; i<5; i++) particles.push(new Particle(hitX + Math.random()*20, this.y + 10, '#fff', 5));
+            entities.forEach(ent => {
+                if (ent.x < hitX + 40 && ent.x + ent.width > hitX && ent.y < this.y + 32 && ent.y + ent.height > this.y) {
+                    ent.active = false; score += 100; spawnParticles(ent.x, ent.y, '#5c3a21');
+                }
+            });
+            this.attackCooldown = 25;
+        }
+    }
+    handleCollisions(map) {
+        this.grounded = false;
+        const headRow = Math.floor(this.y / TILE_SIZE);
+        const footRow = Math.floor((this.y + this.height) / TILE_SIZE);
+        const leftCol = Math.floor(this.x / TILE_SIZE);
+        const rightCol = Math.floor((this.x + this.width - 0.01) / TILE_SIZE);
+
+        if (map[footRow] && (map[footRow][leftCol] === 1 || map[footRow][rightCol] === 1)) {
+            if (this.vy >= 0 && (this.y + this.height) - (this.vy + GRAVITY) <= footRow * TILE_SIZE + 16) {
+                this.y = footRow * TILE_SIZE - this.height; this.vy = 0; this.grounded = true;
+            }
+        }
+        if (map[headRow] && (map[headRow][leftCol] === 1 || map[headRow][rightCol] === 1) && this.vy < 0) {
+            this.y = (headRow + 1) * TILE_SIZE; this.vy = 0;
+        }
+        
+        const nextFootRow = Math.floor((this.y + this.height - 1) / TILE_SIZE);
+        const nextHeadRow = Math.floor((this.y + 1) / TILE_SIZE);
+        const nextLeftCol = Math.floor(this.x / TILE_SIZE);
+        const nextRightCol = Math.floor((this.x + this.width) / TILE_SIZE);
+
+        if (this.vx > 0 && ((map[nextHeadRow] && map[nextHeadRow][nextRightCol]===1) || (map[nextFootRow] && map[nextFootRow][nextRightCol]===1))) {
+            this.x = nextRightCol * TILE_SIZE - this.width; this.vx = 0;
+        } else if (this.vx < 0 && ((map[nextHeadRow] && map[nextHeadRow][nextLeftCol]===1) || (map[nextFootRow] && map[nextFootRow][nextLeftCol]===1))) {
+            this.x = (nextLeftCol + 1) * TILE_SIZE; this.vx = 0;
+        }
+        
+        // Win Condition for Custom Level: Reach the end flag or end of map
+        if (this.x > map[0].length * TILE_SIZE - 64) nextLevel();
+    }
+    getHit() {
+        if (this.invulnerable > 0) return;
+        askGemini("Generate a 5-word urgent damage alert for a mech suit.").then(text => updateComms("WARNING: " + text));
+        if (this.powerup !== 'none') {
+            this.powerup = 'none'; this.width = 32; this.height = 32; this.y += 16; this.invulnerable = 60;
+            spawnParticles(this.x, this.y, '#e76f51'); updateHUD();
+        } else { triggerGameOver(); }
+    }
+    powerUp(type) {
+        this.powerup = type;
+        if (type === 'bone') { this.height = 48; this.y -= 16; score += 1000; } else { score += 500; }
+        let prompt = `Generate a 5-word cool futuristic system activation phrase for equipping a ${type} weapon.`;
+        askGemini(prompt).then(text => updateComms(text));
+        updateHUD(); spawnParticles(this.x, this.y, '#fff');
+    }
+    draw(ctx, camX) {
+        if (this.invulnerable > 0 && Math.floor(Date.now() / 100) % 2 === 0) return;
+        const drawX = this.x - camX;
+        ctx.fillStyle = '#adb5bd'; ctx.fillRect(drawX, this.y + 10, this.width, this.height - 10); // Body
+        ctx.fillStyle = '#343a40'; // Legs
+        if (Math.abs(this.vx) > 0.1 && Math.floor(Date.now() / 100) % 2 === 0) ctx.fillRect(drawX + 4, this.y + this.height, 8, 4);
+        else { ctx.fillRect(drawX + 4, this.y + this.height - 4, 8, 8); ctx.fillRect(drawX + this.width - 12, this.y + this.height - 4, 8, 8); }
+        ctx.font = '20px serif'; ctx.fillText('🐶', drawX + (this.width/2) - 12, this.y + 12);
+        if (this.powerup === 'hydrant') { ctx.fillStyle = 'red'; ctx.fillRect(drawX + (this.facingRight? this.width : -4), this.y + 15, 4, 8); }
+        else if (this.powerup === 'claws') { ctx.fillStyle = '#silver'; ctx.fillText('⚔️', drawX + (this.facingRight? this.width - 5: -10), this.y + 20); }
+    }
+}
+
+/**
+ * Level & Game Logic
+ */
+const LEVEL_CONFIGS = [
+    { name: "THE MEADOW", color: "#5c94fc", ground: "#2a9d8f", length: 100, difficulty: 1 },
+    { name: "THE CAVES", color: "#264653", ground: "#6c757d", length: 120, difficulty: 2 },
+    { name: "AIRSHIP", color: "#a8dadc", ground: "#e76f51", length: 150, difficulty: 3 }
+];
+let isCustomLevel = false;
+
+function generateLevel(levelIdx) {
+    if (isCustomLevel) return levelMap; // Already loaded via import or editor
+    const config = LEVEL_CONFIGS[levelIdx];
+    const map = [];
+    const h = Math.ceil(canvas.height / TILE_SIZE);
+    const w = config.length;
+
+    for (let y = 0; y < h; y++) map[y] = new Array(w).fill(0);
+    for (let x = 0; x < w; x++) {
+        if (Math.random() > 0.9 && x > 15 && x < w - 10) {} else { map[h - 1][x] = 1; map[h - 2][x] = 1; }
+    }
+    // Procedural stuff
+    for (let x = 10; x < w - 10; x += Math.floor(Math.random() * 5) + 3) {
+        if (Math.random() > 0.4) {
+            const yPos = h - 2 - (Math.floor(Math.random() * 4) + 3);
+            map[yPos][x] = 1; map[yPos][x+1] = 1; map[yPos][x+2] = 1;
+            if (Math.random() > 0.5) entities.push(new Enemy((x+1) * TILE_SIZE, (yPos-1) * TILE_SIZE, 'choco'));
+        }
+    }
+    // Caves
+    if (config.name === "THE CAVES") {
+         for (let x = 10; x < w - 10; x += 10) if (Math.random() > 0.6) { map[h-3][x] = 1; map[h-4][x] = 1; }
+    }
+    // Spawns
+    const powerTypes = ['bone', 'hydrant', 'claws'];
+    for (let i = 0; i < 4; i++) {
+        let px = Math.floor(Math.random() * (w - 20)) + 10;
+        let py = h - 5; 
+        powerups.push(new PowerUp(px * TILE_SIZE, py * TILE_SIZE, powerTypes[i % 3]));
+    }
+    const enemyCount = config.difficulty * 8;
+    for(let i=0; i<enemyCount; i++) {
+        let ex = Math.floor(Math.random() * (w - 20)) + 15;
+        entities.push(new Enemy(ex * TILE_SIZE, 100, 'choco'));
+    }
+    return map;
+}
+
+const camera = new Camera(canvas.width, canvas.height);
+let player;
+
+function initGame(custom = false) {
+    currentLevelIdx = 0; score = 0; isCustomLevel = custom;
+    loadLevel(currentLevelIdx);
+}
+
+function loadLevel(idx) {
+    if (!isCustomLevel && idx >= LEVEL_CONFIGS.length) {
+        alert("YOU SAVED THE FUTURE! TOTAL SCORE: " + score);
+        gameState = 'START';
+        document.getElementById('start-screen').classList.remove('hidden');
+        return;
+    }
+
+    gameState = 'LEVEL_TRANSITION';
+    const config = isCustomLevel ? { name: "USER SIMULATION", color: "#000" } : LEVEL_CONFIGS[idx];
+    
+    document.getElementById('level-title').innerText = isCustomLevel ? "CUSTOM MAP" : "LEVEL " + (idx+1);
+    document.getElementById('level-desc').innerText = config.name;
+    document.getElementById('level-screen').classList.remove('hidden');
+    document.getElementById('level-display').innerText = "L: " + (idx+1);
+    
+    // AI Brief
+    document.getElementById('ai-mission-brief').innerText = "SCANNING GEOMETRY...";
+    document.getElementById('ai-loading').style.display = "block";
+    let prompt = isCustomLevel ? 
+        "A user has created a custom simulation level. Describe the challenge in 10 words. Sci-fi tone." :
+        `Briefly describe the environment '${config.name}' for a Corgi Mech agent mission. Max 15 words. Sci-fi tone.`;
+    
+    askGemini(prompt).then(text => {
+        document.getElementById('ai-mission-brief').innerText = text;
+        document.getElementById('ai-loading').style.display = "none";
+    });
+    
+    setTimeout(() => {
+        document.getElementById('level-screen').classList.add('hidden');
+        resetLevelState(config);
+        gameState = 'PLAYING';
+    }, 2500); 
+}
+
+function resetLevelState(config) {
+    if (!isCustomLevel) { entities = []; projectiles = []; particles = []; powerups = []; }
+    // If Custom, entities/powerups are already set by import/editor
+    else { projectiles = []; particles = []; }
+
+    levelMap = generateLevel(currentLevelIdx);
+    player = new Player(100, 350);
+    canvas.style.backgroundColor = config.color;
+    updateComms("SYSTEMS NOMINAL.");
+}
+
+function nextLevel() {
+    if(isCustomLevel) {
+        alert("SIMULATION COMPLETE! SCORE: " + score);
+        gameState = 'START';
+        document.getElementById('start-screen').classList.remove('hidden');
+    } else {
+        score += 1000; currentLevelIdx++; loadLevel(currentLevelIdx);
+    }
+}
+
+function triggerGameOver() {
+    gameState = 'GAMEOVER';
+    document.getElementById('final-score').innerText = "SCORE: " + score;
+    document.getElementById('game-over-screen').classList.remove('hidden');
+    askGemini("Write a sympathetic but slightly sarcastic system failure log for a Corgi Mech. Max 10 words.").then(text => {
+        document.getElementById('ai-death-msg').innerText = "LOG: " + text;
+    });
+}
+
+function spawnParticles(x, y, color) { for (let i = 0; i < 10; i++) particles.push(new Particle(x, y, color, 4)); }
+function updateHUD() {
+    document.getElementById('score-display').innerText = "SCORE: " + score;
+    let suitName = "BASE";
+    if (player.powerup === 'bone') suitName = "MEGA-PUP";
+    if (player.powerup === 'hydrant') suitName = "HYDRO";
+    if (player.powerup === 'claws') suitName = "MELEE";
+    document.getElementById('power-display').innerText = "SUIT: " + suitName;
+}
+
+/**
+ * MAIN LOOP
+ */
+function update() {
+    if (gameState === 'EDITOR') updateEditor();
+    if (gameState !== 'PLAYING') return;
+
+    const mapWidth = levelMap[0].length * TILE_SIZE;
+    player.update(levelMap);
+    camera.follow(player.x, mapWidth);
+    
+    projectiles.forEach(p => p.update(mapWidth)); projectiles = projectiles.filter(p => p.active);
+    particles.forEach(p => p.update()); particles = particles.filter(p => p.life > 0);
+    
+    entities.forEach(ent => {
+        ent.update(levelMap, player);
+        if (ent.active && player.x < ent.x + ent.width && player.x + player.width > ent.x && player.y < ent.y + ent.height && player.y + player.height > ent.y) {
+            if (player.vy > 0 && player.y + player.height < ent.y + (ent.height/2)) {
+                ent.active = false; player.vy = -5; score += 200; spawnParticles(ent.x, ent.y, '#5c3a21');
+            } else { player.getHit(); }
+        }
+        projectiles.forEach(proj => {
+            if (proj.active && ent.active && proj.x < ent.x + ent.width && proj.x + proj.width > ent.x && proj.y < ent.y + ent.height && proj.y + proj.height > ent.y) {
+                ent.active = false; proj.active = false; score += 100; spawnParticles(ent.x, ent.y, '#5c3a21');
+            }
+        });
+    });
+    entities = entities.filter(e => e.active);
+    
+    powerups.forEach(p => {
+        p.update();
+        if (p.active && player.x < p.x + p.width && player.x + player.width > p.x && player.y < p.y + p.height && player.y + player.height > p.y) {
+            player.powerUp(p.type); p.active = false;
+        }
+    });
+    updateHUD();
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const camX = Math.floor(gameState === 'EDITOR' ? editorCameraX : camera.x);
+    
+    // Draw Background/Grid
+    if (gameState === 'EDITOR') {
+        ctx.strokeStyle = '#333'; ctx.lineWidth = 1;
+        for(let x=0; x<canvas.width; x+=TILE_SIZE) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+        for(let y=0; y<canvas.height; y+=TILE_SIZE) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+    }
+
+    // Draw Map
+    const startCol = Math.floor(camX / TILE_SIZE);
+    const endCol = startCol + (canvas.width / TILE_SIZE) + 1;
+    const levelColor = isCustomLevel || gameState === 'EDITOR' ? '#444' : LEVEL_CONFIGS[currentLevelIdx].ground;
+    
+    for (let y = 0; y < levelMap.length; y++) {
+        for (let x = startCol; x <= endCol; x++) {
+            if (levelMap[y] && levelMap[y][x] === 1) {
+                ctx.fillStyle = levelColor;
+                ctx.fillRect(x * TILE_SIZE - camX, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.strokeRect(x * TILE_SIZE - camX, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            }
+        }
+    }
+    
+    powerups.forEach(p => p.active && p.draw(ctx, camX));
+    entities.forEach(e => e.draw(ctx, camX));
+    if (gameState === 'PLAYING') player.draw(ctx, camX);
+    projectiles.forEach(p => p.draw(ctx, camX));
+    particles.forEach(p => p.draw(ctx, camX));
+    
+    if (gameState === 'EDITOR') drawEditorOverlay(ctx);
+}
+
+function loop() {
+    update(); draw();
+    animationFrameId = requestAnimationFrame(loop);
+}
+
+/**
+ * EDITOR LOGIC
+ */
+function initEditor() {
+    gameState = 'EDITOR';
+    score = 0;
+    entities = []; powerups = []; projectiles = []; particles = [];
+    editorCameraX = 0;
+    
+    // Create Blank Map 100 tiles wide
+    const h = Math.ceil(canvas.height / TILE_SIZE);
+    levelMap = [];
+    for(let y=0; y<h; y++) levelMap[y] = new Array(100).fill(0);
+    
+    // Initial floor
+    for(let x=0; x<100; x++) { levelMap[h-1][x] = 1; levelMap[h-2][x] = 1; }
+    
+    document.getElementById('start-screen').classList.add('hidden');
+    document.getElementById('editor-ui').classList.remove('hidden');
+    canvas.style.backgroundColor = '#111';
+}
+
+function updateEditor() {
+    // Scroll
+    if (keys.ArrowRight) editorCameraX += 5;
+    if (keys.ArrowLeft) editorCameraX -= 5;
+    editorCameraX = Math.max(0, Math.min(editorCameraX, (levelMap[0].length * TILE_SIZE) - canvas.width));
+    
+    // Mouse Input
+    if (mouse.isDown) {
+        const mx = mouse.x + editorCameraX;
+        const my = mouse.y;
+        const col = Math.floor(mx / TILE_SIZE);
+        const row = Math.floor(my / TILE_SIZE);
+        
+        if (row >= 0 && row < levelMap.length && col >= 0 && col < levelMap[0].length) {
+            if (editorTool === 'ground') levelMap[row][col] = 1;
+            else if (editorTool === 'eraser') {
+                levelMap[row][col] = 0;
+                // Remove entities at this location
+                entities = entities.filter(e => !(Math.floor((e.x+10)/TILE_SIZE) === col && Math.floor((e.y+10)/TILE_SIZE) === row));
+                powerups = powerups.filter(p => !(Math.floor((p.x+10)/TILE_SIZE) === col && Math.floor((p.y+10)/TILE_SIZE) === row));
+            }
+        }
+    }
+}
+
+function handleEditorClick() {
+    if (gameState !== 'EDITOR') return;
+    const mx = mouse.x + editorCameraX;
+    const my = mouse.y;
+    const tx = Math.floor(mx / TILE_SIZE) * TILE_SIZE;
+    const ty = Math.floor(my / TILE_SIZE) * TILE_SIZE;
+    
+    // Place Entities (Click only, not drag)
+    if (editorTool === 'choco') {
+        entities.push(new Enemy(tx, ty, 'choco'));
+    } else if (['bone', 'hydrant', 'claws'].includes(editorTool)) {
+        powerups.push(new PowerUp(tx, ty, editorTool));
+    }
+}
+
+function drawEditorOverlay(ctx) {
+    // Highlight Mouse
+    const mx = Math.floor((mouse.x + editorCameraX) / TILE_SIZE) * TILE_SIZE - editorCameraX;
+    const my = Math.floor(mouse.y / TILE_SIZE) * TILE_SIZE;
+    ctx.strokeStyle = '#e76f51'; ctx.lineWidth = 2;
+    ctx.strokeRect(mx, my, TILE_SIZE, TILE_SIZE);
+}
+
+function exportLevel() {
+    const data = { map: levelMap, entities: entities.map(e => ({x:e.x, y:e.y, type:e.type})), powerups: powerups.map(p => ({x:p.x, y:p.y, type:p.type})) };
+    const json = JSON.stringify(data);
+    navigator.clipboard.writeText(json).then(() => alert("Level Code copied to Clipboard!"));
+}
+
+function importLevel(json) {
+    try {
+        const data = JSON.parse(json);
+        levelMap = data.map;
+        entities = data.entities.map(e => new Enemy(e.x, e.y, e.type));
+        powerups = data.powerups.map(p => new PowerUp(p.x, p.y, p.type));
+        isCustomLevel = true;
+        
+        document.getElementById('import-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.add('hidden');
+        initGame(true);
+    } catch(e) { alert("Invalid Level Code!"); }
+}
+
+/**
+ * Event Listeners
+ */
+window.addEventListener('keydown', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+window.addEventListener('keyup', e => { if(keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+
+canvas.addEventListener('mousedown', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left; mouse.y = e.clientY - rect.top;
+    mouse.isDown = true;
+    if(gameState === 'EDITOR') handleEditorClick();
+});
+canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left; mouse.y = e.clientY - rect.top;
+});
+canvas.addEventListener('mouseup', () => mouse.isDown = false);
+
+// UI Buttons
+document.getElementById('start-btn').addEventListener('click', () => { isCustomLevel = false; document.getElementById('start-screen').classList.add('hidden'); initGame(); });
+document.getElementById('restart-btn').addEventListener('click', () => { document.getElementById('game-over-screen').classList.add('hidden'); initGame(isCustomLevel); });
+document.getElementById('maker-btn').addEventListener('click', initEditor);
+document.getElementById('back-home-btn').addEventListener('click', () => { window.location.reload(); });
+document.getElementById('play-test-btn').addEventListener('click', () => {
+    document.getElementById('editor-ui').classList.add('hidden');
+    isCustomLevel = true;
+    initGame(true);
+});
+
+// Editor Tools
+document.querySelectorAll('.tool-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        editorTool = btn.dataset.tool;
+    });
+});
+document.getElementById('clear-btn').addEventListener('click', initEditor);
+document.getElementById('export-btn').addEventListener('click', exportLevel);
+document.getElementById('load-btn').addEventListener('click', () => document.getElementById('import-screen').classList.remove('hidden'));
+document.getElementById('cancel-load-btn').addEventListener('click', () => document.getElementById('import-screen').classList.add('hidden'));
+document.getElementById('confirm-load-btn').addEventListener('click', () => importLevel(document.getElementById('level-code-area').value));
+
+// Start
+loop();
+</script>
+</body>
+</html>
