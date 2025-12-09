@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Slope Builder</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #e0f7fa; /* Light icy blue */
+            font-family: 'Fredoka', sans-serif;
+            touch-action: none; /* Prevent scrolling on mobile */
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .hud-top {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .hud-text {
+            color: #006064;
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+            pointer-events: none;
+        }
+
+        /* Fuel Bar */
+        #fuel-container {
+            width: 200px;
+            height: 20px;
+            background: rgba(255,255,255,0.5);
+            border: 2px solid #006064;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none; /* Hidden in build mode */
+        }
+        #fuel-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff9800, #f44336);
+            transform-origin: left;
+            transition: transform 0.1s linear;
+        }
+
+        .controls {
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            background: #00bcd4;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 30px;
+            color: white;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s, background 0.2s;
+            text-transform: uppercase;
+            pointer-events: auto;
+            user-select: none;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn:disabled {
+            background: #b2ebf2;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .btn-green {
+            background: #4caf50;
+        }
+
+        .btn-red {
+            background: #ff5722;
+        }
+
+        #intro-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            pointer-events: auto;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #006064;
+            margin-bottom: 10px;
+            font-size: 3rem;
+        }
+
+        p {
+            color: #555;
+            max-width: 500px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Mobile Slider */
+        #slider-container {
+            width: 80%;
+            max-width: 400px;
+            height: 50px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 25px;
+            position: relative;
+            pointer-events: auto;
+            display: none; /* Shown via JS if touch */
+            border: 2px solid #00bcd4;
+        }
+
+        #slider-knob {
+            width: 50px;
+            height: 50px;
+            background: #00bcd4;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .mode-indicator {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #00838f;
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui-layer">
+        <div class="hud-top">
+            <div class="hud-text" id="status-text">Mode: BUILD</div>
+            <div id="fuel-container">
+                <div id="fuel-bar"></div>
+            </div>
+        </div>
+        
+        <div class="mode-indicator" id="center-message"></div>
+        
+        <div class="controls">
+            <!-- Slider for mobile build control -->
+            <div id="slider-container">
+                <div id="slider-knob"></div>
+            </div>
+
+            <div class="btn-row">
+                <button id="boost-btn" class="btn btn-red hidden">Boost 🔥</button>
+                <button id="action-btn" class="btn btn-green">RIDE! (Enter)</button>
+            </div>
+            <button id="reset-btn" class="btn hidden">New Course</button>
+        </div>
+    </div>
+
+    <div id="intro-screen">
+        <h1>Slope Builder</h1>
+        <p>
+            <strong>Phase 1: BUILD</strong><br>
+            Create your own ski course!<br>
+            Desktop: Use ⬆️ / ⬇️ Arrows.<br>
+            Mobile: Tilt your phone (Gyro) or drag the slider.<br>
+            <br>
+            <strong>Phase 2: RIDE</strong><br>
+            Hit "RIDE" to ski.<br>
+            Use <strong>Shift</strong> or <strong>Boost Button</strong> to fly uphill!
+        </p>
+        <div style="display:flex; gap:10px;">
+            <button id="start-btn" class="btn">Start Game</button>
+            <button id="gyro-btn" class="btn hidden">Enable Gyro 📱</button>
+        </div>
+        <small style="margin-top: 15px; color: #999;">If on mobile, enable Gyro for best experience.</small>
+    </div>
+
+    <script>
+        // --- Game Constants & State ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const uiLayer = document.getElementById('ui-layer');
+        const introScreen = document.getElementById('intro-screen');
+        const statusText = document.getElementById('status-text');
+        const centerMessage = document.getElementById('center-message');
+        const actionBtn = document.getElementById('action-btn');
+        const boostBtn = document.getElementById('boost-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const startBtn = document.getElementById('start-btn');
+        const gyroBtn = document.getElementById('gyro-btn');
+        const sliderContainer = document.getElementById('slider-container');
+        const sliderKnob = document.getElementById('slider-knob');
+        const fuelContainer = document.getElementById('fuel-container');
+        const fuelBar = document.getElementById('fuel-bar');
+
+        // Check if mobile
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        let gameState = 'INTRO'; // INTRO, BUILD, RIDE
+        let width, height;
+        
+        // Physics / World
+        let points = []; // {x, y}
+        let camera = { x: 0, y: 0 };
+        let offsetX = 200; // Player/Builder X offset from left screen
+        let groundColor = '#ffffff';
+        let skyColor = '#e0f7fa';
+
+        // Building
+        let buildX = 0;
+        let buildY = 0;
+        const segmentWidth = 10;
+        let buildSpeed = 5; 
+        let inputVal = 0; // -1 (up) to 1 (down)
+
+        // Gyro
+        let useGyro = false;
+
+        // Skier
+        let skier = {
+            x: 0,
+            y: 0,
+            vx: 0,
+            vy: 0,
+            rotation: 0,
+            onGround: false,
+            radius: 10,
+            fuel: 100,
+            maxFuel: 100,
+            isBoosting: false
+        };
+        const gravity = 0.25;
+        const friction = 0.99;
+        const groundFriction = 0.98;
+
+        // Visuals
+        let trees = [];
+        let particles = []; // Smoke/fire
+
+        // --- Resize Handling ---
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            if(gameState === 'BUILD') {
+                camera.y = buildY - height / 2;
+            }
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- Input Handling ---
+        const keys = {};
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === 'Shift') skier.isBoosting = true;
+            if (e.key === 'Enter' && gameState === 'BUILD') startRide();
+            if (e.key === ' ' && gameState === 'RIDE') jumpSkier();
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+            if (e.key === 'Shift') skier.isBoosting = false;
+        });
+
+        // Boost Button (Mobile)
+        boostBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            skier.isBoosting = true;
+        });
+        boostBtn.addEventListener('pointerup', (e) => {
+            e.preventDefault();
+            skier.isBoosting = false;
+        });
+        boostBtn.addEventListener('pointerleave', (e) => {
+             skier.isBoosting = false;
+        });
+
+        // Gyro Logic
+        function handleOrientation(event) {
+            if (!useGyro) return;
+            let beta = event.beta; 
+            if (beta === null) return;
+            
+            const neutral = 45;
+            const range = 30;
+            
+            let diff = beta - neutral;
+            if (diff > range) diff = range;
+            if (diff < -range) diff = -range;
+
+            inputVal = diff / range; 
+        }
+
+        // Gyro Permission for iOS
+        gyroBtn.addEventListener('click', async () => {
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    const permissionState = await DeviceOrientationEvent.requestPermission();
+                    if (permissionState === 'granted') {
+                        window.addEventListener('deviceorientation', handleOrientation);
+                        useGyro = true;
+                        gyroBtn.textContent = "Gyro Enabled ✅";
+                        gyroBtn.disabled = true;
+                    } else {
+                        alert('Permission denied');
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            } else {
+                window.addEventListener('deviceorientation', handleOrientation);
+                useGyro = true;
+                gyroBtn.textContent = "Gyro Enabled ✅";
+                gyroBtn.disabled = true;
+            }
+        });
+
+        // Touch Slider Logic
+        let draggingSlider = false;
+        sliderContainer.addEventListener('pointerdown', (e) => {
+            draggingSlider = true;
+            updateSlider(e);
+            sliderContainer.setPointerCapture(e.pointerId);
+        });
+        sliderContainer.addEventListener('pointermove', (e) => {
+            if (draggingSlider) updateSlider(e);
+        });
+        sliderContainer.addEventListener('pointerup', (e) => {
+            draggingSlider = false;
+            inputVal = 0;
+            sliderKnob.style.left = '50%';
+        });
+
+        function updateSlider(e) {
+            const rect = sliderContainer.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            x = Math.max(0, Math.min(x, rect.width));
+            inputVal = ((x / rect.width) * 2) - 1;
+            sliderKnob.style.left = x + 'px';
+        }
+
+        // UI Buttons
+        startBtn.addEventListener('click', () => {
+            introScreen.classList.add('hidden');
+            if(isMobile) sliderContainer.style.display = 'block';
+            resetGame();
+        });
+
+        actionBtn.addEventListener('click', () => {
+            if (gameState === 'BUILD') startRide();
+            else if (gameState === 'RIDE') jumpSkier();
+        });
+
+        resetBtn.addEventListener('click', resetGame);
+
+        if (isMobile && window.DeviceOrientationEvent) {
+            gyroBtn.classList.remove('hidden');
+        }
+
+        // --- Core Game Functions ---
+
+        function resetGame() {
+            gameState = 'BUILD';
+            points = [];
+            trees = [];
+            particles = [];
+            buildX = 0;
+            buildY = height / 2; 
+            camera.x = 0;
+            camera.y = 0;
+            
+            // Add initial flat platform
+            for(let i=0; i<10; i++) {
+                addPoint(buildX, buildY);
+                buildX += segmentWidth;
+            }
+
+            statusText.textContent = "Mode: BUILD - Create your slope!";
+            centerMessage.textContent = "UP: Rise | DOWN: Fall";
+            actionBtn.textContent = "RIDE! (Enter)";
+            actionBtn.classList.remove('hidden');
+            resetBtn.classList.add('hidden');
+            boostBtn.classList.add('hidden');
+            fuelContainer.style.display = 'none';
+            
+            inputVal = 0;
+            
+            // Reset Skier
+            skier = { 
+                x: 0, y: height/2, vx: 5, vy: 0, 
+                rotation: 0, onGround: true, radius: 10,
+                fuel: 100, maxFuel: 100, isBoosting: false 
+            };
+        }
+
+        function addPoint(x, y) {
+            points.push({x, y});
+            if (Math.random() < 0.1) {
+                trees.push({
+                    x: x + (Math.random() * 20 - 10),
+                    y: y,
+                    scale: 0.5 + Math.random() * 0.5,
+                    type: Math.random() > 0.5 ? 1 : 0
+                });
+            }
+        }
+
+        function startRide() {
+            if (points.length < 50) {
+                centerMessage.textContent = "Course too short! Keep building.";
+                setTimeout(() => centerMessage.textContent = "", 2000);
+                return;
+            }
+            gameState = 'RIDE';
+            statusText.textContent = "Mode: RIDE";
+            centerMessage.textContent = "Go!";
+            setTimeout(() => centerMessage.textContent = "", 1000);
+            
+            actionBtn.textContent = "JUMP!";
+            resetBtn.classList.remove('hidden');
+            boostBtn.classList.remove('hidden');
+            fuelContainer.style.display = 'block';
+
+            // Place skier at start slightly above ground
+            skier.x = points[2].x;
+            skier.y = points[2].y - 20;
+            skier.vx = 4; 
+            skier.vy = 0;
+            skier.fuel = 100;
+        }
+
+        function jumpSkier() {
+            if(gameState === 'RIDE' && skier.onGround) {
+                skier.vy -= 8;
+                skier.onGround = false;
+            }
+        }
+
+        // --- Game Loop ---
+
+        function update() {
+            if (gameState === 'BUILD') {
+                updateBuild();
+            } else if (gameState === 'RIDE') {
+                updateRide();
+            }
+            updateParticles();
+        }
+
+        function updateBuild() {
+            if (keys['ArrowUp']) inputVal = -1;
+            else if (keys['ArrowDown']) inputVal = 1;
+            else if (!useGyro && !draggingSlider) inputVal = 0; 
+
+            const maxSlopePerSeg = 8; 
+            let effectiveInput = inputVal + 0.1; // Bias down
+
+            buildY += effectiveInput * maxSlopePerSeg;
+            buildX += segmentWidth;
+            addPoint(buildX, buildY);
+
+            camera.x = buildX - width * 0.7; 
+            camera.y += ( (buildY - height/2) - camera.y ) * 0.1;
+        }
+
+        function getLineSegment(x) {
+            let idx = Math.floor(x / segmentWidth);
+            if (idx < 0) idx = 0;
+            if (idx >= points.length - 1) return null;
+            return {
+                p1: points[idx],
+                p2: points[idx+1]
+            };
+        }
+
+        function updateRide() {
+            // Apply Gravity
+            skier.vy += gravity;
+
+            // --- Rocket Boost Logic ---
+            if (skier.isBoosting && skier.fuel > 0) {
+                const boostPower = 0.5;
+                // Boost direction depends on state
+                let boostAngle = skier.rotation;
+                
+                // If in air, boost follows current velocity mostly, or straight if slow
+                if (!skier.onGround) {
+                     // Slightly easier to control in air if we allow some directing
+                     // For now, just boost in direction of rotation
+                }
+                
+                skier.vx += Math.cos(boostAngle) * boostPower;
+                skier.vy += Math.sin(boostAngle) * boostPower;
+                
+                skier.fuel -= 0.25; // Consume fuel slower (was 1.5)
+                
+                // Add particles
+                for(let i=0; i<3; i++) {
+                    particles.push({
+                        x: skier.x - Math.cos(boostAngle)*10 + (Math.random()*6-3),
+                        y: skier.y - Math.sin(boostAngle)*10 + (Math.random()*6-3),
+                        vx: -Math.cos(boostAngle)*4 + (Math.random()*2-1),
+                        vy: -Math.sin(boostAngle)*4 + (Math.random()*2-1),
+                        life: 1.0,
+                        color: Math.random() > 0.5 ? '#ffeb3b' : '#f44336'
+                    });
+                }
+            } else if (skier.fuel < skier.maxFuel) {
+                skier.fuel += 0.2; // Regen
+            }
+
+            // Update Fuel UI
+            const fuelPct = Math.max(0, skier.fuel / skier.maxFuel);
+            fuelBar.style.transform = `scaleX(${fuelPct})`;
+
+
+            skier.x += skier.vx;
+            skier.y += skier.vy;
+
+            skier.onGround = false;
+
+            // Ground Collision
+            const seg = getLineSegment(skier.x);
+            if (seg) {
+                const p1 = seg.p1;
+                const p2 = seg.p2;
+                const t = (skier.x - p1.x) / (p2.x - p1.x);
+                const groundY = p1.y + t * (p2.y - p1.y);
+
+                if (skier.y > groundY - 2) { 
+                    skier.y = groundY;
+                    skier.onGround = true;
+
+                    const dx = p2.x - p1.x;
+                    const dy = p2.y - p1.y;
+                    const angle = Math.atan2(dy, dx);
+                    skier.rotation = angle;
+
+                    const slopeForce = Math.sin(angle) * gravity * 1.5;
+                    
+                    let speedAlongSlope = (skier.vx * Math.cos(angle) + skier.vy * Math.sin(angle));
+                    speedAlongSlope += slopeForce;
+                    speedAlongSlope *= groundFriction;
+
+                    skier.vx = speedAlongSlope * Math.cos(angle);
+                    skier.vy = speedAlongSlope * Math.sin(angle);
+
+                    // Prevent stuck in valleys
+                    if (Math.abs(speedAlongSlope) < 0.1 && dy > 0) {
+                        skier.vx += 0.1; 
+                    }
+                } else {
+                    // Air rotation
+                    skier.rotation += (Math.atan2(skier.vy, skier.vx) - skier.rotation) * 0.1;
+                }
+            } else {
+                if (skier.y > height + 1000) {
+                   skier.vx = 0; skier.vy = 0;
+                }
+            }
+
+            camera.x = skier.x - width * 0.3;
+            camera.y += ( (skier.y - height/2) - camera.y ) * 0.1;
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.05;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        // --- Rendering ---
+
+        function draw() {
+            // Clear
+            ctx.fillStyle = skyColor;
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.save();
+            ctx.translate(-camera.x, -camera.y);
+
+            // Trees
+            ctx.fillStyle = '#b2dfdb'; 
+            trees.forEach(tree => {
+                if (tree.x > camera.x - 100 && tree.x < camera.x + width + 100) {
+                    drawTree(tree.x, tree.y, tree.scale, '#00695c');
+                }
+            });
+
+            // Particles (behind skier)
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4 * p.life, 0, Math.PI*2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+
+            // Slope
+            if (points.length > 0) {
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
+                }
+                ctx.lineTo(points[points.length-1].x, points[points.length-1].y + 2000);
+                ctx.lineTo(points[0].x, points[0].y + 2000);
+                
+                ctx.fillStyle = groundColor;
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
+                }
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#00bcd4';
+                ctx.stroke();
+            }
+
+            // Skier
+            if (gameState === 'RIDE') {
+                drawSkier();
+            } else if (gameState === 'BUILD') {
+                ctx.beginPath();
+                ctx.arc(buildX, buildY, 5, 0, Math.PI*2);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function drawTree(x, y, scale, color) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(0, -40); ctx.lineTo(15, -10); ctx.lineTo(-15, -10); ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(0, -25); ctx.lineTo(20, 5); ctx.lineTo(-20, 5); ctx.fill();
+            ctx.fillStyle = '#5d4037';
+            ctx.fillRect(-3, 5, 6, 10);
+            ctx.restore();
+        }
+
+        function drawSkier() {
+            ctx.save();
+            ctx.translate(skier.x, skier.y);
+            ctx.rotate(skier.rotation);
+
+            // Skis
+            ctx.fillStyle = '#d32f2f';
+            ctx.beginPath();
+            ctx.roundRect(-15, 8, 30, 4, 2);
+            ctx.fill();
+
+            // Rocket Pack
+            ctx.fillStyle = '#607d8b'; // Grey metal
+            ctx.beginPath();
+            ctx.roundRect(-12, -25, 10, 20, 2); // Tank
+            ctx.fill();
+            ctx.fillStyle = '#ff5722'; // Nozzle tip
+            ctx.beginPath();
+            ctx.moveTo(-10, -5); ctx.lineTo(-2, -5); ctx.lineTo(-6, 2); ctx.fill();
+
+            // Body
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(0, 8); ctx.lineTo(-5, -5); ctx.lineTo(0, -15); ctx.stroke(); // Legs
+            ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(5, -30); ctx.stroke(); // Torso
+            
+            // Head
+            ctx.beginPath(); ctx.arc(7, -34, 5, 0, Math.PI*2); ctx.fillStyle = '#ffcc80'; ctx.fill();
+            ctx.beginPath(); ctx.arc(7, -36, 5, Math.PI, 0); ctx.fillStyle = '#1976d2'; ctx.fill(); // Beanie
+
+            // Arms
+            ctx.beginPath(); ctx.moveTo(3, -25); ctx.lineTo(10, -15); ctx.stroke();
+            ctx.lineWidth = 1; ctx.strokeStyle = '#555';
+            ctx.beginPath(); ctx.moveTo(10, -15); ctx.lineTo(-5, 10); ctx.stroke(); // Pole
+
+            ctx.restore();
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+
+    </script>
+</body>
+</html>
