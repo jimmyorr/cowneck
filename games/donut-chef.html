@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donut Chef</title>
+    <style>
+        :root {
+            --bg-color: #fdf6e3;
+            --bg-gradient: radial-gradient(circle at 50% 50%, #fdf6e3 0%, #f5e6d3 100%);
+            --text-color: #586e75;
+            --card-radius: 10px;
+            --card-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            --primary-action: #268bd2;
+            --primary-treasure: #b58900;
+            --primary-victory: #859900;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #game-container {
+            flex: 1;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            grid-template-columns: 320px 1fr 280px;
+            /* Wider supply column */
+            gap: 15px;
+            padding: 15px;
+            height: 100%;
+            box-sizing: border-box;
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Layout Areas */
+        #supply-area {
+            grid-row: 1 / 4;
+            grid-column: 1;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: row;
+            /* wrap cards */
+            flex-wrap: wrap;
+            align-content: flex-start;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        #supply-area h3 {
+            width: 100%;
+            text-align: center;
+            margin-top: 5px;
+            color: #d33682;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+            padding-bottom: 5px;
+        }
+
+        /* Supply cards - Compact mode */
+        #supply-list {
+            display: contents;
+        }
+
+        /* Use contents to let children participate in flex container */
+
+        #supply-area .card {
+            width: 90px;
+            height: 125px;
+            font-size: 0.7em;
+        }
+
+        #supply-area .card-emoji {
+            font-size: 1.8em;
+            margin: 2px 0;
+        }
+
+        #supply-area .card-body {
+            padding: 0;
+            align-items: flex-end;
+            padding-bottom: 5px;
+        }
+
+        #center-area {
+            grid-row: 1 / 3;
+            grid-column: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #opponent-area {
+            height: 70px;
+            background: rgba(255, 255, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #657b83;
+        }
+
+        #play-area {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px dashed rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-content: flex-start;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        #log-area {
+            grid-row: 1 / 4;
+            grid-column: 3;
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #log-content {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        #player-area {
+            grid-row: 3;
+            grid-column: 2;
+            background: white;
+            border-radius: 16px 16px 0 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        #hand-container {
+            display: flex;
+            gap: -35px;
+            justify-content: center;
+            min-height: 160px;
+            padding: 15px 0;
+            overflow-x: visible;
+            /* Prevent clipping */
+        }
+
+        #hand-container .card {
+            margin-right: -55px;
+            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transform-origin: center bottom;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #hand-container .card:hover {
+            transform: translateY(-30px) scale(1.1) rotate(0deg) !important;
+            z-index: 1000;
+            margin-right: 15px;
+            margin-left: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        #hand-container .card:last-child {
+            margin-right: 0;
+        }
+
+        #player-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-weight: bold;
+            font-size: 1.3em;
+            background: #eee;
+            padding: 8px 30px;
+            border-radius: 30px;
+            align-self: center;
+            color: #444;
+        }
+
+        #controls-area {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        /* Card Styles */
+        .card {
+            width: 120px;
+            height: 180px;
+            border-radius: var(--card-radius);
+            border: 2px solid white;
+            padding: 6px;
+            font-size: 0.85em;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: white;
+            box-shadow: var(--card-shadow);
+            user-select: none;
+            cursor: pointer;
+            position: relative;
+            box-sizing: border-box;
+            transition: transform 0.2s;
+        }
+
+        .card.treasure {
+            background: linear-gradient(135deg, #fffbe6 0%, #fff1b8 100%);
+            border-color: #ffd700;
+            color: #876800;
+        }
+
+        .card.victory {
+            background: linear-gradient(135deg, #f0f5e0 0%, #d9f7be 100%);
+            border-color: #4caf50;
+            color: #237804;
+        }
+
+        .card.action {
+            background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+            border-color: #2196f3;
+            color: #0050b3;
+        }
+
+        .card.reaction {
+            background: linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%);
+            border-color: #40a9ff;
+            color: #003a8c;
+        }
+
+        .card-header {
+            font-weight: 800;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 3px;
+            line-height: 1.1;
+        }
+
+        .card-emoji {
+            font-size: 2.5em;
+            text-align: center;
+            margin: 5px 0;
+            text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .card-cost {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            background: linear-gradient(135deg, #ffd700, #ffec3d);
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #876800;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 5;
+        }
+
+        .card-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2px 0;
+            font-size: 0.9em;
+            line-height: 1.2;
+        }
+
+        .card-type {
+            font-size: 0.7em;
+            text-align: center;
+            opacity: 0.7;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: none;
+        }
+
+        /* Hide type for cleaner look */
+
+        /* Utility */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #ccc;
+            color: #333;
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+            transition: all 0.1s;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-action);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--primary-victory);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        #modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        #modal-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .selected {
+            outline: 4px solid #d33682;
+            transform: translateY(-8px);
+            box-shadow: 0 10px 20px rgba(211, 54, 130, 0.3);
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .log-turn {
+            font-weight: 800;
+            margin: 10px 0 5px 0;
+            color: #d33682;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            background: whitesmoke;
+            padding: 4px;
+            border-radius: 4px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game-container">
+        <div id="supply-area">
+            <h3>Supply</h3>
+            <div id="supply-list"></div>
+        </div>
+
+        <div id="center-area">
+            <div id="opponent-area">
+                Opponent: <span id="opp-status">Waiting...</span>
+            </div>
+            <div id="play-area">
+                <!-- Played cards go here -->
+            </div>
+        </div>
+
+        <div id="log-area">
+            <h3>Game Log</h3>
+            <div id="log-content"></div>
+        </div>
+
+        <div id="player-area">
+            <div id="player-stats">
+                <span>Actions: <span id="stat-actions">1</span></span>
+                <span>Buys: <span id="stat-buys">1</span></span>
+                <span>Coins: <span id="stat-coins">0</span></span>
+            </div>
+            <div id="controls-area">
+                <button id="btn-play-all" class="btn">Play All Treasures</button>
+                <button id="btn-end-turn" class="btn btn-success">End Turn</button>
+            </div>
+            <div id="hand-container">
+                <!-- Player Hand -->
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-overlay" class="hidden">
+        <div id="modal-content">
+            <h2 id="modal-title">Select Cards</h2>
+            <div id="modal-message"></div>
+            <div id="modal-cards"></div>
+            <div id="modal-buttons">
+                <button id="modal-confirm" class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * DONUT CHEF
+         * A Deck Building Game
+         */
+
+        const CARD_TYPES = {
+            TREASURE: 'treasure',
+            VICTORY: 'victory',
+            ACTION: 'action',
+            REACTION: 'reaction'
+        };
+
+        const CARDS = {
+            // Treasure
+            flour: { id: 'flour', name: 'Flour', emoji: '🥡', type: [CARD_TYPES.TREASURE], cost: 0, coins: 1, text: "+1 Coin" },
+            sugar: { id: 'sugar', name: 'Sugar', emoji: '🍬', type: [CARD_TYPES.TREASURE], cost: 3, coins: 2, text: "+2 Coins" },
+            lard: { id: 'lard', name: 'Lard', emoji: '🥓', type: [CARD_TYPES.TREASURE], cost: 6, coins: 3, text: "+3 Coins" },
+
+            // Victory
+            donut_hole: { id: 'donut_hole', name: 'Donut Hole', emoji: '🥯', type: [CARD_TYPES.VICTORY], cost: 2, points: 1, text: "1 Point" },
+            donut: { id: 'donut', name: 'Donut', emoji: '🍩', type: [CARD_TYPES.VICTORY], cost: 5, points: 3, text: "3 Points" },
+            premium_donut: { id: 'premium_donut', name: 'Premium', emoji: '👑🍩', type: [CARD_TYPES.VICTORY], cost: 8, points: 6, text: "6 Points" },
+
+            // Others
+            curse: { id: 'curse', name: 'Burnt Donut', emoji: '🤢', type: [CARD_TYPES.VICTORY], cost: 0, points: -1, text: "-1 Point" },
+            dumpster: { id: 'dumpster', name: 'Dumpster', emoji: '🗑️', type: [], cost: 0, text: "Trash Pile" },
+
+            // Actions
+            cellar: {
+                id: 'cellar', name: 'Clear Crumbs', emoji: '🧹', type: [CARD_TYPES.ACTION], cost: 2,
+                actions: 1,
+                text: "+1 Action.<br>Discard any number of cards, then draw that many.",
+                onPlay: async (G, player) => {
+                    await G.ui.selectCardsToDiscard(player, 'any', 'Discard to draw replacements')
+                        .then(cards => {
+                            G.engine.discardCards(player, cards);
+                            G.engine.drawCards(player, cards.length);
+                        });
+                }
+            },
+            chapel: {
+                id: 'chapel', name: 'Clean Sweep', emoji: '🧼', type: [CARD_TYPES.ACTION], cost: 2,
+                text: "Trash up to 4 cards from your hand.",
+                onPlay: async (G, player) => {
+                    await G.ui.selectCardsToTrash(player, 4, 'Trash up to 4 cards')
+                        .then(cards => {
+                            G.engine.trashCards(player, cards);
+                        });
+                }
+            },
+            oasis: {
+                id: 'oasis', name: 'Sweet Deal', emoji: '🌴', type: [CARD_TYPES.ACTION], cost: 3,
+                cards: 1, actions: 1, coins: 1,
+                text: "+1 Card, +1 Action, +1 Coin.<br>Discard a card.",
+                onPlay: async (G, player) => {
+                    await G.ui.selectCardsToDiscard(player, 1, 'Discard a card', { min: 1, max: 1 })
+                        .then(cards => {
+                            G.engine.discardCards(player, cards);
+                        });
+                }
+            },
+            workshop: {
+                id: 'workshop', name: 'Free Sample', emoji: '🎁', type: [CARD_TYPES.ACTION], cost: 3,
+                text: "Gain a card costing up to 4 Coins.",
+                onPlay: async (G, player) => {
+                    await G.ui.selectCardToGain(4)
+                        .then(cardId => {
+                            if (cardId) G.engine.gainCard(player, cardId);
+                        });
+                }
+            },
+            smithy: {
+                id: 'smithy', name: 'Crate', emoji: '📦', type: [CARD_TYPES.ACTION], cost: 4,
+                cards: 3,
+                text: "+3 Cards"
+            },
+            festival: {
+                id: 'festival', name: 'Stacked Pots', emoji: '🥞', type: [CARD_TYPES.ACTION], cost: 5,
+                actions: 2, buys: 1, coins: 2,
+                text: "+2 Actions, +1 Buy, +2 Coins"
+            },
+            laboratory: {
+                id: 'laboratory', name: 'Recipe Research', emoji: '🔬', type: [CARD_TYPES.ACTION], cost: 5,
+                cards: 2, actions: 1,
+                text: "+2 Cards<br>+1 Action"
+            },
+            market: {
+                id: 'market', name: 'Shop Sign', emoji: '🏪', type: [CARD_TYPES.ACTION], cost: 5,
+                cards: 1, actions: 1, buys: 1, coins: 1,
+                text: "+1 Card, +1 Action<br>+1 Buy, +1 Coin"
+            },
+            kings_court: {
+                id: 'kings_court', name: 'Late Night', emoji: '🌙', type: [CARD_TYPES.ACTION], cost: 7,
+                text: "You may play an Action card from your hand three times.",
+                onPlay: async (G, player) => {
+                    const actions = player.hand.filter(c => CARDS[c.id].type.includes(CARD_TYPES.ACTION));
+                    if (actions.length === 0) return;
+
+                    await G.ui.selectOneCardFromHand(player, c => CARDS[c.id].type.includes(CARD_TYPES.ACTION), "Choose an action to play 3x")
+                        .then(async (cardId) => {
+                            if (!cardId) return;
+                            G.engine.moveCard(player.hand, player.playArea, cardId); // Simulate play
+                            const cardDef = CARDS[cardId];
+                            G.log(`${player.name} plays ${cardDef.name} 3 times!`);
+                            for (let i = 0; i < 3; i++) {
+                                G.engine.applyBasicCardStats(player, cardDef);
+                                if (cardDef.onPlay) await cardDef.onPlay(G, player);
+                            }
+                        });
+                }
+            },
+            expand: {
+                id: 'expand', name: 'Batter Bargain', emoji: '🥣', type: [CARD_TYPES.ACTION], cost: 7,
+                text: "Trash a card from your hand.<br>Gain a card costing up to 3 Coins more than it.",
+                onPlay: async (G, player) => {
+                    await G.ui.selectCardsToTrash(player, 1, 'Trash a card to expand', { min: 1, max: 1 })
+                        .then(async (trashedCards) => {
+                            if (trashedCards.length === 0) return;
+                            const trashed = CARDS[trashedCards[0].id];
+                            G.engine.trashCards(player, trashedCards);
+                            const maxCost = trashed.cost + 3;
+                            await G.ui.selectCardToGain(maxCost)
+                                .then(gainId => {
+                                    if (gainId) G.engine.gainCard(player, gainId);
+                                });
+                        });
+                }
+            }
+        };
+
+        // Donut names flavor text
+        const DONUT_NAMES = [
+            "Square", "Starry", "Calamari", "Airy", "Cone-y", "Macaroni", "Wispy", "Crispy", "Major", "Minor",
+            "Kiwi jam", "Open clam", "Huckleberry", "Spiced rum pear", "Shriner", "Cherry-frosted lemon bar",
+            "Peanut-brickle buttermilk", "Gooey cocoa-mocha silk", "Eclair", "Glazed"
+        ];
+
+        // --- GAME STATE ---
+
+        class Game {
+            constructor() {
+                this.players = [];
+                this.supply = {};
+                this.trash = [];
+                this.activePlayerIndex = 0;
+                this.turnPhase = 'action'; // action, buy, cleanup
+                this.ui = new UI(this);
+                this.engine = new Engine(this);
+            }
+
+            start() {
+                // Initialize Supply
+                this.supply = {
+                    flour: 50, sugar: 40, lard: 30,
+                    donut_hole: 12, donut: 10, premium_donut: 10,
+                    cellar: 10, chapel: 10, oasis: 10, workshop: 10, smithy: 10,
+                    festival: 10, laboratory: 10, market: 10, kings_court: 10, expand: 10
+                };
+
+                // Initialize Players
+                this.players = [
+                    new Player('Human', false),
+                    new Player('Donut Bot', true)
+                ];
+
+                // Initial Decks
+                this.players.forEach(p => {
+                    // 7 Flour, 3 Donut Holes
+                    for (let i = 0; i < 7; i++) p.deck.push(this.createCard('flour'));
+                    for (let i = 0; i < 3; i++) p.deck.push(this.createCard('donut_hole'));
+                    this.engine.shuffle(p.deck);
+                    this.engine.drawCards(p, 5);
+                });
+
+                this.updateState();
+                this.log("Game Started!");
+                this.engine.startTurn();
+            }
+
+            createCard(id) {
+                return { id: id, uid: Math.random().toString(36).substr(2, 9) };
+            }
+
+            log(msg) {
+                this.ui.log(msg);
+            }
+
+            updateState() {
+                this.ui.render();
+            }
+        }
+
+        class Player {
+            constructor(name, isAI) {
+                this.name = name;
+                this.isAI = isAI;
+                this.deck = [];
+                this.hand = [];
+                this.discard = [];
+                this.playArea = [];
+
+                this.actions = 1;
+                this.buys = 1;
+                this.coins = 0;
+            }
+        }
+
+        class Engine {
+            constructor(game) {
+                this.game = game;
+            }
+
+            shuffle(deck) {
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [deck[i], deck[j]] = [deck[j], deck[i]];
+                }
+            }
+
+            drawCards(player, count) {
+                for (let i = 0; i < count; i++) {
+                    if (player.deck.length === 0) {
+                        if (player.discard.length === 0) break; // Cannot draw
+                        // Reshuffle discard into deck
+                        player.deck = [...player.discard];
+                        player.discard = [];
+                        this.shuffle(player.deck);
+                    }
+                    player.hand.push(player.deck.pop());
+                }
+            }
+
+            async startTurn() {
+                const p = this.game.players[this.game.activePlayerIndex];
+                p.actions = 1;
+                p.buys = 1;
+                p.coins = 0;
+                this.game.turnPhase = 'action';
+                this.game.log(`--- ${p.name}'s Turn ---`);
+                this.game.updateState();
+
+                if (p.isAI) {
+                    await this.game.ui.runAI(p);
+                }
+            }
+
+            async endTurn() {
+                const p = this.game.players[this.game.activePlayerIndex];
+
+                // Discard hand and play area
+                p.discard.push(...p.hand);
+                p.discard.push(...p.playArea);
+                p.hand = [];
+                p.playArea = [];
+
+                // Draw new hand
+                this.drawCards(p, 5);
+
+                // Check Game Over
+                if (this.checkGameOver()) {
+                    this.endGame();
+                    return;
+                }
+
+                // Switch Player
+                this.game.activePlayerIndex = (this.game.activePlayerIndex + 1) % this.game.players.length;
+                this.startTurn();
+            }
+
+            checkGameOver() {
+                if (this.game.supply['premium_donut'] === 0) return true;
+                let emptyPiles = 0;
+                for (let key in this.game.supply) {
+                    if (this.game.supply[key] === 0) emptyPiles++;
+                }
+                return emptyPiles >= 3;
+            }
+
+            endGame() {
+                this.game.log("--- GAME OVER ---");
+                let scores = [];
+                this.game.players.forEach(p => {
+                    const allCards = [...p.deck, ...p.hand, ...p.discard, ...p.playArea];
+                    let score = 0;
+                    allCards.forEach(c => {
+                        const def = CARDS[c.id];
+                        if (def.points) score += def.points;
+                    });
+                    scores.push({ name: p.name, score: score });
+                    this.game.log(`${p.name}: ${score} points`);
+                });
+
+                const winner = scores.reduce((prev, current) => (prev.score > current.score) ? prev : current);
+                alert(`Game Over! Winner: ${winner.name} with ${winner.score} points.`);
+            }
+
+            applyBasicCardStats(player, cardDef) {
+                if (cardDef.actions) player.actions += cardDef.actions;
+                if (cardDef.buys) player.buys += cardDef.buys;
+                if (cardDef.coins) player.coins += cardDef.coins;
+                if (cardDef.cards) this.drawCards(player, cardDef.cards);
+            }
+
+            async playCard(player, cardInstance) {
+                if (this.game.turnPhase !== 'action') return;
+                if (player.actions <= 0) {
+                    this.game.log("No actions left!");
+                    return;
+                }
+
+                const cardDef = CARDS[cardInstance.id];
+                if (!cardDef.type.includes(CARD_TYPES.ACTION)) return;
+
+                // Move to play area
+                this.moveCard(player.hand, player.playArea, cardInstance.uid);
+                player.actions--;
+
+                this.game.log(`${player.name} plays ${cardDef.name}`);
+
+                this.applyBasicCardStats(player, cardDef);
+
+                if (cardDef.onPlay) {
+                    await cardDef.onPlay(this.game, player);
+                }
+
+                this.game.updateState();
+            }
+
+            playTreasure(player, cardInstance) {
+                if (this.game.turnPhase === 'action') {
+                    this.game.turnPhase = 'buy'; // Auto switch to buy phase on first treasure
+                }
+
+                const cardDef = CARDS[cardInstance.id];
+                if (!cardDef.type.includes(CARD_TYPES.TREASURE)) return;
+
+                this.moveCard(player.hand, player.playArea, cardInstance.uid);
+                player.coins += cardDef.coins;
+                this.game.log(`${player.name} plays ${cardDef.name} (+${cardDef.coins})`);
+                this.game.updateState();
+            }
+
+            playAllTreasures(player) {
+                if (this.game.turnPhase === 'action') {
+                    this.game.turnPhase = 'buy';
+                }
+
+                // Find all treasures
+                const treasures = player.hand.filter(c => CARDS[c.id].type.includes(CARD_TYPES.TREASURE));
+                treasures.forEach(t => {
+                    this.moveCard(player.hand, player.playArea, t.uid);
+                    player.coins += CARDS[t.id].coins;
+                });
+                if (treasures.length > 0)
+                    this.game.log(`${player.name} plays all treasures`);
+                this.game.updateState();
+            }
+
+            buyCard(player, cardId) {
+                if (this.game.turnPhase === 'action') this.game.turnPhase = 'buy';
+
+                if (player.buys <= 0) {
+                    this.game.log("No buys left!");
+                    return;
+                }
+
+                const cardDef = CARDS[cardId];
+                if (this.game.supply[cardId] <= 0) {
+                    this.game.log("Pile empty!");
+                    return;
+                }
+
+                if (player.coins < cardDef.cost) {
+                    this.game.log("Not enough coins!");
+                    return;
+                }
+
+                player.coins -= cardDef.cost;
+                player.buys--;
+                this.game.supply[cardId]--;
+
+                const newCard = this.game.createCard(cardId);
+                player.discard.push(newCard);
+
+                this.game.log(`${player.name} buys ${cardDef.name}`);
+                this.game.updateState();
+            }
+
+            gainCard(player, cardId) {
+                if (this.game.supply[cardId] > 0) {
+                    this.game.supply[cardId]--;
+                    player.discard.push(this.game.createCard(cardId));
+                    this.game.log(`${player.name} gains ${CARDS[cardId].name}`);
+                } else {
+                    this.game.log(`Could not gain ${CARDS[cardId].name} (Empty)`);
+                }
+                this.game.updateState();
+            }
+
+            trashCards(player, cards) {
+                cards.forEach(c => {
+                    this.moveCard(player.hand, this.game.trash, c.uid); // Move to void essentially
+                    this.game.log(`${player.name} trashes ${CARDS[c.id].name}`);
+                });
+            }
+
+            discardCards(player, cards) {
+                cards.forEach(c => {
+                    this.moveCard(player.hand, player.discard, c.uid);
+                    this.game.log(`${player.name} discards ${CARDS[c.id].name}`);
+                });
+            }
+
+            moveCard(fromArray, toArray, uid) {
+                const idx = fromArray.findIndex(c => c.uid === uid);
+                if (idx !== -1) {
+                    const card = fromArray.splice(idx, 1)[0];
+                    if (toArray) toArray.push(card);
+                }
+            }
+        }
+
+        class UI {
+            constructor(game) {
+                this.game = game;
+                this.resolveSelection = null;
+
+                // Bind UI Event Listeners
+                document.getElementById('btn-end-turn').onclick = () => this.game.engine.endTurn();
+                document.getElementById('btn-play-all').onclick = () => {
+                    const p = this.game.players[this.game.activePlayerIndex];
+                    this.game.engine.playAllTreasures(p);
+                };
+
+                document.getElementById('modal-confirm').onclick = () => this.confirmSelection();
+            }
+
+            render() {
+                this.renderSupply();
+                this.renderPlayer();
+                this.renderPlayArea();
+                this.renderOpponent();
+                this.updateControls();
+            }
+
+            log(msg) {
+                const logEl = document.getElementById('log-content');
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                if (msg.startsWith('---')) entry.className += ' log-turn';
+                entry.innerText = msg;
+                logEl.prepend(entry);
+            }
+
+            renderSupply() {
+                const list = document.getElementById('supply-list');
+                list.innerHTML = '';
+
+                // Group by type or just list? Let's order by cost.
+                const supplyKeys = Object.keys(this.game.supply).sort((a, b) => CARDS[a].cost - CARDS[b].cost);
+
+                supplyKeys.forEach(key => {
+                    const count = this.game.supply[key];
+                    const def = CARDS[key];
+                    const item = document.createElement('div');
+                    item.className = `card ${def.type[0]}`;
+                    if (count === 0) item.style.opacity = '0.5';
+
+                    item.innerHTML = `
+                <div class="card-cost">${def.cost}</div>
+                <div class="card-header">${def.name} (${count})</div>
+                <div class="card-emoji">${def.emoji || ''}</div>
+                <div class="card-body">${def.text}</div>
+            `;
+
+                    item.onclick = () => this.handleSupplyClick(key);
+                    list.appendChild(item);
+                });
+            }
+
+            renderPlayer() {
+                const p = this.game.players[this.game.activePlayerIndex];
+                if (p.isAI) return; // Don't render AI hand
+
+                document.getElementById('stat-actions').innerText = p.actions;
+                document.getElementById('stat-buys').innerText = p.buys;
+                document.getElementById('stat-coins').innerText = p.coins;
+
+                const handContainer = document.getElementById('hand-container');
+                handContainer.innerHTML = '';
+
+                p.hand.sort((a, b) => {
+                    // Sort: Action, Treasure, Victory
+                    const typeOrder = { action: 0, treasure: 1, victory: 2 };
+                    const typeA = typeOrder[CARDS[a.id].type[0]] || 3;
+                    const typeB = typeOrder[CARDS[b.id].type[0]] || 3;
+                    return typeA - typeB || CARDS[b.id].cost - CARDS[a.id].cost;
+                });
+
+                p.hand.forEach(c => {
+                    const def = CARDS[c.id];
+                    const el = document.createElement('div');
+                    el.className = `card ${def.type[0]}`;
+                    // Random rotation for natural feel
+                    const rot = (Math.random() * 4 - 2).toFixed(1);
+                    el.style.transform = `rotate(${rot}deg)`;
+
+                    el.innerHTML = `
+                <div class="card-cost">${def.cost}</div>
+                <div class="card-header">${def.name}</div>
+                <div class="card-emoji">${def.emoji || ''}</div>
+                <div class="card-body">${def.text}</div>
+            `;
+                    el.onclick = () => this.handleHandClick(c);
+                    handContainer.appendChild(el);
+                });
+            }
+
+            renderPlayArea() {
+                const p = this.game.players[this.game.activePlayerIndex];
+                const area = document.getElementById('play-area');
+                area.innerHTML = '';
+                p.playArea.forEach(c => {
+                    const def = CARDS[c.id];
+                    const el = document.createElement('div');
+                    el.className = `card ${def.type[0]}`;
+                    el.style.transform = 'scale(0.85)';
+                    el.innerHTML = `
+                <div class="card-cost">${def.cost}</div>
+                <div class="card-header">${def.name}</div>
+                <div class="card-emoji">${def.emoji || ''}</div>
+             `;
+                    area.appendChild(el);
+                });
+            }
+
+            renderOpponent() {
+                const pIndex = (this.game.activePlayerIndex + 1) % 2;
+                const p = this.game.players[pIndex];
+                const text = `${p.name} - Hand: ${p.hand.length}, Deck: ${p.deck.length}`;
+                document.getElementById('opp-status').innerText = text;
+            }
+
+            updateControls() {
+                const p = this.game.players[this.game.activePlayerIndex];
+                if (p.isAI) {
+                    document.getElementById('controls-area').classList.add('hidden');
+                } else {
+                    document.getElementById('controls-area').classList.remove('hidden');
+                }
+            }
+
+            handleHandClick(card) {
+                const p = this.game.players[this.game.activePlayerIndex];
+                const def = CARDS[card.id];
+
+                if (def.type.includes(CARD_TYPES.ACTION)) {
+                    this.game.engine.playCard(p, card);
+                } else if (def.type.includes(CARD_TYPES.TREASURE)) {
+                    this.game.engine.playTreasure(p, card);
+                }
+            }
+
+            handleSupplyClick(cardId) {
+                const p = this.game.players[this.game.activePlayerIndex];
+                // Can only buy in buy phase or if we have buys? 
+                // Dominion rule: Playing a treasure starts buy phase. Buying a card also enforces buy phase.
+                this.game.engine.buyCard(p, cardId);
+            }
+
+            // --- Selection UI ---
+
+            showModal(title, msg) {
+                document.getElementById('modal-overlay').classList.remove('hidden');
+                document.getElementById('modal-title').innerText = title;
+                document.getElementById('modal-message').innerText = msg;
+                document.getElementById('modal-cards').innerHTML = '';
+                document.getElementById('modal-confirm').classList.add('hidden');
+            }
+
+            hideModal() {
+                document.getElementById('modal-overlay').classList.add('hidden');
+            }
+
+            // Promise-based selection
+            async selectCardsToDiscard(player, count, msg, options = {}) {
+                return this.selectCards(player.hand, count, msg, 'Discard', options);
+            }
+            async selectCardsToTrash(player, count, msg, options = {}) {
+                return this.selectCards(player.hand, count, msg, 'Trash', options);
+            }
+            async selectOneCardFromHand(player, filterFunc, msg) {
+                const candidates = player.hand.filter(filterFunc);
+                if (candidates.length === 0) return null;
+                const result = await this.selectCards(candidates, 1, msg, 'Select', { min: 1, max: 1 });
+                return result.length > 0 ? result[0].id : null;
+            }
+
+            async selectCardToGain(maxCost) {
+                // Special modal for supply
+                return new Promise(resolve => {
+                    this.showModal('Gain a Card', `Choose a card costing up to ${maxCost}`);
+                    const container = document.getElementById('modal-cards');
+
+                    for (let key in this.game.supply) {
+                        const def = CARDS[key];
+                        if (def.cost <= maxCost && this.game.supply[key] > 0) {
+                            const el = document.createElement('div');
+                            el.className = `card ${def.type[0]}`;
+                            el.innerHTML = `<div class="card-header">${def.name}</div><div class="card-cost">${def.cost}</div>`;
+                            el.onclick = () => {
+                                this.hideModal();
+                                resolve(key);
+                            };
+                            container.appendChild(el);
+                        }
+                    }
+
+                    // Add a "Cancel/None" option if it's optional? Usually forced if available.
+                    // But if nothing available?
+                    if (container.children.length === 0) {
+                        this.hideModal();
+                        resolve(null);
+                    }
+                });
+            }
+
+            async selectCards(sourceList, countOrString, msg, actionBtnText, options = {}) {
+                // options: min, max. If countOrString is 'any', min=0, max=sourceList.length
+                let min = 0, max = 0;
+                if (countOrString === 'any') {
+                    min = 0;
+                    max = sourceList.length;
+                } else {
+                    max = countOrString;
+                    min = options.min !== undefined ? options.min : 0;
+                }
+
+                return new Promise(resolve => {
+                    if (sourceList.length === 0) {
+                        resolve([]);
+                        return;
+                    }
+
+                    this.showModal(msg, `Select ${min === max ? min : min + '-' + max} cards.`);
+                    const container = document.getElementById('modal-cards');
+                    const confirmBtn = document.getElementById('modal-confirm');
+                    confirmBtn.innerText = actionBtnText;
+                    confirmBtn.classList.remove('hidden');
+
+                    let selected = [];
+
+                    // Render selection cards
+                    sourceList.forEach(c => {
+                        const def = CARDS[c.id];
+                        const el = document.createElement('div');
+                        el.className = `card ${def.type[0]}`;
+                        el.innerHTML = `<div class="card-header">${def.name}</div><div class="card-emoji">${def.emoji || ''}</div>`;
+
+                        el.onclick = () => {
+                            const idx = selected.indexOf(c);
+                            if (idx >= 0) {
+                                selected.splice(idx, 1);
+                                el.classList.remove('selected');
+                            } else {
+                                if (selected.length < max) {
+                                    selected.push(c);
+                                    el.classList.add('selected');
+                                }
+                            }
+                        };
+                        container.appendChild(el);
+                    });
+
+                    this.resolveSelection = () => {
+                        if (selected.length >= min) {
+                            this.hideModal();
+                            resolve(selected);
+                        } else {
+                            alert(`Please select at least ${min} cards.`);
+                        }
+                    };
+
+                    confirmBtn.onclick = this.resolveSelection;
+                });
+            }
+
+            // AI Logic placeholder
+            async runAI(player) {
+                // Sleep for realism
+                await new Promise(r => setTimeout(r, 1000));
+
+                // 1. Play Action? 
+                // Simple AI: Play first action found. 
+                // Iterate until no actions or no more cards
+                let actionCards = player.hand.filter(c => CARDS[c.id].type.includes(CARD_TYPES.ACTION));
+                while (player.actions > 0 && actionCards.length > 0) {
+                    const cardToPlay = actionCards[0];
+                    // Mock choices for complex cards for AI to avoid stuck UI
+                    // We need to bypass UI prompts for AI
+                    await this.forcePlayAI(player, cardToPlay);
+
+                    // Refresh list
+                    actionCards = player.hand.filter(c => CARDS[c.id].type.includes(CARD_TYPES.ACTION));
+                    await new Promise(r => setTimeout(r, 500));
+                }
+
+                // 2. Play Treasures
+                this.game.engine.playAllTreasures(player);
+                await new Promise(r => setTimeout(r, 500));
+
+                // 3. Buy
+                // Buy most expensive affordable
+                let bestKey = null;
+                let maxCost = -1;
+
+                // Priority: Provincs (Premium Donut) > Dutchy (Donut) if rich? 
+                // Random Strategy: Big Money
+                Object.keys(this.game.supply).forEach(key => {
+                    const cost = CARDS[key].cost;
+                    if (this.game.supply[key] > 0 && player.coins >= cost && cost > maxCost) {
+                        // Don't buy curse/copper equivalents if useless? 
+                        // Just greedy max cost.
+                        maxCost = cost;
+                        bestKey = key;
+                    }
+                });
+
+                if (bestKey) {
+                    this.game.engine.buyCard(player, bestKey);
+                    await new Promise(r => setTimeout(r, 500));
+                }
+
+                this.game.engine.endTurn();
+            }
+
+            // Helper to run playCard without UI interaction for AI
+            async forcePlayAI(player, card) {
+                // We override the UI selectors for AI locally?
+                // Actually, we can just "monkey patch" the UI methods briefly or pass a flag
+                // But simpler: AI just plays actions that don't require decisions, or we implement random decision for AI
+
+                // Store original methods
+                const originalSelectCards = this.selectCards;
+                const originalSelectGain = this.selectCardToGain;
+
+                // Mock methods
+                this.selectCards = async (list, count, msg, btn, opts) => {
+                    // AI strategy: always pick first N available or 0 if optional
+                    const min = opts && opts.min ? opts.min : 0;
+                    return list.slice(0, min);
+                };
+                this.selectCardToGain = async (maxCost) => {
+                    // Find most expensive
+                    let best = null;
+                    let bsCost = -1;
+                    for (let k in this.game.supply) {
+                        if (CARDS[k].cost <= maxCost && this.game.supply[k] > 0 && CARDS[k].cost > bsCost) {
+                            best = k; bsCost = CARDS[k].cost;
+                        }
+                    }
+                    return best;
+                };
+
+                await this.game.engine.playCard(player, card);
+
+                // Restore
+                this.selectCards = originalSelectCards;
+                this.selectCardToGain = originalSelectGain;
+            }
+        }
+
+        // Start Game
+        const game = new Game();
+        game.start();
+
+    </script>
+</body>
+
+</html>
