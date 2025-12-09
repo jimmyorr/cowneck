@@ -66,6 +66,12 @@
         button:hover {
             background: #fff;
         }
+        button:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+            border: 1px solid #666;
+        }
         .level-btn {
             margin: 5px;
             background: #ff0055;
@@ -75,6 +81,18 @@
             font-size: 14px;
             color: #aaa;
             margin-top: 10px;
+        }
+        #reset-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: #666;
+            font-size: 12px;
+            padding: 5px 10px;
+            margin-top: 10px;
+        }
+        #reset-btn:hover {
+            color: #ff5555;
+            border-color: #ff5555;
         }
     </style>
 </head>
@@ -91,10 +109,11 @@
         <h1 style="margin:0; font-size: 40px; color:#00d4ff;">CYBERPUP RETURNS</h1>
         <p>The sequel. Faster. Tastier. Spookier.</p>
         <div id="level-select">
-            <button class="level-btn" onclick="startGame(0)">The Dessert</button>
-            <button class="level-btn" onclick="startGame(1)">The Dojo</button>
-            <button class="level-btn" onclick="startGame(2)">The Race Track</button>
+            <button class="level-btn" id="btn-lvl-0" onclick="startGame(0)">The Dessert</button>
+            <button class="level-btn" id="btn-lvl-1" onclick="startGame(1)">The Dojo</button>
+            <button class="level-btn" id="btn-lvl-2" onclick="startGame(2)">The Race Track</button>
         </div>
+        <button id="reset-btn" onclick="resetProgress()">Reset Progress</button>
         <div class="controls-hint">Arrows/WASD to Move & Jump<br>Touch: Left to Run, Right to Jump</div>
     </div>
 
@@ -126,6 +145,8 @@ let gameState = 'MENU'; // MENU, PLAYING, GAMEOVER, WIN
 let frame = 0;
 let score = 0;
 let currentLevelIdx = 0;
+// Progression: 0 means only level 0 is unlocked. 1 means 0 and 1 are unlocked, etc.
+let maxUnlockedLevel = parseInt(localStorage.getItem('cyberpup_progress')) || 0;
 
 // Inputs
 const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, w: false, a: false, s: false, d: false, " ": false };
@@ -794,7 +815,25 @@ function loadLevel(index) {
     }
 }
 
+function updateMenuUI() {
+    // Check buttons 1 and 2 (assuming 0 is always unlocked)
+    for (let i = 0; i <= 2; i++) {
+        const btn = document.getElementById('btn-lvl-' + i);
+        if (btn) {
+            if (i <= maxUnlockedLevel) {
+                btn.disabled = false;
+                btn.innerHTML = (i === 0 ? "The Dessert" : (i === 1 ? "The Dojo" : "The Race Track"));
+            } else {
+                btn.disabled = true;
+                btn.innerHTML = "LOCKED";
+            }
+        }
+    }
+}
+
 function startGame(levelIndex) {
+    if (levelIndex > maxUnlockedLevel) return; // Anti-cheat/bug prevention
+    
     currentLevelIdx = levelIndex;
     loadLevel(levelIndex);
     score = 0;
@@ -807,9 +846,22 @@ function showMenu(title, subtitle, isEnd) {
     menuOverlay.classList.remove('hidden');
     menuOverlay.querySelector('h1').innerText = title;
     menuOverlay.querySelector('p').innerText = subtitle;
+    updateMenuUI();
+}
+
+function resetProgress() {
+    maxUnlockedLevel = 0;
+    localStorage.setItem('cyberpup_progress', 0);
+    updateMenuUI();
 }
 
 function levelComplete() {
+    // Unlock next level logic
+    if (currentLevelIdx === maxUnlockedLevel && maxUnlockedLevel < 2) {
+        maxUnlockedLevel++;
+        localStorage.setItem('cyberpup_progress', maxUnlockedLevel);
+    }
+
     gameState = 'WIN';
     setTimeout(() => {
         showMenu("LEVEL COMPLETE", "Score: " + score, true);
@@ -909,6 +961,10 @@ function resize() {
     canvas.height = window.innerHeight;
 }
 window.addEventListener('resize', resize);
+
+// Initial Menu Setup
+updateMenuUI();
+
 resize();
 loop();
 
