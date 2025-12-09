@@ -76,6 +76,30 @@
             transition: transform 0.1s linear;
         }
 
+        #timer-box {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-right: 15px;
+            /* Add some space if next to other elements */
+        }
+
+        .timer-text {
+            color: #006064;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
+            pointer-events: none;
+            font-family: 'Courier New', Courier, monospace;
+            /* Monospace for steady numbers */
+        }
+
+        .best-time {
+            color: #d84315;
+            /* Different color for best time */
+            font-size: 1.0rem;
+        }
+
         .controls {
             pointer-events: auto;
             display: flex;
@@ -206,8 +230,14 @@
     <div id="ui-layer">
         <div class="hud-top">
             <div class="hud-text" id="status-text">Mode: BUILD</div>
-            <div id="fuel-container">
-                <div id="fuel-bar"></div>
+            <div style="display:flex; gap: 20px; align-items:center;">
+                <div id="timer-box" class="hidden">
+                    <div class="timer-text" id="current-time">00:00.00</div>
+                    <div class="timer-text best-time" id="best-time">Best: --:--.--</div>
+                </div>
+                <div id="fuel-container">
+                    <div id="fuel-bar"></div>
+                </div>
             </div>
         </div>
 
@@ -263,6 +293,9 @@
         const sliderKnob = document.getElementById('slider-knob');
         const fuelContainer = document.getElementById('fuel-container');
         const fuelBar = document.getElementById('fuel-bar');
+        const timerBox = document.getElementById('timer-box');
+        const currentTimeEl = document.getElementById('current-time');
+        const bestTimeEl = document.getElementById('best-time');
 
         // Check if mobile
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -311,6 +344,11 @@
         // Loop/Lap System
         let lapCount = 1;
         let lapIndicatorTime = 0;
+
+        // Timing
+        let lapStartTime = 0;
+        let bestLapTime = null;
+        let currentLapTime = 0;
 
         // --- Resize Handling ---
         function resize() {
@@ -457,6 +495,12 @@
             resetBtn.classList.add('hidden');
             boostBtn.classList.add('hidden');
             fuelContainer.style.display = 'none';
+            timerBox.classList.add('hidden');
+
+            // Reset Timing
+            bestLapTime = null;
+            bestTimeEl.textContent = "Best: --:--.--";
+            currentTimeEl.textContent = "00:00.00";
 
             inputVal = 0;
 
@@ -504,6 +548,11 @@
             skier.fuel = 100;
 
             lapCount = 1;
+
+            // Init Timer
+            lapStartTime = Date.now();
+            currentLapTime = 0;
+            timerBox.classList.remove('hidden');
         }
 
         function jumpSkier() {
@@ -520,6 +569,10 @@
                 updateBuild();
             } else if (gameState === 'RIDE') {
                 updateRide();
+                // Update Timer UI
+                const now = Date.now();
+                currentLapTime = now - lapStartTime;
+                currentTimeEl.textContent = formatTime(currentLapTime);
             }
             updateParticles();
         }
@@ -663,16 +716,31 @@
                     skier.vx = 0; skier.vy = 0;
                 }
             }
-
             // Check for lap completion (simply tracking progress)
             // Use cycleIndex as the true lap count
             // Note: cycleIndex starts at 0 for first lap.
             // But if we want 'Lap 1' to be the first run, then cycleIndex 0 is Lap 1.
-            const currentLap = cycleIndex + 1;
-            if (currentLap > lapCount) {
-                lapCount = currentLap;
+            const fullCycles = cycleIndex; // Number of full course traversals
+            if (fullCycles > 0 && fullCycles > lapCount - 1) {
+                // Lap Completed!
+                const finishedLapTime = currentLapTime;
+
+                if (bestLapTime === null || finishedLapTime < bestLapTime) {
+                    bestLapTime = finishedLapTime;
+                    bestTimeEl.textContent = "Best: " + formatTime(bestLapTime);
+                    // Flash "NEW RECORD" or something? (Optional)
+                }
+
+                lapCount = fullCycles + 1;
                 lapIndicatorTime = 60;
                 statusText.textContent = `Mode: RIDE (Lap ${lapCount})`;
+
+                // Reset timer for next lap
+                // Correction: We should account for the exact moment we crossed the line to be more precise?
+                // For a simple game, resetting to now is usually fine, but if we want per-frame accuracy:
+                // ideally we'd calculate the exact frame fraction. 
+                // Let's just reset trigger.
+                lapStartTime = Date.now();
             }
 
             camera.x = skier.x - width * 0.3;
@@ -866,8 +934,16 @@
             ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(5, -30); ctx.stroke(); // Torso
 
             // Head
-            ctx.beginPath(); ctx.arc(7, -34, 5, 0, Math.PI * 2); ctx.fillStyle = '#ffcc80'; ctx.fill();
-            ctx.beginPath(); ctx.arc(7, -36, 5, Math.PI, 0); ctx.fillStyle = '#1976d2'; ctx.fill(); // Beanie
+            ctx.fillStyle = '#ffccbc';
+            ctx.beginPath();
+            ctx.arc(0, -35, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Goggles
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.roundRect(1, -38, 5, 3, 1);
+            ctx.fill();
 
             // Arms
             ctx.beginPath(); ctx.moveTo(3, -25); ctx.lineTo(10, -15); ctx.stroke();
@@ -875,6 +951,19 @@
             ctx.beginPath(); ctx.moveTo(10, -15); ctx.lineTo(-5, 10); ctx.stroke(); // Pole
 
             ctx.restore();
+        }
+
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const centiseconds = Math.floor((ms % 1000) / 10); // 0-99
+
+            const mStr = minutes.toString().padStart(2, '0');
+            const sStr = seconds.toString().padStart(2, '0');
+            const csStr = centiseconds.toString().padStart(2, '0');
+
+            return `${mStr}:${sStr}.${csStr}`;
         }
 
         function loop() {
