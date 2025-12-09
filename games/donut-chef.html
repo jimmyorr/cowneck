@@ -675,6 +675,7 @@
                 this.trash = [];
                 this.activePlayerIndex = 0;
                 this.turnPhase = 'action'; // action, buy, cleanup
+                this.turnCount = 0;
                 this.ui = new UI(this);
                 this.engine = new Engine(this);
                 this.mode = 'human'; // 'human' or 'ai'
@@ -717,6 +718,7 @@
 
                 this.updateState();
                 this.log("Game Started!");
+                this.turnCount = 0;
                 this.engine.startTurn();
             }
 
@@ -729,7 +731,13 @@
             }
 
             updateState() {
-                this.ui.render();
+                if (!this.renderPending) {
+                    this.renderPending = true;
+                    requestAnimationFrame(() => {
+                        this.ui.render();
+                        this.renderPending = false;
+                    });
+                }
             }
         }
 
@@ -774,6 +782,13 @@
             }
 
             async startTurn() {
+                this.game.turnCount++;
+                if (this.game.turnCount > 300) {
+                    this.game.log("--- TURN LIMIT REACHED ---");
+                    this.endGame();
+                    return;
+                }
+
                 const p = this.game.players[this.game.activePlayerIndex];
                 p.actions = 1;
                 p.buys = 1;
@@ -995,6 +1010,10 @@
                 if (msg.startsWith('---')) entry.className += ' log-turn';
                 entry.innerText = msg;
                 logEl.prepend(entry);
+
+                if (logEl.children.length > 20) {
+                    logEl.removeChild(logEl.lastChild);
+                }
             }
 
             renderSupply() {
@@ -1046,9 +1065,6 @@
                     const def = CARDS[c.id];
                     const el = document.createElement('div');
                     el.className = `card ${def.type[0]}`;
-                    // Random rotation for natural feel
-                    const rot = (Math.random() * 4 - 2).toFixed(1);
-                    el.style.transform = `rotate(${rot}deg)`;
 
                     el.innerHTML = `
                 <div class="card-cost">${def.cost}</div>
@@ -1289,7 +1305,7 @@
                 const originalSelectCards = this.selectCards;
                 const originalSelectGain = this.selectCardToGain;
 
-                // Mock methods
+                // Mock method replacements
                 this.selectCards = async (list, count, msg, btn, opts) => {
                     // AI strategy: always pick first N available or 0 if optional
                     const min = opts && opts.min ? opts.min : 0;
@@ -1307,11 +1323,13 @@
                     return best;
                 };
 
-                await this.game.engine.playCard(player, card);
-
-                // Restore
-                this.selectCards = originalSelectCards;
-                this.selectCardToGain = originalSelectGain;
+                try {
+                    await this.game.engine.playCard(player, card);
+                } finally {
+                    // Restore
+                    this.selectCards = originalSelectCards;
+                    this.selectCardToGain = originalSelectGain;
+                }
             }
         }
 
