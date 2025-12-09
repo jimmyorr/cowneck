@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -15,128 +16,339 @@
             user-select: none;
         }
 
-        #game-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #game-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
 
         #ui-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
-            display: flex; flex-direction: column; justify-content: space-between;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             transition: opacity 0.5s;
         }
 
         #hud {
-            padding: 20px; color: white; font-size: 20px; font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            display: flex; justify-content: space-between; pointer-events: none;
+            padding: 20px;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
             align-items: flex-start;
         }
 
         #controls-area {
-            height: 200px; width: 100%; display: flex; pointer-events: auto; padding-bottom: 20px;
+            height: 200px;
+            width: 100%;
+            display: flex;
+            pointer-events: auto;
+            padding-bottom: 20px;
         }
 
         /* Hide mobile controls when playing on PC initially */
         body.pc-mode #controls-area .action-btn,
-        body.pc-mode #controls-area .control-zone-left { opacity: 0.1; }
+        body.pc-mode #controls-area .control-zone-left {
+            opacity: 0.1;
+        }
 
-        .control-zone-left { flex: 1; position: relative; }
+        .control-zone-left {
+            flex: 1;
+            position: relative;
+        }
+
         .control-zone-right {
-            flex: 1; position: relative; display: flex;
-            justify-content: flex-end; align-items: flex-end;
-            padding-right: 30px; padding-bottom: 20px; gap: 20px;
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding-right: 30px;
+            padding-bottom: 20px;
+            gap: 20px;
         }
 
         /* Joystick */
         #joystick-base {
-            width: 100px; height: 100px; background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%; position: absolute; display: none;
-            border: 2px solid rgba(255,255,255,0.3); pointer-events: none;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            position: absolute;
+            display: none;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            pointer-events: none;
             backdrop-filter: blur(5px);
         }
+
         #joystick-stick {
-            width: 50px; height: 50px; background: radial-gradient(circle, #ffaa00, #cc8800);
-            border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #ffaa00, #cc8800);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
         }
 
         /* Buttons */
         .action-btn {
-            width: 75px; height: 75px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.8);
-            color: white; font-weight: 900; font-size: 14px; display: flex;
-            justify-content: center; align-items: center; 
-            box-shadow: 0 6px 12px rgba(0,0,0,0.4), inset 0 2px 5px rgba(255,255,255,0.3);
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            color: white;
+            font-weight: 900;
+            font-size: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4), inset 0 2px 5px rgba(255, 255, 255, 0.3);
             text-shadow: 1px 1px 2px black;
             transition: transform 0.1s;
         }
-        .action-btn:active { transform: scale(0.92); }
-        
-        #attack-btn { width: 95px; height: 95px; background: linear-gradient(135deg, #ff4444, #cc0000); font-size: 18px; margin-bottom: 10px; }
-        #attack-btn.active { background: linear-gradient(135deg, #ff2222, #aa0000); box-shadow: 0 0 20px #ff0000; animation: pulse 1s infinite; }
-        #jump-btn { background: linear-gradient(135deg, #44cc44, #008800); }
-        #climb-btn { background: linear-gradient(135deg, #4488ff, #0044cc); }
-        
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        .btn-group-vertical { display: flex; flex-direction: column; gap: 15px; align-items: center; }
+        .action-btn:active {
+            transform: scale(0.92);
+        }
+
+        #attack-btn {
+            width: 95px;
+            height: 95px;
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        #attack-btn.active {
+            background: linear-gradient(135deg, #ff2222, #aa0000);
+            box-shadow: 0 0 20px #ff0000;
+            animation: pulse 1s infinite;
+        }
+
+        #jump-btn {
+            background: linear-gradient(135deg, #44cc44, #008800);
+        }
+
+        #climb-btn {
+            background: linear-gradient(135deg, #4488ff, #0044cc);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .btn-group-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
 
         /* Screens */
         .screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; color: white; z-index: 10;
-            pointer-events: auto; text-align: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+            pointer-events: auto;
+            text-align: center;
             backdrop-filter: blur(10px);
         }
-        h1 { margin: 0; font-size: 50px; color: #ffaa00; text-transform: uppercase; letter-spacing: 2px; text-shadow: 4px 4px 0 #000; }
+
+        h1 {
+            margin: 0;
+            font-size: 50px;
+            color: #ffaa00;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 4px 4px 0 #000;
+        }
+
         .btn {
-            background: #ffaa00; color: #222; border: none; padding: 15px 50px;
-            font-size: 24px; border-radius: 50px; margin-top: 30px; font-weight: 900; 
-            border: 4px solid #fff; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            background: #ffaa00;
+            color: #222;
+            border: none;
+            padding: 15px 50px;
+            font-size: 24px;
+            border-radius: 50px;
+            margin-top: 30px;
+            font-weight: 900;
+            border: 4px solid #fff;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
             transition: transform 0.1s, background 0.2s;
         }
-        .btn:hover { background: #ffcc00; transform: scale(1.05); }
-        .hidden { display: none !important; }
 
-        #health-bar-container { width: 250px; height: 25px; background: #222; border: 3px solid white; border-radius: 15px; overflow: hidden; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        #health-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #44ff44, #00cc00); transition: width 0.2s; }
-        
+        .btn:hover {
+            background: #ffcc00;
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #health-bar-container {
+            width: 250px;
+            height: 25px;
+            background: #222;
+            border: 3px solid white;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #health-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #44ff44, #00cc00);
+            transition: width 0.2s;
+        }
+
         /* Boss UI */
         #boss-hud {
-            position: absolute; top: 80px; width: 100%; display: flex; flex-direction: column; align-items: center;
-            pointer-events: none; opacity: 0; transition: opacity 1s;
+            position: absolute;
+            top: 80px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s;
         }
-        #boss-hud.visible { opacity: 1; }
-        #boss-name { font-size: 30px; color: #ff00ff; text-shadow: 0 0 10px #ff00ff; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 3px; font-weight: 900; }
-        #boss-health-container { width: 60%; height: 30px; background: #222; border: 3px solid #ff00ff; border-radius: 15px; overflow: hidden; }
-        #boss-health-bar { width: 100%; height: 100%; background: #ff00ff; transition: width 0.2s; }
+
+        #boss-hud.visible {
+            opacity: 1;
+        }
+
+        #boss-name {
+            font-size: 30px;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 900;
+        }
+
+        #boss-health-container {
+            width: 60%;
+            height: 30px;
+            background: #222;
+            border: 3px solid #ff00ff;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        #boss-health-bar {
+            width: 100%;
+            height: 100%;
+            background: #ff00ff;
+            transition: width 0.2s;
+        }
 
         #boss-warning {
-            position: absolute; top: 40%; width: 100%; text-align: center;
-            font-size: 60px; color: red; font-weight: 900; text-shadow: 0 0 20px red;
-            pointer-events: none; opacity: 0; transform: scale(0.5);
+            position: absolute;
+            top: 40%;
+            width: 100%;
+            text-align: center;
+            font-size: 60px;
+            color: red;
+            font-weight: 900;
+            text-shadow: 0 0 20px red;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.5);
         }
+
         @keyframes warningAnim {
-            0% { opacity: 0; transform: scale(0.5); }
-            20% { opacity: 1; transform: scale(1.2); }
-            80% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(1.5); }
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            20% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+
+            80% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(1.5);
+            }
         }
-        .warn-active { animation: warningAnim 3s forwards; }
+
+        .warn-active {
+            animation: warningAnim 3s forwards;
+        }
 
         #cage-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: repeating-linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.8) 50px, #111 50px, #111 60px);
-            pointer-events: none; z-index: 5; display: none; box-shadow: inset 0 0 150px black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8) 50px, #111 50px, #111 60px);
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+            box-shadow: inset 0 0 150px black;
         }
-        
+
         #controls-hint {
-            position: absolute; bottom: 20px; left: 0; width: 100%; text-align: center; 
-            color: rgba(255,255,255,0.7); font-size: 16px; font-weight: bold; text-shadow: 1px 1px 2px black;
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px black;
             pointer-events: none;
         }
     </style>
 </head>
+
 <body>
 
     <div id="game-container"></div>
@@ -145,7 +357,9 @@
     <div id="ui-layer">
         <div id="hud">
             <div>
-                <div id="health-bar-container"><div id="health-bar"></div></div>
+                <div id="health-bar-container">
+                    <div id="health-bar"></div>
+                </div>
                 <div style="font-size: 14px; margin-top:5px; color:#aaa;">HEALTH</div>
             </div>
             <div id="score">SCORE: 0</div>
@@ -153,7 +367,9 @@
 
         <div id="boss-hud">
             <div id="boss-name">THE EXTERMINATOR</div>
-            <div id="boss-health-container"><div id="boss-health-bar"></div></div>
+            <div id="boss-health-container">
+                <div id="boss-health-bar"></div>
+            </div>
         </div>
         <div id="boss-warning">BOSS APPROACHING!</div>
 
@@ -169,13 +385,16 @@
         </div>
         <div id="controls-hint" class="hidden">WASD to Move | SPACE to Jump | SHIFT to Climb | F to Attack</div>
     </div>
-    <div id="joystick-base"><div id="joystick-stick"></div></div>
+    <div id="joystick-base">
+        <div id="joystick-stick"></div>
+    </div>
 
     <div id="start-screen" class="screen">
         <h1>GOOFY PAWS</h1>
         <p style="font-size: 20px; color: #ddd;">The owners are angry. Escape is impossible.</p>
         <p style="font-size: 20px; color: #ffcc00;">Survive.</p>
-        <div style="margin-top:20px; background:rgba(0,0,0,0.5); padding:20px; border-radius:15px; border: 1px solid rgba(255,255,255,0.2);">
+        <div
+            style="margin-top:20px; background:rgba(0,0,0,0.5); padding:20px; border-radius:15px; border: 1px solid rgba(255,255,255,0.2);">
             <p style="margin:5px; font-size:16px;"><strong>Mobile:</strong> Drag left to Move, Tap buttons</p>
             <p style="margin:5px; font-size:16px;"><strong>PC:</strong> WASD/Arrows to Move</p>
             <p style="margin:5px; font-size:14px; color:#aaa;">Space=Jump, Shift=Climb, F=Attack</p>
@@ -198,13 +417,14 @@
         let isBossFight = false;
         let score = 0, health = 100, lastTime = 0;
         let nextBossScore = 10;
-        
-        let bossLevelIndex = 0; 
-        
-        const GRAVITY = -50; 
+
+        let bossLevelIndex = 0;
+
+        const GRAVITY = -50;
         const JUMP_FORCE = 20;
         const CLIMB_FORCE = 28;
         const MOVE_SPEED = 14;
+        const CUCUMBER_HEAL_AMOUNT = 20;
 
         const input = { x: 0, y: 0 };
         const joystick = { base: document.getElementById('joystick-base'), stick: document.getElementById('joystick-stick'), active: false, id: null, originX: 0, originY: 0 };
@@ -212,11 +432,11 @@
 
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x201530); 
+            scene.background = new THREE.Color(0x201530);
             scene.fog = new THREE.Fog(0x201530, 20, 90);
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
-            
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+
             renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
@@ -229,7 +449,7 @@
             const dirLight = new THREE.DirectionalLight(0xffddaa, 0.8);
             dirLight.position.set(40, 60, 30);
             dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 2048; 
+            dirLight.shadow.mapSize.width = 2048;
             dirLight.shadow.mapSize.height = 2048;
             dirLight.shadow.bias = -0.0005;
             scene.add(dirLight);
@@ -239,7 +459,7 @@
             floorTexture.wrapS = THREE.RepeatWrapping;
             floorTexture.wrapT = THREE.RepeatWrapping;
             floorTexture.repeat.set(10, 10);
-            
+
             const floorMat = new THREE.MeshStandardMaterial({ map: floorTexture, roughness: 0.8, color: 0xddccaa });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
@@ -255,11 +475,11 @@
             createPlayer();
 
             window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth/window.innerHeight;
+                camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
-            
+
             window.addEventListener('keydown', handleKeyDown);
             window.addEventListener('keyup', handleKeyUp);
 
@@ -271,26 +491,26 @@
             canvas.width = 512; canvas.height = 512;
             const ctx = canvas.getContext('2d');
             ctx.fillStyle = '#8B5A2B';
-            ctx.fillRect(0,0,512,512);
+            ctx.fillRect(0, 0, 512, 512);
             ctx.strokeStyle = '#5c3a1b';
             ctx.lineWidth = 4;
-            for(let i=0; i<512; i+=64) {
+            for (let i = 0; i < 512; i += 64) {
                 ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
-                for(let j=0; j<8; j++) {
-                    if(Math.random()>0.5) { const x = j*64 + (Math.random()*20); ctx.beginPath(); ctx.moveTo(x, i); ctx.lineTo(x, i+64); ctx.stroke(); }
+                for (let j = 0; j < 8; j++) {
+                    if (Math.random() > 0.5) { const x = j * 64 + (Math.random() * 20); ctx.beginPath(); ctx.moveTo(x, i); ctx.lineTo(x, i + 64); ctx.stroke(); }
                 }
             }
-            for(let i=0; i<5000; i++) { ctx.fillStyle = Math.random() > 0.5 ? '#6b4226' : '#a06e3d'; ctx.fillRect(Math.random()*512, Math.random()*512, 2, 20); }
+            for (let i = 0; i < 5000; i++) { ctx.fillStyle = Math.random() > 0.5 ? '#6b4226' : '#a06e3d'; ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 20); }
             return new THREE.CanvasTexture(canvas);
         }
-        
+
         function handleKeyDown(e) {
             if (keys.hasOwnProperty(e.key) || keys.hasOwnProperty(e.code)) {
                 keys[e.key] = true;
                 document.body.classList.add('pc-mode');
                 document.getElementById('controls-hint').classList.remove('hidden');
             }
-            if(!isGameRunning) return;
+            if (!isGameRunning) return;
             if (e.code === 'Space') jump();
             if (e.key.toLowerCase() === 'e' || e.key === 'Shift') climb();
             if (e.key.toLowerCase() === 'f' || e.key === 'Enter') attack();
@@ -305,7 +525,7 @@
             if (keys['s'] || keys['S'] || keys['ArrowDown']) ky += 1;
             if (keys['a'] || keys['A'] || keys['ArrowLeft']) kx -= 1;
             if (keys['d'] || keys['D'] || keys['ArrowRight']) kx += 1;
-            if (kx !== 0 || ky !== 0) { const len = Math.sqrt(kx*kx + ky*ky); kx /= len; ky /= len; }
+            if (kx !== 0 || ky !== 0) { const len = Math.sqrt(kx * kx + ky * ky); kx /= len; ky /= len; }
             input.x = kx; input.y = ky;
         }
 
@@ -320,55 +540,55 @@
         function generateFurniture() {
             createSofa(-20, -20, 0); createSofa(20, 25, Math.PI);
             createTable(0, 0); createTable(-25, 25);
-            createBookshelf(-40, -40, Math.PI/4); createBookshelf(40, -10, -Math.PI/2); createBookshelf(40, 40, 0);
+            createBookshelf(-40, -40, Math.PI / 4); createBookshelf(40, -10, -Math.PI / 2); createBookshelf(40, 40, 0);
             createTVStand(10, -35);
         }
 
         function createSofa(x, z, ry) {
             const group = new THREE.Group(); const mat = new THREE.MeshStandardMaterial({ color: 0x800000, roughness: 0.9 });
-            
+
             // Base: Use multiple cylinders or rounded primitives approximation
             // Since we want simple rounded, we use Box for collision but Cylinders for visual
-            
+
             // Seat
             const seat = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 10, 16), mat);
-            seat.rotation.z = Math.PI/2;
+            seat.rotation.z = Math.PI / 2;
             seat.scale.set(1, 1, 2); // Stretch to oval
             seat.position.y = 1.5;
             group.add(seat);
 
             // Back
             const back = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 10, 16), mat);
-            back.rotation.z = Math.PI/2;
+            back.rotation.z = Math.PI / 2;
             back.position.set(0, 3.5, -2);
             group.add(back);
 
             // Arms
             const armGeo = new THREE.CylinderGeometry(1.5, 1.5, 4, 16);
-            const arm1 = new THREE.Mesh(armGeo, mat); arm1.rotation.x=Math.PI/2; arm1.position.set(-4, 2.5, 0); group.add(arm1);
-            const arm2 = new THREE.Mesh(armGeo, mat); arm2.rotation.x=Math.PI/2; arm2.position.set(4, 2.5, 0); group.add(arm2);
+            const arm1 = new THREE.Mesh(armGeo, mat); arm1.rotation.x = Math.PI / 2; arm1.position.set(-4, 2.5, 0); group.add(arm1);
+            const arm2 = new THREE.Mesh(armGeo, mat); arm2.rotation.x = Math.PI / 2; arm2.position.set(4, 2.5, 0); group.add(arm2);
 
             group.position.set(x, 0, z); group.rotation.y = ry || 0;
-            
+
             // Collider (Box is still best for simple physics)
-            const collider = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 5), new THREE.MeshBasicMaterial({visible:false}));
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 5), new THREE.MeshBasicMaterial({ visible: false }));
             collider.position.set(x, 2, z); collider.rotation.y = ry || 0; addToScene(group, collider);
         }
 
         function createTable(x, z) {
             const group = new THREE.Group(); const wood = new THREE.MeshStandardMaterial({ color: 0x5c3a1b, roughness: 0.5 });
             // Rounded Table Top (Cylinder)
-            const top = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 0.5, 32), wood); 
+            const top = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 0.5, 32), wood);
             top.position.y = 3.5; group.add(top);
-            
+
             // Legs (Cylinders)
             const legGeo = new THREE.CylinderGeometry(0.3, 0.2, 3.5, 12);
-            [[-3, -2], [3, -2], [-3, 2], [3, 2]].forEach(pos => { 
-                const leg = new THREE.Mesh(legGeo, wood); leg.position.set(pos[0], 1.75, pos[1]); group.add(leg); 
+            [[-3, -2], [3, -2], [-3, 2], [3, 2]].forEach(pos => {
+                const leg = new THREE.Mesh(legGeo, wood); leg.position.set(pos[0], 1.75, pos[1]); group.add(leg);
             });
-            
+
             group.position.set(x, 0, z);
-            const collider = new THREE.Mesh(new THREE.BoxGeometry(8, 4, 5), new THREE.MeshBasicMaterial({visible:false}));
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(8, 4, 5), new THREE.MeshBasicMaterial({ visible: false }));
             collider.position.set(x, 2, z); addToScene(group, collider);
         }
 
@@ -376,58 +596,58 @@
             const group = new THREE.Group(); const wood = new THREE.MeshStandardMaterial({ color: 0x3d2b1f });
             // Main structure (Box with bevel removed -> Just Box is fine for bookshelf, maybe add molding)
             const shelf = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 2), wood); shelf.position.y = 6; group.add(shelf);
-            
+
             // Books (Rounded spines)
-            for(let i=0; i<5; i++) {
+            for (let i = 0; i < 5; i++) {
                 const color = new THREE.Color().setHSL(Math.random(), 0.7, 0.5);
-                const book = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 4, 16), new THREE.MeshStandardMaterial({color: color}));
-                book.rotation.z = Math.PI/2;
-                book.position.set(0, 2 + (i*2), 0.5); group.add(book);
+                const book = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 4, 16), new THREE.MeshStandardMaterial({ color: color }));
+                book.rotation.z = Math.PI / 2;
+                book.position.set(0, 2 + (i * 2), 0.5); group.add(book);
             }
             group.position.set(x, 0, z); group.rotation.y = ry || 0;
-            const collider = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 2), new THREE.MeshBasicMaterial({visible:false}));
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 2), new THREE.MeshBasicMaterial({ visible: false }));
             collider.position.set(x, 6, z); collider.rotation.y = ry || 0; addToScene(group, collider);
         }
 
         function createTVStand(x, z) {
             const group = new THREE.Group(); const black = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.5, roughness: 0.2 });
-            const stand = new THREE.Mesh(new THREE.BoxGeometry(8, 2, 3), new THREE.MeshStandardMaterial({color:0x222222})); stand.position.y = 1; group.add(stand);
+            const stand = new THREE.Mesh(new THREE.BoxGeometry(8, 2, 3), new THREE.MeshStandardMaterial({ color: 0x222222 })); stand.position.y = 1; group.add(stand);
             // Screen (Box)
             const tv = new THREE.Mesh(new THREE.BoxGeometry(6, 4, 0.5), black); tv.position.set(0, 4, 0); group.add(tv);
             group.position.set(x, 0, z);
-            const collider = new THREE.Mesh(new THREE.BoxGeometry(8, 6, 3), new THREE.MeshBasicMaterial({visible:false}));
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(8, 6, 3), new THREE.MeshBasicMaterial({ visible: false }));
             collider.position.set(x, 3, z); addToScene(group, collider);
         }
 
         function addToScene(visibleGroup, colliderMesh) {
-            visibleGroup.traverse(c => { if(c.isMesh) { c.castShadow=true; c.receiveShadow=true; }});
-            scene.add(visibleGroup); obstacles.push(colliderMesh); colliderMesh.updateMatrixWorld(); 
+            visibleGroup.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+            scene.add(visibleGroup); obstacles.push(colliderMesh); colliderMesh.updateMatrixWorld();
         }
 
         // --- Character Generation (Rounded) ---
 
         function createPlayer() {
             const group = new THREE.Group(); const fur = new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 1 });
-            
+
             // Body: Capsule-like (Sphere stretched or Cylinder with spherical caps)
             // Simulating Capsule with Sphere
-            const body = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), fur); 
+            const body = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), fur);
             body.scale.set(1, 0.8, 1.5);
-            body.position.y = 0.6; 
+            body.position.y = 0.6;
             group.add(body);
-            
+
             // Head: Sphere
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 32), fur); 
-            head.position.set(0, 1.3, 1); 
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 32), fur);
+            head.position.set(0, 1.3, 1);
             group.add(head);
-            
+
             // Ears: Cones
             const earGeo = new THREE.ConeGeometry(0.2, 0.5, 16);
             const ear1 = new THREE.Mesh(earGeo, fur); ear1.position.set(0.3, 1.9, 1); ear1.rotation.x = -0.2; group.add(ear1);
             const ear2 = new THREE.Mesh(earGeo, fur); ear2.position.set(-0.3, 1.9, 1); ear2.rotation.x = -0.2; group.add(ear2);
-            
+
             // Tail: Cylinder chain or just one curved cylinder. Simple: Cylinder
-            const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.05, 1.5, 12), fur); 
+            const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.05, 1.5, 12), fur);
             tail.position.set(0, 0.8, -1); tail.rotation.x = -1; group.add(tail);
 
             const holder = new THREE.Group(); holder.name = "weaponHolder"; holder.position.set(0.6, 0.8, 1.0); group.add(holder);
@@ -436,38 +656,38 @@
         }
 
         function spawnEnemy() {
-            if(!isGameRunning || isBossFight || enemies.length > 6) return;
+            if (!isGameRunning || isBossFight || enemies.length > 6) return;
             const group = new THREE.Group();
-            const skin = new THREE.MeshStandardMaterial({color: 0xffccaa});
-            const clothes = new THREE.MeshStandardMaterial({ color: Math.random()>0.5 ? 0x8b0000 : 0x006400 });
+            const skin = new THREE.MeshStandardMaterial({ color: 0xffccaa });
+            const clothes = new THREE.MeshStandardMaterial({ color: Math.random() > 0.5 ? 0x8b0000 : 0x006400 });
             const pants = new THREE.MeshStandardMaterial({ color: 0x000080 });
-            
+
             // Legs: Cylinders
             const legGeo = new THREE.CylinderGeometry(0.4, 0.4, 3, 16);
             const l = new THREE.Mesh(legGeo, pants); l.position.set(-0.6, 1.5, 0);
-            const r = new THREE.Mesh(legGeo, pants); r.position.set(0.6, 1.5, 0); 
+            const r = new THREE.Mesh(legGeo, pants); r.position.set(0.6, 1.5, 0);
             group.add(l, r);
-            
+
             // Torso: Rounded Cylinder (Capsule-ish)
-            const torso = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.9, 3.5, 32), clothes); 
+            const torso = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.9, 3.5, 32), clothes);
             torso.scale.set(1, 1, 0.6); // Flatten slightly
-            torso.position.y = 4.5; 
+            torso.position.y = 4.5;
             group.add(torso);
-            
+
             // Arms
             const armGeo = new THREE.CylinderGeometry(0.25, 0.25, 2.5, 16);
-            const armL = new THREE.Mesh(armGeo, clothes); armL.rotation.z=0.2; armL.position.set(-1.4, 4.5, 0); group.add(armL);
-            const armR = new THREE.Mesh(armGeo, clothes); armR.rotation.z=-0.2; armR.position.set(1.4, 4.5, 0); group.add(armR);
-            
+            const armL = new THREE.Mesh(armGeo, clothes); armL.rotation.z = 0.2; armL.position.set(-1.4, 4.5, 0); group.add(armL);
+            const armR = new THREE.Mesh(armGeo, clothes); armR.rotation.z = -0.2; armR.position.set(1.4, 4.5, 0); group.add(armR);
+
             // Head: Sphere
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.8, 32, 32), skin); 
-            head.position.y = 6.8; 
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.8, 32, 32), skin);
+            head.position.y = 6.8;
             group.add(head);
 
-            const angle = Math.random() * Math.PI * 2; group.position.set(Math.cos(angle)*55, 0, Math.sin(angle)*55);
-            group.traverse(c => { if(c.isMesh) { c.castShadow=true; c.receiveShadow=true; } });
+            const angle = Math.random() * Math.PI * 2; group.position.set(Math.cos(angle) * 55, 0, Math.sin(angle) * 55);
+            group.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
             scene.add(group);
-            enemies.push({ mesh: group, speed: 5 + Math.random()*2, velocityY: 0, isJumping: false });
+            enemies.push({ mesh: group, speed: 5 + Math.random() * 2, velocityY: 0, isJumping: false });
         }
 
         // --- Boss Logic (Updated visuals) ---
@@ -476,16 +696,16 @@
             isBossFight = true;
             enemies.forEach(e => scene.remove(e.mesh));
             enemies = [];
-            
+
             const warn = document.getElementById('boss-warning');
             warn.classList.remove('warn-active');
-            void warn.offsetWidth; 
+            void warn.offsetWidth;
             warn.classList.add('warn-active');
-            
+
             const bossType = bossLevelIndex % 5;
             const names = ["THE EXTERMINATOR", "VACUUM KING", "MAILMAN MIKE", "GRANDMA", "THE VET"];
             document.getElementById('boss-name').innerText = names[bossType];
-            
+
             document.getElementById('boss-hud').classList.add('visible');
             updateBossHealthUI(100);
 
@@ -496,83 +716,83 @@
             const group = new THREE.Group();
             let hp = 5;
             let speed = 7;
-            
+
             if (type === 0) { // Exterminator (Rounder)
-                const suit = new THREE.MeshStandardMaterial({color: 0xffcc00});
+                const suit = new THREE.MeshStandardMaterial({ color: 0xffcc00 });
                 // Body: Capsule
                 const body = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1, 4, 32), suit);
-                body.position.y=2; group.add(body);
+                body.position.y = 2; group.add(body);
                 // Head: Sphere w/ Mask
-                const head = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), new THREE.MeshStandardMaterial({color:0x333}));
-                head.position.y=4.5; group.add(head);
+                const head = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), new THREE.MeshStandardMaterial({ color: 0x333 }));
+                head.position.y = 4.5; group.add(head);
                 // Tank: Cylinder
-                const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 3, 32), new THREE.MeshStandardMaterial({color:0x888888}));
-                tank.rotation.z=Math.PI/2; tank.position.set(0, 3, -1); group.add(tank);
-                group.position.y = 2; 
-            } 
+                const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 3, 32), new THREE.MeshStandardMaterial({ color: 0x888888 }));
+                tank.rotation.z = Math.PI / 2; tank.position.set(0, 3, -1); group.add(tank);
+                group.position.y = 2;
+            }
             else if (type === 1) { // Vacuum King (Smooth Cylinder)
-                const metal = new THREE.MeshStandardMaterial({color: 0x6600cc, metalness: 0.8, roughness: 0.2});
+                const metal = new THREE.MeshStandardMaterial({ color: 0x6600cc, metalness: 0.8, roughness: 0.2 });
                 const body = new THREE.Mesh(new THREE.CylinderGeometry(2, 2.5, 4, 32), metal);
-                body.position.y=2; group.add(body);
+                body.position.y = 2; group.add(body);
                 // Dome head
-                const dome = new THREE.Mesh(new THREE.SphereGeometry(2, 32, 32, 0, Math.PI*2, 0, Math.PI/2), new THREE.MeshStandardMaterial({color:0x9933ff}));
-                dome.position.y=4; group.add(dome);
+                const dome = new THREE.Mesh(new THREE.SphereGeometry(2, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9933ff }));
+                dome.position.y = 4; group.add(dome);
                 hp = 7; speed = 5;
             }
             else if (type === 2) { // Mailman (Rounded Box logic -> Cylinder/Sphere mix)
-                const blue = new THREE.MeshStandardMaterial({color: 0x0000ff});
+                const blue = new THREE.MeshStandardMaterial({ color: 0x0000ff });
                 // Torso
                 const torso = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.8, 3, 32), blue);
                 torso.scale.set(1.5, 1, 1); // Wide
-                torso.position.y=3; group.add(torso);
+                torso.position.y = 3; group.add(torso);
                 // Legs
                 const l = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 3, 16), blue); l.position.set(-0.8, 1.5, 0);
                 const r = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 3, 16), blue); r.position.set(0.8, 1.5, 0);
-                group.add(l,r);
+                group.add(l, r);
                 // Head
-                const head = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 32), new THREE.MeshStandardMaterial({color:0xffccaa}));
-                head.position.y=5; group.add(head);
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 32), new THREE.MeshStandardMaterial({ color: 0xffccaa }));
+                head.position.y = 5; group.add(head);
                 hp = 6; speed = 9;
             }
             else if (type === 3) { // Grandma (Cone dress)
-                const dress = new THREE.MeshStandardMaterial({color: 0xff69b4});
+                const dress = new THREE.MeshStandardMaterial({ color: 0xff69b4 });
                 const body = new THREE.Mesh(new THREE.ConeGeometry(2.5, 5, 32), dress);
-                body.position.y=2.5; group.add(body);
-                const head = new THREE.Mesh(new THREE.SphereGeometry(0.8, 32, 32), new THREE.MeshStandardMaterial({color:0xffccaa}));
-                head.position.y=5; group.add(head);
-                const bun = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), new THREE.MeshStandardMaterial({color:0xeeeeee}));
+                body.position.y = 2.5; group.add(body);
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.8, 32, 32), new THREE.MeshStandardMaterial({ color: 0xffccaa }));
+                head.position.y = 5; group.add(head);
+                const bun = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), new THREE.MeshStandardMaterial({ color: 0xeeeeee }));
                 bun.position.set(0, 5.5, -0.4); group.add(bun);
                 hp = 8; speed = 4;
             }
             else if (type === 4) { // Vet (Tall Cylinder)
-                const white = new THREE.MeshStandardMaterial({color: 0xffffff});
+                const white = new THREE.MeshStandardMaterial({ color: 0xffffff });
                 const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.7, 4.5, 32), white);
-                body.position.y=2.25; group.add(body);
-                const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 32), new THREE.MeshStandardMaterial({color:0xffccaa}));
-                head.position.y=5; group.add(head);
+                body.position.y = 2.25; group.add(body);
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 32), new THREE.MeshStandardMaterial({ color: 0xffccaa }));
+                head.position.y = 5; group.add(head);
                 // Needle
-                const needle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3, 8), new THREE.MeshStandardMaterial({color:0xaaaaaa, metalness:1}));
-                needle.rotation.x=Math.PI/2; needle.position.set(0, 3, 1.5); group.add(needle);
+                const needle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3, 8), new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 1 }));
+                needle.rotation.x = Math.PI / 2; needle.position.set(0, 3, 1.5); group.add(needle);
                 hp = 10; speed = 12;
             }
 
             group.position.set(0, 0, -40);
-            group.traverse(c => { if(c.isMesh) { c.castShadow=true; c.receiveShadow=true; } });
+            group.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
 
             scene.add(group);
-            boss = { 
-                mesh: group, 
+            boss = {
+                mesh: group,
                 type: type,
-                hp: hp, maxHp: hp, 
-                speed: speed, 
-                velocityY: 0, 
+                hp: hp, maxHp: hp,
+                speed: speed,
+                velocityY: 0,
                 isJumping: false,
                 lastShot: 0,
             };
         }
 
         function updateBoss(dt, time) {
-            if(!boss) return;
+            if (!boss) return;
 
             // Generic Movement
             const target = player.mesh.position.clone();
@@ -582,14 +802,14 @@
             dir.normalize();
 
             if (boss.type === 1) { // Vacuum: Suck
-                 if (dist < 15) {
-                     const pull = new THREE.Vector3().subVectors(boss.mesh.position, player.mesh.position).normalize().multiplyScalar(5 * dt);
-                     player.mesh.position.add(pull);
-                 }
+                if (dist < 15) {
+                    const pull = new THREE.Vector3().subVectors(boss.mesh.position, player.mesh.position).normalize().multiplyScalar(5 * dt);
+                    player.mesh.position.add(pull);
+                }
             }
 
             // Move
-            if(dist > (boss.type === 4 ? 2 : 5)) { 
+            if (dist > (boss.type === 4 ? 2 : 5)) {
                 boss.mesh.position.add(dir.multiplyScalar(boss.speed * dt));
             }
             boss.mesh.lookAt(player.mesh.position.x, boss.mesh.position.y, player.mesh.position.z);
@@ -597,9 +817,9 @@
             // Gravity & Jump
             boss.velocityY += GRAVITY * dt;
             boss.mesh.position.y += boss.velocityY * dt;
-            if(boss.mesh.position.y <= 0) { boss.mesh.position.y = 0; boss.velocityY = 0; boss.isJumping = false; }
+            if (boss.mesh.position.y <= 0) { boss.mesh.position.y = 0; boss.velocityY = 0; boss.isJumping = false; }
             const heightDiff = player.mesh.position.y - boss.mesh.position.y;
-            if(dist < 8 && heightDiff > 2 && !boss.isJumping && Math.random() < 0.05) {
+            if (dist < 8 && heightDiff > 2 && !boss.isJumping && Math.random() < 0.05) {
                 boss.velocityY = 20; boss.isJumping = true;
             }
 
@@ -609,59 +829,59 @@
                 if (boss.type === 0) shootProjectile(0, boss.mesh.position);
                 if (boss.type === 2) shootProjectile(1, boss.mesh.position);
                 if (boss.type === 3) shootProjectile(2, boss.mesh.position);
-                if (boss.type === 4) { boss.speed = 25; setTimeout(()=>boss.speed=12, 500); }
+                if (boss.type === 4) { boss.speed = 25; setTimeout(() => boss.speed = 12, 500); }
                 boss.lastShot = time;
             }
-            
+
             // Collision Damage
             if (boss.mesh.position.distanceTo(player.mesh.position) < 2) {
                 health -= 30 * dt;
                 document.getElementById('health-bar').style.width = health + '%';
-                if(health <= 0) gameOver();
+                if (health <= 0) gameOver();
             }
         }
 
         function shootProjectile(kind, pos) {
             let mesh;
             let speed = 15;
-            
+
             if (kind === 0) { // Gas
-                mesh = new THREE.Mesh(new THREE.SphereGeometry(1.5, 32, 32), new THREE.MeshStandardMaterial({color: 0x00ff00, transparent: true, opacity: 0.6}));
+                mesh = new THREE.Mesh(new THREE.SphereGeometry(1.5, 32, 32), new THREE.MeshStandardMaterial({ color: 0x00ff00, transparent: true, opacity: 0.6 }));
             } else if (kind === 1) { // Mail (Box but slightly rounded via bevel? No, standard box is fine for mail, or flattened sphere)
-                mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 0.5, 1.5), new THREE.MeshStandardMaterial({color: 0xffffff}));
+                mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 0.5, 1.5), new THREE.MeshStandardMaterial({ color: 0xffffff }));
                 speed = 25;
             } else if (kind === 2) { // Yarn
-                mesh = new THREE.Mesh(new THREE.SphereGeometry(1.2, 32, 32), new THREE.MeshStandardMaterial({color: 0xff69b4}));
+                mesh = new THREE.Mesh(new THREE.SphereGeometry(1.2, 32, 32), new THREE.MeshStandardMaterial({ color: 0xff69b4 }));
                 speed = 10;
             }
 
             mesh.position.copy(pos);
             mesh.position.y += 3;
-            
-            const target = player.mesh.position.clone().add(new THREE.Vector3(0,1,0));
+
+            const target = player.mesh.position.clone().add(new THREE.Vector3(0, 1, 0));
             const velocity = new THREE.Vector3().subVectors(target, mesh.position).normalize().multiplyScalar(speed);
-            
+
             scene.add(mesh);
             projectiles.push({ mesh: mesh, velocity: velocity, life: 3.0, kind: kind });
         }
 
         function updateProjectiles(dt) {
-            for(let i=projectiles.length-1; i>=0; i--) {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
                 const p = projectiles[i];
                 p.mesh.position.add(p.velocity.clone().multiplyScalar(dt));
                 p.life -= dt;
-                
-                if (p.kind === 0) p.mesh.scale.multiplyScalar(1.01); 
-                if (p.kind === 2) { if(p.mesh.position.y < 0.5) p.velocity.y = Math.abs(p.velocity.y); }
 
-                if(p.mesh.position.distanceTo(player.mesh.position) < 2) {
-                    health -= (p.kind===0 ? 100*dt : 20); 
+                if (p.kind === 0) p.mesh.scale.multiplyScalar(1.01);
+                if (p.kind === 2) { if (p.mesh.position.y < 0.5) p.velocity.y = Math.abs(p.velocity.y); }
+
+                if (p.mesh.position.distanceTo(player.mesh.position) < 2) {
+                    health -= (p.kind === 0 ? 100 * dt : 20);
                     document.getElementById('health-bar').style.width = health + '%';
-                    if(p.kind !== 0) { scene.remove(p.mesh); projectiles.splice(i, 1); continue; }
-                    if(health <= 0) gameOver();
+                    if (p.kind !== 0) { scene.remove(p.mesh); projectiles.splice(i, 1); continue; }
+                    if (health <= 0) gameOver();
                 }
 
-                if(p.life <= 0) {
+                if (p.life <= 0) {
                     scene.remove(p.mesh);
                     projectiles.splice(i, 1);
                 }
@@ -677,14 +897,14 @@
             const types = ['fish', 'yarn', 'cucumber', 'brush'];
             const type = types[Math.floor(Math.random() * types.length)];
             const group = new THREE.Group();
-            
-            if (type === 'fish') group.add(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.5, 8), new THREE.MeshStandardMaterial({color: 0xffffff}))); // Rounded Fish Bone
-            else if (type === 'yarn') group.add(new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), new THREE.MeshStandardMaterial({color: 0xff00ff})));
-            else if (type === 'cucumber') { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 1.5, 16), new THREE.MeshStandardMaterial({color: 0x228b22})); c.rotation.x = Math.PI/2; group.add(c); }
-            else { const h = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.5, 8), new THREE.MeshStandardMaterial({color: 0xaaaaaa})); h.rotation.x = Math.PI/2; group.add(h); const b = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({color:0x0000ff})); b.position.z = 0.7; group.add(b);}
-            
-            group.position.set((Math.random()-0.5)*100, 1, (Math.random()-0.5)*100);
-            group.userData = { type: type, floatOffset: Math.random()*10 };
+
+            if (type === 'fish') group.add(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.5, 8), new THREE.MeshStandardMaterial({ color: 0xffffff }))); // Rounded Fish Bone
+            else if (type === 'yarn') group.add(new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff00ff })));
+            else if (type === 'cucumber') { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 1.5, 16), new THREE.MeshStandardMaterial({ color: 0x228b22 })); c.rotation.x = Math.PI / 2; group.add(c); }
+            else { const h = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.5, 8), new THREE.MeshStandardMaterial({ color: 0xaaaaaa })); h.rotation.x = Math.PI / 2; group.add(h); const b = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0x0000ff })); b.position.z = 0.7; group.add(b); }
+
+            group.position.set((Math.random() - 0.5) * 100, 1, (Math.random() - 0.5) * 100);
+            group.userData = { type: type, floatOffset: Math.random() * 10 };
             const light = new THREE.PointLight(0xffffff, 1, 5); light.position.y = 1; group.add(light);
             scene.add(group); weapons.push(group);
         }
@@ -695,13 +915,13 @@
             const names = { fish: "BONE", yarn: "MACE", cucumber: "VEGGIE", brush: "BRUSH" };
             btn.innerText = names[type];
             const holder = player.mesh.getObjectByName('weaponHolder');
-            while(holder.children.length) holder.remove(holder.children[0]);
+            while (holder.children.length) holder.remove(holder.children[0]);
             let mesh;
             // Visuals in hand
-            if(type === 'fish') mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2, 8), new THREE.MeshStandardMaterial({color:0xffffff}));
-            else if(type === 'yarn') mesh = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), new THREE.MeshStandardMaterial({color:0xff00ff}));
-            else if(type === 'cucumber') { mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 1.5, 16), new THREE.MeshStandardMaterial({color: 0x228b22})); mesh.rotation.x = Math.PI/2; }
-            else { mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2, 8), new THREE.MeshStandardMaterial({color:0x0000ff})); mesh.rotation.x = Math.PI/2; }
+            if (type === 'fish') mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2, 8), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+            else if (type === 'yarn') mesh = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff00ff }));
+            else if (type === 'cucumber') { mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 1.5, 16), new THREE.MeshStandardMaterial({ color: 0x228b22 })); mesh.rotation.x = Math.PI / 2; }
+            else { mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2, 8), new THREE.MeshStandardMaterial({ color: 0x0000ff })); mesh.rotation.x = Math.PI / 2; }
             mesh.position.z = 1; holder.add(mesh);
         }
 
@@ -731,9 +951,9 @@
         function jump() { if (player.onGround) { player.velocity.y = JUMP_FORCE; player.onGround = false; } }
         function climb() {
             let nearObstacle = false;
-            const checkPos = player.mesh.position.clone().add(new THREE.Vector3(0,0,1).applyAxisAngle(new THREE.Vector3(0,1,0), player.mesh.rotation.y).multiplyScalar(2));
-            for(let obs of obstacles) { if(new THREE.Box3().setFromObject(obs).containsPoint(checkPos)) nearObstacle = true; }
-            if(nearObstacle) { player.velocity.y = CLIMB_FORCE; player.onGround = false; } else if(!player.onGround) player.velocity.y += 5;
+            const checkPos = player.mesh.position.clone().add(new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.mesh.rotation.y).multiplyScalar(2));
+            for (let obs of obstacles) { if (new THREE.Box3().setFromObject(obs).containsPoint(checkPos)) nearObstacle = true; }
+            if (nearObstacle) { player.velocity.y = CLIMB_FORCE; player.onGround = false; } else if (!player.onGround) player.velocity.y += 5;
         }
 
         function attack() {
@@ -744,15 +964,15 @@
             let t = 0;
             const interval = setInterval(() => {
                 t += 0.25; holder.rotation.y = startRot - Math.sin(t * Math.PI) * 2.5;
-                const facing = new THREE.Vector3(0,0,1).applyAxisAngle(new THREE.Vector3(0,1,0), player.mesh.rotation.y);
-                
+                const facing = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.mesh.rotation.y);
+
                 // Attack Regular Enemies
                 enemies.forEach((e, index) => {
                     if (e.mesh.position.distanceTo(player.mesh.position) < 5) {
                         const toEnemy = e.mesh.position.clone().sub(player.mesh.position).normalize();
-                        if(toEnemy.dot(facing) > 0.4) {
-                             scene.remove(e.mesh); enemies.splice(index, 1); score++;
-                             document.getElementById('score').innerText = "SCORE: " + score;
+                        if (toEnemy.dot(facing) > 0.4) {
+                            scene.remove(e.mesh); enemies.splice(index, 1); score++;
+                            document.getElementById('score').innerText = "SCORE: " + score;
                         }
                     }
                 });
@@ -760,12 +980,12 @@
                 // Attack Boss
                 if (boss && boss.mesh.position.distanceTo(player.mesh.position) < 6) {
                     const toBoss = boss.mesh.position.clone().sub(player.mesh.position).normalize();
-                    if(toBoss.dot(facing) > 0.4) {
+                    if (toBoss.dot(facing) > 0.4) {
                         boss.hp--;
-                        updateBossHealthUI((boss.hp/boss.maxHp)*100);
+                        updateBossHealthUI((boss.hp / boss.maxHp) * 100);
                         boss.mesh.position.add(toBoss.multiplyScalar(4));
-                        
-                        if(boss.hp <= 0) {
+
+                        if (boss.hp <= 0) {
                             killBoss();
                         }
                     }
@@ -780,8 +1000,8 @@
             boss = null;
             isBossFight = false;
             score += 10;
-            bossLevelIndex++; 
-            nextBossScore = score + (10 - (score % 10)); 
+            bossLevelIndex++;
+            nextBossScore = score + (10 - (score % 10));
             document.getElementById('score').innerText = "SCORE: " + score;
             document.getElementById('boss-hud').classList.remove('visible');
             projectiles.forEach(g => scene.remove(g.mesh)); projectiles = [];
@@ -798,11 +1018,11 @@
                     nextBossScore += 10;
                 }
 
-                if(Math.random() < 0.015) spawnEnemy();
-                if(Math.random() < 0.005) spawnWeapon();
+                if (Math.random() < 0.015) spawnEnemy();
+                if (Math.random() < 0.005) spawnWeapon();
 
                 updatePhysics(dt);
-                if(boss) updateBoss(dt, time);
+                if (boss) updateBoss(dt, time);
                 updateProjectiles(dt);
 
                 camera.position.x += (player.mesh.position.x - camera.position.x) * 0.1;
@@ -818,18 +1038,26 @@
                     e.mesh.position.add(dir.multiplyScalar(e.speed * dt));
                     e.mesh.lookAt(player.mesh.position.x, e.mesh.position.y, player.mesh.position.z);
                     e.velocityY += GRAVITY * dt; e.mesh.position.y += e.velocityY * dt;
-                    if(e.mesh.position.y <= 0) { e.mesh.position.y = 0; e.velocityY = 0; e.isJumping = false; }
+                    if (e.mesh.position.y <= 0) { e.mesh.position.y = 0; e.velocityY = 0; e.isJumping = false; }
                     const heightDiff = player.mesh.position.y - e.mesh.position.y;
-                    if(dist < 5 && heightDiff > 2 && heightDiff < 10 && !e.isJumping && Math.random() < 0.03) { e.velocityY = 20; e.isJumping = true; }
+                    if (dist < 5 && heightDiff > 2 && heightDiff < 10 && !e.isJumping && Math.random() < 0.03) { e.velocityY = 20; e.isJumping = true; }
                     if (e.mesh.position.distanceTo(player.mesh.position) < 1.5) {
                         health -= 30 * dt; document.getElementById('health-bar').style.width = health + '%';
-                        if(health <= 0) gameOver();
+                        if (health <= 0) gameOver();
                     }
                 });
 
-                for(let i = weapons.length-1; i>=0; i--) {
-                    const w = weapons[i]; w.rotation.y += dt; w.position.y = 1 + Math.sin(time*0.005 + w.userData.floatOffset)*0.5;
-                    if(w.position.distanceTo(player.mesh.position) < 2) { equipWeapon(w.userData.type); scene.remove(w); weapons.splice(i, 1); }
+                for (let i = weapons.length - 1; i >= 0; i--) {
+                    const w = weapons[i]; w.rotation.y += dt; w.position.y = 1 + Math.sin(time * 0.005 + w.userData.floatOffset) * 0.5;
+                    if (w.position.distanceTo(player.mesh.position) < 2) {
+                        if (w.userData.type === 'cucumber') {
+                            health = Math.min(100, health + CUCUMBER_HEAL_AMOUNT);
+                            document.getElementById('health-bar').style.width = health + '%';
+                        }
+                        equipWeapon(w.userData.type);
+                        scene.remove(w);
+                        weapons.splice(i, 1);
+                    }
                 }
             }
             renderer.render(scene, camera);
@@ -844,7 +1072,7 @@
 
         function resetGame() {
             score = 0; health = 100; nextBossScore = 10; isBossFight = false; bossLevelIndex = 0;
-            if(boss) { scene.remove(boss.mesh); boss = null; }
+            if (boss) { scene.remove(boss.mesh); boss = null; }
             projectiles.forEach(g => scene.remove(g.mesh)); projectiles = [];
             document.getElementById('boss-hud').classList.remove('visible');
             document.getElementById('boss-warning').classList.remove('warn-active');
@@ -853,9 +1081,9 @@
             document.getElementById('health-bar').style.width = '100%';
             player.hasWeapon = false; player.weaponType = null;
             document.getElementById('attack-btn').classList.remove('active'); document.getElementById('attack-btn').innerText = "ITEM?";
-            const holder = player.mesh.getObjectByName('weaponHolder'); while(holder.children.length) holder.remove(holder.children[0]);
+            const holder = player.mesh.getObjectByName('weaponHolder'); while (holder.children.length) holder.remove(holder.children[0]);
             enemies.forEach(e => scene.remove(e.mesh)); enemies = []; weapons.forEach(w => scene.remove(w)); weapons = [];
-            player.mesh.position.set(0, 5, 0); player.velocity.set(0,0,0);
+            player.mesh.position.set(0, 5, 0); player.velocity.set(0, 0, 0);
             document.getElementById('ui-layer').style.display = 'flex'; document.getElementById('cage-overlay').style.display = 'none';
             document.getElementById('game-over-screen').classList.add('hidden'); document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('controls-hint').classList.add('hidden');
@@ -865,9 +1093,9 @@
         function startGame() { resetGame(); }
 
         const zone = document.getElementById('zone-joystick');
-        zone.addEventListener('touchstart', e => { e.preventDefault(); if(!joystick.active) { const t = e.changedTouches[0]; joystick.active=true; joystick.id=t.identifier; joystick.originX=t.clientX; joystick.originY=t.clientY; joystick.base.style.display='block'; joystick.base.style.left=(t.clientX-50)+'px'; joystick.base.style.top=(t.clientY-50)+'px'; } }, {passive: false});
-        zone.addEventListener('touchmove', e => { e.preventDefault(); for(let i=0; i<e.changedTouches.length; i++) { if(e.changedTouches[i].identifier === joystick.id) { const t = e.changedTouches[i]; const dx = t.clientX - joystick.originX; const dy = t.clientY - joystick.originY; const dist = Math.min(Math.sqrt(dx*dx+dy*dy), 40); const angle = Math.atan2(dy, dx); joystick.stick.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`; input.x = (Math.cos(angle)*dist)/40; input.y = (Math.sin(angle)*dist)/40; } } }, {passive: false});
-        zone.addEventListener('touchend', e => { e.preventDefault(); for(let i=0; i<e.changedTouches.length; i++) { if(e.changedTouches[i].identifier === joystick.id) { joystick.active=false; joystick.base.style.display='none'; input.x=0; input.y=0; } } });
+        zone.addEventListener('touchstart', e => { e.preventDefault(); if (!joystick.active) { const t = e.changedTouches[0]; joystick.active = true; joystick.id = t.identifier; joystick.originX = t.clientX; joystick.originY = t.clientY; joystick.base.style.display = 'block'; joystick.base.style.left = (t.clientX - 50) + 'px'; joystick.base.style.top = (t.clientY - 50) + 'px'; } }, { passive: false });
+        zone.addEventListener('touchmove', e => { e.preventDefault(); for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === joystick.id) { const t = e.changedTouches[i]; const dx = t.clientX - joystick.originX; const dy = t.clientY - joystick.originY; const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 40); const angle = Math.atan2(dy, dx); joystick.stick.style.transform = `translate(calc(-50% + ${Math.cos(angle) * dist}px), calc(-50% + ${Math.sin(angle) * dist}px))`; input.x = (Math.cos(angle) * dist) / 40; input.y = (Math.sin(angle) * dist) / 40; } } }, { passive: false });
+        zone.addEventListener('touchend', e => { e.preventDefault(); for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === joystick.id) { joystick.active = false; joystick.base.style.display = 'none'; input.x = 0; input.y = 0; } } });
         document.getElementById('jump-btn').addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
         document.getElementById('climb-btn').addEventListener('touchstart', (e) => { e.preventDefault(); climb(); });
         document.getElementById('attack-btn').addEventListener('touchstart', (e) => { e.preventDefault(); attack(); });
@@ -875,4 +1103,5 @@
         init();
     </script>
 </body>
+
 </html>
