@@ -300,6 +300,11 @@
         // Visuals
         let trees = [];
         let particles = []; // Smoke/fire
+        
+        // Loop/Lap System
+        let lapCount = 1;
+        let lapIndicatorTime = 0;
+        let lastLapX = -Infinity;
 
         // --- Resize Handling ---
         function resize() {
@@ -476,7 +481,7 @@
                 return;
             }
             gameState = 'RIDE';
-            statusText.textContent = "Mode: RIDE";
+            statusText.textContent = "Mode: RIDE (Lap 1)";
             centerMessage.textContent = "Go!";
             setTimeout(() => centerMessage.textContent = "", 1000);
             
@@ -491,6 +496,9 @@
             skier.vx = 4; 
             skier.vy = 0;
             skier.fuel = 100;
+            
+            lapCount = 1;
+            lastLapX = -Infinity;
         }
 
         function jumpSkier() {
@@ -618,8 +626,21 @@
                     skier.rotation += (Math.atan2(skier.vy, skier.vx) - skier.rotation) * 0.1;
                 }
             } else {
-                if (skier.y > height + 1000) {
-                   skier.vx = 0; skier.vy = 0;
+                // Infinite loop: Check if skier has gone past the end
+                const courseEndX = points[points.length - 1].x;
+                if (skier.x > courseEndX && lastLapX < courseEndX) {
+                    // Completed a lap!
+                    lapCount++;
+                    lastLapX = skier.x;
+                    lapIndicatorTime = 60; // Show indicator for 60 frames
+                    
+                    // Teleport skier back to start while maintaining momentum
+                    const courseStartX = points[0].x;
+                    const distTraveled = skier.x - courseEndX;
+                    skier.x = courseStartX + distTraveled;
+                    
+                    // Update status
+                    statusText.textContent = `Mode: RIDE (Lap ${lapCount})`;
                 }
             }
 
@@ -634,6 +655,10 @@
                 p.y += p.vy;
                 p.life -= 0.05;
                 if (p.life <= 0) particles.splice(i, 1);
+            }
+            
+            if (lapIndicatorTime > 0) {
+                lapIndicatorTime--;
             }
         }
 
@@ -699,6 +724,22 @@
             }
 
             ctx.restore();
+
+            // Lap Indicator
+            if (lapIndicatorTime > 0) {
+                ctx.save();
+                const progress = 1 - (lapIndicatorTime / 60);
+                const scale = 1 + progress * 0.5;
+                const alpha = 1 - progress;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = '#ff6b6b';
+                ctx.font = 'bold 80px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.scale(scale, scale);
+                ctx.fillText(`LAP ${lapCount}`, width / 2 / scale, height / 4 / scale);
+                ctx.restore();
+            }
         }
 
         function drawTree(x, y, scale, color) {
