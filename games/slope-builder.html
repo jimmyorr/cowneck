@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,15 +8,18 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
 
-        body, html {
+        body,
+        html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #e0f7fa; /* Light icy blue */
+            background-color: #e0f7fa;
+            /* Light icy blue */
             font-family: 'Fredoka', sans-serif;
-            touch-action: none; /* Prevent scrolling on mobile */
+            touch-action: none;
+            /* Prevent scrolling on mobile */
         }
 
         #gameCanvas {
@@ -48,7 +52,7 @@
         .hud-text {
             color: #006064;
             font-size: 1.2rem;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+            text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.8);
             pointer-events: none;
         }
 
@@ -56,12 +60,14 @@
         #fuel-container {
             width: 200px;
             height: 20px;
-            background: rgba(255,255,255,0.5);
+            background: rgba(255, 255, 255, 0.5);
             border: 2px solid #006064;
             border-radius: 10px;
             overflow: hidden;
-            display: none; /* Hidden in build mode */
+            display: none;
+            /* Hidden in build mode */
         }
+
         #fuel-bar {
             width: 100%;
             height: 100%;
@@ -94,7 +100,7 @@
             font-size: 1.2rem;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.1s, background 0.2s;
             text-transform: uppercase;
             pointer-events: auto;
@@ -158,11 +164,12 @@
             width: 80%;
             max-width: 400px;
             height: 50px;
-            background: rgba(255,255,255,0.5);
+            background: rgba(255, 255, 255, 0.5);
             border-radius: 25px;
             position: relative;
             pointer-events: auto;
-            display: none; /* Shown via JS if touch */
+            display: none;
+            /* Shown via JS if touch */
             border: 2px solid #00bcd4;
         }
 
@@ -175,7 +182,7 @@
             top: 0;
             left: 50%;
             transform: translateX(-50%);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .mode-indicator {
@@ -183,15 +190,15 @@
             top: 60px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255,255,255,0.8);
+            background: rgba(255, 255, 255, 0.8);
             padding: 5px 15px;
             border-radius: 20px;
             font-weight: bold;
             color: #00838f;
         }
-
     </style>
 </head>
+
 <body>
 
     <canvas id="gameCanvas"></canvas>
@@ -203,9 +210,9 @@
                 <div id="fuel-bar"></div>
             </div>
         </div>
-        
+
         <div class="mode-indicator" id="center-message"></div>
-        
+
         <div class="controls">
             <!-- Slider for mobile build control -->
             <div id="slider-container">
@@ -262,7 +269,7 @@
 
         let gameState = 'INTRO'; // INTRO, BUILD, RIDE
         let width, height;
-        
+
         // Physics / World
         let points = []; // {x, y}
         let camera = { x: 0, y: 0 };
@@ -274,7 +281,7 @@
         let buildX = 0;
         let buildY = 0;
         const segmentWidth = 10;
-        let buildSpeed = 5; 
+        let buildSpeed = 5;
         let inputVal = 0; // -1 (up) to 1 (down)
 
         // Gyro
@@ -300,17 +307,16 @@
         // Visuals
         let trees = [];
         let particles = []; // Smoke/fire
-        
+
         // Loop/Lap System
         let lapCount = 1;
         let lapIndicatorTime = 0;
-        let lastLapX = -Infinity;
 
         // --- Resize Handling ---
         function resize() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            if(gameState === 'BUILD') {
+            if (gameState === 'BUILD') {
                 camera.y = buildY - height / 2;
             }
         }
@@ -341,23 +347,23 @@
             skier.isBoosting = false;
         });
         boostBtn.addEventListener('pointerleave', (e) => {
-             skier.isBoosting = false;
+            skier.isBoosting = false;
         });
 
         // Gyro Logic
         function handleOrientation(event) {
             if (!useGyro) return;
-            let beta = event.beta; 
+            let beta = event.beta;
             if (beta === null) return;
-            
+
             const neutral = 45;
             const range = 30;
-            
+
             let diff = beta - neutral;
             if (diff > range) diff = range;
             if (diff < -range) diff = -range;
 
-            inputVal = diff / range; 
+            inputVal = diff / range;
         }
 
         // Gyro Permission for iOS
@@ -411,7 +417,7 @@
         // UI Buttons
         startBtn.addEventListener('click', () => {
             introScreen.classList.add('hidden');
-            if(isMobile) sliderContainer.style.display = 'block';
+            if (isMobile) sliderContainer.style.display = 'block';
             resetGame();
         });
 
@@ -434,12 +440,12 @@
             trees = [];
             particles = [];
             buildX = 0;
-            buildY = height / 2; 
+            buildY = height / 2;
             camera.x = 0;
             camera.y = 0;
-            
+
             // Add initial flat platform
-            for(let i=0; i<10; i++) {
+            for (let i = 0; i < 10; i++) {
                 addPoint(buildX, buildY);
                 buildX += segmentWidth;
             }
@@ -451,19 +457,19 @@
             resetBtn.classList.add('hidden');
             boostBtn.classList.add('hidden');
             fuelContainer.style.display = 'none';
-            
+
             inputVal = 0;
-            
+
             // Reset Skier
-            skier = { 
-                x: 0, y: height/2, vx: 5, vy: 0, 
+            skier = {
+                x: 0, y: height / 2, vx: 5, vy: 0,
                 rotation: 0, onGround: true, radius: 10,
-                fuel: 100, maxFuel: 100, isBoosting: false 
+                fuel: 100, maxFuel: 100, isBoosting: false
             };
         }
 
         function addPoint(x, y) {
-            points.push({x, y});
+            points.push({ x, y });
             if (Math.random() < 0.1) {
                 trees.push({
                     x: x + (Math.random() * 20 - 10),
@@ -484,7 +490,7 @@
             statusText.textContent = "Mode: RIDE (Lap 1)";
             centerMessage.textContent = "Go!";
             setTimeout(() => centerMessage.textContent = "", 1000);
-            
+
             actionBtn.textContent = "JUMP!";
             resetBtn.classList.remove('hidden');
             boostBtn.classList.remove('hidden');
@@ -493,16 +499,15 @@
             // Place skier at start slightly above ground
             skier.x = points[2].x;
             skier.y = points[2].y - 20;
-            skier.vx = 4; 
+            skier.vx = 4;
             skier.vy = 0;
             skier.fuel = 100;
-            
+
             lapCount = 1;
-            lastLapX = -Infinity;
         }
 
         function jumpSkier() {
-            if(gameState === 'RIDE' && skier.onGround) {
+            if (gameState === 'RIDE' && skier.onGround) {
                 skier.vy -= 8;
                 skier.onGround = false;
             }
@@ -522,26 +527,41 @@
         function updateBuild() {
             if (keys['ArrowUp']) inputVal = -1;
             else if (keys['ArrowDown']) inputVal = 1;
-            else if (!useGyro && !draggingSlider) inputVal = 0; 
+            else if (!useGyro && !draggingSlider) inputVal = 0;
 
-            const maxSlopePerSeg = 8; 
+            const maxSlopePerSeg = 8;
             let effectiveInput = inputVal + 0.1; // Bias down
 
             buildY += effectiveInput * maxSlopePerSeg;
             buildX += segmentWidth;
             addPoint(buildX, buildY);
 
-            camera.x = buildX - width * 0.7; 
-            camera.y += ( (buildY - height/2) - camera.y ) * 0.1;
+            camera.x = buildX - width * 0.7;
+            camera.y += ((buildY - height / 2) - camera.y) * 0.1;
         }
 
         function getLineSegment(x) {
-            let idx = Math.floor(x / segmentWidth);
+            if (points.length < 2) return null;
+
+            const courseLength = points.length - 1;
+            const courseEndX = points[courseLength].x;
+            const courseStartX = points[0].x;
+            const totalDistance = courseEndX - courseStartX;
+
+            // Wrap x position to the course using modulo
+            let localX = x - courseStartX;
+            localX = localX % totalDistance;
+            if (localX < 0) localX += totalDistance;
+            let wrappedX = courseStartX + localX;
+
+            let idx = Math.floor(wrappedX / segmentWidth);
             if (idx < 0) idx = 0;
-            if (idx >= points.length - 1) return null;
+            if (idx >= points.length - 1) idx = points.length - 2;
+
             return {
                 p1: points[idx],
-                p2: points[idx+1]
+                p2: points[idx + 1],
+                wrappedX: wrappedX
             };
         }
 
@@ -552,27 +572,20 @@
             // --- Rocket Boost Logic ---
             if (skier.isBoosting && skier.fuel > 0) {
                 const boostPower = 0.5;
-                // Boost direction depends on state
-                let boostAngle = skier.rotation;
-                
-                // If in air, boost follows current velocity mostly, or straight if slow
-                if (!skier.onGround) {
-                     // Slightly easier to control in air if we allow some directing
-                     // For now, just boost in direction of rotation
-                }
-                
+                const boostAngle = skier.rotation;
+
                 skier.vx += Math.cos(boostAngle) * boostPower;
                 skier.vy += Math.sin(boostAngle) * boostPower;
-                
-                skier.fuel -= 0.25; // Consume fuel slower (was 1.5)
-                
+
+                skier.fuel -= 0.25;
+
                 // Add particles
-                for(let i=0; i<3; i++) {
+                for (let i = 0; i < 3; i++) {
                     particles.push({
-                        x: skier.x - Math.cos(boostAngle)*10 + (Math.random()*6-3),
-                        y: skier.y - Math.sin(boostAngle)*10 + (Math.random()*6-3),
-                        vx: -Math.cos(boostAngle)*4 + (Math.random()*2-1),
-                        vy: -Math.sin(boostAngle)*4 + (Math.random()*2-1),
+                        x: skier.x - Math.cos(boostAngle) * 10 + (Math.random() * 6 - 3),
+                        y: skier.y - Math.sin(boostAngle) * 10 + (Math.random() * 6 - 3),
+                        vx: -Math.cos(boostAngle) * 4 + (Math.random() * 2 - 1),
+                        vy: -Math.sin(boostAngle) * 4 + (Math.random() * 2 - 1),
                         life: 1.0,
                         color: Math.random() > 0.5 ? '#ffeb3b' : '#f44336'
                     });
@@ -591,15 +604,34 @@
 
             skier.onGround = false;
 
-            // Ground Collision
+            // --- Infinite Loop Physics ---
+            // Calculate course dimensions
+            const pStart = points[0];
+            const pEnd = points[points.length - 1];
+            const courseWidth = pEnd.x - pStart.x;
+            const courseHeight = pEnd.y - pStart.y;
+
+            // Determine which cycle we are in
+            // (skier.x - startX) / width
+            const cycleIndex = Math.floor((skier.x - pStart.x) / courseWidth);
+
+            // The vertical offset for this cycle
+            const cycleOffsetY = cycleIndex * courseHeight;
+
+            // Find segment in the LOCAL space (wrapped)
             const seg = getLineSegment(skier.x);
             if (seg) {
                 const p1 = seg.p1;
                 const p2 = seg.p2;
-                const t = (skier.x - p1.x) / (p2.x - p1.x);
-                const groundY = p1.y + t * (p2.y - p1.y);
 
-                if (skier.y > groundY - 2) { 
+                // Interpolate base Y
+                const t = (seg.wrappedX - p1.x) / (p2.x - p1.x);
+                let baseGroundY = p1.y + t * (p2.y - p1.y);
+
+                // Add the Cycle Offset
+                const groundY = baseGroundY + cycleOffsetY;
+
+                if (skier.y > groundY - 2) {
                     skier.y = groundY;
                     skier.onGround = true;
 
@@ -609,7 +641,7 @@
                     skier.rotation = angle;
 
                     const slopeForce = Math.sin(angle) * gravity * 1.5;
-                    
+
                     let speedAlongSlope = (skier.vx * Math.cos(angle) + skier.vy * Math.sin(angle));
                     speedAlongSlope += slopeForce;
                     speedAlongSlope *= groundFriction;
@@ -619,33 +651,34 @@
 
                     // Prevent stuck in valleys
                     if (Math.abs(speedAlongSlope) < 0.1 && dy > 0) {
-                        skier.vx += 0.1; 
+                        skier.vx += 0.1;
                     }
                 } else {
                     // Air rotation
                     skier.rotation += (Math.atan2(skier.vy, skier.vx) - skier.rotation) * 0.1;
                 }
             } else {
-                // Infinite loop: Check if skier has gone past the end
-                const courseEndX = points[points.length - 1].x;
-                if (skier.x > courseEndX && lastLapX < courseEndX) {
-                    // Completed a lap!
-                    lapCount++;
-                    lastLapX = skier.x;
-                    lapIndicatorTime = 60; // Show indicator for 60 frames
-                    
-                    // Teleport skier back to start while maintaining momentum
-                    const courseStartX = points[0].x;
-                    const distTraveled = skier.x - courseEndX;
-                    skier.x = courseStartX + distTraveled;
-                    
-                    // Update status
-                    statusText.textContent = `Mode: RIDE (Lap ${lapCount})`;
+                // Should not happen with wrapping, but fallback
+                if (skier.y > height + 1000 + cycleOffsetY) {
+                    skier.vx = 0; skier.vy = 0;
                 }
             }
 
+            // Check for lap completion (simply tracking progress)
+            // Use cycleIndex as the true lap count
+            // Note: cycleIndex starts at 0 for first lap.
+            // But if we want 'Lap 1' to be the first run, then cycleIndex 0 is Lap 1.
+            const currentLap = cycleIndex + 1;
+            if (currentLap > lapCount) {
+                lapCount = currentLap;
+                lapIndicatorTime = 60;
+                statusText.textContent = `Mode: RIDE (Lap ${lapCount})`;
+            }
+
             camera.x = skier.x - width * 0.3;
-            camera.y += ( (skier.y - height/2) - camera.y ) * 0.1;
+            // Camera Y tracks skier but needs to point at expected ground mostly
+            // Just loose follow is fine
+            camera.y += ((skier.y - height / 2) - camera.y) * 0.1;
         }
 
         function updateParticles() {
@@ -656,7 +689,7 @@
                 p.life -= 0.05;
                 if (p.life <= 0) particles.splice(i, 1);
             }
-            
+
             if (lapIndicatorTime > 0) {
                 lapIndicatorTime--;
             }
@@ -672,53 +705,102 @@
             ctx.save();
             ctx.translate(-camera.x, -camera.y);
 
-            // Trees
-            ctx.fillStyle = '#b2dfdb'; 
-            trees.forEach(tree => {
-                if (tree.x > camera.x - 100 && tree.x < camera.x + width + 100) {
-                    drawTree(tree.x, tree.y, tree.scale, '#00695c');
-                }
-            });
+            // Determine visible cycles
+            let minCycle, maxCycle;
+            if (points.length > 1) {
+                const pStart = points[0];
+                const pEnd = points[points.length - 1];
+                const courseWidth = pEnd.x - pStart.x;
+                const courseHeight = pEnd.y - pStart.y;
 
-            // Particles (behind skier)
+                const cameraLeft = camera.x;
+                const cameraRight = camera.x + width;
+
+                // Which cycle is the left edge of screen in?
+                minCycle = Math.floor((cameraLeft - pStart.x) / courseWidth);
+                // Which cycle is the right edge of screen in?
+                maxCycle = Math.floor((cameraRight - pStart.x) / courseWidth);
+
+                // Clamp or Pad just in case (draw +1/-1 to be safe)
+                minCycle -= 1;
+                maxCycle += 1;
+
+                // Loop through visible cycles
+                for (let c = minCycle; c <= maxCycle; c++) {
+                    const offX = c * courseWidth;
+                    const offY = c * courseHeight;
+
+                    ctx.save();
+                    ctx.translate(offX, offY);
+
+                    // Calculate local camera bounds for culling trees in this cycle
+                    const localCameraLeft = cameraLeft - offX;
+                    const localCameraRight = cameraRight - offX;
+
+                    // Trees
+                    ctx.fillStyle = '#b2dfdb';
+                    trees.forEach(tree => {
+                        // Optimization: only draw if within local view
+                        if (tree.x > localCameraLeft - 100 && tree.x < localCameraRight + 100) {
+                            drawTree(tree.x, tree.y, tree.scale, '#00695c');
+                        }
+                    });
+
+                    // Slope
+                    // Note: Drawing the entire path every cycle is simplest. 
+                    // Optimization could be done to segment it, but canvas is fast enough for <1000 pts.
+                    ctx.beginPath();
+                    ctx.moveTo(points[0].x, points[0].y);
+                    for (let i = 1; i < points.length; i++) {
+                        ctx.lineTo(points[i].x, points[i].y);
+                    }
+                    // Close the shape appropriately deep for filling
+                    // We need it to fill extremely deep so you don't see gaps if you fall
+                    ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y + 5000);
+                    ctx.lineTo(points[0].x, points[0].y + 5000);
+
+                    ctx.fillStyle = groundColor;
+                    ctx.fill();
+
+                    // Stroke
+                    ctx.beginPath();
+                    ctx.moveTo(points[0].x, points[0].y);
+                    for (let i = 1; i < points.length; i++) {
+                        ctx.lineTo(points[i].x, points[i].y);
+                    }
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#00bcd4';
+                    ctx.stroke();
+
+                    ctx.restore();
+                }
+
+            } else {
+                // Fallback if no points (start screen or glitch)
+                if (points.length > 0) {
+                    // ... (existing simple draw if needed, but points usually > 10)
+                }
+            }
+
+            // Particles (in World Space)
             particles.forEach(p => {
                 ctx.globalAlpha = p.life;
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 4 * p.life, 0, Math.PI*2);
+                ctx.arc(p.x, p.y, 4 * p.life, 0, Math.PI * 2);
                 ctx.fill();
             });
             ctx.globalAlpha = 1.0;
 
-            // Slope
-            if (points.length > 0) {
-                ctx.beginPath();
-                ctx.moveTo(points[0].x, points[0].y);
-                for (let i = 1; i < points.length; i++) {
-                    ctx.lineTo(points[i].x, points[i].y);
-                }
-                ctx.lineTo(points[points.length-1].x, points[points.length-1].y + 2000);
-                ctx.lineTo(points[0].x, points[0].y + 2000);
-                
-                ctx.fillStyle = groundColor;
-                ctx.fill();
-                
-                ctx.beginPath();
-                ctx.moveTo(points[0].x, points[0].y);
-                for (let i = 1; i < points.length; i++) {
-                    ctx.lineTo(points[i].x, points[i].y);
-                }
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = '#00bcd4';
-                ctx.stroke();
-            }
-
-            // Skier
+            // Skier (in World Space)
             if (gameState === 'RIDE') {
                 drawSkier();
             } else if (gameState === 'BUILD') {
+                // Determine build cursor cycle? 
+                // Build is always cycle 0 for now as we don't scroll infinitely in build mode usually
+                // But let's draw it in correct place relative to buildX
                 ctx.beginPath();
-                ctx.arc(buildX, buildY, 5, 0, Math.PI*2);
+                ctx.arc(buildX, buildY, 5, 0, Math.PI * 2);
                 ctx.fillStyle = 'red';
                 ctx.fill();
             }
@@ -782,9 +864,9 @@
             ctx.lineCap = 'round';
             ctx.beginPath(); ctx.moveTo(0, 8); ctx.lineTo(-5, -5); ctx.lineTo(0, -15); ctx.stroke(); // Legs
             ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(5, -30); ctx.stroke(); // Torso
-            
+
             // Head
-            ctx.beginPath(); ctx.arc(7, -34, 5, 0, Math.PI*2); ctx.fillStyle = '#ffcc80'; ctx.fill();
+            ctx.beginPath(); ctx.arc(7, -34, 5, 0, Math.PI * 2); ctx.fillStyle = '#ffcc80'; ctx.fill();
             ctx.beginPath(); ctx.arc(7, -36, 5, Math.PI, 0); ctx.fillStyle = '#1976d2'; ctx.fill(); // Beanie
 
             // Arms
@@ -805,4 +887,5 @@
 
     </script>
 </body>
+
 </html>
