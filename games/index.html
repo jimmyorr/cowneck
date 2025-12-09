@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,8 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #121212; /* Deep dark background */
+            background-color: #121212;
+            /* Deep dark background */
             background-image: radial-gradient(circle at 50% 0%, #2a2a2a 0%, #121212 70%);
             color: #e0e0e0;
             min-height: 100vh;
@@ -84,7 +86,8 @@
             color: #aaa;
             line-height: 1.6;
             font-size: 0.95rem;
-            flex-grow: 1; /* Pushes the button to the bottom */
+            flex-grow: 1;
+            /* Pushes the button to the bottom */
             margin-bottom: 20px;
         }
 
@@ -121,17 +124,24 @@
             text-decoration: none;
             padding-bottom: 40px;
         }
+
         .back-link:hover {
             color: #fff;
         }
 
         /* --- MOBILE TWEAKS --- */
         @media (max-width: 600px) {
-            h1 { font-size: 2rem; }
-            .games-container { gap: 20px; }
+            h1 {
+                font-size: 2rem;
+            }
+
+            .games-container {
+                gap: 20px;
+            }
         }
     </style>
 </head>
+
 <body>
     <header>
         <h1>Cowneck</h1>
@@ -140,7 +150,7 @@
 
     <main>
         <div class="games-container">
-            
+
             <div class="game-card">
                 <h2>🔢 Math Facts</h2>
                 <p>Test your arithmetic skills with quick challenges.</p>
@@ -161,7 +171,8 @@
 
             <div class="game-card">
                 <h2>🍫 Cyberpup Returns</h2>
-                <p>The sequel. Faster. Tastier. Spookier. Battle ghost puppies and chocolate rockets across three action-packed levels.</p>
+                <p>The sequel. Faster. Tastier. Spookier. Battle ghost puppies and chocolate rockets across three
+                    action-packed levels.</p>
                 <a href="cyberpup-returns.html" class="btn">PLAY NOW</a>
             </div>
 
@@ -173,8 +184,16 @@
 
             <div class="game-card">
                 <h2>🐾 Goofy Paws</h2>
-                <p>The owners are angry. Survive the household chaos, dodge enemies, collect weapons, and battle infamous bosses like The Exterminator, Vacuum King, and The Vet.</p>
+                <p>The owners are angry. Survive the household chaos, dodge enemies, collect weapons, and battle
+                    infamous bosses like The Exterminator, Vacuum King, and The Vet.</p>
                 <a href="goofy-paws.html" class="btn">PLAY NOW</a>
+            </div>
+
+            <div class="game-card">
+                <h2>🍩 Donut Chef</h2>
+                <p>Run your own bakery! A deck-building strategy game where you bake delicious donuts and outwit your
+                    rival chef.</p>
+                <a href="donut-chef.html" class="btn">PLAY NOW</a>
             </div>
 
         </div>
@@ -182,4 +201,5 @@
         <a href="/" class="back-link">← Return to cowneck.com</a>
     </main>
 </body>
+
 </html>
