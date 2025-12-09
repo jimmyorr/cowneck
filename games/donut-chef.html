@@ -13,7 +13,7 @@
             --card-radius: 10px;
             --card-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
             --primary-action: #268bd2;
-            --primary-treasure: #b58900;
+            --primary-ingredient: #b58900;
             --primary-victory: #859900;
         }
 
@@ -231,7 +231,7 @@
             transition: transform 0.2s;
         }
 
-        .card.treasure {
+        .card.ingredient {
             background: linear-gradient(135deg, #fffbe6 0%, #fff1b8 100%);
             border-color: #ffd700;
             color: #876800;
@@ -446,8 +446,8 @@
                 <span>Coins: <span id="stat-coins">0</span></span>
             </div>
             <div id="controls-area">
-                <button id="btn-play-all" class="btn">Play All Treasures</button>
-                <button id="btn-end-turn" class="btn btn-success">End Turn</button>
+                <button id="btn-play-all" class="btn">💎 Play All Ingredients</button>
+                <button id="btn-end-turn" class="btn btn-success">✅ End Turn</button>
             </div>
             <div id="hand-container">
                 <!-- Player Hand -->
@@ -473,17 +473,17 @@
          */
 
         const CARD_TYPES = {
-            TREASURE: 'treasure',
+            INGREDIENT: 'ingredient',
             VICTORY: 'victory',
             ACTION: 'action',
             REACTION: 'reaction'
         };
 
         const CARDS = {
-            // Treasure
-            flour: { id: 'flour', name: 'Flour', emoji: '🥡', type: [CARD_TYPES.TREASURE], cost: 0, coins: 1, text: "+1 Coin" },
-            sugar: { id: 'sugar', name: 'Sugar', emoji: '🍬', type: [CARD_TYPES.TREASURE], cost: 3, coins: 2, text: "+2 Coins" },
-            lard: { id: 'lard', name: 'Lard', emoji: '🥓', type: [CARD_TYPES.TREASURE], cost: 6, coins: 3, text: "+3 Coins" },
+            // Ingredient
+            flour: { id: 'flour', name: 'Flour', emoji: '🥡', type: [CARD_TYPES.INGREDIENT], cost: 0, coins: 1, text: "+1 Coin" },
+            sugar: { id: 'sugar', name: 'Sugar', emoji: '🍬', type: [CARD_TYPES.INGREDIENT], cost: 3, coins: 2, text: "+2 Coins" },
+            lard: { id: 'lard', name: 'Lard', emoji: '🥓', type: [CARD_TYPES.INGREDIENT], cost: 6, coins: 3, text: "+3 Coins" },
 
             // Victory
             donut_hole: { id: 'donut_hole', name: 'Donut Hole', emoji: '🥯', type: [CARD_TYPES.VICTORY], cost: 2, points: 1, text: "1 Point" },
@@ -795,13 +795,13 @@
                 this.game.updateState();
             }
 
-            playTreasure(player, cardInstance) {
+            playIngredient(player, cardInstance) {
                 if (this.game.turnPhase === 'action') {
-                    this.game.turnPhase = 'buy'; // Auto switch to buy phase on first treasure
+                    this.game.turnPhase = 'buy'; // Auto switch to buy phase on first ingredient
                 }
 
                 const cardDef = CARDS[cardInstance.id];
-                if (!cardDef.type.includes(CARD_TYPES.TREASURE)) return;
+                if (!cardDef.type.includes(CARD_TYPES.INGREDIENT)) return;
 
                 this.moveCard(player.hand, player.playArea, cardInstance.uid);
                 player.coins += cardDef.coins;
@@ -809,19 +809,19 @@
                 this.game.updateState();
             }
 
-            playAllTreasures(player) {
+            playAllIngredients(player) {
                 if (this.game.turnPhase === 'action') {
                     this.game.turnPhase = 'buy';
                 }
 
-                // Find all treasures
-                const treasures = player.hand.filter(c => CARDS[c.id].type.includes(CARD_TYPES.TREASURE));
-                treasures.forEach(t => {
+                // Find all ingredients
+                const ingredients = player.hand.filter(c => CARDS[c.id].type.includes(CARD_TYPES.INGREDIENT));
+                ingredients.forEach(t => {
                     this.moveCard(player.hand, player.playArea, t.uid);
                     player.coins += CARDS[t.id].coins;
                 });
-                if (treasures.length > 0)
-                    this.game.log(`${player.name} plays all treasures`);
+                if (ingredients.length > 0)
+                    this.game.log(`${player.name} plays all ingredients`);
                 this.game.updateState();
             }
 
@@ -898,7 +898,7 @@
                 document.getElementById('btn-end-turn').onclick = () => this.game.engine.endTurn();
                 document.getElementById('btn-play-all').onclick = () => {
                     const p = this.game.players[this.game.activePlayerIndex];
-                    this.game.engine.playAllTreasures(p);
+                    this.game.engine.playAllIngredients(p);
                 };
 
                 document.getElementById('modal-confirm').onclick = () => this.confirmSelection();
@@ -959,8 +959,8 @@
                 handContainer.innerHTML = '';
 
                 p.hand.sort((a, b) => {
-                    // Sort: Action, Treasure, Victory
-                    const typeOrder = { action: 0, treasure: 1, victory: 2 };
+                    // Sort: Action, Ingredient, Victory
+                    const typeOrder = { action: 0, ingredient: 1, victory: 2 };
                     const typeA = typeOrder[CARDS[a.id].type[0]] || 3;
                     const typeB = typeOrder[CARDS[b.id].type[0]] || 3;
                     return typeA - typeB || CARDS[b.id].cost - CARDS[a.id].cost;
@@ -1025,15 +1025,15 @@
 
                 if (def.type.includes(CARD_TYPES.ACTION)) {
                     this.game.engine.playCard(p, card);
-                } else if (def.type.includes(CARD_TYPES.TREASURE)) {
-                    this.game.engine.playTreasure(p, card);
+                } else if (def.type.includes(CARD_TYPES.INGREDIENT)) {
+                    this.game.engine.playIngredient(p, card);
                 }
             }
 
             handleSupplyClick(cardId) {
                 const p = this.game.players[this.game.activePlayerIndex];
                 // Can only buy in buy phase or if we have buys? 
-                // Dominion rule: Playing a treasure starts buy phase. Buying a card also enforces buy phase.
+                // Dominion rule: Playing an ingredient starts buy phase. Buying a card also enforces buy phase.
                 this.game.engine.buyCard(p, cardId);
             }
 
@@ -1174,8 +1174,8 @@
                     await new Promise(r => setTimeout(r, 500));
                 }
 
-                // 2. Play Treasures
-                this.game.engine.playAllTreasures(player);
+                // 2. Play Ingredients
+                this.game.engine.playAllIngredients(player);
                 await new Promise(r => setTimeout(r, 500));
 
                 // 3. Buy
