@@ -396,6 +396,60 @@
             box-shadow: 0 10px 20px rgba(211, 54, 130, 0.3);
         }
 
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-gradient);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        #splash-content {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        #splash-title {
+            font-size: 3.5rem;
+            margin: 0 0 20px 0;
+            color: #d33682;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .splash-btn {
+            display: block;
+            width: 200px;
+            margin: 15px auto;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            background: var(--primary-action);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .splash-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .splash-btn-ai {
+            background: #6c71c4;
+        }
+
         .log-entry {
             margin-bottom: 5px;
             padding: 2px 0;
@@ -419,7 +473,15 @@
 
 <body>
 
-    <div id="game-container">
+    <div id="splash-screen">
+        <div id="splash-content">
+            <h1 id="splash-title">🍩 Donut Chef 👨‍🍳</h1>
+            <button class="splash-btn" onclick="startGame('human')">NEW GAME</button>
+            <button class="splash-btn splash-btn-ai" onclick="startGame('ai')">AI BATTLE 🤖</button>
+        </div>
+    </div>
+
+    <div id="game-container" class="hidden">
         <div id="supply-area">
             <h3>Supply</h3>
             <div id="supply-list"></div>
@@ -615,9 +677,11 @@
                 this.turnPhase = 'action'; // action, buy, cleanup
                 this.ui = new UI(this);
                 this.engine = new Engine(this);
+                this.mode = 'human'; // 'human' or 'ai'
             }
 
-            start() {
+            init(mode) {
+                this.mode = mode;
                 // Initialize Supply
                 this.supply = {
                     flour: 50, sugar: 40, lard: 30,
@@ -627,10 +691,17 @@
                 };
 
                 // Initialize Players
-                this.players = [
-                    new Player('Human', false),
-                    new Player('Donut Bot', true)
-                ];
+                if (mode === 'ai') {
+                    this.players = [
+                        new Player('Chef Glaze 🤖', true),
+                        new Player('Chef Sprinkles 🤖', true)
+                    ];
+                } else {
+                    this.players = [
+                        new Player('Human 🧑‍🍳', false),
+                        new Player('Donut Bot 🤖', true)
+                    ];
+                }
 
                 // Initial Decks
                 this.players.forEach(p => {
@@ -640,6 +711,9 @@
                     this.engine.shuffle(p.deck);
                     this.engine.drawCards(p, 5);
                 });
+
+                document.getElementById('splash-screen').classList.add('hidden');
+                document.getElementById('game-container').classList.remove('hidden');
 
                 this.updateState();
                 this.log("Game Started!");
@@ -733,7 +807,9 @@
 
                 // Switch Player
                 this.game.activePlayerIndex = (this.game.activePlayerIndex + 1) % this.game.players.length;
-                this.startTurn();
+
+                // Break recursion stack for AI vs AI
+                setTimeout(() => this.startTurn(), 0);
             }
 
             checkGameOver() {
@@ -1239,9 +1315,11 @@
             }
         }
 
-        // Start Game
+        // Global Launcher
         const game = new Game();
-        game.start();
+        function startGame(mode) {
+            game.init(mode);
+        }
 
     </script>
 </body>
