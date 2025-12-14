@@ -544,22 +544,25 @@
             const originalColor = window.getComputedStyle(title).color; // Save original color
 
             if (lootText) {
-                let timer;
+                // Toggle state tracking
+                let isLootRevealed = false;
 
-                title.addEventListener('mouseenter', () => {
-                    timer = setTimeout(() => {
+                title.style.cursor = "pointer"; // Indicate interactive
+                title.setAttribute('title', 'Tap to reveal rarity'); // Tooltip hint
+
+                title.addEventListener('click', () => {
+                    isLootRevealed = !isLootRevealed;
+
+                    if (isLootRevealed) {
                         title.textContent = lootText;
                         title.style.color = lootColor;
                         title.style.textShadow = `0 0 10px ${lootColor}40`; // Subtle glow
                         title.style.transition = "all 0.2s ease";
-                    }, 4200); // 4.2 seconds delay
-                });
-
-                title.addEventListener('mouseleave', () => {
-                    clearTimeout(timer);
-                    title.textContent = originalText;
-                    title.style.color = ""; // Revert to stylesheet color
-                    title.style.textShadow = "none";
+                    } else {
+                        title.textContent = originalText;
+                        title.style.color = ""; // Revert to stylesheet color
+                        title.style.textShadow = "none";
+                    }
                 });
             }
         });
