@@ -544,14 +544,19 @@
             const originalColor = window.getComputedStyle(title).color; // Save original color
 
             if (lootText) {
+                let timer;
+
                 title.addEventListener('mouseenter', () => {
-                    title.textContent = lootText;
-                    title.style.color = lootColor;
-                    title.style.textShadow = `0 0 10px ${lootColor}40`; // Subtle glow
-                    title.style.transition = "all 0.2s ease";
+                    timer = setTimeout(() => {
+                        title.textContent = lootText;
+                        title.style.color = lootColor;
+                        title.style.textShadow = `0 0 10px ${lootColor}40`; // Subtle glow
+                        title.style.transition = "all 0.2s ease";
+                    }, 4200); // 4.2 seconds delay
                 });
 
                 title.addEventListener('mouseleave', () => {
+                    clearTimeout(timer);
                     title.textContent = originalText;
                     title.style.color = ""; // Revert to stylesheet color
                     title.style.textShadow = "none";
