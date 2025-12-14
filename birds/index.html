@@ -325,7 +325,7 @@
 
         <!-- GROUP 1: Woodpecker Duo -->
         <section class="category-section">
-            <h2 class="category-title">The Woodpecker Duo</h2>
+            <h2 class="category-title" data-loot="Legendary" data-color="#ff8000">The Woodpecker Duo</h2>
             <div class="card-grid">
                 <article class="card">
                     <img src="optimized_images/downy.jpg" alt="Downy Woodpecker" loading="lazy">
@@ -352,7 +352,7 @@
 
         <!-- GROUP 2: The Winter Guild -->
         <section class="category-section">
-            <h2 class="category-title">The Winter Guild</h2>
+            <h2 class="category-title" data-loot="Epic" data-color="#a335ee">The Winter Guild</h2>
             <div class="card-grid">
                 <article class="card">
                     <img src="optimized_images/chickadee.jpg" alt="Black-capped Chickadee" loading="lazy">
@@ -389,7 +389,7 @@
 
         <!-- GROUP 3: The Bold & Colorful -->
         <section class="category-section">
-            <h2 class="category-title">The Bold & Colorful</h2>
+            <h2 class="category-title" data-loot="Uncommon" data-color="#1eff00">The Bold & Colorful</h2>
             <div class="card-grid">
                 <article class="card">
                     <img src="optimized_images/cardinal.jpg" alt="Northern Cardinal" loading="lazy">
@@ -426,7 +426,7 @@
 
         <!-- GROUP 4: The Ground Crew -->
         <section class="category-section">
-            <h2 class="category-title">The Ground Crew</h2>
+            <h2 class="category-title" data-loot="Rare" data-color="#0070dd">The Ground Crew</h2>
             <div class="card-grid">
                 <article class="card">
                     <img src="optimized_images/junco.jpg" alt="Dark-eyed Junco" loading="lazy">
@@ -453,7 +453,7 @@
 
         <!-- GROUP 5: Boring Birds -->
         <section class="category-section">
-            <h2 class="category-title">Boring Birds</h2>
+            <h2 class="category-title" data-loot="Common" data-color="#9d9d9d">Boring Birds</h2>
             <div class="card-grid">
                 <article class="card">
                     <img src="optimized_images/house-sparrow.jpg" alt="House Sparrow" loading="lazy">
@@ -490,7 +490,7 @@
 
         <!-- GROUP 6: Pests -->
         <section class="category-section">
-            <h2 class="category-title">Pests</h2>
+            <h2 class="category-title" data-loot="Cursed" data-color="#ff0000">Pests</h2>
             <div class="card-grid">
                 <article class="card">
                     <img src="optimized_images/starling.jpg" alt="European Starling" loading="lazy">
@@ -536,6 +536,31 @@
 
         // UX: Back to Top
         const backToTopBtn = document.getElementById('backToTop');
+
+        // EASTER EGG: Loot Categories
+        const categoryTitles = document.querySelectorAll('.category-title');
+
+        categoryTitles.forEach(title => {
+            const originalText = title.textContent;
+            const lootText = title.getAttribute('data-loot');
+            const lootColor = title.getAttribute('data-color');
+            const originalColor = window.getComputedStyle(title).color; // Save original color
+
+            if (lootText) {
+                title.addEventListener('mouseenter', () => {
+                    title.textContent = lootText;
+                    title.style.color = lootColor;
+                    title.style.textShadow = `0 0 10px ${lootColor}40`; // Subtle glow
+                    title.style.transition = "all 0.2s ease";
+                });
+
+                title.addEventListener('mouseleave', () => {
+                    title.textContent = originalText;
+                    title.style.color = ""; // Revert to stylesheet color
+                    title.style.textShadow = "none";
+                });
+            }
+        });
 
         window.addEventListener('scroll', () => {
             if (window.scrollY > 300) {
