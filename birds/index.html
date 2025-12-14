@@ -592,9 +592,8 @@
 
         function showImage(index) {
             const img = allImages[index];
-            // Remove 'optimized_images/' prefix and change .jpg back to .png
-            const filename = img.src.replace('optimized_images/', '').replace('.jpg', '.png');
-            modalImage.src = filename;
+            // Use the optimized image directly for better performance
+            modalImage.src = img.src;
         }
 
         function navigateImage(direction) {
