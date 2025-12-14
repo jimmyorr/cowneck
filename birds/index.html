@@ -110,6 +110,57 @@
             color: #888;
         }
 
+        /* Image click styling */
+        .card img {
+            cursor: pointer;
+        }
+
+        .card img:hover {
+            opacity: 0.85;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+
+        .modal-close:hover {
+            background: rgba(0,0,0,0.7);
+        }
+
         /* Mobile Adjustments */
         @media (max-width: 600px) {
             h1 { font-size: 2rem; }
@@ -130,14 +181,14 @@
         <h2 class="category-title">The Woodpecker Duo</h2>
         <div class="card-grid">
             <article class="card">
-                <img src="downy.png" alt="Downy Woodpecker">
+                <img src="optimized_images/downy.jpg" alt="Downy Woodpecker">
                 <div class="card-content">
                     <h3 class="bird-name">Downy Woodpecker</h3>
                     <p class="bird-desc">The polite guest. Often the smallest and least aggressive visitor at the suet cage.</p>
                 </div>
             </article>
             <article class="card">
-                <img src="red-bellied-woodpecker.png" alt="Red-bellied Woodpecker">
+                <img src="optimized_images/red-bellied-woodpecker.jpg" alt="Red-bellied Woodpecker">
                 <div class="card-content">
                     <h3 class="bird-name">Red-bellied Woodpecker</h3>
                     <p class="bird-desc">Known for their distinct rolling <i>churr</i> call and bright red "mohawk" (despite the name).</p>
@@ -151,21 +202,21 @@
         <h2 class="category-title">The "Winter Guild"</h2>
         <div class="card-grid">
             <article class="card">
-                <img src="chickadee.png" alt="Black-capped Chickadee">
+                <img src="optimized_images/chickadee.jpg" alt="Black-capped Chickadee">
                 <div class="card-content">
                     <h3 class="bird-name">Black-capped Chickadee</h3>
                     <p class="bird-desc">The brave scout. Famously curious and often the first to investigate new feeders.</p>
                 </div>
             </article>
             <article class="card">
-                <img src="titmouse.png" alt="Tufted Titmouse">
+                <img src="optimized_images/titmouse.jpg" alt="Tufted Titmouse">
                 <div class="card-content">
                     <h3 class="bird-name">Tufted Titmouse</h3>
                     <p class="bird-desc">The cheeky cousin to the Chickadee, distinguished by a gray crest and large black eyes.</p>
                 </div>
             </article>
             <article class="card">
-                <img src="nuthatch.png" alt="Red-breasted Nuthatch">
+                <img src="optimized_images/nuthatch.jpg" alt="Red-breasted Nuthatch">
                 <div class="card-content">
                     <h3 class="bird-name">Red-breasted Nuthatch</h3>
                     <p class="bird-desc">The acrobat. One of the few birds that can walk head-first <em>down</em> a tree trunk.</p>
@@ -179,21 +230,21 @@
         <h2 class="category-title">The Bold & Colorful</h2>
         <div class="card-grid">
             <article class="card">
-                <img src="cardinal.png" alt="Northern Cardinal">
+                <img src="optimized_images/cardinal.jpg" alt="Northern Cardinal">
                 <div class="card-content">
                     <h3 class="bird-name">Northern Cardinal</h3>
                     <p class="bird-desc">Iconic. The male’s brilliant red against white snow is a classic winter sight.</p>
                 </div>
             </article>
             <article class="card">
-                <img src="jay.png" alt="Blue Jay">
+                <img src="optimized_images/jay.jpg" alt="Blue Jay">
                 <div class="card-content">
                     <h3 class="bird-name">Blue Jay</h3>
                     <p class="bird-desc">The neighborhood watch. Smart and loud, often mimicking hawks to clear the feeder.</p>
                 </div>
             </article>
             <article class="card">
-                <img src="robin.png" alt="American Robin">
+                <img src="optimized_images/robin.jpg" alt="American Robin">
                 <div class="card-content">
                     <h3 class="bird-name">American Robin</h3>
                     <p class="bird-desc">The sign of spring. Famous for their cocked-head listening posture while hunting worms.</p>
@@ -207,14 +258,14 @@
         <h2 class="category-title">The Ground Crew</h2>
         <div class="card-grid">
             <article class="card">
-                <img src="junco.png" alt="Dark-eyed Junco">
+                <img src="optimized_images/junco.jpg" alt="Dark-eyed Junco">
                 <div class="card-content">
                     <h3 class="bird-name">Dark-eyed Junco</h3>
                     <p class="bird-desc">The "Snowbird." They prefer hopping around the base of the feeder to clean up dropped seeds.</p>
                 </div>
             </article>
             <article class="card">
-                <img src="wren.png" alt="Carolina Wren">
+                <img src="optimized_images/wren.jpg" alt="Carolina Wren">
                 <div class="card-content">
                     <h3 class="bird-name">Carolina Wren</h3>
                     <p class="bird-desc">The loudmouth. A tiny, round bird with an incredibly loud "teakettle-teakettle" song.</p>
@@ -223,6 +274,47 @@
         </div>
     </section>
 </div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="modal">
+    <span class="modal-close">&times;</span>
+    <img class="modal-content" id="modalImage" src="" alt="Original image">
+</div>
+
+<script>
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const closeBtn = document.querySelector('.modal-close');
+    
+    // Open modal on image click
+    document.querySelectorAll('.card img').forEach(img => {
+        img.addEventListener('click', function() {
+            // Remove 'optimized_images/' prefix and change .jpg back to .png
+            const filename = this.src.replace('optimized_images/', '').replace('.jpg', '.png');
+            modalImage.src = filename;
+            modal.classList.add('active');
+        });
+    });
+    
+    // Close modal on close button click
+    closeBtn.addEventListener('click', function() {
+        modal.classList.remove('active');
+    });
+    
+    // Close modal on background click
+    modal.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.classList.remove('active');
+        }
+    });
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            modal.classList.remove('active');
+        }
+    });
+</script>
 
 </body>
 </html>
