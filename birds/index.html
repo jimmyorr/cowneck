@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Top 10 Backyard Birds</title>
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            --bg-color: #f4f4f9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --accent-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        /* Grid Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .category-section {
+            margin-bottom: 50px;
+        }
+
+        .category-title {
+            font-size: 1.8rem;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        /* Card Design */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background-color: #e0e0e0;
+        }
+
+        .card-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bird-name {
+            font-size: 1.4rem;
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+
+        .bird-desc {
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .card-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Top 10 Birds</h1>
+        <p class="subtitle">A curated list of backyard all-stars</p>
+    </header>
+
+    <!-- GROUP 1: Woodpecker Duo -->
+    <section class="category-section">
+        <h2 class="category-title">The Woodpecker Duo</h2>
+        <div class="card-grid">
+            <article class="card">
+                <img src="downy.png" alt="Downy Woodpecker">
+                <div class="card-content">
+                    <h3 class="bird-name">Downy Woodpecker</h3>
+                    <p class="bird-desc">The polite guest. Often the smallest and least aggressive visitor at the suet cage.</p>
+                </div>
+            </article>
+            <article class="card">
+                <img src="red-bellied-woodpecker.png" alt="Red-bellied Woodpecker">
+                <div class="card-content">
+                    <h3 class="bird-name">Red-bellied Woodpecker</h3>
+                    <p class="bird-desc">Known for their distinct rolling <i>churr</i> call and bright red "mohawk" (despite the name).</p>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- GROUP 2: The Winter Guild -->
+    <section class="category-section">
+        <h2 class="category-title">The "Winter Guild"</h2>
+        <div class="card-grid">
+            <article class="card">
+                <img src="chickadee.png" alt="Black-capped Chickadee">
+                <div class="card-content">
+                    <h3 class="bird-name">Black-capped Chickadee</h3>
+                    <p class="bird-desc">The brave scout. Famously curious and often the first to investigate new feeders.</p>
+                </div>
+            </article>
+            <article class="card">
+                <img src="titmouse.png" alt="Tufted Titmouse">
+                <div class="card-content">
+                    <h3 class="bird-name">Tufted Titmouse</h3>
+                    <p class="bird-desc">The cheeky cousin to the Chickadee, distinguished by a gray crest and large black eyes.</p>
+                </div>
+            </article>
+            <article class="card">
+                <img src="nuthatch.png" alt="Red-breasted Nuthatch">
+                <div class="card-content">
+                    <h3 class="bird-name">Red-breasted Nuthatch</h3>
+                    <p class="bird-desc">The acrobat. One of the few birds that can walk head-first <em>down</em> a tree trunk.</p>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- GROUP 3: The Bold & Colorful -->
+    <section class="category-section">
+        <h2 class="category-title">The Bold & Colorful</h2>
+        <div class="card-grid">
+            <article class="card">
+                <img src="cardinal.png" alt="Northern Cardinal">
+                <div class="card-content">
+                    <h3 class="bird-name">Northern Cardinal</h3>
+                    <p class="bird-desc">Iconic. The male’s brilliant red against white snow is a classic winter sight.</p>
+                </div>
+            </article>
+            <article class="card">
+                <img src="jay.png" alt="Blue Jay">
+                <div class="card-content">
+                    <h3 class="bird-name">Blue Jay</h3>
+                    <p class="bird-desc">The neighborhood watch. Smart and loud, often mimicking hawks to clear the feeder.</p>
+                </div>
+            </article>
+            <article class="card">
+                <img src="robin.png" alt="American Robin">
+                <div class="card-content">
+                    <h3 class="bird-name">American Robin</h3>
+                    <p class="bird-desc">The sign of spring. Famous for their cocked-head listening posture while hunting worms.</p>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- GROUP 4: The Ground Crew -->
+    <section class="category-section">
+        <h2 class="category-title">The Ground Crew</h2>
+        <div class="card-grid">
+            <article class="card">
+                <img src="junco.png" alt="Dark-eyed Junco">
+                <div class="card-content">
+                    <h3 class="bird-name">Dark-eyed Junco</h3>
+                    <p class="bird-desc">The "Snowbird." They prefer hopping around the base of the feeder to clean up dropped seeds.</p>
+                </div>
+            </article>
+            <article class="card">
+                <img src="wren.png" alt="Carolina Wren">
+                <div class="card-content">
+                    <h3 class="bird-name">Carolina Wren</h3>
+                    <p class="bird-desc">The loudmouth. A tiny, round bird with an incredibly loud "teakettle-teakettle" song.</p>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <footer>
+        <p>Images via Wikimedia Commons (Public Domain / CC BY)</p>
+    </footer>
+</div>
+
+</body>
+</html>
