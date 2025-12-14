@@ -1,11 +1,11 @@
 import os
 import sys
-from PIL import Image
+from PIL import Image, ImageOps
 
-def optimize_images(source_directory='.', output_directory=None, max_width=800):
+def optimize_images(source_directory='.', output_directory=None, target_width=2816, target_height=1536):
     """
-    Scans the source_directory for images, resizes them to a max_width,
-    converts them to JPG (quality 80), and saves them to output_directory.
+    Scans the source_directory for images, fits them to exactly target_width x target_height,
+    converts them to JPG (quality 85), and saves them to output_directory.
     """
     
     # If no output directory specified, create it as a subdirectory under source_directory
@@ -23,6 +23,7 @@ def optimize_images(source_directory='.', output_directory=None, max_width=800):
     files = [f for f in os.listdir(source_directory) if f.lower().endswith(valid_extensions)]
     
     print(f"Found {len(files)} images to process...")
+    print(f"Target dimensions: {target_width}x{target_height}")
 
     for filename in files:
         file_path = os.path.join(source_directory, filename)
@@ -33,28 +34,31 @@ def optimize_images(source_directory='.', output_directory=None, max_width=800):
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
 
-                # Calculate new height to maintain aspect ratio
-                width_percent = (max_width / float(img.size[0]))
+                # Use ImageOps.fit to resize and crop to exact dimensions
+                # centering defaults to (0.5, 0.5) which is center crop
+                # specific to 2816x1536 as requested
+                new_img = ImageOps.fit(img, (target_width, target_height), method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
                 
-                # Only resize if the image is actually bigger than our max_width
-                if width_percent < 1:
-                    new_height = int((float(img.size[1]) * float(width_percent)))
-                    img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
-                    print(f"Resizing {filename}...")
-                else:
-                    print(f"Copying {filename} (already small enough)...")
+                print(f"Processed {filename} -> {target_width}x{target_height}")
 
                 # Change extension to .jpg
                 new_filename = os.path.splitext(filename)[0] + '.jpg'
                 output_path = os.path.join(output_directory, new_filename)
 
-                # Save with optimization
-                img.save(output_path, 'JPEG', quality=80, optimize=True)
+                # Save with optimization, slightly higher quality for display
+                new_img.save(output_path, 'JPEG', quality=85, optimize=True)
+                
+                # ALSO save as PNG to overwrite the source file (so modal matches)
+                # Only if the source was a PNG/BMP/etc (we want to maintain .png extension for consistency with HTML script)
+                if filename.lower().endswith('.png'):
+                    source_output_path = os.path.join(source_directory, filename)
+                    new_img.save(source_output_path, 'PNG')
+                    print(f"Updated source file: {filename}")
                 
                 # Compare sizes
                 original_size = os.path.getsize(file_path) / 1024
                 new_size = os.path.getsize(output_path) / 1024
-                print(f"Saved: {new_filename} ({new_size:.1f}KB) - Reduced by {100 - (new_size/original_size*100):.1f}%")
+                print(f"Saved: {new_filename} ({new_size:.1f}KB)")
 
         except Exception as e:
             print(f"Error processing {filename}: {e}")
