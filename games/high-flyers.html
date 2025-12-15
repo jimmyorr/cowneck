@@ -90,37 +90,48 @@
         // --- Helper: Random Range ---
         const randomRange = (min, max) => Math.random() * (max - min) + min;
 
+        // --- Helper: Persistence ---
+        const loadState = (key, defaultValue) => {
+            try {
+                const saved = localStorage.getItem('highflyers_' + key);
+                if (saved !== null) return JSON.parse(saved);
+            } catch (e) {
+                console.error('Failed to load save', e);
+            }
+            return defaultValue;
+        };
+
         // --- Main Component ---
         function HighFlyersGame() {
             // --- React State ---
             const [gameState, setGameState] = useState('menu'); // menu, playing, looting, results
             const [menuTab, setMenuTab] = useState('shop'); // shop, bases, achievements
 
-            const [currency, setCurrency] = useState(0);
-            const [distance, setDistance] = useState(0);
-            const [altitude, setAltitude] = useState(0);
+            const [currency, setCurrency] = useState(() => loadState('currency', 0));
+            const [distance, setDistance] = useState(0); // Current run distance
+            const [altitude, setAltitude] = useState(0); // Current run altitude
 
             // Progression Stats
-            const [totalCareerDistance, setTotalCareerDistance] = useState(0);
-            const [maxAltitudeRecord, setMaxAltitudeRecord] = useState(0);
-            const [totalDropsCollected, setTotalDropsCollected] = useState(0);
+            const [totalCareerDistance, setTotalCareerDistance] = useState(() => loadState('careerDist', 0));
+            const [maxAltitudeRecord, setMaxAltitudeRecord] = useState(() => loadState('maxAlt', 0));
+            const [totalDropsCollected, setTotalDropsCollected] = useState(() => loadState('totalDrops', 0));
 
             const [drops, setDrops] = useState([]);
-            const [unopenedBoxes, setUnopenedBoxes] = useState([]);
+            const [unopenedBoxes, setUnopenedBoxes] = useState(() => loadState('boxes', []));
             const [distanceReward, setDistanceReward] = useState(0);
 
             // Looting State
             const [lootState, setLootState] = useState({ active: false, rarityIndex: 0, revealed: false, reward: null });
 
             // Upgrades
-            const [ascendLevel, setAscendLevel] = useState(1);
-            const [glideLevel, setGlideLevel] = useState(1);
+            const [ascendLevel, setAscendLevel] = useState(() => loadState('ascendLvl', 1));
+            const [glideLevel, setGlideLevel] = useState(() => loadState('glideLvl', 1));
 
             // Inventory / Cosmetics
-            const [inventory, setInventory] = useState({ birds: ['gold'], trails: ['none'] });
-            const [equippedBird, setEquippedBird] = useState('gold');
-            const [equippedTrail, setEquippedTrail] = useState('none');
-            const [equippedBase, setEquippedBase] = useState('roof');
+            const [inventory, setInventory] = useState(() => loadState('inventory', { birds: ['gold'], trails: ['none'] }));
+            const [equippedBird, setEquippedBird] = useState(() => loadState('equipBird', 'gold'));
+            const [equippedTrail, setEquippedTrail] = useState(() => loadState('equipTrail', 'none'));
+            const [equippedBase, setEquippedBase] = useState(() => loadState('equipBase', 'roof'));
 
             // Stats for current run
             const [runDrops, setRunDrops] = useState(0);
@@ -134,6 +145,21 @@
             useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
             useEffect(() => { equippedTrailRef.current = equippedTrail; }, [equippedTrail]);
             useEffect(() => { equippedBaseRef.current = equippedBase; updateBaseModel(); }, [equippedBase]);
+
+            // --- Persistence Effect ---
+            useEffect(() => {
+                localStorage.setItem('highflyers_currency', JSON.stringify(currency));
+                localStorage.setItem('highflyers_careerDist', JSON.stringify(totalCareerDistance));
+                localStorage.setItem('highflyers_maxAlt', JSON.stringify(maxAltitudeRecord));
+                localStorage.setItem('highflyers_totalDrops', JSON.stringify(totalDropsCollected));
+                localStorage.setItem('highflyers_boxes', JSON.stringify(unopenedBoxes));
+                localStorage.setItem('highflyers_ascendLvl', JSON.stringify(ascendLevel));
+                localStorage.setItem('highflyers_glideLvl', JSON.stringify(glideLevel));
+                localStorage.setItem('highflyers_inventory', JSON.stringify(inventory));
+                localStorage.setItem('highflyers_equipBird', JSON.stringify(equippedBird));
+                localStorage.setItem('highflyers_equipTrail', JSON.stringify(equippedTrail));
+                localStorage.setItem('highflyers_equipBase', JSON.stringify(equippedBase));
+            }, [currency, totalCareerDistance, maxAltitudeRecord, totalDropsCollected, unopenedBoxes, ascendLevel, glideLevel, inventory, equippedBird, equippedTrail, equippedBase]);
 
             // --- Refs for Three.js ---
             const mountRef = useRef(null);
