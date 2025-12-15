@@ -879,6 +879,20 @@
                 }
             };
 
+            const resetProgress = () => {
+                if (confirm("Are you sure you want to completely RESET your progress? This cannot be undone.")) {
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('highflyers_')) {
+                            keysToRemove.push(key);
+                        }
+                    }
+                    keysToRemove.forEach(k => localStorage.removeItem(k));
+                    window.location.reload();
+                }
+            };
+
             // --- Keyboard Controls ---
             useEffect(() => {
                 const handleKeyDown = (e) => {
@@ -1118,6 +1132,15 @@
                                 <Play fill="white" /> LAUNCH!
                             </button>
                         )}
+
+                        <div className="mt-6 text-center">
+                            <button
+                                onClick={resetProgress}
+                                className="text-red-400 text-xs hover:text-red-300 underline opacity-50 hover:opacity-100 transition"
+                            >
+                                Reset Progress (Delete Save)
+                            </button>
+                        </div>
                     </div>
                 </div>
             );
