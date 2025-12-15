@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High Flyers 3D</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Babel allows us to write JSX in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #87CEEB;
+        }
+
+        /* Hide scrollbars for the game view */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        // We import from URLs since we don't have a build step (npm/webpack)
+        import React, { useState, useEffect, useRef } from 'https://esm.sh/react@18.2.0';
+        import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+        import { Rocket, Wind, Bird, ShoppingBag, Play, Package, Star, Gift, Trophy, Home, MapPin, Award, Zap } from 'https://esm.sh/lucide-react@0.263.1';
+        import * as THREE from 'https://esm.sh/three@0.154.0';
+
+        // --- PASTE GAME CODE BELOW ---
+
+        // --- Constants & Config ---
+        const BIOMES = [
+            { start: 0, name: 'Suburbs', colors: { sky: 0x87CEEB, ground: 0x4caf50, fog: 0x87CEEB, light: 0xffffff } },
+            { start: 100, name: 'Winter', colors: { sky: 0xB0C4DE, ground: 0xFFFFFF, fog: 0xB0C4DE, light: 0xE0F7FA } },
+            { start: 200, name: 'Desert', colors: { sky: 0xFFCC80, ground: 0xE6C288, fog: 0xFFCC80, light: 0xFFE0B2 } },
+            { start: 300, name: 'Neon City', colors: { sky: 0x220033, ground: 0x111111, fog: 0x220033, light: 0xAB47BC } },
+        ];
+
+        const LANDING_SPOTS = [
+            { id: 'roof', name: 'Suburban Roof', unlockDist: 0, description: 'Where it all began.' },
+            { id: 'treehouse', name: 'Tree House', unlockDist: 1000, description: 'A cozy hideout in the branches.' },
+            { id: 'gianttree', name: 'Ancient Tree', unlockDist: 2000, description: 'A massive tree overlooking the world.' },
+            { id: 'skyscraper', name: 'Sky Tower', unlockDist: 5000, description: 'The pinnacle of the city.' },
+        ];
+
+        const ACHIEVEMENTS_LIST = [
+            { id: 'dist1', name: 'Baby Steps', desc: 'Fly 500m Total', condition: (stats) => stats.distance >= 500, icon: <MapPin size={18} /> },
+            { id: 'dist2', name: 'Marathoner', desc: 'Fly 5,000m Total', condition: (stats) => stats.distance >= 5000, icon: <Wind size={18} /> },
+            { id: 'dist3', name: 'Globetrotter', desc: 'Fly 20,000m Total', condition: (stats) => stats.distance >= 20000, icon: <Bird size={18} /> },
+            { id: 'alt1', name: 'High Flyer', desc: 'Reach 50m Altitude', condition: (stats) => stats.altitude >= 50, icon: <Rocket size={18} /> },
+            { id: 'loot1', name: 'Treasure Hunter', desc: 'Find 10 Boxes', condition: (stats) => stats.drops >= 10, icon: <Gift size={18} /> },
+            { id: 'upg1', name: 'Mechanic', desc: 'Reach Lvl 5 Launch', condition: (stats) => stats.launchLvl >= 5, icon: <Zap size={18} /> },
+        ];
+
+        const RARITIES = [
+            { name: 'Rare', color: 'text-blue-400', hex: 0x42a5f5, chance: 0.5 },
+            { name: 'Super Rare', color: 'text-purple-400', hex: 0xab47bc, chance: 0.3 },
+            { name: 'Epic', color: 'text-fuchsia-500', hex: 0xd81b60, chance: 0.15 },
+            { name: 'Mythic', color: 'text-red-500', hex: 0xf44336, chance: 0.04 },
+            { name: 'Legendary', color: 'text-yellow-400', hex: 0xffeb3b, chance: 0.01 },
+        ];
+
+        const BIRD_SKINS = [
+            { id: 'gold', name: 'Goldie', color: 0xffd700 },
+            { id: 'blue', name: 'Jay', color: 0x2196f3 },
+            { id: 'red', name: 'Cardinal', color: 0xf44336 },
+            { id: 'ninja', name: 'Shadow', color: 0x212121 },
+            { id: 'pink', name: 'Flamingo', color: 0xff69b4 },
+            { id: 'white', name: 'Dove', color: 0xffffff },
+        ];
+
+        const TRAILS = [
+            { id: 'none', name: 'None', color: null },
+            { id: 'smoke', name: 'White Smoke', color: 0xffffff },
+            { id: 'fire', name: 'Blaze', color: 0xff5722 },
+            { id: 'magic', name: 'Sparkle', color: 0x9c27b0 },
+        ];
+
+        // --- Helper: Random Range ---
+        const randomRange = (min, max) => Math.random() * (max - min) + min;
+
+        // --- Main Component ---
+        function HighFlyersGame() {
+            // --- React State ---
+            const [gameState, setGameState] = useState('menu'); // menu, playing, looting, results
+            const [menuTab, setMenuTab] = useState('shop'); // shop, bases, achievements
+
+            const [currency, setCurrency] = useState(0);
+            const [distance, setDistance] = useState(0);
+            const [altitude, setAltitude] = useState(0);
+
+            // Progression Stats
+            const [totalCareerDistance, setTotalCareerDistance] = useState(0);
+            const [maxAltitudeRecord, setMaxAltitudeRecord] = useState(0);
+            const [totalDropsCollected, setTotalDropsCollected] = useState(0);
+
+            const [drops, setDrops] = useState([]);
+            const [unopenedBoxes, setUnopenedBoxes] = useState([]);
+            const [distanceReward, setDistanceReward] = useState(0);
+
+            // Looting State
+            const [lootState, setLootState] = useState({ active: false, rarityIndex: 0, revealed: false, reward: null });
+
+            // Upgrades
+            const [ascendLevel, setAscendLevel] = useState(1);
+            const [glideLevel, setGlideLevel] = useState(1);
+
+            // Inventory / Cosmetics
+            const [inventory, setInventory] = useState({ birds: ['gold'], trails: ['none'] });
+            const [equippedBird, setEquippedBird] = useState('gold');
+            const [equippedTrail, setEquippedTrail] = useState('none');
+            const [equippedBase, setEquippedBase] = useState('roof');
+
+            // Stats for current run
+            const [runDrops, setRunDrops] = useState(0);
+
+            // --- Live Refs (Fixed Stale Closure Issue) ---
+            const gameStateRef = useRef('menu');
+            const equippedTrailRef = useRef('none');
+            const equippedBaseRef = useRef('roof');
+
+            // Sync state to refs
+            useEffect(() => { gameStateRef.current = gameState; }, [gameState]);
+            useEffect(() => { equippedTrailRef.current = equippedTrail; }, [equippedTrail]);
+            useEffect(() => { equippedBaseRef.current = equippedBase; updateBaseModel(); }, [equippedBase]);
+
+            // --- Refs for Three.js ---
+            const mountRef = useRef(null);
+            const sceneRef = useRef(null);
+            const cameraRef = useRef(null);
+            const rendererRef = useRef(null);
+            const birdGroupRef = useRef(null);
+            const baseGroupRef = useRef(null);
+            const wingsRef = useRef([]); // To animate flapping
+            const trailParticlesRef = useRef([]);
+            const requestRef = useRef(null);
+            const envGroupRef = useRef(null); // Trees/Clouds
+
+            // Environment Refs to change colors
+            const groundMatRef = useRef(null);
+            const fogRef = useRef(null);
+            const hemiLightRef = useRef(null);
+
+            // Game Logic Refs
+            const physicsRef = useRef({
+                status: 'idle', // idle, ascending, gliding, landed
+                velocity: new THREE.Vector3(),
+                position: new THREE.Vector3(0, 10, 0),
+                rotation: new THREE.Euler(),
+                timeAscending: 0,
+                maxAscendTime: 1.0,
+                glideSpeed: 10,
+                distanceTraveled: 0,
+                lastDropDistance: 0,
+                wingAngle: 0,
+            });
+
+            const getAscendTime = (lvl) => 1.0 + (lvl - 1) * 0.2;
+            const getGlideSpeed = (lvl) => 15 + (lvl - 1) * 2;
+            const getUpgradeCost = (lvl) => Math.floor(50 * Math.pow(1.5, lvl - 1));
+
+            // --- Three.js Initialization ---
+            useEffect(() => {
+                // Scene Setup
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(BIOMES[0].colors.sky);
+                const fog = new THREE.Fog(BIOMES[0].colors.sky, 20, 120);
+                scene.fog = fog;
+                fogRef.current = fog;
+                sceneRef.current = scene;
+
+                // Camera
+                const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.set(-12, 12, -12);
+                cameraRef.current = camera;
+
+                // Renderer
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+                mountRef.current.appendChild(renderer.domElement);
+                rendererRef.current = renderer;
+
+                // Lights
+                const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
+                scene.add(hemiLight);
+                hemiLightRef.current = hemiLight;
+
+                const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+                dirLight.position.set(-30, 80, -30);
+                dirLight.castShadow = true;
+                dirLight.shadow.mapSize.width = 2048;
+                dirLight.shadow.mapSize.height = 2048;
+                dirLight.shadow.camera.near = 0.5;
+                dirLight.shadow.camera.far = 500;
+                dirLight.shadow.camera.left = -100;
+                dirLight.shadow.camera.right = 100;
+                dirLight.shadow.camera.top = 100;
+                dirLight.shadow.camera.bottom = -100;
+                scene.add(dirLight);
+
+                // Ground - Low Poly Style
+                const groundGeo = new THREE.PlaneGeometry(2000, 2000, 100, 100);
+                const posAttribute = groundGeo.attributes.position;
+                for (let i = 0; i < posAttribute.count; i++) {
+                    const x = posAttribute.getX(i);
+                    // Keep center road flat
+                    if (Math.abs(x) > 10) {
+                        posAttribute.setZ(i, Math.random() * 2);
+                    }
+                }
+                groundGeo.computeVertexNormals();
+
+                const groundMat = new THREE.MeshStandardMaterial({
+                    color: BIOMES[0].colors.ground,
+                    roughness: 0.8,
+                    flatShading: true
+                });
+                groundMatRef.current = groundMat;
+                const ground = new THREE.Mesh(groundGeo, groundMat);
+                ground.rotation.x = -Math.PI / 2;
+                ground.position.y = -2; // Lower ground slightly
+                ground.receiveShadow = true;
+                scene.add(ground);
+
+                // Base Platform Container
+                const baseGroup = new THREE.Group();
+                scene.add(baseGroup);
+                baseGroupRef.current = baseGroup;
+                updateBaseModel(); // Initial Render
+
+                // Environment Group (Trees, Clouds)
+                const envGroup = new THREE.Group();
+                scene.add(envGroup);
+                envGroupRef.current = envGroup;
+                generateEnvironment(envGroup);
+
+                // --- Create Bird Model ---
+                createBird(scene);
+
+                // Trail Particles Pool
+                const particleGeo = new THREE.SphereGeometry(0.2, 4, 4);
+                const particleMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 });
+                for (let i = 0; i < 50; i++) {
+                    const p = new THREE.Mesh(particleGeo, particleMat.clone());
+                    p.visible = false;
+                    scene.add(p);
+                    trailParticlesRef.current.push({ mesh: p, life: 0 });
+                }
+
+                // Animation Loop
+                const animate = (time) => {
+                    updateGame(time);
+                    renderer.render(scene, camera);
+                    requestRef.current = requestAnimationFrame(animate);
+                };
+                requestRef.current = requestAnimationFrame(animate);
+
+                // Handle Resize
+                const handleResize = () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                };
+                window.addEventListener('resize', handleResize);
+
+                return () => {
+                    window.removeEventListener('resize', handleResize);
+                    cancelAnimationFrame(requestRef.current);
+                    if (mountRef.current) mountRef.current.removeChild(renderer.domElement);
+                };
+            }, []);
+
+            const createBird = (scene) => {
+                const birdGroup = new THREE.Group();
+
+                // Body (Sphere)
+                const bodyGeo = new THREE.SphereGeometry(0.6, 16, 16);
+                bodyGeo.scale(1, 0.8, 1.2);
+                const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.3, metalness: 0.1 });
+                const body = new THREE.Mesh(bodyGeo, bodyMat);
+                body.castShadow = true;
+                birdGroup.add(body);
+
+                // Head
+                const headGeo = new THREE.SphereGeometry(0.4, 16, 16);
+                const head = new THREE.Mesh(headGeo, bodyMat);
+                head.position.set(0, 0.4, 0.6);
+                birdGroup.add(head);
+
+                // Beak
+                const beakGeo = new THREE.ConeGeometry(0.1, 0.3, 8);
+                beakGeo.rotateX(-Math.PI / 2);
+                const beakMat = new THREE.MeshStandardMaterial({ color: 0xff9800 });
+                const beak = new THREE.Mesh(beakGeo, beakMat);
+                beak.position.set(0, 0.4, 0.95);
+                birdGroup.add(beak);
+
+                // Eyes
+                const eyeGeo = new THREE.SphereGeometry(0.08, 8, 8);
+                const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+                const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+                eyeL.position.set(0.15, 0.5, 0.85);
+                const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+                eyeR.position.set(-0.15, 0.5, 0.85);
+                birdGroup.add(eyeL);
+                birdGroup.add(eyeR);
+
+                // Wings
+                const leftWing = new THREE.Group();
+                const rightWing = new THREE.Group();
+                const wingGeo = new THREE.BoxGeometry(1.2, 0.1, 0.8);
+                wingGeo.translate(0.6, 0, 0);
+                const wingMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+                const w1 = new THREE.Mesh(wingGeo, wingMat);
+                leftWing.add(w1);
+                leftWing.position.set(0.4, 0.1, 0);
+                const w2 = new THREE.Mesh(wingGeo, wingMat);
+                w2.scale.x = -1;
+                rightWing.add(w2);
+                rightWing.position.set(-0.4, 0.1, 0);
+                birdGroup.add(leftWing);
+                birdGroup.add(rightWing);
+
+                wingsRef.current = [leftWing, rightWing];
+                birdGroupRef.current = birdGroup;
+                scene.add(birdGroup);
+            };
+
+            // --- Environment & Base Generators ---
+
+            const createLowPolyTree = (scale = 1) => {
+                const group = new THREE.Group();
+                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5D4037, flatShading: true });
+                const leavesMat = new THREE.MeshStandardMaterial({ color: 0x2E7D32, flatShading: true });
+
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2 * scale, 0.3 * scale, 1.5 * scale, 6), trunkMat);
+                trunk.position.y = 0.75 * scale;
+                trunk.castShadow = true;
+                group.add(trunk);
+
+                const leaves = new THREE.Mesh(new THREE.ConeGeometry(1.2 * scale, 2.5 * scale, 6), leavesMat);
+                leaves.position.y = 2 * scale;
+                leaves.castShadow = true;
+                group.add(leaves);
+
+                return group;
+            };
+
+            const createCloud = () => {
+                const group = new THREE.Group();
+                const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true, transparent: true, opacity: 0.8 });
+                const geo = new THREE.DodecahedronGeometry(2);
+
+                const c1 = new THREE.Mesh(geo, cloudMat);
+                group.add(c1);
+                const c2 = new THREE.Mesh(geo, cloudMat);
+                c2.position.set(1.5, 0, 0);
+                c2.scale.set(0.8, 0.8, 0.8);
+                group.add(c2);
+                const c3 = new THREE.Mesh(geo, cloudMat);
+                c3.position.set(-1.5, 0.2, 0);
+                c3.scale.set(0.7, 0.7, 0.7);
+                group.add(c3);
+
+                return group;
+            };
+
+            const generateEnvironment = (group) => {
+                // Clear existing
+                while (group.children.length > 0) {
+                    group.remove(group.children[0]);
+                }
+
+                // Add Trees to sides
+                for (let i = 0; i < 50; i++) {
+                    const tree = createLowPolyTree(randomRange(1.5, 2.5));
+                    const side = Math.random() > 0.5 ? 1 : -1;
+                    const x = side * randomRange(15, 50);
+                    const z = i * 20 + randomRange(-5, 5);
+                    tree.position.set(x, -2, z);
+                    group.add(tree);
+                }
+
+                // Add Houses
+                const houseGeo = new THREE.BoxGeometry(4, 4, 4);
+                const roofGeo = new THREE.ConeGeometry(3.5, 2.5, 4);
+                const houseMat = new THREE.MeshStandardMaterial({ color: 0xffe0b2, flatShading: true });
+                const roofMat = new THREE.MeshStandardMaterial({ color: 0xa52a2a, flatShading: true });
+
+                for (let i = 0; i < 50; i++) {
+                    const hGroup = new THREE.Group();
+                    const house = new THREE.Mesh(houseGeo, houseMat);
+                    house.position.y = 2;
+                    house.castShadow = true;
+                    hGroup.add(house);
+                    const roof = new THREE.Mesh(roofGeo, roofMat);
+                    roof.rotation.y = Math.PI / 4;
+                    roof.position.y = 3.25;
+                    hGroup.add(roof);
+
+                    const side = i % 2 === 0 ? -1 : 1;
+                    const xPos = side * randomRange(12, 18);
+                    const zPos = i * 40 + 20;
+                    hGroup.position.set(xPos, -2, zPos); // Sit on ground
+                    group.add(hGroup);
+                }
+
+                // Add Clouds
+                for (let i = 0; i < 20; i++) {
+                    const cloud = createCloud();
+                    cloud.position.set(randomRange(-60, 60), randomRange(30, 60), i * 50);
+                    group.add(cloud);
+                }
+            };
+
+            // --- Dynamic Base Logic ---
+            const updateBaseModel = () => {
+                const group = baseGroupRef.current;
+                const baseType = equippedBaseRef.current;
+                if (!group) return;
+
+                // Clear old base
+                while (group.children.length > 0) group.remove(group.children[0]);
+
+                if (baseType === 'roof') {
+                    // Standard Roof
+                    const sMat = new THREE.MeshStandardMaterial({ color: 0x8d6e63, flatShading: true });
+                    const sBody = new THREE.Mesh(new THREE.BoxGeometry(10, 10, 10), sMat);
+                    sBody.position.y = 3;
+                    sBody.castShadow = true;
+                    group.add(sBody);
+
+                    const sRoof = new THREE.Mesh(new THREE.ConeGeometry(8, 5, 4), new THREE.MeshStandardMaterial({ color: 0x3e2723, flatShading: true }));
+                    sRoof.rotation.y = Math.PI / 4;
+                    sRoof.position.y = 10.5;
+                    sRoof.castShadow = true;
+                    group.add(sRoof);
+
+                    // Spawn Point
+                    physicsRef.current.position.set(0, 11, 0);
+                }
+                else if (baseType === 'treehouse') {
+                    // Tree House
+                    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5D4037, flatShading: true });
+                    const woodMat = new THREE.MeshStandardMaterial({ color: 0x8D6E63, flatShading: true });
+
+                    // Trunk
+                    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(2, 3, 20, 8), trunkMat);
+                    trunk.position.y = 8;
+                    trunk.castShadow = true;
+                    group.add(trunk);
+
+                    // Platform
+                    const platform = new THREE.Mesh(new THREE.CylinderGeometry(8, 7, 1, 8), woodMat);
+                    platform.position.y = 16;
+                    platform.castShadow = true;
+                    group.add(platform);
+
+                    // Hut
+                    const hut = new THREE.Mesh(new THREE.BoxGeometry(6, 6, 6), woodMat);
+                    hut.position.set(0, 19, -1);
+                    group.add(hut);
+                    const roof = new THREE.Mesh(new THREE.ConeGeometry(5, 3, 4), new THREE.MeshStandardMaterial({ color: 0x3e2723 }));
+                    roof.rotation.y = Math.PI / 4;
+                    roof.position.set(0, 23.5, -1);
+                    group.add(roof);
+
+                    // Bird Perch
+                    physicsRef.current.position.set(0, 18, 4);
+                }
+                else if (baseType === 'gianttree') {
+                    // Ancient Tree
+                    const barkMat = new THREE.MeshStandardMaterial({ color: 0x3E2723, flatShading: true });
+                    const leafMat = new THREE.MeshStandardMaterial({ color: 0x1B5E20, flatShading: true });
+
+                    // Massive Trunk
+                    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(5, 8, 40, 7), barkMat);
+                    trunk.position.y = 15;
+                    trunk.castShadow = true;
+                    group.add(trunk);
+
+                    // Branches
+                    const branch = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 15, 5), barkMat);
+                    branch.rotation.z = Math.PI / 2.5;
+                    branch.position.set(5, 25, 0);
+                    group.add(branch);
+
+                    // Canopy
+                    const canopy = new THREE.Mesh(new THREE.DodecahedronGeometry(15), leafMat);
+                    canopy.position.y = 35;
+                    group.add(canopy);
+
+                    // Bird Perch (on branch)
+                    physicsRef.current.position.set(8, 28, 0);
+                }
+                else if (baseType === 'skyscraper') {
+                    // Skyscraper
+                    const glassMat = new THREE.MeshStandardMaterial({ color: 0x607D8B, metalness: 0.8, roughness: 0.1 });
+                    const concreteMat = new THREE.MeshStandardMaterial({ color: 0x90A4AE });
+
+                    const tower = new THREE.Mesh(new THREE.BoxGeometry(15, 60, 15), glassMat);
+                    tower.position.y = 20;
+                    group.add(tower);
+
+                    const helipad = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 0.5, 16), concreteMat);
+                    helipad.position.y = 50;
+                    group.add(helipad);
+
+                    const hMark = new THREE.Mesh(new THREE.BoxGeometry(4, 0.6, 1), new THREE.MeshStandardMaterial({ color: 0xffeb3b }));
+                    hMark.position.y = 50;
+                    group.add(hMark);
+
+                    physicsRef.current.position.set(0, 52, 0);
+                }
+
+                // Update bird position to match new perch immediately
+                if (birdGroupRef.current) {
+                    birdGroupRef.current.position.copy(physicsRef.current.position);
+                    birdGroupRef.current.rotation.set(0, 0, 0);
+
+                    // Reset camera relative to new perch
+                    const perch = physicsRef.current.position;
+                    if (cameraRef.current) {
+                        cameraRef.current.position.set(perch.x - 12, perch.y + 5, perch.z - 12);
+                        cameraRef.current.lookAt(perch);
+                    }
+                }
+            };
+
+
+            // --- Main Loop ---
+            const updateGame = (time) => {
+                const phys = physicsRef.current;
+                const bird = birdGroupRef.current;
+
+                // Check the REF, not the stale state
+                const currentGameState = gameStateRef.current;
+
+                if (currentGameState === 'looting' || currentGameState === 'menu') {
+                    // Idle animation on the perch
+                    if (bird) {
+                        bird.position.y = phys.position.y + Math.sin(time * 0.002) * 0.2;
+                        bird.rotation.y = Math.sin(time * 0.001) * 0.2;
+                    }
+                    return;
+                }
+                if (!bird || !cameraRef.current) return;
+
+                const dt = 0.016;
+
+                // Biome Logic
+                const currentZ = phys.position.z;
+                let targetBiome = BIOMES[0];
+                for (let i = BIOMES.length - 1; i >= 0; i--) {
+                    if (currentZ >= BIOMES[i].start) {
+                        targetBiome = BIOMES[i];
+                        break;
+                    }
+                }
+                if (sceneRef.current && groundMatRef.current) {
+                    sceneRef.current.background.lerp(new THREE.Color(targetBiome.colors.sky), 0.02);
+                    if (fogRef.current) fogRef.current.color.lerp(new THREE.Color(targetBiome.colors.fog), 0.02);
+                    if (groundMatRef.current) groundMatRef.current.color.lerp(new THREE.Color(targetBiome.colors.ground), 0.02);
+                }
+
+                // Update Max Altitude for Achievement
+                const currentAlt = Math.floor(phys.position.y);
+                if (currentAlt > maxAltitudeRecord) {
+                    // Note: setting state inside requestAnimationFrame loop is dangerous if too frequent,
+                    // but since we only update when greater, it's safer. Still better to do at end of run, but let's do it live for UI.
+                    // We will just update ref or check it.
+                }
+
+                if (phys.status === 'ascending') {
+                    phys.timeAscending += dt;
+                    phys.position.y += 15 * dt;
+                    phys.position.z += 8 * dt;
+                    phys.wingAngle += 0.5;
+                    bird.rotation.x = -Math.PI / 4;
+
+                    if (phys.timeAscending >= phys.maxAscendTime) {
+                        phys.status = 'gliding';
+                    }
+                }
+                else if (phys.status === 'gliding') {
+                    const gravity = 4.0;
+                    const descentRate = gravity * dt;
+
+                    phys.position.y -= descentRate;
+                    phys.position.z += phys.glideSpeed * dt;
+                    phys.wingAngle = Math.sin(time * 0.002) * 0.2;
+                    bird.rotation.x = 0.1;
+
+                    // Loot Trigger (Every 100m)
+                    const currentDist = Math.floor(phys.position.z);
+                    if (currentDist > 0 && currentDist % 100 === 0 && Math.abs(currentDist - phys.lastDropDistance) > 10) {
+                        phys.lastDropDistance = currentDist;
+                        triggerLootFound(); // Just adds to inventory, doesn't stop game
+                    }
+
+                    // Hide Base Group when far enough
+                    if (baseGroupRef.current) {
+                        baseGroupRef.current.visible = phys.position.z < 100;
+                    }
+
+                    if (phys.position.y <= 0.6) {
+                        phys.position.y = 0.6;
+                        phys.status = 'landed';
+                        handleLanding();
+                    }
+                }
+
+                if (wingsRef.current.length === 2) {
+                    const flap = phys.status === 'ascending' ? Math.sin(phys.wingAngle * 30) : phys.wingAngle;
+                    wingsRef.current[0].rotation.z = flap;
+                    wingsRef.current[1].rotation.z = -flap;
+                }
+
+                bird.position.copy(phys.position);
+
+                const camOffset = new THREE.Vector3(0, 5, -15);
+                if (phys.status === 'landed') {
+                    const angle = time * 0.0005;
+                    cameraRef.current.position.x = phys.position.x + Math.sin(angle) * 15;
+                    cameraRef.current.position.z = phys.position.z + Math.cos(angle) * 15;
+                    cameraRef.current.position.y = phys.position.y + 5;
+                    cameraRef.current.lookAt(phys.position);
+                } else {
+                    const targetPos = phys.position.clone().add(new THREE.Vector3(0, 6, -12));
+                    cameraRef.current.position.lerp(targetPos, 0.1);
+                    cameraRef.current.lookAt(phys.position.clone().add(new THREE.Vector3(0, 0, 15)));
+                }
+
+                setDistance(Math.floor(phys.position.z));
+                setAltitude(Math.max(0, Math.floor(phys.position.y)));
+
+                updateTrails();
+            };
+
+            const updateTrails = () => {
+                // Check REF for trail type
+                const trailId = equippedTrailRef.current;
+
+                if (trailId === 'none' || physicsRef.current.status === 'landed' || physicsRef.current.status === 'idle') return;
+
+                const trailDef = TRAILS.find(t => t.id === trailId);
+                if (!trailDef) return;
+
+                const bird = birdGroupRef.current;
+                if (!bird) return;
+
+                const deadP = trailParticlesRef.current.find(p => p.life <= 0);
+                if (deadP) {
+                    deadP.life = 1.0;
+                    deadP.mesh.visible = true;
+                    deadP.mesh.position.copy(bird.position);
+                    deadP.mesh.position.z -= 0.5;
+                    deadP.mesh.position.y += (Math.random() - 0.5) * 0.5;
+                    deadP.mesh.material.color.setHex(trailDef.color);
+                }
+                trailParticlesRef.current.forEach(p => {
+                    if (p.life > 0) {
+                        p.life -= 0.03;
+                        p.mesh.scale.setScalar(p.life * 1.5);
+                        if (p.life <= 0) p.mesh.visible = false;
+                    }
+                });
+            };
+
+            // --- Logic Helpers ---
+
+            const triggerLootFound = () => {
+                // Add a placeholder to run results
+                setDrops(prev => [...prev, { item: { name: 'Mystery Box', icon: <Gift size={16} /> }, rarity: RARITIES[0] }]);
+                setRunDrops(prev => prev + 1);
+
+                // Add to persistent inventory (always starts at index 0 'Rare')
+                setUnopenedBoxes(prev => [...prev, 0]);
+                // Achievement Tracking
+                setTotalDropsCollected(prev => prev + 1);
+            };
+
+            const startLootOpening = () => {
+                if (unopenedBoxes.length === 0) return;
+                setGameState('looting');
+                // Start with the first box in the stack
+                setLootState({ active: true, rarityIndex: unopenedBoxes[0], revealed: false, reward: null });
+            };
+
+            const handleLootTap = () => {
+                if (lootState.revealed) {
+                    // COLLECT REWARD
+                    // 1. Remove one box from inventory
+                    const newInventory = [...unopenedBoxes];
+                    newInventory.shift(); // Remove first
+                    setUnopenedBoxes(newInventory);
+
+                    // 2. Decide next step
+                    if (newInventory.length > 0) {
+                        // Open next immediately
+                        setLootState({ active: true, rarityIndex: newInventory[0], revealed: false, reward: null });
+                    } else {
+                        // All done, back to menu
+                        setGameState('menu');
+                        setLootState({ active: false, rarityIndex: 0, revealed: false, reward: null });
+                    }
+                    return;
+                }
+
+                // UPGRADE OR REVEAL LOGIC
+                const currentRarity = RARITIES[lootState.rarityIndex];
+                const nextRarity = RARITIES[lootState.rarityIndex + 1];
+
+                if (nextRarity) {
+                    const roll = Math.random();
+                    if (roll < currentRarity.chance) {
+                        // Upgrade!
+                        setLootState(prev => ({ ...prev, rarityIndex: prev.rarityIndex + 1 }));
+                    } else {
+                        // Fail upgrade -> Reveal
+                        generateReward(currentRarity);
+                    }
+                } else {
+                    // Max level -> Reveal
+                    generateReward(currentRarity);
+                }
+            };
+
+            const generateReward = (rarityObj) => {
+                let item;
+                const roll = Math.random();
+                const multiplier = lootState.rarityIndex + 1;
+
+                if (roll < 0.6) {
+                    const amount = Math.floor(randomRange(20, 50) * multiplier);
+                    item = { type: 'seed', name: `${amount} Birdseed`, icon: <ShoppingBag />, amount };
+                    setCurrency(c => c + amount);
+                } else if (roll < 0.9) {
+                    if (multiplier >= 4) {
+                        const unownedBirds = BIRD_SKINS.filter(b => !inventory.birds.includes(b.id));
+                        if (unownedBirds.length > 0) {
+                            const newBird = unownedBirds[Math.floor(Math.random() * unownedBirds.length)];
+                            item = { type: 'bird', name: `Skin: ${newBird.name}`, icon: <Bird />, id: newBird.id };
+                            setInventory(prev => ({ ...prev, birds: [...prev.birds, newBird.id] }));
+                        } else {
+                            const amount = 500;
+                            item = { type: 'seed', name: `${amount} Birdseed (Duplicate)`, icon: <ShoppingBag />, amount };
+                            setCurrency(c => c + amount);
+                        }
+                    } else {
+                        const unownedTrails = TRAILS.filter(t => !inventory.trails.includes(t.id));
+                        if (unownedTrails.length > 0 && Math.random() > 0.5) {
+                            const newTrail = unownedTrails[Math.floor(Math.random() * unownedTrails.length)];
+                            item = { type: 'trail', name: `Trail: ${newTrail.name}`, icon: <Wind />, id: newTrail.id };
+                            setInventory(prev => ({ ...prev, trails: [...prev.trails, newTrail.id] }));
+                        } else {
+                            const amount = Math.floor(randomRange(50, 100) * multiplier);
+                            item = { type: 'seed', name: `${amount} Birdseed`, icon: <ShoppingBag />, amount };
+                            setCurrency(c => c + amount);
+                        }
+                    }
+                } else {
+                    const amount = Math.floor(randomRange(10, 20) * multiplier);
+                    item = { type: 'seed', name: `${amount} Birdseed`, icon: <ShoppingBag />, amount };
+                    setCurrency(c => c + amount);
+                }
+                setLootState(prev => ({ ...prev, revealed: true, reward: item }));
+            };
+
+            const handleLanding = () => {
+                const dist = Math.floor(physicsRef.current.position.z);
+                const reward = Math.floor(dist / 5);
+
+                // Check max altitude for this run
+                // Since we didn't track it frame by frame in state perfectly, we can approximate
+                // Or just say "Max Altitude Reached in Career".
+                // For now, let's assume updateGame was mostly correct, but we'll use a simple check here if we tracked it in ref
+                // Actually, let's rely on career tracking
+
+                setDistanceReward(reward);
+                setCurrency(prev => prev + reward);
+                setTotalCareerDistance(prev => prev + dist); // Update Career
+                setGameState('results');
+            };
+
+            const startGame = () => {
+                if (unopenedBoxes.length > 0) {
+                    // Optional warning could go here
+                }
+                physicsRef.current.status = 'ascending';
+                // Position resets based on base type handled in start logic?
+                // Actually we need to reset to the 'spawn' point of the current base.
+                // The baseModel update function sets the position correctly, but now we are launching.
+                // We just need to make sure we don't snap to 0,0,0 if the base is high up.
+                // We already set position in updateBaseModel. Let's just reset Velocity.
+                // BUT, we need to ensure Z is 0 relative to run.
+                const startY = physicsRef.current.position.y;
+                physicsRef.current.position.set(0, startY, 0);
+
+                physicsRef.current.velocity.set(0, 0, 0);
+                physicsRef.current.timeAscending = 0;
+                physicsRef.current.distanceTraveled = 0;
+                physicsRef.current.lastDropDistance = 0;
+                physicsRef.current.maxAscendTime = getAscendTime(ascendLevel);
+                physicsRef.current.glideSpeed = getGlideSpeed(glideLevel);
+
+                if (birdGroupRef.current) {
+                    const skin = BIRD_SKINS.find(s => s.id === equippedBird);
+                    if (skin) birdGroupRef.current.children[0].material.color.setHex(skin.color);
+                }
+
+                if (baseGroupRef.current) baseGroupRef.current.visible = true;
+
+                setDrops([]);
+                setRunDrops(0);
+                setGameState('playing');
+            };
+
+            const resetToBase = () => {
+                setGameState('menu');
+                physicsRef.current.status = 'idle';
+                physicsRef.current.velocity.set(0, 0, 0);
+                updateBaseModel(); // Resets position and camera
+            };
+
+            const buyUpgrade = (type) => {
+                let cost = 0;
+                if (type === 'ascend') {
+                    cost = getUpgradeCost(ascendLevel);
+                    if (currency >= cost) {
+                        setCurrency(c => c - cost);
+                        setAscendLevel(l => l + 1);
+                    }
+                } else {
+                    cost = getUpgradeCost(glideLevel);
+                    if (currency >= cost) {
+                        setCurrency(c => c - cost);
+                        setGlideLevel(l => l + 1);
+                    }
+                }
+            };
+
+            // --- Keyboard Controls ---
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (e.code === 'Space') {
+                        if (gameState === 'menu') {
+                            if (unopenedBoxes.length === 0) startGame();
+                            else startLootOpening();
+                        }
+                        else if (gameState === 'results') resetToBase();
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [gameState, ascendLevel, glideLevel, equippedBird, inventory, unopenedBoxes]);
+
+
+            // --- UI Renders ---
+
+            const renderLootOverlay = () => {
+                const rarity = RARITIES[lootState.rarityIndex];
+                const boxesLeft = unopenedBoxes.length;
+
+                return (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md cursor-pointer" onClick={handleLootTap}>
+                        <div className="text-center animate-in fade-in zoom-in duration-300 w-full max-w-md">
+
+                            <div className="absolute top-8 left-0 w-full text-center text-white/50 font-bold uppercase tracking-widest text-sm">
+                                {boxesLeft > 1 ? `${boxesLeft - 1} more boxes waiting...` : "Last box!"}
+                            </div>
+
+                            {!lootState.revealed ? (
+                                <div className="flex flex-col items-center">
+                                    <div className={`text-6xl font-black mb-4 ${rarity.color} drop-shadow-[0_0_30px_rgba(255,255,255,0.5)] scale-110 transition-transform duration-75 active:scale-95`}>
+                                        TAP TO UPGRADE!
+                                    </div>
+                                    <div className="text-2xl text-white font-bold mb-8 animate-pulse">
+                                        {rarity.name.toUpperCase()}
+                                    </div>
+                                    <div className="w-40 h-40 bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_currentColor] animate-bounce cursor-pointer hover:scale-110 transition" style={{ color: '#' + rarity.hex.toString(16) }}>
+                                        <Star size={80} fill={`#${rarity.hex.toString(16)}`} stroke="none" />
+                                    </div>
+                                    <p className="text-white/50 mt-8 text-sm">Chance to upgrade rarity!</p>
+                                </div>
+                            ) : (
+                                <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4 mx-4 border-4 border-yellow-400">
+                                    <div className="text-xl font-bold text-gray-400 uppercase tracking-widest">{rarity.name} Reward!</div>
+                                    <div className="p-6 bg-gray-100 rounded-full mb-2">
+                                        {lootState.reward && React.cloneElement(lootState.reward.icon, { size: 64, className: "text-gray-800" })}
+                                    </div>
+                                    <div className="text-3xl font-black text-black">{lootState.reward?.name}</div>
+                                    <div className="text-sm text-gray-500 mt-4 animate-pulse">Click to {boxesLeft > 1 ? "Open Next" : "Finish"}</div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderShopTab = () => (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        <div className="bg-black/40 p-4 rounded-xl flex flex-col gap-2 hover:bg-black/50 transition">
+                            <div className="flex justify-between">
+                                <span className="font-bold flex gap-2"><Rocket size={20} /> Launch Power</span>
+                                <span className="text-green-300">Lvl {ascendLevel}</span>
+                            </div>
+                            <button
+                                onClick={() => buyUpgrade('ascend')}
+                                disabled={currency < getUpgradeCost(ascendLevel)}
+                                className={`mt-2 py-2 px-4 rounded font-bold transition ${currency >= getUpgradeCost(ascendLevel) ? 'bg-yellow-500 hover:bg-yellow-400 text-black' : 'bg-gray-600 cursor-not-allowed opacity-50'}`}
+                            >
+                                Upgrade ({getUpgradeCost(ascendLevel)})
+                            </button>
+                        </div>
+
+                        <div className="bg-black/40 p-4 rounded-xl flex flex-col gap-2 hover:bg-black/50 transition">
+                            <div className="flex justify-between">
+                                <span className="font-bold flex gap-2"><Wind size={20} /> Glide Speed</span>
+                                <span className="text-blue-300">Lvl {glideLevel}</span>
+                            </div>
+                            <button
+                                onClick={() => buyUpgrade('glide')}
+                                disabled={currency < getUpgradeCost(glideLevel)}
+                                className={`mt-2 py-2 px-4 rounded font-bold transition ${currency >= getUpgradeCost(glideLevel) ? 'bg-yellow-500 hover:bg-yellow-400 text-black' : 'bg-gray-600 cursor-not-allowed opacity-50'}`}
+                            >
+                                Upgrade ({getUpgradeCost(glideLevel)})
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="mb-6">
+                        <h3 className="font-bold mb-2 flex items-center gap-2"><Package size={18} /> Wardrobe</h3>
+                        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                            {BIRD_SKINS.map(skin => (
+                                <button
+                                    key={skin.id}
+                                    onClick={() => inventory.birds.includes(skin.id) && setEquippedBird(skin.id)}
+                                    className={`p-2 rounded border transition min-w-[80px] text-center text-xs flex flex-col items-center gap-1
+                                    ${equippedBird === skin.id ? 'border-yellow-400 bg-yellow-400/20' : 'border-white/10 bg-black/20'}
+                                    ${!inventory.birds.includes(skin.id) ? 'opacity-30 grayscale' : 'hover:bg-white/10'}
+                                `}
+                                >
+                                    <div className="w-6 h-6 rounded-full border border-white/20" style={{ backgroundColor: '#' + skin.color.toString(16).padStart(6, '0') }}></div>
+                                    {skin.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </>
+            );
+
+            const renderBasesTab = () => (
+                <div className="h-64 overflow-y-auto pr-2 scrollbar-hide mb-6">
+                    <div className="text-center mb-4 p-2 bg-white/10 rounded-lg">
+                        <div className="text-xs uppercase tracking-widest opacity-60">Total Career Distance</div>
+                        <div className="text-3xl font-black text-white">{totalCareerDistance}m</div>
+                    </div>
+
+                    <div className="space-y-2">
+                        {LANDING_SPOTS.map(spot => {
+                            const unlocked = totalCareerDistance >= spot.unlockDist;
+                            const isEquipped = equippedBase === spot.id;
+
+                            return (
+                                <div key={spot.id} className={`p-3 rounded-xl border flex items-center gap-3 transition
+                                ${unlocked ? 'bg-black/40 border-white/20' : 'bg-black/20 border-white/5 opacity-50'}
+                                ${isEquipped ? 'border-yellow-400 bg-yellow-900/20' : ''}
+                            `}>
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${unlocked ? 'bg-green-500' : 'bg-gray-700'}`}>
+                                        {unlocked ? <Home size={20} /> : <div className="text-xs font-bold">{spot.unlockDist / 1000}k</div>}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="font-bold flex items-center gap-2">
+                                            {spot.name}
+                                            {isEquipped && <span className="text-[10px] bg-yellow-400 text-black px-1 rounded font-bold">ACTIVE</span>}
+                                        </div>
+                                        <div className="text-xs opacity-60">{spot.description}</div>
+                                        {!unlocked && <div className="text-xs text-red-300 mt-1">Unlock at {spot.unlockDist}m</div>}
+                                    </div>
+                                    {unlocked && !isEquipped && (
+                                        <button
+                                            onClick={() => setEquippedBase(spot.id)}
+                                            className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded"
+                                        >
+                                            Move In
+                                        </button>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+
+            const renderRealAchievementsTab = () => (
+                <div className="h-64 overflow-y-auto pr-2 scrollbar-hide mb-6">
+                    <div className="space-y-2">
+                        {ACHIEVEMENTS_LIST.map(ach => {
+                            const stats = {
+                                distance: totalCareerDistance,
+                                altitude: altitude, // Note: This checks *current* altitude, ideally checks record. But for simplicity let's stick to simple checks or I need to add 'maxAltitude' state
+                                drops: totalDropsCollected,
+                                launchLvl: ascendLevel
+                            };
+                            // For altitude, let's just cheat and say if altitude > X it unlocks permanently in UI even if current is 0? 
+                            // No, let's use the maxAltitudeRecord state I added
+                            if (ach.id.includes('alt')) stats.altitude = Math.max(altitude, maxAltitudeRecord);
+
+                            const unlocked = ach.condition(stats);
+
+                            return (
+                                <div key={ach.id} className={`p-3 rounded-xl border flex items-center gap-3 transition
+                                ${unlocked ? 'bg-green-900/40 border-green-500/50' : 'bg-black/20 border-white/5 opacity-50'}
+                            `}>
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${unlocked ? 'bg-green-500 text-white' : 'bg-gray-700 text-white/20'}`}>
+                                        {ach.icon}
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className={`font-bold flex items-center gap-2 ${unlocked ? 'text-green-200' : 'text-white/60'}`}>
+                                            {ach.name}
+                                            {unlocked && <span className="text-[10px] bg-green-500 text-black px-1 rounded font-bold">DONE</span>}
+                                        </div>
+                                        <div className="text-xs opacity-60">{ach.desc}</div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+
+            const renderMenu = () => (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 text-white font-sans p-4">
+                    <h1 className="text-6xl font-bold mb-2 text-yellow-300 drop-shadow-md">HIGH FLYERS</h1>
+                    <p className="text-xl mb-8 opacity-90">Launch from the roof, collect drops, fly forever.</p>
+
+                    <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-2xl max-w-2xl w-full">
+                        {/* Header / Tabs */}
+                        <div className="flex justify-between items-start mb-6 border-b border-white/10 pb-4">
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => setMenuTab('shop')}
+                                    className={`flex items-center gap-2 text-sm md:text-lg font-bold transition ${menuTab === 'shop' ? 'text-white border-b-2 border-green-400' : 'text-white/40 hover:text-white/70'}`}
+                                >
+                                    <ShoppingBag size={18} className={menuTab === 'shop' ? "text-green-400" : ""} /> Shop
+                                </button>
+                                <button
+                                    onClick={() => setMenuTab('bases')}
+                                    className={`flex items-center gap-2 text-sm md:text-lg font-bold transition ${menuTab === 'bases' ? 'text-white border-b-2 border-yellow-400' : 'text-white/40 hover:text-white/70'}`}
+                                >
+                                    <Home size={18} className={menuTab === 'bases' ? "text-yellow-400" : ""} /> Bases
+                                </button>
+                                <button
+                                    onClick={() => setMenuTab('achievements')}
+                                    className={`flex items-center gap-2 text-sm md:text-lg font-bold transition ${menuTab === 'achievements' ? 'text-white border-b-2 border-purple-400' : 'text-white/40 hover:text-white/70'}`}
+                                >
+                                    <Award size={18} className={menuTab === 'achievements' ? "text-purple-400" : ""} /> Trophies
+                                </button>
+                            </div>
+                            <div className="text-sm opacity-70 flex flex-col items-end">
+                                <span>Seeds</span>
+                                <span className="text-yellow-400 font-bold text-lg">{currency}</span>
+                            </div>
+                        </div>
+
+                        {menuTab === 'shop' && renderShopTab()}
+                        {menuTab === 'bases' && renderBasesTab()}
+                        {menuTab === 'achievements' && renderRealAchievementsTab()}
+
+                        {/* Main Action Button - Changes based on loot */}
+                        {unopenedBoxes.length > 0 ? (
+                            <button onClick={startLootOpening} className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold py-4 rounded-xl text-xl shadow-lg transform hover:scale-105 transition flex items-center justify-center gap-3 border-2 border-white/20 animate-pulse">
+                                <Gift fill="white" /> OPEN {unopenedBoxes.length} BOXES
+                            </button>
+                        ) : (
+                            <button onClick={startGame} className="w-full bg-green-500 hover:bg-green-400 text-white font-bold py-4 rounded-xl text-xl shadow-lg transform hover:scale-105 transition flex items-center justify-center gap-3">
+                                <Play fill="white" /> LAUNCH!
+                            </button>
+                        )}
+                    </div>
+                </div>
+            );
+
+            const renderHUD = () => (
+                <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start pointer-events-none text-white font-sans">
+                    <div className="flex flex-col gap-2">
+                        <div className="bg-black/50 px-4 py-2 rounded-lg backdrop-blur text-xl font-bold border border-white/10">
+                            {distance}m <span className="text-xs opacity-70 font-normal">Distance</span>
+                        </div>
+                        <div className="bg-black/50 px-4 py-2 rounded-lg backdrop-blur text-xl font-bold border border-white/10">
+                            {altitude}m <span className="text-xs opacity-70 font-normal">Altitude</span>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2">
+                        <div className="bg-black/50 px-4 py-2 rounded-lg backdrop-blur text-yellow-400 font-bold border border-white/10 flex items-center gap-2">
+                            <ShoppingBag size={18} /> {currency}
+                        </div>
+                        <div className="bg-black/50 px-4 py-2 rounded-lg backdrop-blur text-purple-300 font-bold border border-white/10 flex items-center gap-2">
+                            <Gift size={18} /> {unopenedBoxes.length + runDrops}
+                        </div>
+                        <div className="bg-black/50 px-3 py-1 rounded text-xs opacity-80">
+                            Next Drop: {Math.ceil((distance + 1) / 100) * 100}m
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderResults = () => (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white font-sans p-4 backdrop-blur-sm">
+                    <div className="bg-white text-black p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
+                        <h2 className="text-3xl font-bold mb-2">Landed!</h2>
+                        <div className="text-6xl font-black mb-6 text-blue-600">{distance}m</div>
+
+                        <div className="grid grid-cols-3 gap-2 mb-6 text-left bg-gray-100 p-4 rounded-xl">
+                            <div>
+                                <div className="text-xs text-gray-500 uppercase font-bold">Boxes</div>
+                                <div className="text-xl font-bold text-purple-600">+{runDrops}</div>
+                            </div>
+                            <div>
+                                <div className="text-xs text-gray-500 uppercase font-bold">Dist. Bonus</div>
+                                <div className="text-xl font-bold text-green-600">+{distanceReward}</div>
+                            </div>
+                            <div>
+                                <div className="text-xs text-gray-500 uppercase font-bold">Total Seeds</div>
+                                <div className="text-xl font-bold text-yellow-600">{currency}</div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2 mb-8">
+                            {runDrops > 0 ? (
+                                <div className="bg-purple-100 p-4 rounded-xl border border-purple-200">
+                                    <p className="font-bold text-purple-800 mb-2">Mystery Boxes Collected!</p>
+                                    <div className="flex justify-center gap-2">
+                                        {[...Array(runDrops)].map((_, i) => (
+                                            <Gift key={i} className="text-purple-600 animate-bounce" style={{ animationDelay: i * 0.1 + 's' }} />
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-purple-600 mt-2">Open them at your Base!</p>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-400 italic">No boxes found. Fly 100m to find one!</p>
+                            )}
+                        </div>
+
+                        <button onClick={resetToBase} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition">
+                            Return to Base
+                        </button>
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="relative w-full h-screen overflow-hidden bg-sky-300">
+                    <div ref={mountRef} className="absolute inset-0" />
+
+                    {gameState === 'menu' && renderMenu()}
+                    {gameState === 'playing' && renderHUD()}
+                    {gameState === 'looting' && renderLootOverlay()}
+                    {gameState === 'results' && renderResults()}
+                </div>
+            );
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<HighFlyersGame />);
+    </script>
+</body>
+
+</html>
