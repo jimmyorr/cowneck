@@ -80,8 +80,8 @@
         }
 
         .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: 30px;
         }
 
@@ -95,12 +95,15 @@
             display: flex;
             flex-direction: column;
             border: 2px solid rgba(212, 165, 116, 0.2);
+            flex: 1 1 350px;
+            max-width: 100%;
         }
 
         .card:hover {
             transform: translateY(-12px) scale(1.02);
             box-shadow: 0 16px 40px rgba(26, 71, 42, 0.2);
             border-color: var(--accent-warm);
+            z-index: 2;
         }
 
         .card img {
