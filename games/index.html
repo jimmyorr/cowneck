@@ -138,6 +138,18 @@
             color: #fff;
         }
 
+        /* --- SECTION HEADER --- */
+        .section-header {
+            width: 100%;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+            color: #4facfe;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
         /* --- MOBILE TWEAKS --- */
         @media (max-width: 600px) {
             h1 {
@@ -146,6 +158,10 @@
 
             .games-container {
                 gap: 20px;
+            }
+
+            .section-header {
+                font-size: 1.5rem;
             }
         }
     </style>
@@ -158,6 +174,7 @@
     </header>
 
     <main>
+        <h2 class="section-header">Miles</h2>
         <div class="games-container">
 
             <div class="game-card">
@@ -199,6 +216,18 @@
             </div>
 
             <div class="game-card">
+                <h2>🦅 High Flyers</h2>
+                <p>Fly through diverse biomes, upgrade your bird, collect loot boxes, and unlock achievements in this 3D
+                    endless flyer.</p>
+                <a href="high-flyers.html" class="btn">PLAY NOW</a>
+            </div>
+
+        </div>
+
+        <h2 class="section-header">Jimmy</h2>
+        <div class="games-container">
+
+            <div class="game-card">
                 <h2>🍩 Donut Chef</h2>
                 <p>Run your own bakery! A deck-building strategy game where you bake delicious donuts and outwit your
                     rival chef.</p>
@@ -212,11 +241,15 @@
                 <a href="slope-builder.html" class="btn">PLAY NOW</a>
             </div>
 
+        </div>
+
+        <h2 class="section-header">Oliver</h2>
+        <div class="games-container">
+
             <div class="game-card">
-                <h2>🦅 High Flyers</h2>
-                <p>Fly through diverse biomes, upgrade your bird, collect loot boxes, and unlock achievements in this 3D
-                    endless flyer.</p>
-                <a href="high-flyers.html" class="btn">PLAY NOW</a>
+                <h2>🔜 Coming Soon</h2>
+                <p>New adventures are on the way! Stay tuned for Oliver's first game.</p>
+                <a href="#" class="btn" style="pointer-events: none; opacity: 0.6;">STAY TUNED</a>
             </div>
 
         </div>
