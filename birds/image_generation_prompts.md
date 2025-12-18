@@ -1,11 +1,12 @@
-# Bird Photography Prompts: Complete Collection
+# Bird Photography Prompts: Gemini Optimized
 
-This document contains professional AI photography prompts for all 32 birds featured in the "Birds of Port Washington" guide. Each prompt is engineered to produce a high-resolution, photographic image with the subject perfectly centered, ensuring it looks excellent when cropped to a 1:1 square aspect ratio.
+This document contains professional photography prompts for all 32 birds featured in the "Birds of Port Washington" guide. These prompts have been specifically engineered for the **Gemini** image generation model to produce high-resolution, centered, and photorealistic results.
 
-## General Instructions
-- **Aspect Ratio**: Always specify a square aspect ratio (e.g., `--ar 1:1` in Midjourney).
-- **Style**: "Professional clinical photography" ensures a clean, documentary style with a sharp subject and soft, non-distracting backgrounds (bokeh).
-- **Centering**: The "perfectly centered" instruction is critical for our automated square-cropping utility.
+### Gemini Optimization Tips
+- **Aspect Ratio**: Always mention "Square aspect ratio" in your request.
+- **Subject Placement**: The "perfectly centered" instruction is critical. Gemini responds well to spatial descriptions like "dead center" or "centered in the middle of the frame."
+- **Focus**: Using "Professional clinical photography" or "Macro photography" helps Gemini prioritize sharp details and realistic textures over artistic filters.
+- **Composition**: If the bird is not centered enough, try adding "Empty space on all sides of the bird."
 
 ---
 
