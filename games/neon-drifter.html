@@ -1,9 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neon Drifter: Source Code</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-6RNVL7JZVJ');
+    </script>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -16,7 +26,9 @@
             --crt-bg: #050505;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             background-color: var(--bg-color);
@@ -39,7 +51,8 @@
             background: var(--crt-bg);
             position: relative;
             display: flex;
-            flex-direction: row; /* Side-by-side layout */
+            flex-direction: row;
+            /* Side-by-side layout */
             box-shadow: 0 0 20px var(--term-green);
             border-radius: 10px;
         }
@@ -49,7 +62,10 @@
             content: " ";
             display: block;
             position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
             background: linear-gradient(to bottom, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
             background-size: 100% 4px;
             z-index: 10;
@@ -98,6 +114,7 @@
             font-size: 14px;
             transition: all 0.2s;
         }
+
         .cmd-btn:hover {
             background: var(--term-green);
             color: black;
@@ -111,7 +128,10 @@
             background: #000;
         }
 
-        #cmd-prompt { margin-right: 10px; color: var(--term-green); }
+        #cmd-prompt {
+            margin-right: 10px;
+            color: var(--term-green);
+        }
 
         #player-input {
             background: transparent;
@@ -140,6 +160,7 @@
             border: 1px solid var(--term-dim);
             padding: 10px;
         }
+
         .hud-title {
             color: var(--term-amber);
             border-bottom: 1px solid var(--term-dim);
@@ -147,34 +168,102 @@
             padding-bottom: 5px;
             font-weight: bold;
         }
-        
-        .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
-        .inv-item { color: #888; margin-left: 10px; }
-        .obj-text { color: var(--term-blue); line-height: 1.4; }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .inv-item {
+            color: #888;
+            margin-left: 10px;
+        }
+
+        .obj-text {
+            color: var(--term-blue);
+            line-height: 1.4;
+        }
 
         /* Scrollbars */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: var(--term-dim); }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--term-dim);
+        }
 
         /* Text Styles */
-        .highlight { color: var(--term-amber); font-weight: bold; }
-        .enemy { color: var(--term-red); font-weight: bold; }
-        .system { color: var(--term-blue); font-weight: bold; }
-        .success { color: var(--term-green); }
-        .damage { color: var(--term-red); }
-        .info { color: #888; font-style: italic; }
+        .highlight {
+            color: var(--term-amber);
+            font-weight: bold;
+        }
+
+        .enemy {
+            color: var(--term-red);
+            font-weight: bold;
+        }
+
+        .system {
+            color: var(--term-blue);
+            font-weight: bold;
+        }
+
+        .success {
+            color: var(--term-green);
+        }
+
+        .damage {
+            color: var(--term-red);
+        }
+
+        .info {
+            color: #888;
+            font-style: italic;
+        }
 
         /* Mobile */
         @media (max-width: 768px) {
-            #crt-container { flex-direction: column; height: 100vh; width: 100%; border: none; border-radius: 0; }
-            #sidebar { flex: none; height: 120px; border-bottom: 1px solid var(--term-dim); font-size: 12px; padding: 10px; flex-direction: row; }
-            #terminal-area { border-right: none; }
-            .hud-section { flex: 1; overflow-y: auto; }
-            #input-area { padding-bottom: 20px; } /* iOS fix */
+            #crt-container {
+                flex-direction: column;
+                height: 100vh;
+                width: 100%;
+                border: none;
+                border-radius: 0;
+            }
+
+            #sidebar {
+                flex: none;
+                height: 120px;
+                border-bottom: 1px solid var(--term-dim);
+                font-size: 12px;
+                padding: 10px;
+                flex-direction: row;
+            }
+
+            #terminal-area {
+                border-right: none;
+            }
+
+            .hud-section {
+                flex: 1;
+                overflow-y: auto;
+            }
+
+            #input-area {
+                padding-bottom: 20px;
+            }
+
+            /* iOS fix */
         }
     </style>
 </head>
+
 <body>
 
     <div id="crt-container">
@@ -186,7 +275,8 @@
             </div>
             <div id="input-area">
                 <span id="cmd-prompt">&gt;</span>
-                <input type="text" id="player-input" autofocus autocomplete="off" placeholder="Click buttons above or type...">
+                <input type="text" id="player-input" autofocus autocomplete="off"
+                    placeholder="Click buttons above or type...">
             </div>
         </div>
 
@@ -198,7 +288,7 @@
                 <div class="stat-row"><span>CREDITS:</span> <span id="cr-val">0</span></div>
                 <div class="stat-row"><span>MISSION:</span> <span id="mis-val">1/10</span></div>
             </div>
-            
+
             <div class="hud-section">
                 <div class="hud-title">OBJECTIVE</div>
                 <div id="obj-val" class="obj-text">Initialize...</div>
@@ -211,434 +301,435 @@
         </div>
     </div>
 
-<script>
-    // --- Game State ---
-    const gameState = {
-        hp: 100,
-        maxHp: 100,
-        credits: 50,
-        missionIndex: 0,
-        inCombat: false,
-        currentEnemy: null,
-        inventory: ['Bandage'],
-        flags: {},
-        turn: 0
-    };
-
-    const UI = {
-        log: document.getElementById('game-log'),
-        input: document.getElementById('player-input'),
-        deck: document.getElementById('command-deck'),
-        hp: document.getElementById('hp-val'),
-        cr: document.getElementById('cr-val'),
-        mis: document.getElementById('mis-val'),
-        obj: document.getElementById('obj-val'),
-        inv: document.getElementById('inv-list')
-    };
-
-    const catName = "K.I.R.B.Y."; 
-
-    // --- Data ---
-    const enemies = {
-        rat: { name: "Cyber-Rat", hp: 30, maxHp: 30, dmg: 5, xp: 10, desc: "A large rodent with glowing red eyes." },
-        thug: { name: "Street Ronin", hp: 60, maxHp: 60, dmg: 10, xp: 20, desc: "A low-level enforcer." },
-        drone: { name: "Security Drone", hp: 50, maxHp: 50, dmg: 12, xp: 25, desc: "Hovering unit. Weak to hacking." },
-        turret: { name: "Auto-Turret", hp: 80, maxHp: 80, dmg: 15, xp: 30, desc: "Stationary defense unit." },
-        // NERFED: elite stats lowered
-        elite: { name: "Corp Exec", hp: 80, maxHp: 80, dmg: 10, xp: 50, desc: "Armored suit." },
-        // NERFED: boss stats lowered (was 300 hp / 25 dmg)
-        boss: { name: "The Mainframe", hp: 200, maxHp: 200, dmg: 15, xp: 500, desc: "Massive AI Server." }
-    };
-
-    const missions = [
-        {
-            title: "Wake Up Call",
-            intro: `System reboot complete. <span class="system">${catName}</span> buzzes around you.\n"Boss, wake up. The Fixer needs us at the <span class="highlight">Subway</span>."`,
-            objective: "Retrieve pistol and go to subway.",
-            type: "exploration",
-            actions: {
-                "look": { text: "Look Around", response: "Messy apartment. There is a <span class='highlight'>Pistol</span> on the table." },
-                "take pistol": { 
-                    text: "Take Pistol", 
-                    condition: () => !gameState.inventory.includes("Pistol"),
-                    response: () => { gameState.inventory.push("Pistol"); return "You grabbed the 10mm Pistol."; }
-                },
-                "go subway": { 
-                    text: "Go to Subway", 
-                    condition: () => gameState.inventory.includes("Pistol"),
-                    response: () => { completeMission(); return "You head out into the neon rain."; }
-                }
-            }
-        },
-        {
-            title: "Vermin Problem",
-            intro: `A <span class="enemy">Cyber-Rat</span> blocks the turnstile!`,
-            objective: "Defeat the Cyber-Rat.",
-            type: "combat",
-            enemyId: "rat"
-        },
-        {
-            title: "The Courier",
-            intro: `Rat dead. Found a data-chip. Fixer says: "Bring chip to the <span class='highlight'>Bar</span>."`,
-            objective: "Travel to the Bar.",
-            type: "exploration",
-            actions: {
-                "look": { text: "Look", response: "Subway tunnel. Stairs go <span class='highlight'>North</span>." },
-                "go north": { text: "Go North", response: "You climb to the street." },
-                "go bar": { 
-                    text: "Enter Bar", 
-                    response: () => { completeMission(); return "You enter 'The Glitch' bar."; }
-                }
-            }
-        },
-        {
-            title: "Bar Brawl",
-            intro: `A <span class="enemy">Street Ronin</span> kicks the door open! "Give me the chip!"`,
-            objective: "Defeat the Ronin.",
-            type: "combat",
-            enemyId: "thug"
-        },
-        {
-            title: "First Aid",
-            intro: `You took some hits. <span class="system">${catName}</span> suggests healing.`,
-            objective: "Heal to > 80 HP.",
-            type: "tutorial",
-            check: () => gameState.hp > 80
-        },
-        {
-            title: "The Hacking",
-            intro: `The data-chip is encrypted. Bypass the ICE.`,
-            objective: "Successfully Hack 3 times.",
-            type: "minigame",
-            requiredHacks: 3,
-            currentHacks: 0
-        },
-        {
-            title: "Drone Ambush",
-            intro: `Leaving the bar, a <span class="enemy">Security Drone</span> attacks!`,
-            objective: "Destroy Drone. (Hint: HACK it)",
-            type: "combat",
-            enemyId: "drone"
-        },
-        {
-            title: "The Gatekeeper",
-            intro: `An <span class="enemy">Auto-Turret</span> guards the server farm.`,
-            objective: "Destroy Turret.",
-            type: "combat",
-            enemyId: "turret"
-        },
-        {
-            title: "The Suit",
-            intro: `The <span class="enemy">Corp Exec</span> is waiting inside.`,
-            objective: "Eliminate Executive.",
-            type: "combat",
-            enemyId: "elite"
-        },
-        {
-            title: "System Crash",
-            intro: `<span class="enemy">The Mainframe</span> awakens.`,
-            objective: "KILL THE PROCESS.",
-            type: "combat",
-            enemyId: "boss"
-        }
-    ];
-
-    // --- Core Engine ---
-
-    function print(text, type = "") {
-        const p = document.createElement('div');
-        p.innerHTML = text;
-        p.className = type;
-        UI.log.appendChild(p);
-        UI.log.scrollTop = UI.log.scrollHeight;
-    }
-
-    function updateHUD() {
-        UI.hp.innerText = `${gameState.hp}/${gameState.maxHp}`;
-        UI.cr.innerText = gameState.credits;
-        UI.mis.innerText = `${gameState.missionIndex + 1}/10`;
-        
-        // Inventory
-        UI.inv.innerHTML = gameState.inventory.map(i => `<div class="inv-item">- ${i}</div>`).join('') || '<div class="inv-item">Empty</div>';
-
-        // Objective
-        const m = missions[gameState.missionIndex];
-        if (m) UI.obj.innerText = m.objective;
-        else UI.obj.innerText = "Retire rich.";
-        
-        // Update Controls based on context
-        updateControls();
-    }
-
-    function updateControls() {
-        UI.deck.innerHTML = ''; // Clear buttons
-        const m = missions[gameState.missionIndex];
-
-        // 1. Dead State
-        if (gameState.flags.dead) {
-            addButton("RETRY MISSION", "retry");
-            return;
-        }
-
-        // 2. Mission Complete State
-        if (gameState.flags.missionComplete) {
-            addButton("NEXT MISSION >>", "next");
-            return;
-        }
-
-        // 3. Combat State
-        if (gameState.inCombat) {
-            addButton("ATTACK (Weapon)", "attack");
-            addButton("HACK (Tech)", "hack");
-            addButton("HEAL (Meds)", "heal");
-            addButton("STATUS", "status");
-            return;
-        }
-
-        // 4. Minigame State
-        if (m.type === "minigame") {
-            addButton("ATTEMPT HACK", "hack");
-            addButton("HEAL", "heal");
-            return;
-        }
-
-        // 5. Exploration State
-        if (m.type === "exploration" && m.actions) {
-            // Always available
-            addButton("INVENTORY", "inventory");
-            addButton("HEAL", "heal");
-            
-            // Dynamic actions from mission config
-            for (const [cmd, data] of Object.entries(m.actions)) {
-                // If there is a condition, check it. If no condition, show it.
-                // If returned string/obj is complex, we handle it in data structure
-                if (!data.condition || data.condition()) {
-                    addButton(data.text || cmd, cmd);
-                }
-            }
-        }
-        
-        // 6. Tutorial State
-        if (m.type === "tutorial") {
-             addButton("HEAL", "heal");
-             addButton("INVENTORY", "inventory");
-        }
-    }
-
-    function addButton(label, cmd) {
-        const btn = document.createElement('button');
-        btn.className = 'cmd-btn';
-        btn.innerText = label;
-        btn.onclick = () => {
-            UI.input.value = ''; // clear input
-            processCommand(cmd);
+    <script>
+        // --- Game State ---
+        const gameState = {
+            hp: 100,
+            maxHp: 100,
+            credits: 50,
+            missionIndex: 0,
+            inCombat: false,
+            currentEnemy: null,
+            inventory: ['Bandage'],
+            flags: {},
+            turn: 0
         };
-        UI.deck.appendChild(btn);
-    }
 
-    function initGame() {
-        print(`Booting <span class="highlight">NEON DRIFTER</span>... OK.`, "system");
-        print(`Click buttons below or type commands to act.`, "info");
-        print("----------------------------------------");
-        startMission(0);
-    }
+        const UI = {
+            log: document.getElementById('game-log'),
+            input: document.getElementById('player-input'),
+            deck: document.getElementById('command-deck'),
+            hp: document.getElementById('hp-val'),
+            cr: document.getElementById('cr-val'),
+            mis: document.getElementById('mis-val'),
+            obj: document.getElementById('obj-val'),
+            inv: document.getElementById('inv-list')
+        };
 
-    function startMission(index) {
-        if (index >= missions.length) {
-            print(`<h1 class="success">CONGRATULATIONS!</h1>You have cleared the source code. You retire with ${gameState.credits} million credits.`, "success");
-            UI.deck.innerHTML = '';
-            return;
-        }
-        
-        gameState.missionIndex = index;
-        const m = missions[index];
-        print(`\n--- MISSION ${index + 1}: ${m.title} ---`, "system");
-        print(m.intro);
+        const catName = "K.I.R.B.Y.";
 
-        if (m.type === "combat") {
-            startCombat(m.enemyId);
-        } else if (m.type === "minigame") {
-            m.currentHacks = 0;
-        }
-        
-        updateHUD();
-    }
+        // --- Data ---
+        const enemies = {
+            rat: { name: "Cyber-Rat", hp: 30, maxHp: 30, dmg: 5, xp: 10, desc: "A large rodent with glowing red eyes." },
+            thug: { name: "Street Ronin", hp: 60, maxHp: 60, dmg: 10, xp: 20, desc: "A low-level enforcer." },
+            drone: { name: "Security Drone", hp: 50, maxHp: 50, dmg: 12, xp: 25, desc: "Hovering unit. Weak to hacking." },
+            turret: { name: "Auto-Turret", hp: 80, maxHp: 80, dmg: 15, xp: 30, desc: "Stationary defense unit." },
+            // NERFED: elite stats lowered
+            elite: { name: "Corp Exec", hp: 80, maxHp: 80, dmg: 10, xp: 50, desc: "Armored suit." },
+            // NERFED: boss stats lowered (was 300 hp / 25 dmg)
+            boss: { name: "The Mainframe", hp: 200, maxHp: 200, dmg: 15, xp: 500, desc: "Massive AI Server." }
+        };
 
-    function completeMission() {
-        print(`<br><span class="success">>> MISSION COMPLETE <<</span>`, "success");
-        gameState.flags.missionComplete = true;
-        updateHUD();
-    }
-
-    function startCombat(enemyKey) {
-        gameState.inCombat = true;
-        gameState.currentEnemy = { ...enemies[enemyKey] }; 
-        print(`<span class="enemy">WARNING: ${gameState.currentEnemy.name} (HP: ${gameState.currentEnemy.hp}) detected.</span>`);
-        updateHUD();
-    }
-
-    function playerAttack() {
-        const dmg = Math.floor(Math.random() * 10) + 10;
-        gameState.currentEnemy.hp -= dmg;
-        print(`> You fire 10mm Pistol. Hit for <span class="success">${dmg}</span> dmg.`);
-        checkCombatStatus();
-    }
-
-    function playerHack() {
-        let dmg = Math.floor(Math.random() * 20) + 5;
-        const name = gameState.currentEnemy.name.toLowerCase();
-        // Crit against machines
-        if (name.includes('drone') || name.includes('turret') || name.includes('mainframe') || name.includes('bot')) {
-            dmg *= 2;
-            print(`> Vulnerability exploited! <span class="highlight">CRITICAL HIT</span>`, "system");
-        }
-        gameState.currentEnemy.hp -= dmg;
-        print(`> Buffer Overflow executed. Dealt <span class="success">${dmg}</span> dmg.`);
-        checkCombatStatus();
-    }
-
-    function playerHeal() {
-        // Check tutorial
-        const m = missions[gameState.missionIndex];
-        
-        if (gameState.inventory.includes("Bandage")) {
-             gameState.hp = Math.min(gameState.maxHp, gameState.hp + 30);
-             gameState.inventory = gameState.inventory.filter(i => i !== "Bandage"); // remove one
-             print(`> Bandage used. HP: ${gameState.hp}`, "success");
-        } 
-        else if (gameState.credits >= 10) {
-            gameState.hp = Math.min(gameState.maxHp, gameState.hp + 30);
-            gameState.credits -= 10;
-            print(`> Nano-meds bought (10 CR). HP: ${gameState.hp}`, "success");
-        } else {
-            print("> Not enough credits (10) or bandages!", "damage");
-            return; // Don't trigger enemy turn if failed
-        }
-        
-        updateHUD();
-
-        if (m.type === "tutorial" && !gameState.flags.missionComplete) {
-            if (m.check()) completeMission();
-            return;
-        }
-
-        if (gameState.inCombat) enemyTurn();
-    }
-
-    function enemyTurn() {
-        if (gameState.currentEnemy.hp <= 0) return;
-        
-        const dmg = gameState.currentEnemy.dmg + Math.floor(Math.random() * 4) - 2;
-        gameState.hp -= dmg;
-        print(`${gameState.currentEnemy.name} attacks! You took <span class="damage">${dmg}</span> dmg.`);
-        updateHUD();
-
-        if (gameState.hp <= 0) {
-            print(`<br><span class="damage">CRITICAL FAILURE. SYSTEM TERMINATED.</span>`, "damage");
-            gameState.inCombat = false;
-            gameState.flags.dead = true;
-            updateHUD();
-        }
-    }
-
-    function checkCombatStatus() {
-        if (gameState.currentEnemy.hp <= 0) {
-            print(`Target neutralized: ${gameState.currentEnemy.name}`, "system");
-            gameState.credits += gameState.currentEnemy.xp;
-            gameState.inCombat = false;
-            gameState.currentEnemy = null;
-            updateHUD();
-            completeMission();
-        } else {
-            enemyTurn();
-        }
-    }
-
-    // --- Input & Command Processing ---
-
-    UI.input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            const val = UI.input.value.toLowerCase().trim();
-            UI.input.value = '';
-            processCommand(val);
-        }
-    });
-
-    function processCommand(cmd) {
-        // Handle Dead State
-        if (gameState.flags.dead) {
-            if (cmd === 'retry') {
-                gameState.hp = 100;
-                gameState.flags.dead = false;
-                gameState.inCombat = false;
-                startMission(gameState.missionIndex);
+        const missions = [
+            {
+                title: "Wake Up Call",
+                intro: `System reboot complete. <span class="system">${catName}</span> buzzes around you.\n"Boss, wake up. The Fixer needs us at the <span class="highlight">Subway</span>."`,
+                objective: "Retrieve pistol and go to subway.",
+                type: "exploration",
+                actions: {
+                    "look": { text: "Look Around", response: "Messy apartment. There is a <span class='highlight'>Pistol</span> on the table." },
+                    "take pistol": {
+                        text: "Take Pistol",
+                        condition: () => !gameState.inventory.includes("Pistol"),
+                        response: () => { gameState.inventory.push("Pistol"); return "You grabbed the 10mm Pistol."; }
+                    },
+                    "go subway": {
+                        text: "Go to Subway",
+                        condition: () => gameState.inventory.includes("Pistol"),
+                        response: () => { completeMission(); return "You head out into the neon rain."; }
+                    }
+                }
+            },
+            {
+                title: "Vermin Problem",
+                intro: `A <span class="enemy">Cyber-Rat</span> blocks the turnstile!`,
+                objective: "Defeat the Cyber-Rat.",
+                type: "combat",
+                enemyId: "rat"
+            },
+            {
+                title: "The Courier",
+                intro: `Rat dead. Found a data-chip. Fixer says: "Bring chip to the <span class='highlight'>Bar</span>."`,
+                objective: "Travel to the Bar.",
+                type: "exploration",
+                actions: {
+                    "look": { text: "Look", response: "Subway tunnel. Stairs go <span class='highlight'>North</span>." },
+                    "go north": { text: "Go North", response: "You climb to the street." },
+                    "go bar": {
+                        text: "Enter Bar",
+                        response: () => { completeMission(); return "You enter 'The Glitch' bar."; }
+                    }
+                }
+            },
+            {
+                title: "Bar Brawl",
+                intro: `A <span class="enemy">Street Ronin</span> kicks the door open! "Give me the chip!"`,
+                objective: "Defeat the Ronin.",
+                type: "combat",
+                enemyId: "thug"
+            },
+            {
+                title: "First Aid",
+                intro: `You took some hits. <span class="system">${catName}</span> suggests healing.`,
+                objective: "Heal to > 80 HP.",
+                type: "tutorial",
+                check: () => gameState.hp > 80
+            },
+            {
+                title: "The Hacking",
+                intro: `The data-chip is encrypted. Bypass the ICE.`,
+                objective: "Successfully Hack 3 times.",
+                type: "minigame",
+                requiredHacks: 3,
+                currentHacks: 0
+            },
+            {
+                title: "Drone Ambush",
+                intro: `Leaving the bar, a <span class="enemy">Security Drone</span> attacks!`,
+                objective: "Destroy Drone. (Hint: HACK it)",
+                type: "combat",
+                enemyId: "drone"
+            },
+            {
+                title: "The Gatekeeper",
+                intro: `An <span class="enemy">Auto-Turret</span> guards the server farm.`,
+                objective: "Destroy Turret.",
+                type: "combat",
+                enemyId: "turret"
+            },
+            {
+                title: "The Suit",
+                intro: `The <span class="enemy">Corp Exec</span> is waiting inside.`,
+                objective: "Eliminate Executive.",
+                type: "combat",
+                enemyId: "elite"
+            },
+            {
+                title: "System Crash",
+                intro: `<span class="enemy">The Mainframe</span> awakens.`,
+                objective: "KILL THE PROCESS.",
+                type: "combat",
+                enemyId: "boss"
             }
-            return;
+        ];
+
+        // --- Core Engine ---
+
+        function print(text, type = "") {
+            const p = document.createElement('div');
+            p.innerHTML = text;
+            p.className = type;
+            UI.log.appendChild(p);
+            UI.log.scrollTop = UI.log.scrollHeight;
         }
 
-        // Handle Completion State
-        if (gameState.flags.missionComplete) {
-            if (cmd === 'next') {
-                gameState.flags.missionComplete = false;
-                startMission(gameState.missionIndex + 1);
+        function updateHUD() {
+            UI.hp.innerText = `${gameState.hp}/${gameState.maxHp}`;
+            UI.cr.innerText = gameState.credits;
+            UI.mis.innerText = `${gameState.missionIndex + 1}/10`;
+
+            // Inventory
+            UI.inv.innerHTML = gameState.inventory.map(i => `<div class="inv-item">- ${i}</div>`).join('') || '<div class="inv-item">Empty</div>';
+
+            // Objective
+            const m = missions[gameState.missionIndex];
+            if (m) UI.obj.innerText = m.objective;
+            else UI.obj.innerText = "Retire rich.";
+
+            // Update Controls based on context
+            updateControls();
+        }
+
+        function updateControls() {
+            UI.deck.innerHTML = ''; // Clear buttons
+            const m = missions[gameState.missionIndex];
+
+            // 1. Dead State
+            if (gameState.flags.dead) {
+                addButton("RETRY MISSION", "retry");
+                return;
             }
-            return;
-        }
 
-        const currentMission = missions[gameState.missionIndex];
+            // 2. Mission Complete State
+            if (gameState.flags.missionComplete) {
+                addButton("NEXT MISSION >>", "next");
+                return;
+            }
 
-        // Global / Common
-        if (cmd === 'heal') { playerHeal(); return; }
-        if (cmd === 'inventory') { print(`Inv: ${gameState.inventory.join(', ')}`); return; }
-        if (cmd === 'status') { print(`HP: ${gameState.hp} CR: ${gameState.credits}`); return; }
+            // 3. Combat State
+            if (gameState.inCombat) {
+                addButton("ATTACK (Weapon)", "attack");
+                addButton("HACK (Tech)", "hack");
+                addButton("HEAL (Meds)", "heal");
+                addButton("STATUS", "status");
+                return;
+            }
 
-        // Combat
-        if (gameState.inCombat) {
-            if (cmd === 'attack') playerAttack();
-            else if (cmd === 'hack') playerHack();
-            else print("Invalid combat command.");
-            return;
-        }
+            // 4. Minigame State
+            if (m.type === "minigame") {
+                addButton("ATTEMPT HACK", "hack");
+                addButton("HEAL", "heal");
+                return;
+            }
 
-        // Minigame
-        if (currentMission.type === "minigame") {
-            if (cmd === "hack") {
-                if (Math.random() > 0.3) {
-                    currentMission.currentHacks++;
-                    print(`[SUCCESS] ICE wall breached (${currentMission.currentHacks}/${currentMission.requiredHacks})`, "success");
-                    if (currentMission.currentHacks >= currentMission.requiredHacks) completeMission();
-                } else {
-                    gameState.hp -= 10;
-                    print(`[FAIL] Firewall shock! -10 HP`, "damage");
-                    updateHUD();
-                    if (gameState.hp <= 0) {
-                        gameState.flags.dead = true;
-                        updateHUD();
+            // 5. Exploration State
+            if (m.type === "exploration" && m.actions) {
+                // Always available
+                addButton("INVENTORY", "inventory");
+                addButton("HEAL", "heal");
+
+                // Dynamic actions from mission config
+                for (const [cmd, data] of Object.entries(m.actions)) {
+                    // If there is a condition, check it. If no condition, show it.
+                    // If returned string/obj is complex, we handle it in data structure
+                    if (!data.condition || data.condition()) {
+                        addButton(data.text || cmd, cmd);
                     }
                 }
             }
-            return;
+
+            // 6. Tutorial State
+            if (m.type === "tutorial") {
+                addButton("HEAL", "heal");
+                addButton("INVENTORY", "inventory");
+            }
         }
 
-        // Exploration
-        if (currentMission.actions && currentMission.actions[cmd]) {
-            const action = currentMission.actions[cmd];
-            // Handle both simple string and complex object
-            if (action.response) {
-                // If it's a function, run it
-                const result = typeof action.response === 'function' ? action.response() : action.response;
-                print(result);
-            } 
-            updateHUD(); // Refresh buttons if conditions changed
-            return;
+        function addButton(label, cmd) {
+            const btn = document.createElement('button');
+            btn.className = 'cmd-btn';
+            btn.innerText = label;
+            btn.onclick = () => {
+                UI.input.value = ''; // clear input
+                processCommand(cmd);
+            };
+            UI.deck.appendChild(btn);
         }
 
-        print(`Unknown command: '${cmd}'`);
-    }
+        function initGame() {
+            print(`Booting <span class="highlight">NEON DRIFTER</span>... OK.`, "system");
+            print(`Click buttons below or type commands to act.`, "info");
+            print("----------------------------------------");
+            startMission(0);
+        }
 
-    // Start
-    initGame();
+        function startMission(index) {
+            if (index >= missions.length) {
+                print(`<h1 class="success">CONGRATULATIONS!</h1>You have cleared the source code. You retire with ${gameState.credits} million credits.`, "success");
+                UI.deck.innerHTML = '';
+                return;
+            }
 
-</script>
+            gameState.missionIndex = index;
+            const m = missions[index];
+            print(`\n--- MISSION ${index + 1}: ${m.title} ---`, "system");
+            print(m.intro);
+
+            if (m.type === "combat") {
+                startCombat(m.enemyId);
+            } else if (m.type === "minigame") {
+                m.currentHacks = 0;
+            }
+
+            updateHUD();
+        }
+
+        function completeMission() {
+            print(`<br><span class="success">>> MISSION COMPLETE <<</span>`, "success");
+            gameState.flags.missionComplete = true;
+            updateHUD();
+        }
+
+        function startCombat(enemyKey) {
+            gameState.inCombat = true;
+            gameState.currentEnemy = { ...enemies[enemyKey] };
+            print(`<span class="enemy">WARNING: ${gameState.currentEnemy.name} (HP: ${gameState.currentEnemy.hp}) detected.</span>`);
+            updateHUD();
+        }
+
+        function playerAttack() {
+            const dmg = Math.floor(Math.random() * 10) + 10;
+            gameState.currentEnemy.hp -= dmg;
+            print(`> You fire 10mm Pistol. Hit for <span class="success">${dmg}</span> dmg.`);
+            checkCombatStatus();
+        }
+
+        function playerHack() {
+            let dmg = Math.floor(Math.random() * 20) + 5;
+            const name = gameState.currentEnemy.name.toLowerCase();
+            // Crit against machines
+            if (name.includes('drone') || name.includes('turret') || name.includes('mainframe') || name.includes('bot')) {
+                dmg *= 2;
+                print(`> Vulnerability exploited! <span class="highlight">CRITICAL HIT</span>`, "system");
+            }
+            gameState.currentEnemy.hp -= dmg;
+            print(`> Buffer Overflow executed. Dealt <span class="success">${dmg}</span> dmg.`);
+            checkCombatStatus();
+        }
+
+        function playerHeal() {
+            // Check tutorial
+            const m = missions[gameState.missionIndex];
+
+            if (gameState.inventory.includes("Bandage")) {
+                gameState.hp = Math.min(gameState.maxHp, gameState.hp + 30);
+                gameState.inventory = gameState.inventory.filter(i => i !== "Bandage"); // remove one
+                print(`> Bandage used. HP: ${gameState.hp}`, "success");
+            }
+            else if (gameState.credits >= 10) {
+                gameState.hp = Math.min(gameState.maxHp, gameState.hp + 30);
+                gameState.credits -= 10;
+                print(`> Nano-meds bought (10 CR). HP: ${gameState.hp}`, "success");
+            } else {
+                print("> Not enough credits (10) or bandages!", "damage");
+                return; // Don't trigger enemy turn if failed
+            }
+
+            updateHUD();
+
+            if (m.type === "tutorial" && !gameState.flags.missionComplete) {
+                if (m.check()) completeMission();
+                return;
+            }
+
+            if (gameState.inCombat) enemyTurn();
+        }
+
+        function enemyTurn() {
+            if (gameState.currentEnemy.hp <= 0) return;
+
+            const dmg = gameState.currentEnemy.dmg + Math.floor(Math.random() * 4) - 2;
+            gameState.hp -= dmg;
+            print(`${gameState.currentEnemy.name} attacks! You took <span class="damage">${dmg}</span> dmg.`);
+            updateHUD();
+
+            if (gameState.hp <= 0) {
+                print(`<br><span class="damage">CRITICAL FAILURE. SYSTEM TERMINATED.</span>`, "damage");
+                gameState.inCombat = false;
+                gameState.flags.dead = true;
+                updateHUD();
+            }
+        }
+
+        function checkCombatStatus() {
+            if (gameState.currentEnemy.hp <= 0) {
+                print(`Target neutralized: ${gameState.currentEnemy.name}`, "system");
+                gameState.credits += gameState.currentEnemy.xp;
+                gameState.inCombat = false;
+                gameState.currentEnemy = null;
+                updateHUD();
+                completeMission();
+            } else {
+                enemyTurn();
+            }
+        }
+
+        // --- Input & Command Processing ---
+
+        UI.input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const val = UI.input.value.toLowerCase().trim();
+                UI.input.value = '';
+                processCommand(val);
+            }
+        });
+
+        function processCommand(cmd) {
+            // Handle Dead State
+            if (gameState.flags.dead) {
+                if (cmd === 'retry') {
+                    gameState.hp = 100;
+                    gameState.flags.dead = false;
+                    gameState.inCombat = false;
+                    startMission(gameState.missionIndex);
+                }
+                return;
+            }
+
+            // Handle Completion State
+            if (gameState.flags.missionComplete) {
+                if (cmd === 'next') {
+                    gameState.flags.missionComplete = false;
+                    startMission(gameState.missionIndex + 1);
+                }
+                return;
+            }
+
+            const currentMission = missions[gameState.missionIndex];
+
+            // Global / Common
+            if (cmd === 'heal') { playerHeal(); return; }
+            if (cmd === 'inventory') { print(`Inv: ${gameState.inventory.join(', ')}`); return; }
+            if (cmd === 'status') { print(`HP: ${gameState.hp} CR: ${gameState.credits}`); return; }
+
+            // Combat
+            if (gameState.inCombat) {
+                if (cmd === 'attack') playerAttack();
+                else if (cmd === 'hack') playerHack();
+                else print("Invalid combat command.");
+                return;
+            }
+
+            // Minigame
+            if (currentMission.type === "minigame") {
+                if (cmd === "hack") {
+                    if (Math.random() > 0.3) {
+                        currentMission.currentHacks++;
+                        print(`[SUCCESS] ICE wall breached (${currentMission.currentHacks}/${currentMission.requiredHacks})`, "success");
+                        if (currentMission.currentHacks >= currentMission.requiredHacks) completeMission();
+                    } else {
+                        gameState.hp -= 10;
+                        print(`[FAIL] Firewall shock! -10 HP`, "damage");
+                        updateHUD();
+                        if (gameState.hp <= 0) {
+                            gameState.flags.dead = true;
+                            updateHUD();
+                        }
+                    }
+                }
+                return;
+            }
+
+            // Exploration
+            if (currentMission.actions && currentMission.actions[cmd]) {
+                const action = currentMission.actions[cmd];
+                // Handle both simple string and complex object
+                if (action.response) {
+                    // If it's a function, run it
+                    const result = typeof action.response === 'function' ? action.response() : action.response;
+                    print(result);
+                }
+                updateHUD(); // Refresh buttons if conditions changed
+                return;
+            }
+
+            print(`Unknown command: '${cmd}'`);
+        }
+
+        // Start
+        initGame();
+
+    </script>
 </body>
+
 </html>
