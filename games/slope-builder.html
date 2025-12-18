@@ -240,6 +240,10 @@
         <div class="hud-top">
             <div class="hud-text" id="status-text">Mode: BUILD</div>
             <div style="display:flex; gap: 20px; align-items:center;">
+                <div id="equation-box" class="hud-text"
+                    style="font-family: 'Courier New', Courier, monospace; background: rgba(255,255,255,0.6); padding: 5px 12px; border-radius: 8px; border: 1px solid #006064; min-width: 160px; text-align: center;">
+                    y = 0x + 0
+                </div>
                 <div id="timer-box" class="hidden">
                     <div class="timer-text" id="current-time">00:00.00</div>
                     <div class="timer-text best-time" id="best-time">Best: --:--.--</div>
@@ -305,6 +309,7 @@
         const timerBox = document.getElementById('timer-box');
         const currentTimeEl = document.getElementById('current-time');
         const bestTimeEl = document.getElementById('best-time');
+        const equationBox = document.getElementById('equation-box');
 
         // Check if mobile
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -584,6 +589,68 @@
                 currentTimeEl.textContent = formatTime(currentLapTime);
             }
             updateParticles();
+            updateEquation();
+        }
+
+        function updateEquation() {
+            let m = 0;
+            let b = 0;
+
+            if (points.length < 2) return;
+
+            // origin (0,0) is the start of the course (points[0])
+            const originX = points[0].x;
+            const originY = points[0].y;
+
+            if (gameState === 'BUILD') {
+                const p1 = points[points.length - 2];
+                const p2 = points[points.length - 1];
+
+                // Convert to math coords: Y is positive up
+                const x1 = p1.x - originX;
+                const y1 = originY - p1.y;
+                const x2 = p2.x - originX;
+                const y2 = originY - p2.y;
+
+                m = (y2 - y1) / (x2 - x1);
+                b = y1 - m * x1;
+            } else if (gameState === 'RIDE') {
+                const seg = getLineSegment(skier.x);
+                if (seg) {
+                    const p1 = seg.p1;
+                    const p2 = seg.p2;
+
+                    // Account for course looping offsets
+                    const pEnd = points[points.length - 1];
+                    const courseWidth = pEnd.x - originX;
+                    const courseHeight = pEnd.y - originY;
+                    const cycleIndex = Math.floor((skier.x - originX) / courseWidth);
+                    const cycleOffsetY = cycleIndex * courseHeight;
+
+                    const x1 = (p1.x - originX) + (cycleIndex * courseWidth);
+                    const y1 = originY - (p1.y + cycleOffsetY);
+                    const x2 = (p2.x - originX) + (cycleIndex * courseWidth);
+                    const y2 = originY - (p2.y + cycleOffsetY);
+
+                    m = (y2 - y1) / (x2 - x1);
+                    b = y1 - m * x1;
+                }
+            }
+
+            // Format m and b to 2 decimal places, but keep it clean if they are whole numbers
+            const formatNum = (n) => {
+                let s = Math.abs(n) < 0.001 ? "0" : n.toFixed(2);
+                if (s.endsWith('.00')) s = s.slice(0, -3);
+                else if (s.includes('.') && s.endsWith('0')) s = s.slice(0, -1);
+                return s;
+            };
+
+            const mStr = formatNum(m);
+            const bStr = formatNum(b);
+            const sign = b >= 0 ? '+' : '-';
+            const absBStr = formatNum(Math.abs(b));
+
+            equationBox.textContent = `y = ${mStr}x ${sign} ${absBStr}`;
         }
 
         function updateBuild() {
