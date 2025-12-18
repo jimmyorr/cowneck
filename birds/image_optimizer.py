@@ -1,11 +1,11 @@
 import os
 import sys
-from PIL import Image, ImageOps
+from PIL import Image
 
-def optimize_images(source_directory='.', output_directory=None, target_width=1024, target_height=1024):
+def optimize_images(source_directory='.', output_directory=None, max_width=2048):
     """
-    Scans the source_directory for images, fits them to exactly target_width x target_height,
-    converts them to JPG (quality 85), and saves them to output_directory.
+    Scans the source_directory for images, resizes them to a max_width,
+    converts them to JPG (quality 80), and saves them to output_directory.
     """
     
     # If no output directory specified, create it as a subdirectory under source_directory
@@ -23,7 +23,6 @@ def optimize_images(source_directory='.', output_directory=None, target_width=10
     files = [f for f in os.listdir(source_directory) if f.lower().endswith(valid_extensions)]
     
     print(f"Found {len(files)} images to process...")
-    print(f"Target dimensions: {target_width}x{target_height}")
 
     for filename in files:
         file_path = os.path.join(source_directory, filename)
@@ -34,31 +33,28 @@ def optimize_images(source_directory='.', output_directory=None, target_width=10
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
 
-                # Proportional resize to fit within target_width x target_height
-                # This preserves the original aspect ratio
-                new_img = img.copy()
-                new_img.thumbnail((target_width, target_height), Image.Resampling.LANCZOS)
+                # Calculate new height to maintain aspect ratio
+                width_percent = (max_width / float(img.size[0]))
                 
-                print(f"Processed {filename} -> {new_img.width}x{new_img.height}")
+                # Only resize if the image is actually bigger than our max_width
+                if width_percent < 1:
+                    new_height = int((float(img.size[1]) * float(width_percent)))
+                    img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+                    print(f"Resizing {filename}...")
+                else:
+                    print(f"Copying {filename} (already small enough)...")
 
                 # Change extension to .jpg
                 new_filename = os.path.splitext(filename)[0] + '.jpg'
                 output_path = os.path.join(output_directory, new_filename)
 
-                # Save with optimization, slightly higher quality for display
-                new_img.save(output_path, 'JPEG', quality=85, optimize=True)
-                
-                # ALSO save as PNG to overwrite the source file (so modal matches)
-                # Only if the source was a PNG/BMP/etc (we want to maintain .png extension for consistency with HTML script)
-                if filename.lower().endswith('.png'):
-                    source_output_path = os.path.join(source_directory, filename)
-                    new_img.save(source_output_path, 'PNG')
-                    print(f"Updated source file: {filename}")
+                # Save with optimization
+                img.save(output_path, 'JPEG', quality=85, optimize=True)
                 
                 # Compare sizes
                 original_size = os.path.getsize(file_path) / 1024
                 new_size = os.path.getsize(output_path) / 1024
-                print(f"Saved: {new_filename} ({new_size:.1f}KB)")
+                print(f"Saved: {new_filename} ({new_size:.1f}KB) - Reduced by {100 - (new_size/original_size*100):.1f}%")
 
         except Exception as e:
             print(f"Error processing {filename}: {e}")
@@ -66,23 +62,6 @@ def optimize_images(source_directory='.', output_directory=None, target_width=10
     print("\nDone! Check the 'optimized_images' directory.")
 
 if __name__ == "__main__":
-    # Usage: python image_optimizer.py [source_dir] [output_dir] [width] [height]
-    source_dir = sys.argv[1] if len(sys.argv) > 1 else '.'
-    output_dir = sys.argv[2] if len(sys.argv) > 2 else None
-    
-    width = 1024
-    height = 1024
-    
-    if len(sys.argv) > 3:
-        try:
-            width = int(sys.argv[3])
-        except ValueError:
-            print(f"Invalid width: {sys.argv[3]}. Using default 1024.")
-            
-    if len(sys.argv) > 4:
-        try:
-            height = int(sys.argv[4])
-        except ValueError:
-            print(f"Invalid height: {sys.argv[4]}. Using default 1024.")
-    
-    optimize_images(source_dir, output_directory=output_dir, target_width=width, target_height=height)
+    # Get source directory from command-line argument, default to current directory
+    source_directory = sys.argv[1] if len(sys.argv) > 1 else '.'
+    optimize_images(source_directory)
