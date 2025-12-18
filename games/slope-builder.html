@@ -595,12 +595,14 @@
         function updateEquation() {
             let m = 0;
             let b = 0;
+            let altitude = 0;
 
             if (points.length < 2) return;
 
             // origin (0,0) is the start of the course (points[0])
             const originX = points[0].x;
             const originY = points[0].y;
+            const pEnd = points[points.length - 1];
 
             if (gameState === 'BUILD') {
                 const p1 = points[points.length - 2];
@@ -614,6 +616,9 @@
 
                 m = (y2 - y1) / (x2 - x1);
                 b = y1 - m * x1;
+
+                // Altitude in build mode: height from origin to current point
+                altitude = originY - p2.y;
             } else if (gameState === 'RIDE') {
                 const seg = getLineSegment(skier.x);
                 if (seg) {
@@ -621,7 +626,6 @@
                     const p2 = seg.p2;
 
                     // Account for course looping offsets
-                    const pEnd = points[points.length - 1];
                     const courseWidth = pEnd.x - originX;
                     const courseHeight = pEnd.y - originY;
                     const cycleIndex = Math.floor((skier.x - originX) / courseWidth);
@@ -634,6 +638,11 @@
 
                     m = (y2 - y1) / (x2 - x1);
                     b = y1 - m * x1;
+
+                    // Local Y (relative to start of this lap)
+                    const skierLocalY = skier.y - cycleOffsetY;
+                    // Altitude: height from local end to current skier Y
+                    altitude = pEnd.y - skierLocalY;
                 }
             }
 
@@ -650,7 +659,10 @@
             const sign = b >= 0 ? '+' : '-';
             const absBStr = formatNum(Math.abs(b));
 
-            equationBox.textContent = `y = ${mStr}x ${sign} ${absBStr}`;
+            equationBox.innerHTML = `
+                <div>${mStr === "0" ? `y = ${bStr}` : `y = ${mStr}x ${sign} ${absBStr}`}</div>
+                <div style="font-size: 0.8rem; color: #00838f; margin-top: 4px;">Altitude: ${altitude.toFixed(0)}m</div>
+            `;
         }
 
         function updateBuild() {
