@@ -20,18 +20,39 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            background-color: #f0f0f0;
         }
 
-        a {
+        .container {
             text-align: center;
+        }
+
+        .links {
+            margin-top: 20px;
+            font-family: monospace;
+            color: #333;
+        }
+
+        .links a {
+            text-decoration: none;
+            color: #0066cc;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 
 <body>
-    <a href="https://linktr.ee/jimmyorr">
-        <img src="./chester.png" alt="Chester" />
-    </a>
+    <div class="container">
+        <a href="https://linktr.ee/jimmyorr">
+            <img src="./chester.png" alt="Chester" />
+        </a>
+        <div class="links">
+            <a href="games/">games</a> | <a href="birds/">birds</a>
+        </div>
+    </div>
 </body>
 
 </html>
