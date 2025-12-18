@@ -34,12 +34,12 @@ def optimize_images(source_directory='.', output_directory=None, target_width=10
                 if img.mode in ('RGBA', 'P'):
                     img = img.convert('RGB')
 
-                # Use ImageOps.fit to resize and crop to exact dimensions
-                # centering defaults to (0.5, 0.5) which is center crop
-                # specific to 2816x1536 as requested
-                new_img = ImageOps.fit(img, (target_width, target_height), method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
+                # Proportional resize to fit within target_width x target_height
+                # This preserves the original aspect ratio
+                new_img = img.copy()
+                new_img.thumbnail((target_width, target_height), Image.Resampling.LANCZOS)
                 
-                print(f"Processed {filename} -> {target_width}x{target_height}")
+                print(f"Processed {filename} -> {new_img.width}x{new_img.height}")
 
                 # Change extension to .jpg
                 new_filename = os.path.splitext(filename)[0] + '.jpg'
