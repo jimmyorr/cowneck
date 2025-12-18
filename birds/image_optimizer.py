@@ -2,7 +2,7 @@ import os
 import sys
 from PIL import Image, ImageOps
 
-def optimize_images(source_directory='.', output_directory=None, target_width=2816, target_height=1536):
+def optimize_images(source_directory='.', output_directory=None, target_width=1024, target_height=1024):
     """
     Scans the source_directory for images, fits them to exactly target_width x target_height,
     converts them to JPG (quality 85), and saves them to output_directory.
@@ -66,6 +66,23 @@ def optimize_images(source_directory='.', output_directory=None, target_width=28
     print("\nDone! Check the 'optimized_images' directory.")
 
 if __name__ == "__main__":
-    # Get source directory from command-line argument, default to current directory
-    source_directory = sys.argv[1] if len(sys.argv) > 1 else '.'
-    optimize_images(source_directory)
+    # Usage: python image_optimizer.py [source_dir] [output_dir] [width] [height]
+    source_dir = sys.argv[1] if len(sys.argv) > 1 else '.'
+    output_dir = sys.argv[2] if len(sys.argv) > 2 else None
+    
+    width = 1024
+    height = 1024
+    
+    if len(sys.argv) > 3:
+        try:
+            width = int(sys.argv[3])
+        except ValueError:
+            print(f"Invalid width: {sys.argv[3]}. Using default 1024.")
+            
+    if len(sys.argv) > 4:
+        try:
+            height = int(sys.argv[4])
+        except ValueError:
+            print(f"Invalid height: {sys.argv[4]}. Using default 1024.")
+    
+    optimize_images(source_dir, output_directory=output_dir, target_width=width, target_height=height)
