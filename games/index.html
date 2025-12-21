@@ -126,12 +126,16 @@
 
         /* --- BACK LINK --- */
         .back-link {
-            display: block;
+            display: inline-block;
             text-align: center;
-            margin-top: 20px;
-            color: #666;
+            margin: 40px auto;
+            color: #888;
             text-decoration: none;
-            padding-bottom: 40px;
+            padding: 15px 25px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
         }
 
         .back-link:hover {
@@ -254,7 +258,9 @@
 
         </div>
 
-        <a href="/" class="back-link">← Return to cowneck.com</a>
+        <div style="text-align: center; width: 100%;">
+            <a href="/" class="back-link">← Return to cowneck.com</a>
+        </div>
     </main>
 </body>
 
