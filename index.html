@@ -49,9 +49,18 @@
         }
 
         .links a:hover {
-            background-color: #0066cc;
             color: #fff;
             text-decoration: none;
+        }
+
+        .links a.link-games:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+        }
+
+        .links a.link-birds:hover {
+            background: linear-gradient(135deg, #1a472a 0%, #2d7a4a 100%);
+            border-color: transparent;
         }
     </style>
 </head>
@@ -62,8 +71,8 @@
             <img src="./chester.png" alt="Chester" />
         </a>
         <div class="links">
-            <a href="games/">games</a>
-            <a href="birds/">birds</a>
+            <a href="games/" class="link-games">games</a>
+            <a href="birds/" class="link-birds">birds</a>
         </div>
     </div>
 </body>
