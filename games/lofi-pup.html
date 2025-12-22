@@ -137,15 +137,8 @@
                 </div>
 
                 <!-- Meta Info -->
-                <div class="flex flex-col items-center gap-1 mt-2">
+                <div class="text-center mt-2">
                     <p id="chord-display" class="text-stone-500 text-sm h-5 font-mono">--</p>
-                    <div
-                        class="flex items-center gap-2 text-[10px] font-mono text-stone-600 uppercase tracking-widest bg-black/30 px-3 py-1 rounded">
-                        <span>Seed:</span>
-                        <input type="text" id="seed-input" value=""
-                            class="bg-transparent border-none outline-none text-amber-600 w-20 focus:text-amber-500 text-center"
-                            spellcheck="false" autocomplete="off">
-                    </div>
                 </div>
             </div>
         </div>
@@ -159,70 +152,6 @@
     <script>
         // Init Icons
         lucide.createIcons();
-
-        // --- PRNG Engine ---
-        let currentSeed = Math.random().toString(36).substring(7);
-        document.getElementById('seed-input').value = currentSeed;
-
-        function cyrb128(str) {
-            let h1 = 1779033703, h2 = 3144134277,
-                h3 = 1013904242, h4 = 2773480762;
-            for (let i = 0, k; i < str.length; i++) {
-                k = str.charCodeAt(i);
-                h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
-                h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
-                h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
-                h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
-            }
-            h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
-            h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
-            h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
-            h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
-            return [(h1 ^ h2 ^ h3 ^ h4) >>> 0, (h2 ^ h1) >>> 0, (h3 ^ h1) >>> 0, (h4 ^ h1) >>> 0];
-        }
-
-        function sfc32(a, b, c, d) {
-            return function () {
-                a >>>= 0; b >>>= 0; c >>>= 0; d >>>= 0;
-                var t = (a + b | 0) + d | 0;
-                d = d + 1 | 0;
-                a = b ^ b >>> 9;
-                b = c + (c << 3) | 0;
-                c = (c << 21 | c >>> 11);
-                c = c + t | 0;
-                return (t >>> 0) / 4294967296;
-            }
-        }
-
-        let rand;
-        // Music Theory Data (Jazzy/Lofi Chords)
-        const chords = [
-            { name: "Cmaj9", offsets: [48, 52, 55, 59, 62] },
-            { name: "Am9", offsets: [45, 48, 52, 55, 59] },
-            { name: "Dm9", offsets: [50, 53, 57, 60, 64] },
-            { name: "G13", offsets: [55, 59, 62, 65, 69] },
-            { name: "Cmaj9_2", offsets: [48, 52, 55, 59, 62] },
-            { name: "Am11", offsets: [57, 60, 64, 67, 71] },
-            { name: "Fmaj7", offsets: [53, 57, 60, 64] },
-            { name: "Em7", offsets: [52, 55, 59, 62] },
-            { name: "Ebmaj7", offsets: [51, 55, 58, 62] },
-            { name: "Abmaj7", offsets: [56, 60, 63, 67] }
-        ];
-
-        let currentChordIndex = 0;
-        let chordProgression = [];
-
-        function updateSeed(s) {
-            currentSeed = s;
-            const seedArr = cyrb128(currentSeed);
-            rand = sfc32(seedArr[0], seedArr[1], seedArr[2], seedArr[3]);
-            // Reset progression with new seed
-            currentChordIndex = 0;
-            chordProgression = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-                .sort(() => rand() - 0.5)
-                .slice(0, 4);
-        }
-        updateSeed(currentSeed);
 
         // Audio Context
         let audioCtx;
@@ -256,7 +185,26 @@
         const wobbleSlider = document.getElementById('wobble-slider');
         const chordDisplay = document.getElementById('chord-display');
 
+        // Music Theory Data (Jazzy/Lofi Chords)
+        // Root notes relative to C (0)
+        // Structures: 0=Root, 3=Min3, 4=Maj3, 7=Perf5, 10=Min7, 11=Maj7, 14=9
+        const chords = [
+            { name: "Cmaj9", notes: [0, 4, 7, 11, 14] }, // C E G B D
+            { name: "Am9", notes: [-3, 0, 4, 7, 11] }, // A C E G B (Actually Am9 relative to C major key logic is tricky, simplifying to intervals)
+            // Let's use specific MIDI-like offsets for simplicity
+            // Key of C Majorish
+            { name: "Dm9", offsets: [50, 53, 57, 60, 64] }, // D F A C E
+            { name: "G13", offsets: [55, 59, 62, 65, 69] }, // G B F A E (Shell voicing)
+            { name: "Cmaj9", offsets: [48, 52, 55, 59, 62] }, // C E G B D
+            { name: "Am11", offsets: [57, 60, 64, 67, 71] }, // A C E G B
+            { name: "Fmaj7", offsets: [53, 57, 60, 64] },     // F A C E
+            { name: "Em7", offsets: [52, 55, 59, 62] },     // E G B D
+            { name: "Ebmaj7", offsets: [51, 55, 58, 62] },     // Borrowed chord (Nice lofi vibe)
+            { name: "Abmaj7", offsets: [56, 60, 63, 67] }      // Borrowed
+        ];
 
+        let currentChordIndex = 0;
+        let chordProgression = [2, 3, 4, 1]; // Indices of chords array
 
         // --- Audio Engine Setup ---
 
@@ -424,14 +372,9 @@
             chordGain.connect(filter);
             filter.connect(masterGain);
 
-            if (!chordObj || !chordObj.offsets) {
-                console.error("Invalid chord object:", chordObj);
-                return;
-            }
-
             chordObj.offsets.forEach(midiNote => {
                 const osc = audioCtx.createOscillator();
-                osc.type = rand() > 0.5 ? 'triangle' : 'sine'; // Mix waveforms
+                osc.type = Math.random() > 0.5 ? 'triangle' : 'sine'; // Mix waveforms
 
                 // Midi to Freq conversion
                 const freq = 440 * Math.pow(2, (midiNote - 69) / 12);
@@ -478,8 +421,8 @@
                 data[i] = out * 3.5; // boost level
 
                 // Add random "pops"
-                if (rand() > 0.9995) {
-                    data[i] = (rand() * 2 - 1) * 0.8;
+                if (Math.random() > 0.9995) {
+                    data[i] = (Math.random() * 2 - 1) * 0.8;
                 }
             }
 
@@ -534,7 +477,7 @@
             }
 
             // Occasional ghost kick
-            if (beatNumber % 8 === 3 && rand() > 0.7) {
+            if (beatNumber % 8 === 3 && Math.random() > 0.7) {
                 createKick(triggerTime + 0.2);
             }
 
@@ -545,7 +488,7 @@
             // Hi-hats every 8th note
             createHiHat(triggerTime);
             // Occasional 16th note hat
-            if (rand() > 0.8) {
+            if (Math.random() > 0.8) {
                 createHiHat(triggerTime + ((60 / bpm) / 2));
             }
         }
@@ -675,13 +618,6 @@
             if (val > 20) label = "Med";
             if (val > 40) label = "High";
             document.getElementById('wobble-val').innerText = label;
-        });
-
-        document.getElementById('seed-input').addEventListener('input', (e) => {
-            updateSeed(e.target.value);
-            // Optionally reset beatCount to 0 to sync new vibe
-            beatCount = 0;
-            // Chord name will update on next schedule
         });
 
     </script>
