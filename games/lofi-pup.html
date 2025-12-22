@@ -157,7 +157,14 @@
                     </div>
 
                     <!-- Meta Info -->
-                    <div class="text-center mt-2">
+                    <div class="text-center mt-2 flex flex-col items-center gap-1">
+                        <div
+                            class="flex items-center gap-1 text-[10px] font-bold tracking-widest text-stone-600 uppercase">
+                            <span>Now Playing</span>
+                            <button onclick="showHelp('chord')" class="hover:text-amber-600 transition-colors">
+                                <i data-lucide="help-circle" class="w-3 h-3"></i>
+                            </button>
+                        </div>
                         <p id="chord-display" class="text-stone-500 text-sm h-5 font-mono">--</p>
                     </div>
                 </div>
@@ -676,6 +683,11 @@
                     title: "Tape Wobble",
                     desc: "Creates subtle pitch fluctuations (Wow & Flutter) found in imperfect analog tape decks.",
                     impl: "Uses a Low-Frequency Oscillator (LFO) connected to the <code>detune</code> parameter of each sound source. The slider controls the <code>gain</code> (depth) of the LFO."
+                },
+                chord: {
+                    title: "Chord Synthesis",
+                    desc: "The current musical chord being generated. Each chord is a collection of harmonically related notes that define the song's 'vibe'.",
+                    impl: "Picks a progression from a library of jazz-theory MIDI offsets. Each note is synthesized using polyphonic oscillators with random waveform mixing (Sine/Triangle) and an ADSR-ish gain envelope."
                 }
             };
 
