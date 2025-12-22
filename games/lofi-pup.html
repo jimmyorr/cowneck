@@ -108,13 +108,13 @@
 </head>
 
 <body
-    class="h-screen w-screen overflow-hidden flex flex-col items-center justify-center text-stone-300 relative bg-stone-900">
+    class="min-h-screen w-screen flex flex-col items-center justify-center text-stone-300 relative bg-stone-900 py-10 selection:bg-amber-600/30">
 
-    <!-- Background Ambience -->
+    <!-- Background Ambience (Fixed to viewport) -->
     <div
-        class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMWExYTFhIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMyMzIzMjMiLz4KPC9zdmc+')] opacity-50 z-0">
+        class="fixed inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMWExYTFhIi8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMyMzIzMjMiLz4KPC9zdmc+')] opacity-50 z-0">
     </div>
-    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-stone-900 z-0 opacity-80"></div>
+    <div class="fixed inset-0 bg-gradient-to-t from-black via-transparent to-stone-900 z-0 opacity-80"></div>
 
     <!-- Main Player Container -->
     <div class="relative z-10 w-full max-w-md p-6">
