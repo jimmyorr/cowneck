@@ -236,18 +236,16 @@
             // Root notes relative to C (0)
             // Structures: 0=Root, 3=Min3, 4=Maj3, 7=Perf5, 10=Min7, 11=Maj7, 14=9
             const chords = [
-                { name: "Cmaj9", notes: [0, 4, 7, 11, 14] }, // C E G B D
-                { name: "Am9", notes: [-3, 0, 4, 7, 11] }, // A C E G B (Actually Am9 relative to C major key logic is tricky, simplifying to intervals)
-                // Let's use specific MIDI-like offsets for simplicity
-                // Key of C Majorish
-                { name: "Dm9", offsets: [50, 53, 57, 60, 64] }, // D F A C E
-                { name: "G13", offsets: [55, 59, 62, 65, 69] }, // G B F A E (Shell voicing)
-                { name: "Cmaj9", offsets: [48, 52, 55, 59, 62] }, // C E G B D
-                { name: "Am11", offsets: [57, 60, 64, 67, 71] }, // A C E G B
-                { name: "Fmaj7", offsets: [53, 57, 60, 64] },     // F A C E
-                { name: "Em7", offsets: [52, 55, 59, 62] },     // E G B D
-                { name: "Ebmaj7", offsets: [51, 55, 58, 62] },     // Borrowed chord (Nice lofi vibe)
-                { name: "Abmaj7", offsets: [56, 60, 63, 67] }      // Borrowed
+                { name: "Cmaj9", offsets: [48, 52, 55, 59, 62] },
+                { name: "Am9", offsets: [45, 48, 52, 55, 59] },
+                { name: "Dm9", offsets: [50, 53, 57, 60, 64] },
+                { name: "G13", offsets: [55, 59, 62, 65, 69] },
+                { name: "Cmaj9_2", offsets: [48, 52, 55, 59, 62] },
+                { name: "Am11", offsets: [57, 60, 64, 67, 71] },
+                { name: "Fmaj7", offsets: [53, 57, 60, 64] },
+                { name: "Em7", offsets: [52, 55, 59, 62] },
+                { name: "Ebmaj7", offsets: [51, 55, 58, 62] },
+                { name: "Abmaj7", offsets: [56, 60, 63, 67] }
             ];
 
             let currentChordIndex = 0;
@@ -418,6 +416,11 @@
 
                 chordGain.connect(filter);
                 filter.connect(masterGain);
+
+                if (!chordObj || !chordObj.offsets) {
+                    console.error("Invalid chord object:", chordObj);
+                    return;
+                }
 
                 chordObj.offsets.forEach(midiNote => {
                     const osc = audioCtx.createOscillator();
