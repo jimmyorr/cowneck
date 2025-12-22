@@ -13,6 +13,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #1a1a1a;
+            user-select: none;
         }
 
         .retro-text {
@@ -573,12 +574,18 @@
                 statusText.classList.remove('animate-pulse');
                 tapeWheels.classList.remove('opacity-0');
 
+                // Restore volume
+                masterGain.gain.setTargetAtTime(0.5, audioCtx.currentTime, 0.1);
+
                 // Enable vinyl
                 if (vinylGain) vinylGain.gain.setValueAtTime(parseInt(crackleSlider.value) / 500, audioCtx.currentTime);
 
             } else {
                 isPlaying = false;
                 window.cancelAnimationFrame(timerID);
+
+                // Silence master
+                masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
 
                 // Update UI
                 playBtn.classList.remove('playing');
