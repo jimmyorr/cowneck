@@ -104,6 +104,57 @@
         .vertical-range:hover {
             opacity: 1;
         }
+
+        /* Hit Feedback Animation */
+        .hit-feedback {
+            position: absolute;
+            pointer-events: none;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: inherit;
+            font-style: italic;
+            z-index: 100;
+            animation: hit-float 0.8s ease-out forwards;
+            white-space: nowrap;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes hit-float {
+            0% {
+                transform: translate(-50%, 0) scale(0.5);
+                opacity: 0;
+            }
+
+            20% {
+                transform: translate(-50%, -20px) scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -100px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .score-pop {
+            animation: score-pulse 0.3s ease-out;
+        }
+
+        @keyframes score-pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+                color: #fbbf24;
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 
@@ -135,6 +186,26 @@
                 <div class="crt-overlay absolute inset-0 z-20"></div>
                 <div id="status-text" class="retro-text text-amber-500 text-2xl z-30 tracking-widest animate-pulse">
                     Ready...</div>
+
+                <!-- Score Display -->
+                <div class="absolute top-2 right-4 z-40 flex flex-col items-end pointer-events-none">
+                    <div class="flex items-center gap-1">
+                        <span class="text-[8px] text-stone-500 uppercase font-black">Score</span>
+                        <span id="score-val"
+                            class="text-xs font-mono text-amber-500 min-w-[40px] text-right">0000</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="text-[8px] text-stone-500 uppercase font-black">Streak</span>
+                        <span id="streak-val" class="text-[10px] font-mono text-amber-600">x0</span>
+                    </div>
+                </div>
+
+                <div class="absolute top-2 left-4 z-40 flex flex-col items-start pointer-events-none">
+                    <div class="flex items-center gap-1">
+                        <span class="text-[8px] text-stone-500 uppercase font-black">Best</span>
+                        <span id="best-score" class="text-[10px] font-mono text-stone-400">0000</span>
+                    </div>
+                </div>
 
                 <!-- Cassette Wheels Animation (Pure CSS) -->
                 <div id="tape-wheels"
@@ -390,6 +461,13 @@
                 hihat: 0.8,
                 chord: 0.7
             };
+
+            // Game State
+            let score = 0;
+            let streak = 0;
+            let bestScore = parseInt(localStorage.getItem('lofi-best-score')) || 0;
+            let lastBeatTime = 0; // Not used for scoring anymore
+            let lastQuarterBeatTime = 0; // The time of the last QUARTER note (1, 2, 3, 4)
 
             // Canvas
             const canvas = document.getElementById('visualizer');
@@ -752,12 +830,68 @@
 
             function scheduler() {
                 while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+                    // Update beat tracking for scoring
+                    // We are scheduling 8th notes, so every 2nd note is a Quarter beat
+                    if (beatCount % 2 === 0) {
+                        lastQuarterBeatTime = nextNoteTime;
+                    }
                     scheduleNote(beatCount, nextNoteTime);
                     nextNote();
                 }
                 if (isPlaying) {
                     timerID = requestAnimationFrame(scheduler);
                 }
+            }
+
+            // High Score Init
+            window.addEventListener('load', () => {
+                const bestEl = document.getElementById('best-score');
+                if (bestEl) bestEl.innerText = bestScore.toString().padStart(4, '0');
+            });
+
+            function showHitFeedback(text, color) {
+                const feedback = document.createElement('div');
+                feedback.className = 'hit-feedback';
+                feedback.innerText = text;
+                feedback.style.color = color;
+
+                // Position centered in the visualizer area
+                feedback.style.left = '50%';
+                feedback.style.top = '40%';
+
+                const screen = document.querySelector('.bg-black');
+                if (screen) screen.appendChild(feedback);
+
+                setTimeout(() => {
+                    feedback.remove();
+                }, 800);
+            }
+
+            function updateScore(points) {
+                const scoreEl = document.getElementById('score-val');
+                const streakEl = document.getElementById('streak-val');
+
+                if (points > 0) {
+                    score += points;
+                    streak += 1;
+
+                    if (scoreEl) {
+                        scoreEl.innerText = score.toString().padStart(4, '0');
+                        scoreEl.classList.remove('score-pop');
+                        void scoreEl.offsetWidth; // trigger reflow
+                        scoreEl.classList.add('score-pop');
+                    }
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        localStorage.setItem('lofi-best-score', bestScore);
+                        const bestEl = document.getElementById('best-score');
+                        if (bestEl) bestEl.innerText = bestScore.toString().padStart(4, '0');
+                    }
+                } else {
+                    streak = 0;
+                }
+                if (streakEl) streakEl.innerText = `x${streak}`;
             }
 
             // --- Visualizer ---
@@ -816,6 +950,9 @@
                     beatCount = 0;
 
                     isPlaying = true;
+                    nextNoteTime = audioCtx.currentTime + 0.1;
+                    beatCount = 0;
+                    lastQuarterBeatTime = nextNoteTime;
                     scheduler();
 
                     // Update UI
@@ -969,6 +1106,38 @@
             }
 
             function toggleInstrument(name) {
+                // Scoring Logic (Safe Mode) - wrapped in try/catch to prevent game breakage
+                if (isPlaying && lastQuarterBeatTime >= 0) {
+                    try {
+                        const now = audioCtx.currentTime;
+
+                        // Distance to last quarter beat
+                        const distToLast = now - lastQuarterBeatTime;
+
+                        // Distance to next PREDICTED quarter beat
+                        // The next beat is roughly lastQuarterBeatTime + (60/bpm)
+                        const secondsPerBeat = 60 / bpm;
+                        const distToNext = (lastQuarterBeatTime + secondsPerBeat) - now;
+
+                        // Logic: are we closer to the previous beat or the next one?
+                        // Logic: are we closer to the previous beat or the next one?
+                        const minDiff = Math.min(Math.abs(distToLast), Math.abs(distToNext));
+
+
+
+                        // Scoring windows for Quarter Notes (Tightened for balance)
+                        if (minDiff < 0.08) { points = 100; label = "PERFECT"; color = "#fbbf24"; } // < 80ms
+                        else if (minDiff < 0.15) { points = 50; label = "GREAT"; color = "#fb923c"; } // < 150ms
+                        else if (minDiff < 0.25) { points = 25; label = "GOOD"; color = "#fcd34d"; }  // < 250ms
+                        else { points = 0; label = "MISS"; color = "#ef4444"; }
+
+                        showHitFeedback(label, color);
+                        updateScore(points);
+                    } catch (e) {
+                        console.error("Score Error:", e);
+                    }
+                }
+
                 instrumentState[name] = !instrumentState[name];
                 const btn = document.getElementById(`mix-${name}`);
 
