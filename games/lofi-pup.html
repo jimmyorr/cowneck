@@ -108,519 +108,608 @@
 
                 <!-- Sliders -->
                 <div class="grid grid-cols-1 gap-4 mt-2">
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs font-bold tracking-wider text-stone-500 uppercase">
-                            <span>Lofi Filter</span>
-                            <span id="filter-val">50%</span>
+                    <div class="grid grid-cols-1 gap-4 mt-2">
+                        <div class="space-y-1">
+                            <div
+                                class="flex justify-between text-xs font-bold tracking-wider text-stone-500 uppercase items-center">
+                                <div class="flex items-center gap-1">
+                                    <span>Lofi Filter</span>
+                                    <button onclick="showHelp('filter')" class="hover:text-amber-600 transition-colors">
+                                        <i data-lucide="help-circle" class="w-3 h-3"></i>
+                                    </button>
+                                </div>
+                                <span id="filter-val">50%</span>
+                            </div>
+                            <input type="range" id="filter-slider" min="100" max="3000" value="800"
+                                class="w-full h-2 bg-stone-900 rounded-lg appearance-none cursor-pointer accent-amber-600">
                         </div>
-                        <input type="range" id="filter-slider" min="100" max="3000" value="800"
-                            class="w-full h-2 bg-stone-900 rounded-lg appearance-none cursor-pointer accent-amber-600">
+
+                        <div class="space-y-1">
+                            <div
+                                class="flex justify-between text-xs font-bold tracking-wider text-stone-500 uppercase items-center">
+                                <div class="flex items-center gap-1">
+                                    <span>Vinyl Crackle</span>
+                                    <button onclick="showHelp('crackle')"
+                                        class="hover:text-amber-600 transition-colors">
+                                        <i data-lucide="help-circle" class="w-3 h-3"></i>
+                                    </button>
+                                </div>
+                                <span id="crackle-val">30%</span>
+                            </div>
+                            <input type="range" id="crackle-slider" min="0" max="100" value="15"
+                                class="w-full h-2 bg-stone-900 rounded-lg appearance-none cursor-pointer accent-amber-600">
+                        </div>
+
+                        <div class="space-y-1">
+                            <div
+                                class="flex justify-between text-xs font-bold tracking-wider text-stone-500 uppercase items-center">
+                                <div class="flex items-center gap-1">
+                                    <span>Tape Wobble</span>
+                                    <button onclick="showHelp('wobble')" class="hover:text-amber-600 transition-colors">
+                                        <i data-lucide="help-circle" class="w-3 h-3"></i>
+                                    </button>
+                                </div>
+                                <span id="wobble-val">Medium</span>
+                            </div>
+                            <input type="range" id="wobble-slider" min="0" max="50" value="15"
+                                class="w-full h-2 bg-stone-900 rounded-lg appearance-none cursor-pointer accent-amber-600">
+                        </div>
                     </div>
 
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs font-bold tracking-wider text-stone-500 uppercase">
-                            <span>Vinyl Crackle</span>
-                            <span id="crackle-val">30%</span>
-                        </div>
-                        <input type="range" id="crackle-slider" min="0" max="100" value="15"
-                            class="w-full h-2 bg-stone-900 rounded-lg appearance-none cursor-pointer accent-amber-600">
-                    </div>
-
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs font-bold tracking-wider text-stone-500 uppercase">
-                            <span>Tape Wobble</span>
-                            <span id="wobble-val">Medium</span>
-                        </div>
-                        <input type="range" id="wobble-slider" min="0" max="50" value="15"
-                            class="w-full h-2 bg-stone-900 rounded-lg appearance-none cursor-pointer accent-amber-600">
+                    <!-- Meta Info -->
+                    <div class="text-center mt-2">
+                        <p id="chord-display" class="text-stone-500 text-sm h-5 font-mono">--</p>
                     </div>
                 </div>
+            </div>
 
-                <!-- Meta Info -->
-                <div class="text-center mt-2">
-                    <p id="chord-display" class="text-stone-500 text-sm h-5 font-mono">--</p>
+            <p class="text-center text-stone-600 text-xs mt-6">
+                Generative Audio Engine | Web Audio API<br>
+                No Samples Used
+            </p>
+
+            <!-- Help Modal -->
+            <div id="help-modal"
+                class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+                <div class="bg-stone-900/90 border border-stone-800 p-6 rounded-2xl max-w-md w-full shadow-2xl">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 id="help-title" class="text-amber-600 font-bold uppercase tracking-widest text-lg">Help</h3>
+                        <button onclick="hideHelp()" class="text-stone-500 hover:text-white transition-colors">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                    <div id="help-content" class="space-y-4 text-stone-300 text-sm leading-relaxed">
+                        <!-- Content injected here -->
+                    </div>
+                    <button onclick="hideHelp()"
+                        class="mt-8 w-full py-3 bg-stone-800 hover:bg-stone-700 text-white font-bold rounded-xl transition-all uppercase tracking-widest text-xs">
+                        Got it
+                    </button>
                 </div>
             </div>
         </div>
 
-        <p class="text-center text-stone-600 text-xs mt-6">
-            Generative Audio Engine | Web Audio API<br>
-            No Samples Used
-        </p>
-    </div>
+        <script>
+            // Init Icons
+            lucide.createIcons();
 
-    <script>
-        // Init Icons
-        lucide.createIcons();
+            // Audio Context
+            let audioCtx;
+            let isPlaying = false;
+            let nextNoteTime = 0.0;
+            let timerID;
+            let beatCount = 0;
 
-        // Audio Context
-        let audioCtx;
-        let isPlaying = false;
-        let nextNoteTime = 0.0;
-        let timerID;
-        let beatCount = 0;
+            // Nodes
+            let masterGain;
+            let compressor;
+            let vinylGain;
+            let vinylNode;
+            let analyser;
 
-        // Nodes
-        let masterGain;
-        let compressor;
-        let vinylGain;
-        let vinylNode;
-        let analyser;
+            // Settings
+            const lookahead = 25.0; // ms
+            const scheduleAheadTime = 0.1; // s
+            const bpm = 80;
 
-        // Settings
-        const lookahead = 25.0; // ms
-        const scheduleAheadTime = 0.1; // s
-        const bpm = 80;
+            // Canvas
+            const canvas = document.getElementById('visualizer');
+            const canvasCtx = canvas.getContext('2d');
 
-        // Canvas
-        const canvas = document.getElementById('visualizer');
-        const canvasCtx = canvas.getContext('2d');
+            // UI Elements
+            const playBtn = document.getElementById('play-btn');
+            const statusText = document.getElementById('status-text');
+            const tapeWheels = document.getElementById('tape-wheels');
+            const filterSlider = document.getElementById('filter-slider');
+            const crackleSlider = document.getElementById('crackle-slider');
+            const wobbleSlider = document.getElementById('wobble-slider');
+            const chordDisplay = document.getElementById('chord-display');
 
-        // UI Elements
-        const playBtn = document.getElementById('play-btn');
-        const statusText = document.getElementById('status-text');
-        const tapeWheels = document.getElementById('tape-wheels');
-        const filterSlider = document.getElementById('filter-slider');
-        const crackleSlider = document.getElementById('crackle-slider');
-        const wobbleSlider = document.getElementById('wobble-slider');
-        const chordDisplay = document.getElementById('chord-display');
+            // Music Theory Data (Jazzy/Lofi Chords)
+            // Root notes relative to C (0)
+            // Structures: 0=Root, 3=Min3, 4=Maj3, 7=Perf5, 10=Min7, 11=Maj7, 14=9
+            const chords = [
+                { name: "Cmaj9", notes: [0, 4, 7, 11, 14] }, // C E G B D
+                { name: "Am9", notes: [-3, 0, 4, 7, 11] }, // A C E G B (Actually Am9 relative to C major key logic is tricky, simplifying to intervals)
+                // Let's use specific MIDI-like offsets for simplicity
+                // Key of C Majorish
+                { name: "Dm9", offsets: [50, 53, 57, 60, 64] }, // D F A C E
+                { name: "G13", offsets: [55, 59, 62, 65, 69] }, // G B F A E (Shell voicing)
+                { name: "Cmaj9", offsets: [48, 52, 55, 59, 62] }, // C E G B D
+                { name: "Am11", offsets: [57, 60, 64, 67, 71] }, // A C E G B
+                { name: "Fmaj7", offsets: [53, 57, 60, 64] },     // F A C E
+                { name: "Em7", offsets: [52, 55, 59, 62] },     // E G B D
+                { name: "Ebmaj7", offsets: [51, 55, 58, 62] },     // Borrowed chord (Nice lofi vibe)
+                { name: "Abmaj7", offsets: [56, 60, 63, 67] }      // Borrowed
+            ];
 
-        // Music Theory Data (Jazzy/Lofi Chords)
-        // Root notes relative to C (0)
-        // Structures: 0=Root, 3=Min3, 4=Maj3, 7=Perf5, 10=Min7, 11=Maj7, 14=9
-        const chords = [
-            { name: "Cmaj9", notes: [0, 4, 7, 11, 14] }, // C E G B D
-            { name: "Am9", notes: [-3, 0, 4, 7, 11] }, // A C E G B (Actually Am9 relative to C major key logic is tricky, simplifying to intervals)
-            // Let's use specific MIDI-like offsets for simplicity
-            // Key of C Majorish
-            { name: "Dm9", offsets: [50, 53, 57, 60, 64] }, // D F A C E
-            { name: "G13", offsets: [55, 59, 62, 65, 69] }, // G B F A E (Shell voicing)
-            { name: "Cmaj9", offsets: [48, 52, 55, 59, 62] }, // C E G B D
-            { name: "Am11", offsets: [57, 60, 64, 67, 71] }, // A C E G B
-            { name: "Fmaj7", offsets: [53, 57, 60, 64] },     // F A C E
-            { name: "Em7", offsets: [52, 55, 59, 62] },     // E G B D
-            { name: "Ebmaj7", offsets: [51, 55, 58, 62] },     // Borrowed chord (Nice lofi vibe)
-            { name: "Abmaj7", offsets: [56, 60, 63, 67] }      // Borrowed
-        ];
+            let currentChordIndex = 0;
+            let chordProgression = [2, 3, 4, 1]; // Indices of chords array
 
-        let currentChordIndex = 0;
-        let chordProgression = [2, 3, 4, 1]; // Indices of chords array
+            // --- Audio Engine Setup ---
 
-        // --- Audio Engine Setup ---
+            async function initAudio() {
+                if (audioCtx) return;
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
 
-        async function initAudio() {
-            if (audioCtx) return;
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
+                // Master Chain
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 0.5;
 
-            // Master Chain
-            masterGain = audioCtx.createGain();
-            masterGain.gain.value = 0.5;
+                // Compressor to glue it together
+                compressor = audioCtx.createDynamicsCompressor();
+                compressor.threshold.value = -20;
+                compressor.knee.value = 30;
+                compressor.ratio.value = 12;
+                compressor.attack.value = 0.003;
+                compressor.release.value = 0.25;
 
-            // Compressor to glue it together
-            compressor = audioCtx.createDynamicsCompressor();
-            compressor.threshold.value = -20;
-            compressor.knee.value = 30;
-            compressor.ratio.value = 12;
-            compressor.attack.value = 0.003;
-            compressor.release.value = 0.25;
+                // Analyser for visualizer
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 256;
 
-            // Analyser for visualizer
-            analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 256;
+                // Connect Chain
+                masterGain.connect(compressor);
+                compressor.connect(analyser);
+                analyser.connect(audioCtx.destination);
 
-            // Connect Chain
-            masterGain.connect(compressor);
-            compressor.connect(analyser);
-            analyser.connect(audioCtx.destination);
+                // Start ambiance
+                createVinylCrackle();
 
-            // Start ambiance
-            createVinylCrackle();
-
-            // Start Visualizer
-            drawVisualizer();
-        }
-
-        // --- Instruments ---
-
-        function createKick(time) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-
-            osc.connect(gain);
-            gain.connect(masterGain);
-
-            osc.frequency.setValueAtTime(150, time);
-            osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
-
-            gain.gain.setValueAtTime(1, time);
-            gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
-
-            osc.start(time);
-            osc.stop(time + 0.5);
-
-            // Slight visual bump
-            const icon = document.querySelector('[data-lucide="play"]');
-            if (icon && isPlaying) {
-                // Trigger simple CSS animation logic if needed, 
-                // but we'll rely on the visualizer mostly.
-            }
-        }
-
-        function createSnare(time) {
-            // Noise burst
-            const bufferSize = audioCtx.sampleRate * 0.5; // 0.5s
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
+                // Start Visualizer
+                drawVisualizer();
             }
 
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-            const noiseFilter = audioCtx.createBiquadFilter();
-            noiseFilter.type = 'highpass';
-            noiseFilter.frequency.value = 1000;
-            const noiseGain = audioCtx.createGain();
+            // --- Instruments ---
 
-            noise.connect(noiseFilter);
-            noiseFilter.connect(noiseGain);
-            noiseGain.connect(masterGain);
-
-            noiseGain.gain.setValueAtTime(0.4, time);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
-            noise.start(time);
-
-            // Triangle "tone" underneath
-            const osc = audioCtx.createOscillator();
-            osc.type = 'triangle';
-            const oscGain = audioCtx.createGain();
-            osc.connect(oscGain);
-            oscGain.connect(masterGain);
-
-            osc.frequency.setValueAtTime(200, time);
-            oscGain.gain.setValueAtTime(0.2, time);
-            oscGain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
-
-            osc.start(time);
-            osc.stop(time + 0.2);
-        }
-
-        function createHiHat(time) {
-            const bufferSize = audioCtx.sampleRate * 0.1;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
-            }
-
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-
-            const bandpass = audioCtx.createBiquadFilter();
-            bandpass.type = 'bandpass';
-            bandpass.frequency.value = 10000;
-
-            const highpass = audioCtx.createBiquadFilter();
-            highpass.type = 'highpass';
-            highpass.frequency.value = 7000;
-
-            const gain = audioCtx.createGain();
-
-            noise.connect(bandpass);
-            bandpass.connect(highpass);
-            highpass.connect(gain);
-            gain.connect(masterGain);
-
-            // Randomize velocity slightly
-            const velocity = 0.05 + Math.random() * 0.05;
-
-            gain.gain.setValueAtTime(velocity, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-
-            noise.start(time);
-        }
-
-        function playChord(time, duration) {
-            // Pick next chord in progression
-            const chordObj = chords[chordProgression[currentChordIndex % chordProgression.length]];
-            currentChordIndex++;
-
-            // Visual Update
-            setTimeout(() => {
-                if (isPlaying) chordDisplay.innerText = chordObj.name;
-            }, (time - audioCtx.currentTime) * 1000);
-
-            // Create nodes for polyphony
-            const chordGain = audioCtx.createGain();
-            const filter = audioCtx.createBiquadFilter();
-
-            // Lofi Filter settings (controlled by slider)
-            filter.type = 'lowpass';
-            filter.frequency.value = parseInt(filterSlider.value);
-            filter.Q.value = 1;
-
-            // Tape Wobble (LFO)
-            const lfo = audioCtx.createOscillator();
-            const lfoGain = audioCtx.createGain();
-            lfo.type = 'sine';
-            lfo.frequency.value = 0.5 + Math.random(); // Slow wobble
-            lfoGain.gain.value = parseInt(wobbleSlider.value); // Wobble depth
-
-            lfo.connect(lfoGain);
-
-            chordGain.connect(filter);
-            filter.connect(masterGain);
-
-            chordObj.offsets.forEach(midiNote => {
+            function createKick(time) {
                 const osc = audioCtx.createOscillator();
-                osc.type = Math.random() > 0.5 ? 'triangle' : 'sine'; // Mix waveforms
+                const gain = audioCtx.createGain();
 
-                // Midi to Freq conversion
-                const freq = 440 * Math.pow(2, (midiNote - 69) / 12);
-                osc.frequency.value = freq;
+                osc.connect(gain);
+                gain.connect(masterGain);
 
-                // Connect LFO to detune for wobble
-                lfoGain.connect(osc.detune);
+                osc.frequency.setValueAtTime(150, time);
+                osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.5);
 
-                // Envelope
-                const noteGain = audioCtx.createGain();
-                noteGain.gain.value = 0.15 / chordObj.offsets.length; // Normalize volume
-
-                osc.connect(noteGain);
-                noteGain.connect(chordGain);
+                gain.gain.setValueAtTime(1, time);
+                gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
 
                 osc.start(time);
-                osc.stop(time + duration);
+                osc.stop(time + 0.5);
 
-                // ADSR-ish
-                noteGain.gain.setValueAtTime(0, time);
-                noteGain.gain.linearRampToValueAtTime(0.08, time + 0.1); // Attack
-                noteGain.gain.linearRampToValueAtTime(0.05, time + 0.3); // Decay
-                noteGain.gain.setValueAtTime(0.05, time + duration - 0.5); // Sustain
-                noteGain.gain.linearRampToValueAtTime(0, time + duration); // Release
+                // Slight visual bump
+                const icon = document.querySelector('[data-lucide="play"]');
+                if (icon && isPlaying) {
+                    // Trigger simple CSS animation logic if needed, 
+                    // but we'll rely on the visualizer mostly.
+                }
+            }
+
+            function createSnare(time) {
+                // Noise burst
+                const bufferSize = audioCtx.sampleRate * 0.5; // 0.5s
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const noiseFilter = audioCtx.createBiquadFilter();
+                noiseFilter.type = 'highpass';
+                noiseFilter.frequency.value = 1000;
+                const noiseGain = audioCtx.createGain();
+
+                noise.connect(noiseFilter);
+                noiseFilter.connect(noiseGain);
+                noiseGain.connect(masterGain);
+
+                noiseGain.gain.setValueAtTime(0.4, time);
+                noiseGain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
+                noise.start(time);
+
+                // Triangle "tone" underneath
+                const osc = audioCtx.createOscillator();
+                osc.type = 'triangle';
+                const oscGain = audioCtx.createGain();
+                osc.connect(oscGain);
+                oscGain.connect(masterGain);
+
+                osc.frequency.setValueAtTime(200, time);
+                oscGain.gain.setValueAtTime(0.2, time);
+                oscGain.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+
+                osc.start(time);
+                osc.stop(time + 0.2);
+            }
+
+            function createHiHat(time) {
+                const bufferSize = audioCtx.sampleRate * 0.1;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const bandpass = audioCtx.createBiquadFilter();
+                bandpass.type = 'bandpass';
+                bandpass.frequency.value = 10000;
+
+                const highpass = audioCtx.createBiquadFilter();
+                highpass.type = 'highpass';
+                highpass.frequency.value = 7000;
+
+                const gain = audioCtx.createGain();
+
+                noise.connect(bandpass);
+                bandpass.connect(highpass);
+                highpass.connect(gain);
+                gain.connect(masterGain);
+
+                // Randomize velocity slightly
+                const velocity = 0.05 + Math.random() * 0.05;
+
+                gain.gain.setValueAtTime(velocity, time);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+
+                noise.start(time);
+            }
+
+            function playChord(time, duration) {
+                // Pick next chord in progression
+                const chordObj = chords[chordProgression[currentChordIndex % chordProgression.length]];
+                currentChordIndex++;
+
+                // Visual Update
+                setTimeout(() => {
+                    if (isPlaying) chordDisplay.innerText = chordObj.name;
+                }, (time - audioCtx.currentTime) * 1000);
+
+                // Create nodes for polyphony
+                const chordGain = audioCtx.createGain();
+                const filter = audioCtx.createBiquadFilter();
+
+                // Lofi Filter settings (controlled by slider)
+                filter.type = 'lowpass';
+                filter.frequency.value = parseInt(filterSlider.value);
+                filter.Q.value = 1;
+
+                // Tape Wobble (LFO)
+                const lfo = audioCtx.createOscillator();
+                const lfoGain = audioCtx.createGain();
+                lfo.type = 'sine';
+                lfo.frequency.value = 0.5 + Math.random(); // Slow wobble
+                lfoGain.gain.value = parseInt(wobbleSlider.value); // Wobble depth
+
+                lfo.connect(lfoGain);
+
+                chordGain.connect(filter);
+                filter.connect(masterGain);
+
+                chordObj.offsets.forEach(midiNote => {
+                    const osc = audioCtx.createOscillator();
+                    osc.type = Math.random() > 0.5 ? 'triangle' : 'sine'; // Mix waveforms
+
+                    // Midi to Freq conversion
+                    const freq = 440 * Math.pow(2, (midiNote - 69) / 12);
+                    osc.frequency.value = freq;
+
+                    // Connect LFO to detune for wobble
+                    lfoGain.connect(osc.detune);
+
+                    // Envelope
+                    const noteGain = audioCtx.createGain();
+                    noteGain.gain.value = 0.15 / chordObj.offsets.length; // Normalize volume
+
+                    osc.connect(noteGain);
+                    noteGain.connect(chordGain);
+
+                    osc.start(time);
+                    osc.stop(time + duration);
+
+                    // ADSR-ish
+                    noteGain.gain.setValueAtTime(0, time);
+                    noteGain.gain.linearRampToValueAtTime(0.08, time + 0.1); // Attack
+                    noteGain.gain.linearRampToValueAtTime(0.05, time + 0.3); // Decay
+                    noteGain.gain.setValueAtTime(0.05, time + duration - 0.5); // Sustain
+                    noteGain.gain.linearRampToValueAtTime(0, time + duration); // Release
+                });
+
+                lfo.start(time);
+                lfo.stop(time + duration);
+            }
+
+            function createVinylCrackle() {
+                // Buffer size of 2 seconds
+                const bufferSize = audioCtx.sampleRate * 2;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+
+                // Pink-ish noise generation
+                let lastOut = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    // Simple Brown/Pink filter
+                    const out = (lastOut + (0.02 * white)) / 1.02;
+                    lastOut = out;
+                    data[i] = out * 3.5; // boost level
+
+                    // Add random "pops"
+                    if (Math.random() > 0.9995) {
+                        data[i] = (Math.random() * 2 - 1) * 0.8;
+                    }
+                }
+
+                vinylNode = audioCtx.createBufferSource();
+                vinylNode.buffer = buffer;
+                vinylNode.loop = true;
+
+                vinylGain = audioCtx.createGain();
+                const crackleVol = parseInt(crackleSlider.value) / 500; // scaling
+                vinylGain.gain.value = isPlaying ? crackleVol : 0;
+
+                vinylNode.connect(vinylGain);
+                vinylGain.connect(masterGain);
+                vinylNode.start();
+            }
+
+            // --- Scheduler ---
+
+            function scheduleNote(beatNumber, time) {
+                // Humanize rhythm slightly (swing/drunk)
+                const swing = (beatNumber % 2 === 1) ? 0.05 : 0;
+                const humanize = (Math.random() - 0.5) * 0.02;
+                const triggerTime = time + swing + humanize;
+
+                // Drums Pattern (Simple Boom Bap)
+                // 0: Kick
+                // 1: Hihat
+                // 2: Snare + Hihat
+                // 3: Hihat
+                // 4: Kick + Kick Ghost
+                // 5: Hihat
+                // 6: Snare
+                // 7: Hihat
+
+                if (beatNumber % 8 === 0) {
+                    createKick(triggerTime);
+                    // New Chord every 16 beats (2 bars) or 8 beats (1 bar)
+                    if (beatNumber % 16 === 0) {
+                        // Change progression occasionally
+                        if (Math.random() > 0.7) {
+                            chordProgression = chordProgression.sort(() => Math.random() - 0.5);
+                        }
+                        playChord(triggerTime, (60 / bpm) * 16); // Hold for 4 bars equivalent
+                    } else if (beatNumber % 8 === 0) {
+                        // Sometimes retrigger chord logic here if we want faster changes
+                        // playChord(triggerTime, (60/bpm) * 8); 
+                    }
+                }
+
+                if (beatNumber % 8 === 4) {
+                    createKick(triggerTime);
+                }
+
+                // Occasional ghost kick
+                if (beatNumber % 8 === 3 && Math.random() > 0.7) {
+                    createKick(triggerTime + 0.2);
+                }
+
+                if (beatNumber % 8 === 2 || beatNumber % 8 === 6) {
+                    createSnare(triggerTime);
+                }
+
+                // Hi-hats every 8th note
+                createHiHat(triggerTime);
+                // Occasional 16th note hat
+                if (Math.random() > 0.8) {
+                    createHiHat(triggerTime + ((60 / bpm) / 2));
+                }
+            }
+
+            function nextNote() {
+                const secondsPerBeat = 60.0 / bpm;
+                // We are scheduling 8th notes
+                nextNoteTime += 0.5 * secondsPerBeat;
+                beatCount++;
+            }
+
+            function scheduler() {
+                while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+                    scheduleNote(beatCount, nextNoteTime);
+                    nextNote();
+                }
+                if (isPlaying) {
+                    timerID = requestAnimationFrame(scheduler);
+                }
+            }
+
+            // --- Visualizer ---
+
+            function drawVisualizer() {
+                requestAnimationFrame(drawVisualizer);
+
+                if (!analyser) return;
+
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                analyser.getByteFrequencyData(dataArray);
+
+                // Resize canvas if needed
+                if (canvas.width !== canvas.offsetWidth) {
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
+                }
+
+                const width = canvas.width;
+                const height = canvas.height;
+
+                canvasCtx.clearRect(0, 0, width, height);
+
+                // Draw "Wave" style
+                canvasCtx.lineWidth = 2;
+                canvasCtx.strokeStyle = 'rgba(217, 119, 6, 0.8)'; // Amber-600
+                canvasCtx.beginPath();
+
+                const sliceWidth = width * 1.0 / bufferLength;
+                let x = 0;
+
+                // Only draw lower frequencies mainly
+                for (let i = 0; i < bufferLength; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = height - (v * height / 1.5); // scaling
+
+                    if (i === 0) canvasCtx.moveTo(x, y);
+                    else canvasCtx.lineTo(x, y);
+
+                    x += sliceWidth;
+                }
+
+                canvasCtx.stroke();
+            }
+
+            // --- UI Interactions ---
+
+            playBtn.addEventListener('click', async () => {
+                if (!isPlaying) {
+                    await initAudio();
+
+                    // Reset time if needed to prevent mass catchup
+                    if (audioCtx.state === 'suspended') await audioCtx.resume();
+                    nextNoteTime = audioCtx.currentTime + 0.1;
+                    beatCount = 0;
+
+                    isPlaying = true;
+                    scheduler();
+
+                    // Update UI
+                    playBtn.classList.add('playing');
+                    statusText.innerText = "PLAYING...";
+                    statusText.classList.remove('animate-pulse');
+                    tapeWheels.classList.remove('opacity-0');
+
+                    // Restore volume
+                    masterGain.gain.setTargetAtTime(0.5, audioCtx.currentTime, 0.1);
+
+                    // Enable vinyl
+                    if (vinylGain) vinylGain.gain.setValueAtTime(parseInt(crackleSlider.value) / 500, audioCtx.currentTime);
+
+                } else {
+                    isPlaying = false;
+                    window.cancelAnimationFrame(timerID);
+
+                    // Silence master
+                    masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+
+                    // Update UI
+                    playBtn.classList.remove('playing');
+                    statusText.innerText = "PAUSED";
+                    statusText.classList.add('animate-pulse');
+                    tapeWheels.classList.add('opacity-0');
+
+                    // Silence vinyl
+                    if (vinylGain) vinylGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+                }
             });
 
-            lfo.start(time);
-            lfo.stop(time + duration);
-        }
+            // Sliders
+            filterSlider.addEventListener('input', (e) => {
+                document.getElementById('filter-val').innerText = e.target.value + "Hz";
+                // The value is read dynamically in playChord
+            });
 
-        function createVinylCrackle() {
-            // Buffer size of 2 seconds
-            const bufferSize = audioCtx.sampleRate * 2;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-
-            // Pink-ish noise generation
-            let lastOut = 0;
-            for (let i = 0; i < bufferSize; i++) {
-                const white = Math.random() * 2 - 1;
-                // Simple Brown/Pink filter
-                const out = (lastOut + (0.02 * white)) / 1.02;
-                lastOut = out;
-                data[i] = out * 3.5; // boost level
-
-                // Add random "pops"
-                if (Math.random() > 0.9995) {
-                    data[i] = (Math.random() * 2 - 1) * 0.8;
+            crackleSlider.addEventListener('input', (e) => {
+                const val = e.target.value;
+                document.getElementById('crackle-val').innerText = val + "%";
+                if (vinylGain && isPlaying) {
+                    vinylGain.gain.setTargetAtTime(val / 500, audioCtx.currentTime, 0.1);
                 }
-            }
+            });
 
-            vinylNode = audioCtx.createBufferSource();
-            vinylNode.buffer = buffer;
-            vinylNode.loop = true;
+            wobbleSlider.addEventListener('input', (e) => {
+                const val = e.target.value;
+                let label = "Low";
+                if (val > 20) label = "Med";
+                if (val > 40) label = "High";
+                document.getElementById('wobble-val').innerText = label;
+            });
 
-            vinylGain = audioCtx.createGain();
-            const crackleVol = parseInt(crackleSlider.value) / 500; // scaling
-            vinylGain.gain.value = isPlaying ? crackleVol : 0;
-
-            vinylNode.connect(vinylGain);
-            vinylGain.connect(masterGain);
-            vinylNode.start();
-        }
-
-        // --- Scheduler ---
-
-        function scheduleNote(beatNumber, time) {
-            // Humanize rhythm slightly (swing/drunk)
-            const swing = (beatNumber % 2 === 1) ? 0.05 : 0;
-            const humanize = (Math.random() - 0.5) * 0.02;
-            const triggerTime = time + swing + humanize;
-
-            // Drums Pattern (Simple Boom Bap)
-            // 0: Kick
-            // 1: Hihat
-            // 2: Snare + Hihat
-            // 3: Hihat
-            // 4: Kick + Kick Ghost
-            // 5: Hihat
-            // 6: Snare
-            // 7: Hihat
-
-            if (beatNumber % 8 === 0) {
-                createKick(triggerTime);
-                // New Chord every 16 beats (2 bars) or 8 beats (1 bar)
-                if (beatNumber % 16 === 0) {
-                    // Change progression occasionally
-                    if (Math.random() > 0.7) {
-                        chordProgression = chordProgression.sort(() => Math.random() - 0.5);
-                    }
-                    playChord(triggerTime, (60 / bpm) * 16); // Hold for 4 bars equivalent
-                } else if (beatNumber % 8 === 0) {
-                    // Sometimes retrigger chord logic here if we want faster changes
-                    // playChord(triggerTime, (60/bpm) * 8); 
+            // Help System
+            const helpData = {
+                filter: {
+                    title: "Lofi Filter",
+                    desc: "Cuts out high frequencies to create a warm, muffled sound. It mimics the limited frequency response of old radios or tape recorders.",
+                    impl: "Uses a <code>BiquadFilterNode</code> with type <code>lowpass</code>. The slider controls the <code>frequency</code> parameter from 100Hz to 3000Hz."
+                },
+                crackle: {
+                    title: "Vinyl Crackle",
+                    desc: "Adds a layer of background noise with occasional pops and clicks, characteristic of aged vinyl records.",
+                    impl: "Uses a custom <code>AudioBuffer</code> filled with White Noise. Randomly injected spikes in the data buffer create the 'pops'."
+                },
+                wobble: {
+                    title: "Tape Wobble",
+                    desc: "Creates subtle pitch fluctuations (Wow & Flutter) found in imperfect analog tape decks.",
+                    impl: "Uses a Low-Frequency Oscillator (LFO) connected to the <code>detune</code> parameter of each sound source. The slider controls the <code>gain</code> (depth) of the LFO."
                 }
+            };
+
+            function showHelp(key) {
+                const data = helpData[key];
+                document.getElementById('help-title').innerText = data.title;
+                document.getElementById('help-content').innerHTML = `
+                <div>
+                    <h4 class="text-amber-600/70 uppercase text-[10px] font-black mb-1 leading-tight">Effect</h4>
+                    <p>${data.desc}</p>
+                </div>
+                <div class="pt-2">
+                    <h4 class="text-amber-600/70 uppercase text-[10px] font-black mb-1 leading-tight">Implementation</h4>
+                    <p>${data.impl}</p>
+                </div>
+            `;
+                document.getElementById('help-modal').classList.remove('hidden');
             }
 
-            if (beatNumber % 8 === 4) {
-                createKick(triggerTime);
+            function hideHelp() {
+                document.getElementById('help-modal').classList.add('hidden');
             }
 
-            // Occasional ghost kick
-            if (beatNumber % 8 === 3 && Math.random() > 0.7) {
-                createKick(triggerTime + 0.2);
-            }
+            // Close modal on escape
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') hideHelp();
+            });
 
-            if (beatNumber % 8 === 2 || beatNumber % 8 === 6) {
-                createSnare(triggerTime);
-            }
+            // Close on background click
+            document.getElementById('help-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'help-modal') hideHelp();
+            });
 
-            // Hi-hats every 8th note
-            createHiHat(triggerTime);
-            // Occasional 16th note hat
-            if (Math.random() > 0.8) {
-                createHiHat(triggerTime + ((60 / bpm) / 2));
-            }
-        }
-
-        function nextNote() {
-            const secondsPerBeat = 60.0 / bpm;
-            // We are scheduling 8th notes
-            nextNoteTime += 0.5 * secondsPerBeat;
-            beatCount++;
-        }
-
-        function scheduler() {
-            while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
-                scheduleNote(beatCount, nextNoteTime);
-                nextNote();
-            }
-            if (isPlaying) {
-                timerID = requestAnimationFrame(scheduler);
-            }
-        }
-
-        // --- Visualizer ---
-
-        function drawVisualizer() {
-            requestAnimationFrame(drawVisualizer);
-
-            if (!analyser) return;
-
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            analyser.getByteFrequencyData(dataArray);
-
-            // Resize canvas if needed
-            if (canvas.width !== canvas.offsetWidth) {
-                canvas.width = canvas.offsetWidth;
-                canvas.height = canvas.offsetHeight;
-            }
-
-            const width = canvas.width;
-            const height = canvas.height;
-
-            canvasCtx.clearRect(0, 0, width, height);
-
-            // Draw "Wave" style
-            canvasCtx.lineWidth = 2;
-            canvasCtx.strokeStyle = 'rgba(217, 119, 6, 0.8)'; // Amber-600
-            canvasCtx.beginPath();
-
-            const sliceWidth = width * 1.0 / bufferLength;
-            let x = 0;
-
-            // Only draw lower frequencies mainly
-            for (let i = 0; i < bufferLength; i++) {
-                const v = dataArray[i] / 128.0;
-                const y = height - (v * height / 1.5); // scaling
-
-                if (i === 0) canvasCtx.moveTo(x, y);
-                else canvasCtx.lineTo(x, y);
-
-                x += sliceWidth;
-            }
-
-            canvasCtx.stroke();
-        }
-
-        // --- UI Interactions ---
-
-        playBtn.addEventListener('click', async () => {
-            if (!isPlaying) {
-                await initAudio();
-
-                // Reset time if needed to prevent mass catchup
-                if (audioCtx.state === 'suspended') await audioCtx.resume();
-                nextNoteTime = audioCtx.currentTime + 0.1;
-                beatCount = 0;
-
-                isPlaying = true;
-                scheduler();
-
-                // Update UI
-                playBtn.classList.add('playing');
-                statusText.innerText = "PLAYING...";
-                statusText.classList.remove('animate-pulse');
-                tapeWheels.classList.remove('opacity-0');
-
-                // Restore volume
-                masterGain.gain.setTargetAtTime(0.5, audioCtx.currentTime, 0.1);
-
-                // Enable vinyl
-                if (vinylGain) vinylGain.gain.setValueAtTime(parseInt(crackleSlider.value) / 500, audioCtx.currentTime);
-
-            } else {
-                isPlaying = false;
-                window.cancelAnimationFrame(timerID);
-
-                // Silence master
-                masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
-
-                // Update UI
-                playBtn.classList.remove('playing');
-                statusText.innerText = "PAUSED";
-                statusText.classList.add('animate-pulse');
-                tapeWheels.classList.add('opacity-0');
-
-                // Silence vinyl
-                if (vinylGain) vinylGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
-            }
-        });
-
-        // Sliders
-        filterSlider.addEventListener('input', (e) => {
-            document.getElementById('filter-val').innerText = e.target.value + "Hz";
-            // The value is read dynamically in playChord
-        });
-
-        crackleSlider.addEventListener('input', (e) => {
-            const val = e.target.value;
-            document.getElementById('crackle-val').innerText = val + "%";
-            if (vinylGain && isPlaying) {
-                vinylGain.gain.setTargetAtTime(val / 500, audioCtx.currentTime, 0.1);
-            }
-        });
-
-        wobbleSlider.addEventListener('input', (e) => {
-            const val = e.target.value;
-            let label = "Low";
-            if (val > 20) label = "Med";
-            if (val > 40) label = "High";
-            document.getElementById('wobble-val').innerText = label;
-        });
-
-    </script>
+        </script>
 </body>
 
 </html>
