@@ -50,9 +50,20 @@ window.startGame = function (schemeName) {
     }
 
     document.getElementById('start-screen').style.display = 'none';
+    let menuBtn = document.getElementById('menu-btn');
+    if (menuBtn) menuBtn.style.display = 'block'; // Show mobile menu button
+
     gameState = 'PLAYING';
     resetSim();
     loop();
+}
+
+window.returnToMenu = function () {
+    gameState = 'MENU';
+    document.getElementById('start-screen').style.display = 'flex';
+    let menuBtn = document.getElementById('menu-btn');
+    if (menuBtn) menuBtn.style.display = 'none'; // Hide button in menu
+    noLoop();
 }
 
 function createWall(index) {
@@ -204,11 +215,7 @@ function windowResized() { resizeCanvas(windowWidth, windowHeight); }
 function keyPressed() {
     if (keyCode === ESCAPE) {
         if (gameState === 'PLAYING') {
-            gameState = 'MENU';
-            document.getElementById('start-screen').style.display = 'flex';
-            noLoop();
-        } else {
-            // Optional: Close menu if already open? Nah, keep it simple.
+            returnToMenu();
         }
     }
 }
