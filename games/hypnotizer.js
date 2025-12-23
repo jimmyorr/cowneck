@@ -198,3 +198,15 @@ function draw() {
 }
 
 function windowResized() { resizeCanvas(windowWidth, windowHeight); }
+
+function keyPressed() {
+    if (keyCode === ESCAPE) {
+        if (gameState === 'PLAYING') {
+            gameState = 'MENU';
+            document.getElementById('start-screen').style.display = 'flex';
+            noLoop();
+        } else {
+            // Optional: Close menu if already open? Nah, keep it simple.
+        }
+    }
+}
