@@ -2,6 +2,7 @@ let balls = [], walls = [], gravity, currentZoom = 1.0, targetZoom = 1.0, wallSp
 
 function setup() {
     console.log("Hypnotizer Game Loaded");
+    pixelDensity(1); // Critical for mobile performance
     createCanvas(windowWidth, windowHeight);
     colorMode(HSB, 360, 100, 100, 100);
     angleMode(DEGREES);
@@ -69,6 +70,15 @@ function draw() {
         if (keyIsDown(RIGHT_ARROW)) steer.x += steerStrength;
         if (keyIsDown(UP_ARROW)) steer.y -= steerStrength;
         if (keyIsDown(DOWN_ARROW)) steer.y += steerStrength;
+
+        // Mobile / Mouse Controls
+        if (mouseIsPressed) {
+            if (mouseX < width / 2) steer.x -= steerStrength;
+            else steer.x += steerStrength;
+
+            if (mouseY < height / 3) steer.y -= steerStrength;
+            else if (mouseY > height * 2 / 3) steer.y += steerStrength;
+        }
 
         // Apply forces
         b.vel.add(p5.Vector.mult(steer, timeStep));
