@@ -53,6 +53,9 @@ window.startGame = function (schemeName) {
     let menuBtn = document.getElementById('menu-btn');
     if (menuBtn) menuBtn.style.display = 'block'; // Show mobile menu button
 
+    // Lock screen to prevent scrolling/refresh while playing
+    document.body.style.overflow = 'hidden';
+
     gameState = 'PLAYING';
     resetSim();
     loop();
@@ -60,6 +63,10 @@ window.startGame = function (schemeName) {
 
 window.returnToMenu = function () {
     gameState = 'MENU';
+
+    // Unlock screen to allow pull-to-refresh in menu
+    document.body.style.overflow = '';
+
     document.getElementById('start-screen').style.display = 'flex';
     let menuBtn = document.getElementById('menu-btn');
     if (menuBtn) menuBtn.style.display = 'none'; // Hide button in menu
