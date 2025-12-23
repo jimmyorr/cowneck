@@ -81,6 +81,8 @@ function resetSim() {
     gravity = createVector(0, 0.12);
     walls = [];
     ringsBroken = 0;
+    currentZoom = 1.0;
+    targetZoom = 1.0;
     for (let i = 0; i < 40; i++) walls.push(createWall(i));
 }
 
