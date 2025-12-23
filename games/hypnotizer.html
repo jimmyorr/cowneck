@@ -14,6 +14,7 @@
             /* Prevent scrollbars */
             background: #000;
             /* Fallback background */
+            font-family: 'Courier New', Courier, monospace;
         }
 
         canvas {
@@ -21,11 +22,78 @@
             touch-action: none;
             /* Prevent browser gestures */
         }
+
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            color: white;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px #fff;
+        }
+
+        .scheme-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            max-width: 600px;
+        }
+
+        @media(min-width: 600px) {
+            .scheme-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        button {
+            background: transparent;
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: #fff;
+            color: #000;
+            box-shadow: 0 0 15px #fff;
+        }
     </style>
 </head>
 
 <body>
-
+    <div id="start-screen">
+        <h1>HYPNOTIZER</h1>
+        <div class="scheme-grid">
+            <button onclick="startGame('Original')">Original</button>
+            <button onclick="startGame('Neon')">Neon</button>
+            <button onclick="startGame('Cozy')">Cozy</button>
+            <button onclick="startGame('1989')">1989</button>
+            <button onclick="startGame('Vaporwave')">Vaporwave</button>
+            <button onclick="startGame('CGA')">CGA</button>
+            <button onclick="startGame('Lofi')">Lofi</button>
+            <button onclick="startGame('Deep Sea')">Deep Sea</button>
+            <button onclick="startGame('Noir')">Noir</button>
+            <button onclick="startGame('Heatmap')">Heatmap</button>
+            <button onclick="startGame('Toxic')">Toxic</button>
+        </div>
+    </div>
 </body>
 
 </html>
