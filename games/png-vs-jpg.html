@@ -210,6 +210,28 @@
             display: block;
         }
 
+        .pause-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .pause-menu.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         .main-menu {
             display: flex;
             flex-direction: column;
@@ -341,6 +363,12 @@
             onclick="showMenu()">Main Menu</button>
     </div>
 
+    <div id="pause-menu" class="pause-menu">
+        <h1>Paused</h1>
+        <button class="next-btn" onclick="togglePause()">Resume</button>
+        <button class="menu-btn hard" style="margin-top: 20px;" onclick="showMenu()">Main Menu</button>
+    </div>
+
     <!-- Hidden canvas for compression -->
     <canvas id="compressor" style="display: none;"></canvas>
 
@@ -372,9 +400,14 @@
         let timerInterval = null;
         let autoAdvanceTimeout = null;
         let autoAdvanceInterval = null;
+        let isPaused = false;
+        let pausedElapsed = 0;
+        let pausedCountdown = 0;
+        let wasInRound = false;
 
         const container1 = document.getElementById('choice-1');
         const container2 = document.getElementById('choice-2');
+        const pauseMenu = document.getElementById('pause-menu');
         const feedbackOverlay = document.getElementById('feedback');
         const feedbackIcon = document.getElementById('feedback-icon');
         const feedbackText = document.getElementById('feedback-text');
@@ -384,6 +417,82 @@
         const gameWrapper = document.getElementById('game-wrapper');
         const scoreBoard = document.getElementById('score-board');
         let timerBar;
+
+        // Escape Key Listener
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (!mainMenu.classList.contains('hidden') && !gameWrapper.classList.contains('active')) return;
+                // Don't pause if game over
+                if (feedbackOverlay.classList.contains('active') && feedbackIcon.textContent === '🏆') return;
+                togglePause();
+            }
+        });
+
+        function togglePause() {
+            isPaused = !isPaused;
+
+            if (isPaused) {
+                // Formatting Pause State
+                pauseMenu.classList.add('active');
+
+                // Store state based on where we are
+                if (isProcessing) {
+                    // In auto-advance phase
+                    wasInRound = false;
+                    clearInterval(autoAdvanceInterval);
+                    clearTimeout(autoAdvanceTimeout);
+
+                    const nextBtn = feedbackOverlay.querySelector('.next-btn');
+                    if (nextBtn && nextBtn.textContent.includes('Next Round (')) {
+                        pausedCountdown = parseInt(nextBtn.textContent.match(/\d+/)[0]);
+                    } else {
+                        pausedCountdown = 0;
+                    }
+                } else {
+                    // In gameplay phase
+                    wasInRound = true;
+                    clearInterval(timerInterval);
+                    pausedElapsed = Date.now() - startTime;
+                }
+
+            } else {
+                // Resuming
+                pauseMenu.classList.remove('active');
+
+                if (wasInRound) {
+                    // Resume Gameplay
+                    // Adjust startTime so elapsed calculation matches where we left off
+                    startTime = Date.now() - pausedElapsed;
+
+                    // Restart interval
+                    timerInterval = setInterval(() => {
+                        const elapsed = Date.now() - startTime;
+                        const remaining = Math.max(0, MAX_TIME_MS - elapsed);
+                        const percent = (remaining / MAX_TIME_MS) * 100;
+
+                        if (timerBar) {
+                            timerBar.style.width = percent + '%';
+                            if (percent < 30) {
+                                timerBar.style.backgroundColor = 'var(--danger-color)';
+                            } else {
+                                timerBar.style.backgroundColor = 'var(--accent-color)';
+                            }
+                        }
+
+                        if (remaining <= 0) {
+                            clearInterval(timerInterval);
+                            handleTimeout();
+                        }
+                    }, 16);
+                } else {
+                    // Resume Auto-Advance
+                    // Only restart if we are in the feedback phase (not loading phase)
+                    if (feedbackOverlay.classList.contains('active')) {
+                        startAutoAdvance();
+                    }
+                }
+            }
+        }
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -413,7 +522,11 @@
         }
 
         function showMenu() {
+            isPaused = false;
+            pauseMenu.classList.remove('active');
             clearInterval(timerInterval);
+            clearInterval(autoAdvanceInterval);
+            clearTimeout(autoAdvanceTimeout);
             feedbackOverlay.classList.remove('active');
             gameWrapper.classList.remove('active');
             scoreBoard.classList.remove('active');
@@ -607,7 +720,8 @@
         }
 
         function handleChoice(side) {
-            if (isProcessing) return;
+            if (isProcessing || isPaused) return;
+            isProcessing = true;
             clearInterval(timerInterval);
 
             const isCorrect = side === correctSide;
