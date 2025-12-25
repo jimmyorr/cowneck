@@ -257,6 +257,25 @@
             }
         }
 
+        /* Timer Bar */
+        .timer-bar-container {
+            width: 100%;
+            height: 10px;
+            background: #333;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 50;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 100%;
+            background: var(--accent-color);
+            transform-origin: left;
+            transition: width 0.016s linear;
+        }
+
         /* Loading Spinner */
         .spinner {
             width: 50px;
@@ -296,6 +315,9 @@
 
     <!-- Game Area -->
     <div class="game-wrapper" id="game-wrapper">
+        <div class="timer-bar-container">
+            <div class="timer-bar" id="timer-bar"></div>
+        </div>
         <h1>PNG vs JPG</h1>
         <p class="subtitle">Click the higher quality (PNG) image.</p>
 
@@ -343,6 +365,12 @@
         let currentDifficulty = 'classic'; // 'easy', 'normal', 'hard', 'classic'
         let remainingImages = [];
 
+        // Timer variables
+        const MAX_TIME_MS = 2000;
+        const MAX_SCORE_PER_ROUND = 1000;
+        let startTime = 0;
+        let timerInterval = null;
+
         const container1 = document.getElementById('choice-1');
         const container2 = document.getElementById('choice-2');
         const feedbackOverlay = document.getElementById('feedback');
@@ -353,6 +381,7 @@
         const mainMenu = document.getElementById('main-menu');
         const gameWrapper = document.getElementById('game-wrapper');
         const scoreBoard = document.getElementById('score-board');
+        let timerBar;
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -375,10 +404,14 @@
             gameWrapper.classList.add('active');
             scoreBoard.classList.add('active');
 
+            // Re-grab timer element in case it wasn't ready (though it should be)
+            timerBar = document.getElementById('timer-bar');
+
             nextRound(); // Start the first round
         }
 
         function showMenu() {
+            clearInterval(timerInterval);
             feedbackOverlay.classList.remove('active');
             gameWrapper.classList.remove('active');
             scoreBoard.classList.remove('active');
@@ -419,9 +452,10 @@
         }
 
         function endGame() {
+            clearInterval(timerInterval);
             feedbackOverlay.className = 'feedback-overlay active';
             feedbackIcon.textContent = '🏆';
-            feedbackText.innerHTML = `Game Over!<br>Score: ${score} / ${birdImages.length}`;
+            feedbackText.innerHTML = `Game Over!<br>Final Score: ${score}<br><span style="font-size: 1rem">Max Possible: ${birdImages.length * MAX_SCORE_PER_ROUND}</span>`;
 
             // Clear existing buttons
             const buttons = feedbackOverlay.querySelectorAll('button');
@@ -440,6 +474,42 @@
             feedbackOverlay.appendChild(menuBtn);
         }
 
+        function startTimer() {
+            startTime = Date.now();
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, MAX_TIME_MS - elapsed);
+                const percent = (remaining / MAX_TIME_MS) * 100;
+
+                if (timerBar) {
+                    timerBar.style.width = percent + '%';
+                    if (percent < 30) {
+                        timerBar.style.backgroundColor = 'var(--danger-color)';
+                    } else {
+                        timerBar.style.backgroundColor = 'var(--accent-color)';
+                    }
+                }
+
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 16);
+        }
+
+        function handleTimeout() {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            feedbackOverlay.className = 'feedback-overlay active wrong';
+            feedbackIcon.textContent = '⏱️';
+            feedbackText.textContent = 'Too Slow!';
+            // 0 points added
+            document.getElementById('score').textContent = score;
+        }
+
         async function nextRound() {
             if (remainingImages.length === 0) {
                 endGame();
@@ -448,6 +518,12 @@
 
             isProcessing = true;
             feedbackOverlay.classList.remove('active');
+
+            // Reset timer UI
+            if (timerBar) {
+                timerBar.style.width = '100%';
+                timerBar.style.backgroundColor = 'var(--accent-color)';
+            }
 
             // Show loaders
             container1.innerHTML = '<div class="spinner"></div>';
@@ -487,30 +563,34 @@
                 container2.appendChild(img2);
 
                 isProcessing = false;
+                startTimer();
 
             } catch (err) {
                 console.error("Failed to load image", err);
-                // If main menu is not hidden, we shouldn't act, but startGame hides it first.
-                // Just in case:
                 if (!mainMenu.classList.contains('hidden')) {
                     return;
                 }
-                // Try another one
                 nextRound();
             }
         }
 
         function handleChoice(side) {
             if (isProcessing) return;
+            clearInterval(timerInterval);
 
             const isCorrect = side === correctSide;
+            const elapsed = Date.now() - startTime;
+            // Scale score: (Remaining Logic Time / Max Time) * Max Score
+            // E.g. (1500 / 2000) * 1000 = 0.75 * 1000 = 750
+            const remainingTime = Math.max(0, MAX_TIME_MS - elapsed);
+            const points = isCorrect ? Math.floor((remainingTime / MAX_TIME_MS) * MAX_SCORE_PER_ROUND) : 0;
 
             feedbackOverlay.className = 'feedback-overlay active ' + (isCorrect ? 'correct' : 'wrong');
 
             if (isCorrect) {
                 feedbackIcon.textContent = '✓';
-                feedbackText.textContent = 'Correct!';
-                score++;
+                feedbackText.innerHTML = `Correct!<br><span style="font-size: 1rem">+${points} points</span>`;
+                score += points;
             } else {
                 feedbackIcon.textContent = '✗';
                 feedbackText.textContent = 'Wrong!';
@@ -520,6 +600,7 @@
         }
 
     </script>
+
 </body>
 
 </html>
