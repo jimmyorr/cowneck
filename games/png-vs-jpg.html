@@ -366,10 +366,12 @@
         let remainingImages = [];
 
         // Timer variables
-        const MAX_TIME_MS = 2000;
+        const MAX_TIME_MS = 3000;
         const MAX_SCORE_PER_ROUND = 1000;
         let startTime = 0;
         let timerInterval = null;
+        let autoAdvanceTimeout = null;
+        let autoAdvanceInterval = null;
 
         const container1 = document.getElementById('choice-1');
         const container2 = document.getElementById('choice-2');
@@ -499,6 +501,26 @@
             }, 16);
         }
 
+        function startAutoAdvance() {
+            if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);
+            if (autoAdvanceInterval) clearInterval(autoAdvanceInterval);
+
+            const nextBtn = feedbackOverlay.querySelector('.next-btn');
+            let countdown = 2;
+            if (nextBtn) nextBtn.textContent = `Next Round (${countdown})`;
+
+            autoAdvanceInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0 && nextBtn) {
+                    nextBtn.textContent = `Next Round (${countdown})`;
+                }
+            }, 1000);
+
+            autoAdvanceTimeout = setTimeout(() => {
+                nextRound();
+            }, 2000);
+        }
+
         function handleTimeout() {
             if (isProcessing) return;
             isProcessing = true;
@@ -508,9 +530,19 @@
             feedbackText.textContent = 'Too Slow!';
             // 0 points added
             document.getElementById('score').textContent = score;
+
+            // Auto advance
+            startAutoAdvance();
         }
 
         async function nextRound() {
+            if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);
+            if (autoAdvanceInterval) clearInterval(autoAdvanceInterval);
+
+            // Reset button text
+            const nextBtn = feedbackOverlay.querySelector('.next-btn');
+            if (nextBtn) nextBtn.textContent = 'Next Round';
+
             if (remainingImages.length === 0) {
                 endGame();
                 return;
@@ -597,6 +629,11 @@
             }
 
             document.getElementById('score').textContent = score;
+
+            document.getElementById('score').textContent = score;
+
+            // Auto advance
+            startAutoAdvance();
         }
 
     </script>
