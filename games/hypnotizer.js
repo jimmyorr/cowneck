@@ -2,6 +2,7 @@ let balls = [], walls = [], gravity, currentZoom = 1.0, targetZoom = 1.0, wallSp
 let gameState = 'MENU'; // MENU, PLAYING
 let currentPalette = [];
 let bgOpacity = 30; // Default trail fade
+let particles = []; // Firework particles
 
 const PALETTES = {
     'Neon': ['#FF00FF', '#00FFFF', '#BFFF00', '#B026FF'],
@@ -98,6 +99,7 @@ function resetSim() {
     }];
     gravity = createVector(0, 0.12);
     walls = [];
+    particles = [];
     ringsBroken = 0;
     currentZoom = 1.0;
     targetZoom = 1.0;
@@ -183,6 +185,9 @@ function draw() {
             if (diff > 180) diff = 360 - diff;
 
             if (diff < 22) {
+                // Trigger explosion at ball's position
+                createExplosion(b.pos.x, b.pos.y, w.color);
+
                 w.broken = true;
                 b.color = w.color;
                 ringsBroken++;
@@ -214,7 +219,45 @@ function draw() {
         fill(b.color);
         circle(b.pos.x, b.pos.y, 14 / currentZoom);
     }
+
+    // 3. PARTICLES
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.pos.add(p.vel);
+        p.vel.mult(0.92); // Drag
+        p.life -= p.decay;
+
+        if (p.life <= 0) {
+            particles.splice(i, 1);
+        } else {
+            let c = color(p.color);
+            c.setAlpha(p.life);
+            fill(c);
+            noStroke();
+            // Scale particle size slightly inversely to zoom to keep them visible but dynamic
+            circle(p.pos.x, p.pos.y, map(p.life, 0, 255, 0, 6) / currentZoom);
+        }
+    }
+
     pop();
+}
+
+function createExplosion(x, y, colorHex) {
+    for (let i = 0; i < 40; i++) {
+        let speed = random(2, 7);
+        let angle = random(360);
+        let vel = createVector(cos(angle) * speed, sin(angle) * speed);
+        // Add some random variation to velocity
+        vel.add(p5.Vector.random2D().mult(0.5));
+
+        particles.push({
+            pos: createVector(x, y),
+            vel: vel,
+            color: colorHex,
+            life: 255,
+            decay: random(4, 10)
+        });
+    }
 }
 
 function windowResized() { resizeCanvas(windowWidth, windowHeight); }
