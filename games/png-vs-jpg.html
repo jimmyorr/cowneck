@@ -341,6 +341,7 @@
         let currentImageName = '';
         let isProcessing = false;
         let currentDifficulty = 'classic'; // 'easy', 'normal', 'hard', 'classic'
+        let remainingImages = [];
 
         const container1 = document.getElementById('choice-1');
         const container2 = document.getElementById('choice-2');
@@ -353,10 +354,22 @@
         const gameWrapper = document.getElementById('game-wrapper');
         const scoreBoard = document.getElementById('score-board');
 
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
         function startGame(difficulty) {
             currentDifficulty = difficulty;
             score = 0;
             document.getElementById('score').textContent = score;
+
+            // Initialize deck
+            remainingImages = [...birdImages];
+            shuffleArray(remainingImages);
 
             mainMenu.classList.add('hidden');
             gameWrapper.classList.add('active');
@@ -370,10 +383,6 @@
             gameWrapper.classList.remove('active');
             scoreBoard.classList.remove('active');
             mainMenu.classList.remove('hidden');
-        }
-
-        function getRandomBird() {
-            return birdImages[Math.floor(Math.random() * birdImages.length)];
         }
 
         async function loadImage(src) {
@@ -409,7 +418,34 @@
             return canvas.toDataURL('image/jpeg', quality);
         }
 
+        function endGame() {
+            feedbackOverlay.className = 'feedback-overlay active';
+            feedbackIcon.textContent = '🏆';
+            feedbackText.innerHTML = `Game Over!<br>Score: ${score} / ${birdImages.length}`;
+
+            // Clear existing buttons
+            const buttons = feedbackOverlay.querySelectorAll('button');
+            buttons.forEach(btn => btn.style.display = 'none');
+
+            // Add Menu Button
+            const menuBtn = document.createElement('button');
+            menuBtn.className = 'next-btn';
+            menuBtn.textContent = 'Main Menu';
+            menuBtn.onclick = () => {
+                // Reset buttons for next game
+                buttons.forEach(btn => btn.style.display = '');
+                menuBtn.remove();
+                showMenu();
+            };
+            feedbackOverlay.appendChild(menuBtn);
+        }
+
         async function nextRound() {
+            if (remainingImages.length === 0) {
+                endGame();
+                return;
+            }
+
             isProcessing = true;
             feedbackOverlay.classList.remove('active');
 
@@ -417,7 +453,7 @@
             container1.innerHTML = '<div class="spinner"></div>';
             container2.innerHTML = '<div class="spinner"></div>';
 
-            currentImageName = getRandomBird();
+            currentImageName = remainingImages.pop();
             const originalPath = `../birds/${currentImageName}`;
 
             try {
