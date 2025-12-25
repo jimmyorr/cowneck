@@ -570,7 +570,7 @@
             clearInterval(timerInterval);
             feedbackOverlay.className = 'feedback-overlay active';
             feedbackIcon.textContent = '🏆';
-            feedbackText.innerHTML = `Game Over!<br>Final Score: ${score}<br><span style="font-size: 1rem">Max Possible: ${birdImages.length * MAX_SCORE_PER_ROUND}</span>`;
+            feedbackText.innerHTML = `Game Over!<br>Final score: ${score}<br><span style="font-size: 1rem">Max possible: ${birdImages.length * MAX_SCORE_PER_ROUND}</span>`;
 
             // Clear existing buttons
             const buttons = feedbackOverlay.querySelectorAll('button');
