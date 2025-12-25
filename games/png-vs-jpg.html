@@ -811,7 +811,7 @@
             const list = data[currentDifficulty] || [];
 
             const now = new Date();
-            const dateStr = now.toLocaleDateString();
+            const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
             list.push({ name: name, score: newScore, date: dateStr });
             // Sort Descending
