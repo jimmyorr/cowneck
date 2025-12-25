@@ -404,6 +404,7 @@
         let pausedElapsed = 0;
         let pausedCountdown = 0;
         let wasInRound = false;
+        let totalRounds = 0;
 
         const container1 = document.getElementById('choice-1');
         const container2 = document.getElementById('choice-2');
@@ -508,8 +509,9 @@
             document.getElementById('score').textContent = score;
 
             // Initialize deck
-            remainingImages = [...birdImages];
-            shuffleArray(remainingImages);
+            const fullDeck = shuffleArray([...birdImages]);
+            remainingImages = fullDeck.slice(0, 10);
+            totalRounds = remainingImages.length;
 
             mainMenu.classList.add('hidden');
             gameWrapper.classList.add('active');
@@ -570,7 +572,7 @@
             clearInterval(timerInterval);
             feedbackOverlay.className = 'feedback-overlay active';
             feedbackIcon.textContent = '🏆';
-            feedbackText.innerHTML = `Game Over!<br>Final score: ${score}<br><span style="font-size: 1rem">Max possible: ${birdImages.length * MAX_SCORE_PER_ROUND}</span>`;
+            feedbackText.innerHTML = `Game Over!<br>Final score: ${score}<br><span style="font-size: 1rem">Max possible: ${totalRounds * MAX_SCORE_PER_ROUND}</span>`;
 
             // Clear existing buttons
             const buttons = feedbackOverlay.querySelectorAll('button');
