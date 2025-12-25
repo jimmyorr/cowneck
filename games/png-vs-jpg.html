@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNG vs JPG - The Ultimate Quality Test</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #f0f0f0;
+            --accent-color: #00ff88;
+            --danger-color: #ff3333;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            margin: 20px 0 10px;
+            font-size: 2rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        p.subtitle {
+            margin: 0 0 30px;
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 95%;
+            max-width: 1400px;
+            flex-grow: 1;
+            padding-bottom: 50px;
+        }
+
+        .image-choice {
+            flex: 1;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            aspect-ratio: 16/9;
+            background: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-choice:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .image-choice img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        .feedback-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .feedback-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .feedback-icon {
+            font-size: 10rem;
+            margin-bottom: 20px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .correct .feedback-icon {
+            color: var(--accent-color);
+            text-shadow: 0 0 50px rgba(0, 255, 136, 0.5);
+        }
+
+        .wrong .feedback-icon {
+            color: var(--danger-color);
+            text-shadow: 0 0 50px rgba(255, 51, 51, 0.5);
+        }
+
+        .feedback-text {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        button.next-btn {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s;
+        }
+
+        button.next-btn:active {
+            transform: scale(0.95);
+        }
+
+        .score-board {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+            }
+
+            80% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+
+            .image-choice {
+                width: 100%;
+                aspect-ratio: auto;
+                /* Let height adapt */
+                max-height: 40vh;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #333;
+            border-top: 5px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="score-board">Score: <span id="score">0</span></div>
+
+    <h1>PNG vs JPG</h1>
+    <p class="subtitle">Click the higher quality (PNG) image.</p>
+
+    <div class="game-container">
+        <div class="image-choice" id="choice-1" onclick="handleChoice(1)">
+            <div class="spinner"></div>
+        </div>
+        <div class="image-choice" id="choice-2" onclick="handleChoice(2)">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <div id="feedback" class="feedback-overlay">
+        <div class="feedback-icon" id="feedback-icon"></div>
+        <div class="feedback-text" id="feedback-text"></div>
+        <button class="next-btn" onclick="nextRound()">Next Round</button>
+    </div>
+
+    <!-- Hidden canvas for compression -->
+    <canvas id="compressor" style="display: none;"></canvas>
+
+    <script>
+        // List of available bird images in ../birds/
+        const birdImages = [
+            'canada-goose.png', 'cardinal.png', 'catbird.png', 'chickadee.png',
+            'downy.png', 'flicker.png', 'goldfinch.png', 'grackle.png',
+            'great-blue-heron.png', 'great-egret.png', 'herring-gull.png',
+            'house-finch.png', 'house-sparrow.png', 'hummingbird.png', 'jay.png',
+            'junco.png', 'mallard.png', 'mockingbird.png', 'mourning-dove.png',
+            'mute-swan.png', 'nuthatch.png', 'osprey.png', 'red-bellied-woodpecker.png',
+            'red-tailed-hawk.png', 'red-winged-blackbird.png', 'robin.png',
+            'rock-pigeon.png', 'song-sparrow.png', 'starling.png', 'titmouse.png',
+            'white-throated-sparrow.png', 'wren.png'
+        ];
+
+        let score = 0;
+        let correctSide = 0; // 1 or 2
+        let currentImageName = '';
+        let isProcessing = false;
+
+        const container1 = document.getElementById('choice-1');
+        const container2 = document.getElementById('choice-2');
+        const feedbackOverlay = document.getElementById('feedback');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const feedbackText = document.getElementById('feedback-text');
+        const canvas = document.getElementById('compressor');
+        const ctx = canvas.getContext('2d');
+
+        function getRandomBird() {
+            return birdImages[Math.floor(Math.random() * birdImages.length)];
+        }
+
+        async function loadImage(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = src;
+            });
+        }
+
+        async function createCompressedVersion(img) {
+            // Resize canvas to match image
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // Draw image to canvas
+            ctx.drawImage(img, 0, 0);
+
+            // Export as low quality JPG
+            // Quality 0.1 gives visible artifacts usually, but depends on image
+            // Maybe randomize quality slightly to vary difficulty?
+            const quality = 0.05 + Math.random() * 0.15; // 0.05 to 0.2
+            return canvas.toDataURL('image/jpeg', quality);
+        }
+
+        async function nextRound() {
+            isProcessing = true;
+            feedbackOverlay.classList.remove('active');
+
+            // Show loaders
+            container1.innerHTML = '<div class="spinner"></div>';
+            container2.innerHTML = '<div class="spinner"></div>';
+
+            currentImageName = getRandomBird();
+            const originalPath = `../birds/${currentImageName}`;
+
+            try {
+                // Load original
+                const originalImg = await loadImage(originalPath);
+
+                // Create compressed
+                const compressedDataUrl = await createCompressedVersion(originalImg);
+
+                // Decide which side is correct (1 or 2)
+                correctSide = Math.random() < 0.5 ? 1 : 2;
+
+                // Setup images
+                const img1 = new Image();
+                const img2 = new Image();
+
+                if (correctSide === 1) {
+                    img1.src = originalPath;
+                    img2.src = compressedDataUrl;
+                } else {
+                    img1.src = compressedDataUrl;
+                    img2.src = originalPath;
+                }
+
+                // Wait for both to be ready (src set is fast for dataURL, but good to be safe)
+                // For the file path one we might need to wait for load? actually we already loaded it once.
+
+                container1.innerHTML = '';
+                container1.appendChild(img1);
+
+                container2.innerHTML = '';
+                container2.appendChild(img2);
+
+                isProcessing = false;
+
+            } catch (err) {
+                console.error("Failed to load image", err);
+                // Try another one
+                nextRound();
+            }
+        }
+
+        function handleChoice(side) {
+            if (isProcessing) return;
+
+            const isCorrect = side === correctSide;
+
+            feedbackOverlay.className = 'feedback-overlay active ' + (isCorrect ? 'correct' : 'wrong');
+
+            if (isCorrect) {
+                feedbackIcon.textContent = '✓';
+                feedbackText.textContent = 'Correct!';
+                score++;
+            } else {
+                feedbackIcon.textContent = '✗';
+                feedbackText.textContent = 'Wrong!';
+                // score = 0; // Optional: reset score on fail? Or just keep going
+            }
+
+            document.getElementById('score').textContent = score;
+        }
+
+        // Start game
+        nextRound();
+
+    </script>
+</body>
+
+</html>
