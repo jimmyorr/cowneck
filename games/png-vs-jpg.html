@@ -449,7 +449,7 @@
         <button class="menu-btn easy" onclick="startGame('easy')">Easy</button>
         <button class="menu-btn normal" onclick="startGame('normal')">Normal</button>
         <button class="menu-btn hard" onclick="startGame('hard')">Hard</button>
-        <button class="menu-btn classic" onclick="startGame('classic')">Classic (Random)</button>
+        <button class="menu-btn classic" onclick="startGame('classic')">Classic (random)</button>
 
         <button class="menu-btn" style="margin-top: 20px; font-size: 1rem; padding: 10px 30px;"
             onclick="showLeaderboard()">🏆 Leaderboard</button>
@@ -476,17 +476,17 @@
     <div id="feedback" class="feedback-overlay">
         <div class="feedback-icon" id="feedback-icon"></div>
         <div class="feedback-text" id="feedback-text"></div>
-        <button class="next-btn" onclick="nextRound()">Next Round</button>
+        <button class="next-btn" onclick="nextRound()">Next round</button>
         <br>
         <button class="next-btn"
             style="font-size: 1rem; padding: 10px 20px; background: transparent; color: white; border: 1px solid white;"
-            onclick="showMenu()">Main Menu</button>
+            onclick="showMenu()">Main menu</button>
     </div>
 
     <div id="pause-menu" class="pause-menu">
         <h1>Paused</h1>
         <button class="next-btn" onclick="togglePause()">Resume</button>
-        <button class="menu-btn hard" style="margin-top: 20px;" onclick="showMenu()">Main Menu</button>
+        <button class="menu-btn hard" style="margin-top: 20px;" onclick="showMenu()">Main menu</button>
     </div>
 
     <!-- Leaderboard Overlay -->
@@ -720,7 +720,7 @@
 
             // Check for high score
             if (checkHighScore(score)) {
-                feedbackText.innerHTML = `New High Score!<br>${score}<br><span style="font-size: 1rem">Max possible: ${maxPossible}</span>`;
+                feedbackText.innerHTML = `New high score!<br>${score}<br><span style="font-size: 1rem">Max possible: ${maxPossible}</span>`;
 
                 // Clear existing buttons
                 const buttons = feedbackOverlay.querySelectorAll('button');
@@ -734,14 +734,14 @@
                 nameInput.type = 'text';
                 nameInput.className = 'high-score-input';
                 nameInput.maxLength = 10;
-                nameInput.placeholder = 'ENTER NAME';
+                nameInput.placeholder = 'Enter name';
                 nameInput.onkeyup = (e) => {
                     if (e.key === 'Enter') submitScore();
                 };
 
                 const submitBtn = document.createElement('button');
                 submitBtn.className = 'next-btn';
-                submitBtn.textContent = 'Submit Score';
+                submitBtn.textContent = 'Submit score';
                 submitBtn.onclick = submitScore;
 
                 formDiv.appendChild(nameInput);
@@ -766,7 +766,7 @@
                 }
 
             } else {
-                feedbackText.innerHTML = `Game Over!<br>Final score: ${score}<br><span style="font-size: 1rem">Max possible: ${maxPossible}</span>`;
+                feedbackText.innerHTML = `Game over!<br>Final score: ${score}<br><span style="font-size: 1rem">Max possible: ${maxPossible}</span>`;
 
                 // Clear existing buttons
                 const buttons = feedbackOverlay.querySelectorAll('button');
@@ -775,7 +775,7 @@
                 // Add Menu Button
                 const menuBtn = document.createElement('button');
                 menuBtn.className = 'next-btn';
-                menuBtn.textContent = 'Main Menu';
+                menuBtn.textContent = 'Main menu';
                 menuBtn.onclick = () => {
                     // Reset buttons for next game
                     buttons.forEach(btn => btn.style.display = '');
@@ -928,7 +928,7 @@
 
             feedbackOverlay.className = 'feedback-overlay active wrong';
             feedbackIcon.textContent = '⏱️';
-            feedbackText.textContent = 'Too Slow!';
+            feedbackText.textContent = 'Too slow!';
             // 0 points added
             document.getElementById('score').textContent = score;
 
