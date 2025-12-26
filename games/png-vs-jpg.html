@@ -1027,8 +1027,7 @@
                 score += points;
             } else {
                 feedbackIcon.textContent = '✗';
-                feedbackText.innerHTML = `Wrong!<br><span style="font-size: 1rem">-${MAX_SCORE_PER_ROUND} points</span>`;
-                score -= MAX_SCORE_PER_ROUND;
+                feedbackText.textContent = 'Wrong!';
             }
 
             document.getElementById('score').textContent = score;
