@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Speed Click Test</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0a0a12;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #app-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Header / Settings */
+        header {
+            padding: 20px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            color: #8899a6;
+            letter-spacing: 2px;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            background: #151a21;
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: #5b7083;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: #1d2b3a;
+            color: #29b6f6;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Main Click Area */
+        #click-zone {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            background: radial-gradient(circle at center, #161b22 0%, #0a0a12 70%);
+            transition: background 0.1s;
+            outline: none;
+        }
+
+        #click-zone:active, #click-zone.active-key {
+            background: radial-gradient(circle at center, #1c2530 0%, #0a0a12 70%);
+        }
+
+        /* HUD */
+        .hud {
+            pointer-events: none;
+            text-align: center;
+            z-index: 5;
+        }
+
+        .timer {
+            font-size: 120px;
+            font-weight: 800;
+            color: #333;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        
+        .timer.active {
+            color: #29b6f6;
+        }
+        
+        .timer.danger {
+            color: #ff3366;
+        }
+
+        .label {
+            font-size: 14px;
+            color: #8899a6;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .count-display {
+            font-size: 40px;
+            color: #fff;
+            margin-top: 20px;
+        }
+
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(41, 182, 246, 0.4);
+            pointer-events: none;
+            animation: rippleAnim 0.4s linear forwards;
+        }
+
+        @keyframes rippleAnim {
+            to {
+                transform: translate(-50%, -50%) scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Results Modal */
+        #results-modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 18, 0.95);
+            backdrop-filter: blur(5px);
+            z-index: 20;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-box {
+            background: #151a21;
+            border: 1px solid #2f3b4a;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: slideUp 0.3s ease-out;
+            max-width: 90%;
+            width: 400px;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .result-title { color: #8899a6; font-size: 14px; letter-spacing: 2px; }
+        .result-cps { font-size: 50px; color: #fff; font-weight: 800; margin: 5px 0; }
+        
+        .rank-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #1d2b3a;
+            color: #29b6f6;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 20px;
+            margin: 15px 0;
+            text-transform: uppercase;
+            border: 2px solid #29b6f6;
+            box-shadow: 0 0 15px rgba(41, 182, 246, 0.2);
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .speed-display {
+            font-size: 18px;
+            color: #aaa;
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        .speed-number {
+            color: #ffcc00;
+            font-size: 24px;
+        }
+
+        .result-detail { color: #8899a6; margin-bottom: 30px; font-size: 12px; }
+        
+        .btn-restart {
+            background: #29b6f6;
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            border-radius: 6px;
+            text-transform: uppercase;
+            width: 100%;
+        }
+        
+        .btn-restart:hover {
+            background: #039be5;
+            transform: translateY(-2px);
+        }
+
+        /* Flash stamp effect for rank */
+        .stamp {
+            animation: stampIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes stampIn {
+            0% { opacity: 0; transform: scale(3) rotate(-10deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <header>
+            <h1>SPEED CLICK</h1>
+            <div class="mode-selector">
+                <button class="mode-btn" onclick="setMode(1)">1s</button>
+                <button class="mode-btn" onclick="setMode(3)">3s</button>
+                <button class="mode-btn active" onclick="setMode(5)">5s</button>
+                <button class="mode-btn" onclick="setMode(10)">10s</button>
+            </div>
+        </header>
+
+        <div id="click-zone">
+            <div class="hud">
+                <div id="timer" class="timer">5.00</div>
+                <div class="label">Seconds</div>
+                <div id="count-display" class="count-display">0 CLICKS</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="results-modal">
+        <div class="result-box">
+            <div class="result-title">SPEED RESULTS</div>
+            <div id="final-cps" class="result-cps">0.0 CPS</div>
+            
+            <div id="final-rank" class="rank-badge stamp">CAR</div>
+            
+            <div class="speed-display">
+                VIRTUAL SPEED: <span id="final-speed" class="speed-number">0 MPH</span>
+            </div>
+
+            <div id="final-detail" class="result-detail">0 clicks in 5 seconds</div>
+            <button class="btn-restart" onclick="resetGame()">TRY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let clicks = 0;
+        let isActive = false;
+        let duration = 5;
+        let timeLeft = 5;
+        let timerInterval = null;
+        let hasEnded = false;
+
+        // Elements
+        const timerEl = document.getElementById('timer');
+        const countEl = document.getElementById('count-display');
+        const zone = document.getElementById('click-zone');
+        const modal = document.getElementById('results-modal');
+        const btns = document.querySelectorAll('.mode-btn');
+
+        // Audio
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playClickSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            // Randomize pitch
+            const freq = 600 + Math.random() * 200;
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+            
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // Logic
+        function setMode(seconds) {
+            if (isActive) return;
+            duration = seconds;
+            resetGame();
+            
+            // Update UI buttons
+            btns.forEach(btn => {
+                btn.classList.remove('active');
+                if (parseInt(btn.innerText) === seconds) btn.classList.add('active');
+            });
+        }
+
+        function formatTime(num) {
+            return num.toFixed(2);
+        }
+
+        function startGame() {
+            isActive = true;
+            clicks = 1; // Count first click
+            timeLeft = duration;
+            timerEl.classList.add('active');
+            
+            updateDisplay();
+
+            const startTime = Date.now();
+            
+            timerInterval = setInterval(() => {
+                const elapsed = (Date.now() - startTime) / 1000;
+                timeLeft = Math.max(0, duration - elapsed);
+                
+                timerEl.innerText = formatTime(timeLeft);
+                
+                if (timeLeft <= 1.0) {
+                    timerEl.classList.remove('active');
+                    timerEl.classList.add('danger');
+                }
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 10);
+        }
+
+        // Expanded Rank System (Added Specific Hypercars)
+        const RANKS = [
+            { cps: 15.0, name: "OMNIPRESENCE", speed: "∞" },
+            { cps: 14.8, name: "TIME TRAVEL", speed: "∞" },
+            { cps: 14.6, name: "QUANTUM LEAP", speed: "Instant" },
+            { cps: 14.4, name: "TELEPORTATION", speed: "Instant" },
+            { cps: 14.2, name: "WARP DRIVE", speed: "Warp 9" },
+            { cps: 14.0, name: "LIGHT BEAM", speed: "670,616,629" },
+            { cps: 13.5, name: "SUPERNOVA BLAST", speed: "20,000,000" },
+            { cps: 13.0, name: "LIGHTNING BOLT", speed: "270,000" },
+            { cps: 12.5, name: "INTERSTELLAR PROBE", speed: "38,000" },
+            { cps: 12.0, name: "ESCAPE VELOCITY", speed: "25,000" },
+            { cps: 11.5, name: "SPACE STATION", speed: "17,500" },
+            { cps: 11.0, name: "BALLISTIC MISSILE", speed: "15,000" },
+            { cps: 10.8, name: "RE-ENTRY POD", speed: "12,000" },
+            { cps: 10.6, name: "HYPERSONIC GLIDER", speed: "7,600" },
+            { cps: 10.4, name: "SCRAMJET VEHICLE", speed: "5,000" },
+            { cps: 10.2, name: "RAILGUN SHOT", speed: "4,500" },
+            { cps: 10.0, name: "MACH 3 SPY PLANE", speed: "2,200" },
+            { cps: 9.8, name: "STEALTH FIGHTER", speed: "1,500" },
+            { cps: 9.6, name: "SUPERSONIC AIRLINER", speed: "1,350" },
+            { cps: 9.4, name: "LAND SPEED RECORD", speed: "763" },
+            { cps: 9.2, name: "SOUND WAVE", speed: "767" },
+            { cps: 9.0, name: "COMMERCIAL JET", speed: "575" },
+            
+            // --- ADDED HYPERCARS ---
+            { cps: 8.95, name: "KOENIGSEGG JESKO", speed: "330+" },
+            { cps: 8.90, name: "HENNESSEY VENOM F5", speed: "301" },
+            { cps: 8.85, name: "SSC TUATARA", speed: "295" },
+            { cps: 8.80, name: "BUGATTI CHIRON", speed: "304" },
+            { cps: 8.75, name: "TOP FUEL DRAGSTER", speed: "330" },
+            { cps: 8.70, name: "KOENIGSEGG AGERA RS", speed: "277" },
+            { cps: 8.65, name: "HENNESSEY VENOM GT", speed: "270" },
+            { cps: 8.60, name: "BUGATTI VEYRON SS", speed: "267" },
+            { cps: 8.55, name: "MCLAREN SPEEDTAIL", speed: "250" },
+            { cps: 8.50, name: "ASTON MARTIN VALKYRIE", speed: "250" },
+            { cps: 8.45, name: "TESLA ROADSTER", speed: "250+" },
+            { cps: 8.40, name: "PAGANI HUAYRA", speed: "238" },
+            { cps: 8.35, name: "FERRARI LAFERRARI", speed: "217" },
+            { cps: 8.30, name: "LAMBORGHINI AVENTADOR", speed: "217" },
+            { cps: 8.25, name: "PORSCHE 918 SPYDER", speed: "214" },
+            { cps: 8.20, name: "FORD GT", speed: "216" },
+            { cps: 8.15, name: "MCLAREN P1", speed: "217" },
+            { cps: 8.10, name: "FERRARI ENZO", speed: "218" },
+            { cps: 8.00, name: "LAMBORGHINI VENENO", speed: "221" },
+            // -----------------------
+
+            { cps: 7.8, name: "FORMULA 1 CAR", speed: "230" },
+            { cps: 7.6, name: "NASCAR", speed: "200" },
+            { cps: 7.4, name: "BULLET TRAIN", speed: "200" },
+            { cps: 7.2, name: "HELICOPTER", speed: "160" },
+            { cps: 7.0, name: "SKYDIVING", speed: "120" },
+            { cps: 6.8, name: "POLICE CHASE", speed: "110" },
+            { cps: 6.6, name: "ROLLER COASTER", speed: "100" },
+            { cps: 6.4, name: "INTERSTATE TRAFFIC", speed: "75" },
+            { cps: 6.2, name: "CHEETAH", speed: "70" },
+            { cps: 6.0, name: "SUBWAY TRAIN", speed: "55" },
+            { cps: 5.8, name: "AMBULANCE", speed: "60" },
+            { cps: 5.6, name: "RACEHORSE", speed: "45" },
+            { cps: 5.4, name: "GREYHOUND DOG", speed: "45" },
+            { cps: 5.2, name: "SCHOOL BUS", speed: "45" },
+            { cps: 5.0, name: "OSTRICH", speed: "43" },
+            { cps: 4.8, name: "OLYMPIC SPRINTER", speed: "27" },
+            { cps: 4.6, name: "MOPED", speed: "30" },
+            { cps: 4.4, name: "GOLF CART", speed: "25" },
+            { cps: 4.2, name: "CHARGING ELEPHANT", speed: "25" },
+            { cps: 4.0, name: "PRO CYCLIST", speed: "25" },
+            { cps: 3.8, name: "TUK-TUK", speed: "25" },
+            { cps: 3.6, name: "ELECTRIC SCOOTER", speed: "15" },
+            { cps: 3.4, name: "BICYCLE", speed: "15" },
+            { cps: 3.2, name: "MARATHON RUNNER", speed: "13" },
+            { cps: 3.0, name: "JOGGER", speed: "6" },
+            { cps: 2.8, name: "SKATEBOARD", speed: "10" },
+            { cps: 2.6, name: "SWIMMER", speed: "5" },
+            { cps: 2.4, name: "FAST WALK", speed: "4" },
+            { cps: 2.0, name: "CASUAL WALK", speed: "3" },
+            { cps: 1.5, name: "CRAWLING BABY", speed: "1" },
+            { cps: 1.0, name: "GIANT TORTOISE", speed: "0.2" },
+            { cps: 0.5, name: "GARDEN SNAIL", speed: "0.03" },
+            { cps: 0.0, name: "TECTONIC PLATE", speed: "0.000001" }
+        ];
+
+        function getRankAndSpeed(cps) {
+            // Find the first rank where cps >= limit
+            const rank = RANKS.find(r => cps >= r.cps) || RANKS[RANKS.length - 1];
+            return { rank: rank.name, speed: rank.speed };
+        }
+
+        function endGame() {
+            isActive = false;
+            hasEnded = true;
+            clearInterval(timerInterval);
+            timerEl.innerText = "0.00";
+            
+            // Calculate Stats
+            const cps = parseFloat((clicks / duration).toFixed(2));
+            const stats = getRankAndSpeed(cps);
+            
+            document.getElementById('final-cps').innerText = `${cps} CPS`;
+            document.getElementById('final-rank').innerText = stats.rank;
+            document.getElementById('final-speed').innerText = `${stats.speed} MPH`;
+            document.getElementById('final-detail').innerText = `${clicks} clicks in ${duration} seconds`;
+            
+            // Color code based on CPS
+            const rankEl = document.getElementById('final-rank');
+            if (cps >= 10) {
+                rankEl.style.color = '#ffcc00'; // Gold/Yellow
+                rankEl.style.borderColor = '#ffcc00';
+            } else if (cps >= 7) {
+                rankEl.style.color = '#29b6f6'; // Blue
+                rankEl.style.borderColor = '#29b6f6';
+            } else {
+                rankEl.style.color = '#fff'; // White
+                rankEl.style.borderColor = '#fff';
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        function resetGame() {
+            isActive = false;
+            hasEnded = false;
+            clicks = 0;
+            timeLeft = duration;
+            clearInterval(timerInterval);
+            
+            timerEl.innerText = formatTime(duration);
+            timerEl.classList.remove('active', 'danger');
+            countEl.innerText = "0 CLICKS";
+            modal.style.display = 'none';
+        }
+
+        function createRipple(x, y) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            
+            const size = 50 + Math.random() * 50;
+            ripple.style.width = `${size}px`;
+            ripple.style.height = `${size}px`;
+
+            zone.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 400);
+        }
+
+        function handleInput(e) {
+            if (hasEnded) return;
+
+            // Handle start
+            if (!isActive) {
+                startGame();
+            } else {
+                clicks++;
+            }
+
+            updateDisplay();
+            playClickSound();
+        }
+
+        function updateDisplay() {
+            countEl.innerText = `${clicks} CLICKS`;
+        }
+
+        // Mouse/Touch Interaction
+        const clickHandler = (e) => {
+            handleInput(e);
+
+            const rect = zone.getBoundingClientRect();
+            let x, y;
+
+            if (e.type === 'touchstart') {
+                const touch = e.touches[0];
+                x = touch.clientX - rect.left;
+                y = touch.clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+            createRipple(x, y);
+        };
+
+        zone.addEventListener('mousedown', clickHandler);
+        zone.addEventListener('touchstart', (e) => {
+            if(e.target.closest('.hud') || e.target === zone) {
+                 clickHandler(e);
+            }
+        }, {passive: false});
+
+        // Spacebar Interaction
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.repeat && !hasEnded) {
+                // Visual feedback for keyboard press
+                zone.classList.add('active-key');
+                setTimeout(() => zone.classList.remove('active-key'), 100);
+                
+                // Create random ripple in center
+                const rect = zone.getBoundingClientRect();
+                const centerX = rect.width / 2 + (Math.random() * 100 - 50);
+                const centerY = rect.height / 2 + (Math.random() * 100 - 50);
+                createRipple(centerX, centerY);
+                
+                handleInput(e);
+            }
+        });
+
+        // Initialize
+        resetGame();
+
+    </script>
+</body>
+</html>
