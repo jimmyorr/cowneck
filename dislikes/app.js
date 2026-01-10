@@ -345,21 +345,38 @@ function renderVideoList() {
     state.filteredVideos.forEach(video => {
         const clone = dom.videoTemplate.content.cloneNode(true);
 
+        const title = video.snippet.title;
+        const isDeleted = title === 'Deleted video' || title === 'Private video';
         const isMusic = video.snippet.categoryId === '10';
         const thumbnail = video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default?.url;
-        const viewCount = new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(video.statistics.viewCount);
+        const viewCount = video.statistics?.viewCount
+            ? new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(video.statistics.viewCount)
+            : 'N/A';
 
         // Image & Link
         const img = clone.querySelector('.video-thumbnail');
-        img.src = thumbnail;
-        img.alt = video.snippet.title;
+        const overlay = clone.querySelector('.deleted-overlay');
+
+        img.src = thumbnail || '';
+        img.alt = title;
+
+        // Detection Method 1: Metadata check
+        if (isDeleted) {
+            overlay.classList.remove('hidden');
+        }
+
+        // Detection Method 2: 404 check (thumbnail doesn't exist)
+        img.onerror = () => {
+            overlay.classList.remove('hidden');
+            img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; // Transparent pixel
+        };
 
         const link = clone.querySelector('.video-link');
         link.href = `https://www.youtube.com/watch?v=${video.id}`;
 
         // Title & Music Icon
         const titleEl = clone.querySelector('.video-title');
-        titleEl.innerHTML = highlightMatch(video.snippet.title, state.debouncedSearchTerm);
+        titleEl.innerHTML = highlightMatch(title, state.debouncedSearchTerm);
 
         if (isMusic) {
             clone.querySelector('.music-badge').classList.remove('hidden');
@@ -367,8 +384,8 @@ function renderVideoList() {
 
         // Channel Info
         const channelEl = clone.querySelector('.channel-title');
-        channelEl.innerHTML = highlightMatch(video.snippet.channelTitle, state.debouncedSearchTerm);
-        clone.querySelector('.view-count').textContent = `${viewCount} views`;
+        channelEl.innerHTML = highlightMatch(video.snippet.channelTitle || 'Unknown channel', state.debouncedSearchTerm);
+        clone.querySelector('.view-count').textContent = isDeleted ? 'No stats available' : `${viewCount} views`;
 
         dom.videoGrid.appendChild(clone);
     });
