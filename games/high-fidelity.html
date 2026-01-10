@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PNG vs JPG - The Ultimate Quality Test</title>
+    <title>High Fidelity - The Ultimate Quality Test</title>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
     <script>
@@ -443,15 +443,25 @@
 
     <!-- Main Menu -->
     <div class="main-menu" id="main-menu">
-        <h1>PNG vs JPG</h1>
-        <p class="subtitle">Can you tell the difference?</p>
+        <h1>High Fidelity</h1>
+        <p class="subtitle">Can you spot the compression?</p>
 
-        <button class="menu-btn easy" onclick="startGame('easy')">Easy</button>
-        <button class="menu-btn normal" onclick="startGame('normal')">Normal</button>
-        <button class="menu-btn hard" onclick="startGame('hard')">Hard</button>
-        <button class="menu-btn classic" onclick="startGame('classic')">Classic (random)</button>
+        <div style="margin-bottom: 25px; text-align: center; max-width: 400px;">
+            <div style="margin-bottom: 15px;">
+                <button class="menu-btn easy" onclick="startGame('easy')" style="margin-bottom: 5px;">Easy</button>
+                <div style="font-size: 0.85rem; color: #888;">Low-quality JPEG (10%) - Obvious artifacts.</div>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <button class="menu-btn normal" onclick="startGame('mid')" style="margin-bottom: 5px;">Mid</button>
+                <div style="font-size: 0.85rem; color: #888;">Mid-quality JPEG (40%) - Noticeable ringing.</div>
+            </div>
+            <div style="margin-bottom: 25px;">
+                <button class="menu-btn hard" onclick="startGame('hard')" style="margin-bottom: 5px;">Hard</button>
+                <div style="font-size: 0.85rem; color: #888;">High-quality JPEG (75%) - Subtle feathering.</div>
+            </div>
+        </div>
 
-        <button class="menu-btn" style="margin-top: 20px; font-size: 1rem; padding: 10px 30px;"
+        <button class="menu-btn" style="margin-top: 10px; font-size: 1rem; padding: 10px 30px; width: auto;"
             onclick="showLeaderboard()">🏆 Leaderboard</button>
     </div>
 
@@ -460,8 +470,8 @@
         <div class="timer-bar-container">
             <div class="timer-bar" id="timer-bar"></div>
         </div>
-        <h1>PNG vs JPG</h1>
-        <p class="subtitle">Click the higher quality (PNG) image.</p>
+        <h1>High Fidelity</h1>
+        <p class="subtitle">Click the higher fidelity (uncompressed) image.</p>
 
         <div class="game-container">
             <div class="image-choice" id="choice-1" onclick="handleChoice(1)">
@@ -519,22 +529,22 @@
     <script>
         // List of available bird images in ../birds/
         const birdImages = [
-            'canada-goose.png', 'cardinal.png', 'catbird.png', 'chickadee.png',
-            'downy.png', 'flicker.png', 'goldfinch.png', 'grackle.png',
-            'great-blue-heron.png', 'great-egret.png', 'herring-gull.png',
-            'house-finch.png', 'house-sparrow.png', 'hummingbird.png', 'jay.png',
-            'junco.png', 'mallard.png', 'mockingbird.png', 'mourning-dove.png',
-            'mute-swan.png', 'nuthatch.png', 'osprey.png', 'red-bellied-woodpecker.png',
-            'red-tailed-hawk.png', 'red-winged-blackbird.png', 'robin.png',
-            'rock-pigeon.png', 'song-sparrow.png', 'starling.png', 'titmouse.png',
-            'white-throated-sparrow.png', 'wren.png'
+            'canada-goose.webp', 'cardinal.webp', 'catbird.webp', 'chickadee.webp',
+            'downy.webp', 'flicker.webp', 'goldfinch.webp', 'grackle.webp',
+            'great-blue-heron.webp', 'great-egret.webp', 'herring-gull.webp',
+            'house-finch.webp', 'house-sparrow.webp', 'hummingbird.webp', 'jay.webp',
+            'junco.webp', 'mallard.webp', 'mockingbird.webp', 'mourning-dove.webp',
+            'mute-swan.webp', 'nuthatch.webp', 'osprey.webp', 'red-bellied-woodpecker.webp',
+            'red-tailed-hawk.webp', 'red-winged-blackbird.webp', 'robin.webp',
+            'rock-pigeon.webp', 'song-sparrow.webp', 'starling.webp', 'titmouse.webp',
+            'white-throated-sparrow.webp', 'wren.webp'
         ];
 
         let score = 0;
         let correctSide = 0; // 1 or 2
         let currentImageName = '';
         let isProcessing = false;
-        let currentDifficulty = 'classic'; // 'easy', 'normal', 'hard', 'classic'
+        let currentDifficulty = 'easy'; // 'easy', 'mid', 'hard'
         let remainingImages = [];
 
         // Timer variables
@@ -700,14 +710,11 @@
             let quality;
 
             if (currentDifficulty === 'easy') {
-                quality = 0.1;
-            } else if (currentDifficulty === 'normal') {
-                quality = 0.4;
-            } else if (currentDifficulty === 'hard') {
-                quality = 0.85;
+                quality = 0.10;
+            } else if (currentDifficulty === 'mid') {
+                quality = 0.40;
             } else {
-                // Classic / Random
-                quality = 0.05 + Math.random() * 0.15; // 0.05 to 0.2
+                quality = 0.75;
             }
 
             return canvas.toDataURL('image/jpeg', quality);
@@ -792,7 +799,7 @@
             const data = localStorage.getItem('pngVsJpgLeaderboard');
             if (data) return JSON.parse(data);
             return {
-                easy: [], normal: [], hard: [], classic: []
+                easy: [], mid: [], hard: []
             };
         }
 
@@ -845,7 +852,7 @@
             // Render Tabs
             const tabsContainer = document.getElementById('leaderboard-tabs');
             tabsContainer.innerHTML = '';
-            ['easy', 'normal', 'hard', 'classic'].forEach(diff => {
+            ['easy', 'mid', 'hard'].forEach(diff => {
                 const btn = document.createElement('button');
                 btn.className = `tab-btn ${diff === difficulty ? 'active' : ''}`;
                 btn.textContent = diff.charAt(0).toUpperCase() + diff.slice(1);
@@ -963,7 +970,7 @@
             container2.innerHTML = '<div class="spinner"></div>';
 
             currentImageName = remainingImages.pop();
-            const originalPath = `../birds/${currentImageName}`;
+            const originalPath = `../birds/optimized_images/${currentImageName}`;
 
             try {
                 // Load original
