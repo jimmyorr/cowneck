@@ -2,10 +2,10 @@ import os
 import sys
 from PIL import Image
 
-def optimize_images(source_directory='.', output_directory=None, max_width=2048):
+def optimize_images(source_directory='.', output_directory=None, max_width=2048, format='WEBP', quality=80):
     """
     Scans the source_directory for images, resizes them to a max_width,
-    converts them to JPG (quality 80), and saves them to output_directory.
+    converts them to the specified format (default WEBP), and saves them to output_directory.
     """
     
     # If no output directory specified, create it as a subdirectory under source_directory
@@ -13,7 +13,7 @@ def optimize_images(source_directory='.', output_directory=None, max_width=2048)
         output_directory = os.path.join(source_directory, 'optimized_images')
     
     # Supported input formats
-    valid_extensions = ('.png', '.jpg', '.jpeg', '.tiff', '.bmp')
+    valid_extensions = ('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.webp')
     
     # Create output directory if it doesn't exist
     if not os.path.exists(output_directory):
@@ -22,6 +22,9 @@ def optimize_images(source_directory='.', output_directory=None, max_width=2048)
 
     files = [f for f in os.listdir(source_directory) if f.lower().endswith(valid_extensions)]
     
+    # Exclude output directory if it's inside source directory
+    files = [f for f in files if os.path.isfile(os.path.join(source_directory, f))]
+    
     print(f"Found {len(files)} images to process...")
 
     for filename in files:
@@ -29,10 +32,6 @@ def optimize_images(source_directory='.', output_directory=None, max_width=2048)
         
         try:
             with Image.open(file_path) as img:
-                # Convert to RGB (necessary for PNG to JPG conversion to handle transparency)
-                if img.mode in ('RGBA', 'P'):
-                    img = img.convert('RGB')
-
                 # Calculate new height to maintain aspect ratio
                 width_percent = (max_width / float(img.size[0]))
                 
@@ -44,12 +43,19 @@ def optimize_images(source_directory='.', output_directory=None, max_width=2048)
                 else:
                     print(f"Copying {filename} (already small enough)...")
 
-                # Change extension to .jpg
-                new_filename = os.path.splitext(filename)[0] + '.jpg'
+                # Change extension based on format
+                ext = '.webp' if format.upper() == 'WEBP' else '.jpg'
+                new_filename = os.path.splitext(filename)[0] + ext
                 output_path = os.path.join(output_directory, new_filename)
 
                 # Save with optimization
-                img.save(output_path, 'JPEG', quality=85, optimize=True)
+                if format.upper() == 'WEBP':
+                    img.save(output_path, 'WEBP', quality=quality, lossless=False)
+                else:
+                    # Convert to RGB if saving as JPEG
+                    if img.mode in ('RGBA', 'P'):
+                        img = img.convert('RGB')
+                    img.save(output_path, 'JPEG', quality=quality, optimize=True)
                 
                 # Compare sizes
                 original_size = os.path.getsize(file_path) / 1024
@@ -64,4 +70,4 @@ def optimize_images(source_directory='.', output_directory=None, max_width=2048)
 if __name__ == "__main__":
     # Get source directory from command-line argument, default to current directory
     source_directory = sys.argv[1] if len(sys.argv) > 1 else '.'
-    optimize_images(source_directory)
+    optimize_images(source_directory, format='WEBP', quality=80)
