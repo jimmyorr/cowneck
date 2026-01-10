@@ -28,6 +28,7 @@ const dom = {
     authIconLogin: document.getElementById('auth-icon-login'),
     authText: document.getElementById('auth-text'),
     heroAuthButton: document.getElementById('hero-auth-button'),
+    signoutButton: document.getElementById('signout-button'),
 
     viewWelcome: document.getElementById('view-welcome'),
     viewContent: document.getElementById('view-content'),
@@ -91,6 +92,7 @@ function initGis() {
                         showError('Authorization failed: ' + resp.error);
                         return;
                     }
+                    saveToken(resp);
                     state.isAuthenticated = true;
                     render();
                     fetchDislikes();
@@ -103,15 +105,48 @@ function initGis() {
     }, 100);
 }
 
+function saveToken(resp) {
+    const tokenData = {
+        ...resp,
+        expires_at: Date.now() + (resp.expires_in * 1000)
+    };
+    localStorage.setItem('yt_dislikes_token', JSON.stringify(tokenData));
+}
+
+function loadToken() {
+    const data = localStorage.getItem('yt_dislikes_token');
+    if (!data) return null;
+    try {
+        const tokenData = JSON.parse(data);
+        // If it's expiring in less than 5 minutes, consider it expired
+        if (Date.now() > (tokenData.expires_at - 300000)) {
+            localStorage.removeItem('yt_dislikes_token');
+            return null;
+        }
+        return tokenData;
+    } catch (e) {
+        return null;
+    }
+}
+
 function checkReady() {
     if (state.gapiInited && state.gisInited) {
-        render(); // Update UI to enable buttons
+        const token = loadToken();
+        if (token && !state.isAuthenticated) {
+            window.gapi.client.setToken(token);
+            state.isAuthenticated = true;
+            render();
+            fetchDislikes();
+        } else {
+            render(); // Update UI to enable buttons
+        }
     }
 }
 
 function setupEventListeners() {
     dom.authButton.addEventListener('click', handleAuthClick);
     dom.heroAuthButton.addEventListener('click', handleAuthClick);
+    dom.signoutButton.addEventListener('click', handleSignout);
 
     const debouncedSearch = debounce((value) => {
         state.debouncedSearchTerm = value;
@@ -199,12 +234,36 @@ function checkIfDeleted(video) {
 
 function handleAuthClick() {
     if (state.tokenClient) {
-        if (window.gapi.client.getToken() === null) {
-            state.tokenClient.requestAccessToken({ prompt: 'consent' });
-        } else {
-            state.tokenClient.requestAccessToken({ prompt: '' });
-        }
+        // Use prompt: '' to avoid forcing the consent screen if already granted
+        state.tokenClient.requestAccessToken({ prompt: '' });
     }
+}
+
+function handleSignout() {
+    // Clear Google API token
+    const token = window.gapi.client.getToken();
+    if (token !== null) {
+        window.google.accounts.oauth2.revoke(token.access_token, () => {
+            console.log('Token revoked');
+        });
+        window.gapi.client.setToken(null);
+    }
+
+    // Clear local storage
+    localStorage.removeItem('yt_dislikes_token');
+
+    // Reset state
+    state.isAuthenticated = false;
+    state.videos = [];
+    state.filteredVideos = [];
+    state.nextPageToken = null;
+    state.searchTerm = '';
+    state.debouncedSearchTerm = '';
+
+    // Clear UI
+    dom.searchInput.value = '';
+
+    render();
 }
 
 // --- Logic ---
@@ -234,6 +293,12 @@ async function fetchDislikes(pageToken = null) {
         filterVideos();
     } catch (err) {
         console.error("Fetch error", err);
+        if (err?.status === 401) {
+            // Token expired or invalid
+            localStorage.removeItem('yt_dislikes_token');
+            state.isAuthenticated = false;
+            render();
+        }
         setError(err?.result?.error?.message || "Failed to fetch disliked videos.");
     } finally {
         setLoading(false, isLoadMore);

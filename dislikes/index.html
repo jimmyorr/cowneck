@@ -76,10 +76,22 @@
 
             <div class="flex items-center gap-4">
                 <!-- Authenticated State Indicator -->
-                <div id="auth-indicator"
-                    class="hidden md:flex items-center gap-2 text-sm text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    Authenticated
+                <div id="auth-indicator" class="hidden flex items-center gap-3">
+                    <div
+                        class="hidden md:flex items-center gap-2 text-sm text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">
+                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                        Authenticated
+                    </div>
+                    <button id="signout-button"
+                        class="text-sm font-medium text-slate-500 hover:text-red-600 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-red-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" x2="9" y1="12" y2="12" />
+                        </svg>
+                        Sign out
+                    </button>
                 </div>
 
                 <!-- Sign In Button -->
