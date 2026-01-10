@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Dislikes</title>
+    <title>Dislikes</title>
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
@@ -70,9 +70,16 @@
                     </svg>
                 </div>
                 <h1 class="text-xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
-                    YouTube Dislikes
+                    Dislikes
                 </h1>
             </div>
+
+            <nav class="hidden md:flex items-center gap-6 mr-auto ml-10">
+                <a href="privacy.html"
+                    class="text-sm font-medium text-slate-500 hover:text-red-600 transition-colors">Privacy policy</a>
+                <a href="https://github.com/jimmyorr/cowneck/tree/main/dislikes" target="_blank"
+                    class="text-sm font-medium text-slate-500 hover:text-red-600 transition-colors">GitHub</a>
+            </nav>
 
             <div class="flex items-center gap-4">
                 <!-- Authenticated State Indicator -->
@@ -132,26 +139,86 @@
             </div>
         </div>
 
-        <!-- View: Welcome / Login -->
-        <div id="view-welcome" class="flex flex-col items-center justify-center py-20 text-center">
-            <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
+        <!-- View: Welcome / Landing Page -->
+        <div id="view-welcome" class="flex flex-col items-center py-12 md:py-20 text-center">
+            <div
+                class="w-24 h-24 bg-red-100 rounded-3xl flex items-center justify-center text-red-500 mb-8 transform -rotate-12">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M17 14V2" />
                     <path
                         d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z" />
                 </svg>
             </div>
-            <h2 class="text-3xl font-bold text-slate-800 mb-3">Your disliked videos</h2>
-            <p class="text-slate-500 max-w-md mx-auto mb-8">
-                Sign in to view a list of videos you've disliked on YouTube. This tool uses the official
-                YouTube API to fetch your private rating history.
+
+            <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
+                Your YouTube <span class="text-red-600">disliked</span> videos
+            </h2>
+            <p class="text-lg text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+                Dislikes helps you rediscover and explore your rating history on YouTube.
+                View your full history of disliked videos, sort them by view count, or search for specific content
+                using our clean and modern interface.
             </p>
-            <button id="hero-auth-button" disabled
-                class="px-8 py-3 rounded-full font-bold text-lg transition-all transform hover:-translate-y-1 bg-slate-200 text-slate-400 cursor-not-allowed">
-                Initializing...
-            </button>
-            <p class="mt-4 text-xs text-slate-400">Read-only access required.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mb-12 text-left">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.3-4.3" />
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-slate-800 mb-2">Smart search</h3>
+                    <p class="text-sm text-slate-500">Instantly find specific videos by title or channel name across
+                        your entire history.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="w-10 h-10 bg-cyan-50 text-cyan-600 rounded-lg flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m21 16-4 4-4-4" />
+                            <path d="M17 20V4" />
+                            <path d="m3 8 4-4 4 4" />
+                            <path d="M7 4v16" />
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-slate-800 mb-2">Advanced sorting</h3>
+                    <p class="text-sm text-slate-500">Order your dislikes by date, view count, or channel to find the
+                        content you're looking for.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="w-10 h-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-slate-800 mb-2">Privacy first</h3>
+                    <p class="text-sm text-slate-500">Read-only access. Your data never leaves your browser and is never
+                        stored on our servers.</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center gap-4">
+                <button id="hero-auth-button" disabled
+                    class="px-10 py-4 rounded-full font-bold text-xl transition-all transform hover:-translate-y-1 bg-slate-200 text-slate-400 cursor-not-allowed shadow-lg">
+                    Initializing...
+                </button>
+                <div class="flex items-center gap-6 text-sm text-slate-400">
+                    <span class="flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="text-green-500">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                        </svg>
+                        Secure OAuth2
+                    </span>
+                    <a href="privacy.html" class="underline hover:text-slate-600 decoration-slate-300">Privacy
+                        policy</a>
+                </div>
+            </div>
         </div>
 
         <!-- View: App Content (Hidden Initially) -->
