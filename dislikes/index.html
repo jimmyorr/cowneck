@@ -3,7 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Dislikes</title>
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
     <script>
@@ -13,179 +15,45 @@
 
         gtag('config', 'G-6RNVL7JZVJ');
     </script>
+
+    <!-- React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel (to compile JSX in the browser) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Scripts -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+
     <style>
-        body {
-            font-family: sans-serif;
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
 
-        #content {
-            margin-top: 20px;
-        }
-
-        .video-item {
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-            padding: 10px 0;
-        }
-
-        .video-item img {
-            height: 60px;
-            margin-right: 15px;
-            border-radius: 4px;
-        }
-
-        .video-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .video-title {
-            font-weight: bold;
-        }
-
-        .video-meta {
-            font-size: 0.85rem;
-            color: #666;
-        }
-
-        .music-tag {
-            background: #e0f7fa;
-            color: #006064;
-            font-size: 0.75rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 8px;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #ff0000;
-            color: white;
-            border: none;
-            border-radius: 4px;
-        }
-
-        button:disabled {
-            background-color: #ccc;
+        .animate-spin {
+            animation: spin 1s linear infinite;
         }
     </style>
 </head>
 
-<body>
+<body class="bg-slate-50 text-slate-900 font-sans">
 
-    <h1>YouTube Dislikes 👎</h1>
-    <p>Click below to authenticate and load your disliked videos.</p>
+    <!-- React App Mount Point -->
+    <div id="root"></div>
 
-    <button id="auth-button" onclick="handleAuthClick()" disabled>Fetch dislikes</button>
-    <div id="status"></div>
-
-    <div id="content"></div>
-
-    <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
-    <script src="https://apis.google.com/js/api.js" async defer onload="gapiLoaded()"></script>
-
-    <script>
-        const CLIENT_ID = '932685095666-31l2s1psd94msj2a59d2ok7m4dfj3922.apps.googleusercontent.com';
-
-        // Scope for read-only account access
-        const SCOPES = 'https://www.googleapis.com/auth/youtube.readonly';
-
-        let tokenClient;
-        let gapiInited = false;
-        let gisInited = false;
-
-        function gapiLoaded() {
-            gapi.load('client', async () => {
-                await gapi.client.init({
-                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'],
-                });
-                gapiInited = true;
-                maybeEnableButton();
-            });
-        }
-
-        function gisLoaded() {
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: SCOPES,
-                callback: async (resp) => {
-                    if (resp.error) {
-                        throw resp;
-                    }
-                    await listDislikedVideos();
-                },
-            });
-            gisInited = true;
-            maybeEnableButton();
-        }
-
-        function maybeEnableButton() {
-            if (gapiInited && gisInited) {
-                const btn = document.getElementById('auth-button');
-                btn.removeAttribute('disabled');
-                btn.innerText = "Fetch dislikes";
-            }
-        }
-
-        // 3. Handle Login Click
-        function handleAuthClick() {
-            tokenClient.requestAccessToken();
-        }
-
-        // 4. Fetch Data
-        async function listDislikedVideos() {
-            document.getElementById('status').innerText = "Fetching data...";
-            const contentDiv = document.getElementById('content');
-            contentDiv.innerHTML = ''; // Clear previous
-
-            try {
-                // Request the videos
-                const response = await gapi.client.youtube.videos.list({
-                    'myRating': 'dislike',
-                    'part': 'snippet,contentDetails,statistics',
-                    'maxResults': 50 // Max per page
-                });
-
-                const videos = response.result.items;
-
-                if (!videos || videos.length === 0) {
-                    document.getElementById('status').innerText = 'No disliked videos found.';
-                    return;
-                }
-
-                document.getElementById('status').innerText = `Found ${videos.length} disliked videos (showing top 50).`;
-
-                // Render list
-                videos.forEach(video => {
-                    const isMusic = video.snippet.categoryId === '10'; // Category 10 = Music
-
-                    const div = document.createElement('div');
-                    div.className = 'video-item';
-                    div.innerHTML = `
-                        <img src="${video.snippet.thumbnails.default?.url}" alt="thumb">
-                        <div class="video-info">
-                            <div class="video-title">
-                                <a href="https://www.youtube.com/watch?v=${video.id}" target="_blank">${video.snippet.title}</a>
-                                ${isMusic ? '<span class="music-tag">Music</span>' : ''}
-                            </div>
-                            <div class="video-meta">${video.snippet.channelTitle} • ${video.statistics.viewCount} views</div>
-                        </div>
-                    `;
-                    contentDiv.appendChild(div);
-                });
-
-            } catch (err) {
-                console.error("Error fetching dislikes", err);
-                document.getElementById('status').innerText = 'Error: ' + JSON.stringify(err.result.error.message);
-            }
-        }
-    </script>
+    <!-- Link to your external script -->
+    <script type="text/babel" src="app.js"></script>
 </body>
 
 </html>
