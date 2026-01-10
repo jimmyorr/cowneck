@@ -254,13 +254,13 @@ function render(isLoadMore = false) {
         dom.authButton.classList.add('bg-slate-900', 'text-white', 'hover:bg-slate-800', 'shadow-md', 'hover:shadow-lg');
 
         dom.heroAuthButton.disabled = false;
-        dom.heroAuthButton.textContent = 'Connect YouTube Account';
+        dom.heroAuthButton.textContent = 'Connect YouTube account';
         dom.heroAuthButton.classList.remove('bg-slate-200', 'text-slate-400');
         dom.heroAuthButton.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700', 'shadow-xl', 'shadow-red-200');
 
         dom.authIconLoading.classList.add('hidden');
         dom.authIconLogin.classList.remove('hidden');
-        dom.authText.textContent = 'Sign In';
+        dom.authText.textContent = 'Sign in';
     } else {
         dom.authButton.disabled = true;
         dom.heroAuthButton.disabled = true;
