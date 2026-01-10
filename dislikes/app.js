@@ -45,6 +45,8 @@ const dom = {
 
     scrollSentinel: document.getElementById('infinite-scroll-sentinel'),
 
+    backToTop: document.getElementById('back-to-top'),
+
     videoTemplate: document.getElementById('video-card-template')
 };
 
@@ -136,6 +138,21 @@ function setupEventListeners() {
     }, { threshold: 0.1 });
 
     observer.observe(dom.scrollSentinel);
+
+    // Back to Top Logic
+    dom.backToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 500) {
+            dom.backToTop.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+            dom.backToTop.classList.add('opacity-100', 'translate-y-0');
+        } else {
+            dom.backToTop.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+            dom.backToTop.classList.remove('opacity-100', 'translate-y-0');
+        }
+    });
 }
 
 function debounce(func, wait) {
