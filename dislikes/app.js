@@ -14,6 +14,7 @@ const state = {
     loading: false,
     error: null,
     searchTerm: '',
+    debouncedSearchTerm: '',
     nextPageToken: null
 };
 
@@ -110,13 +111,30 @@ function setupEventListeners() {
     dom.authButton.addEventListener('click', handleAuthClick);
     dom.heroAuthButton.addEventListener('click', handleAuthClick);
 
-    dom.searchInput.addEventListener('input', (e) => {
-        state.searchTerm = e.target.value;
+    const debouncedSearch = debounce((value) => {
+        state.debouncedSearchTerm = value;
         filterVideos();
         renderVideoList();
+    }, 300);
+
+    dom.searchInput.addEventListener('input', (e) => {
+        state.searchTerm = e.target.value;
+        debouncedSearch(e.target.value);
     });
 
     dom.loadMoreButton.addEventListener('click', handleLoadMore);
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
 function handleAuthClick() {
@@ -169,10 +187,10 @@ function handleLoadMore() {
 }
 
 function filterVideos() {
-    if (!state.searchTerm) {
+    if (!state.debouncedSearchTerm) {
         state.filteredVideos = state.videos;
     } else {
-        const lower = state.searchTerm.toLowerCase();
+        const lower = state.debouncedSearchTerm.toLowerCase();
         state.filteredVideos = state.videos.filter(v =>
             v.snippet.title.toLowerCase().includes(lower) ||
             v.snippet.channelTitle.toLowerCase().includes(lower)
@@ -275,7 +293,7 @@ function render(isLoadMore = false) {
         }
 
         // Load More Button
-        if (state.nextPageToken && !state.searchTerm) {
+        if (state.nextPageToken && !state.debouncedSearchTerm) {
             dom.loadMoreContainer.classList.remove('hidden');
 
             if (state.loading && isLoadMore) {
@@ -313,18 +331,27 @@ function renderVideoList() {
         link.href = `https://www.youtube.com/watch?v=${video.id}`;
 
         // Title & Music Icon
-        clone.querySelector('.video-title').textContent = video.snippet.title;
+        const titleEl = clone.querySelector('.video-title');
+        titleEl.innerHTML = highlightMatch(video.snippet.title, state.debouncedSearchTerm);
+
         if (isMusic) {
             clone.querySelector('.music-badge').classList.remove('hidden');
         }
 
         // Channel Info
-        clone.querySelector('.channel-title').textContent = video.snippet.channelTitle;
+        const channelEl = clone.querySelector('.channel-title');
+        channelEl.innerHTML = highlightMatch(video.snippet.channelTitle, state.debouncedSearchTerm);
         clone.querySelector('.view-count').textContent = `${viewCount} views`;
         clone.querySelector('.publish-date').textContent = date;
 
         dom.videoGrid.appendChild(clone);
     });
+}
+
+function highlightMatch(text, term) {
+    if (!term) return text;
+    const regex = new RegExp(`(${term})`, 'gi');
+    return text.replace(regex, '<mark class="bg-red-100 text-red-700 px-0.5 rounded">$1</mark>');
 }
 
 // Start
