@@ -15,6 +15,7 @@ const state = {
     error: null,
     searchTerm: '',
     debouncedSearchTerm: '',
+    sortBy: 'date-new',
     nextPageToken: null
 };
 
@@ -35,6 +36,7 @@ const dom = {
 
     resultsCount: document.getElementById('results-count'),
     searchInput: document.getElementById('search-input'),
+    sortSelect: document.getElementById('sort-select'),
 
     contentLoader: document.getElementById('content-loader'),
     emptyState: document.getElementById('empty-state'),
@@ -122,6 +124,12 @@ function setupEventListeners() {
         debouncedSearch(e.target.value);
     });
 
+    dom.sortSelect.addEventListener('change', (e) => {
+        state.sortBy = e.target.value;
+        filterVideos();
+        renderVideoList();
+    });
+
     dom.loadMoreButton.addEventListener('click', handleLoadMore);
 }
 
@@ -187,15 +195,37 @@ function handleLoadMore() {
 }
 
 function filterVideos() {
-    if (!state.debouncedSearchTerm) {
-        state.filteredVideos = state.videos;
-    } else {
+    let results = [...state.videos];
+
+    // Search
+    if (state.debouncedSearchTerm) {
         const lower = state.debouncedSearchTerm.toLowerCase();
-        state.filteredVideos = state.videos.filter(v =>
+        results = results.filter(v =>
             v.snippet.title.toLowerCase().includes(lower) ||
             v.snippet.channelTitle.toLowerCase().includes(lower)
         );
     }
+
+    // Sort
+    results.sort((a, b) => {
+        switch (state.sortBy) {
+            case 'date-new':
+                // YouTube returns myRating: dislike sorted by rating date desc by default
+                // But if we want to be explicit, we rely on the order in state.videos
+                // which is chronological from the API.
+                return 0;
+            case 'views-high':
+                return parseInt(b.statistics.viewCount) - parseInt(a.statistics.viewCount);
+            case 'channel-az':
+                return a.snippet.channelTitle.localeCompare(b.snippet.channelTitle);
+            case 'title-az':
+                return a.snippet.title.localeCompare(b.snippet.title);
+            default:
+                return 0;
+        }
+    });
+
+    state.filteredVideos = results;
 }
 
 function setLoading(isLoading, isLoadMore = false) {
@@ -320,7 +350,6 @@ function renderVideoList() {
         const isMusic = video.snippet.categoryId === '10';
         const thumbnail = video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default?.url;
         const viewCount = new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(video.statistics.viewCount);
-        const date = new Date(video.snippet.publishedAt).toLocaleDateString();
 
         // Image & Link
         const img = clone.querySelector('.video-thumbnail');
@@ -342,7 +371,6 @@ function renderVideoList() {
         const channelEl = clone.querySelector('.channel-title');
         channelEl.innerHTML = highlightMatch(video.snippet.channelTitle, state.debouncedSearchTerm);
         clone.querySelector('.view-count').textContent = `${viewCount} views`;
-        clone.querySelector('.publish-date').textContent = date;
 
         dom.videoGrid.appendChild(clone);
     });
