@@ -12,6 +12,7 @@ const state = {
     videos: [],
     filteredVideos: [],
     loading: false,
+    isLoadMore: false,
     error: null,
     searchTerm: '',
     debouncedSearchTerm: '',
@@ -42,10 +43,7 @@ const dom = {
     emptyState: document.getElementById('empty-state'),
     videoGrid: document.getElementById('video-grid'),
 
-    loadMoreContainer: document.getElementById('load-more-container'),
-    loadMoreButton: document.getElementById('load-more-button'),
-    loadMoreIcon: document.getElementById('load-more-icon'),
-    loadMoreLoading: document.getElementById('load-more-loading'),
+    scrollSentinel: document.getElementById('infinite-scroll-sentinel'),
 
     videoTemplate: document.getElementById('video-card-template')
 };
@@ -116,7 +114,7 @@ function setupEventListeners() {
     const debouncedSearch = debounce((value) => {
         state.debouncedSearchTerm = value;
         filterVideos();
-        renderVideoList();
+        render();
     }, 300);
 
     dom.searchInput.addEventListener('input', (e) => {
@@ -127,10 +125,17 @@ function setupEventListeners() {
     dom.sortSelect.addEventListener('change', (e) => {
         state.sortBy = e.target.value;
         filterVideos();
-        renderVideoList();
+        render();
     });
 
-    dom.loadMoreButton.addEventListener('click', handleLoadMore);
+    // Infinite Scroll Observer
+    const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && state.nextPageToken && !state.loading && !state.debouncedSearchTerm) {
+            handleLoadMore();
+        }
+    }, { threshold: 0.1 });
+
+    observer.observe(dom.scrollSentinel);
 }
 
 function debounce(func, wait) {
@@ -230,7 +235,8 @@ function filterVideos() {
 
 function setLoading(isLoading, isLoadMore = false) {
     state.loading = isLoading;
-    render(isLoadMore);
+    state.isLoadMore = isLoadMore;
+    render();
 }
 
 function setError(err) {
@@ -244,8 +250,9 @@ function showError(msg) {
 
 // --- Rendering ---
 
-function render(isLoadMore = false) {
+function render() {
     const isReady = state.gapiInited && state.gisInited;
+    const isLoadMore = state.isLoadMore;
 
     // Auth Buttons
     if (isReady) {
@@ -307,7 +314,6 @@ function render(isLoadMore = false) {
             dom.contentLoader.classList.remove('hidden');
             dom.emptyState.classList.add('hidden');
             dom.videoGrid.classList.add('hidden');
-            dom.loadMoreContainer.classList.add('hidden');
         } else if (state.videos.length === 0) {
             dom.contentLoader.classList.add('hidden');
             dom.emptyState.classList.remove('hidden');
@@ -319,24 +325,16 @@ function render(isLoadMore = false) {
             dom.contentLoader.classList.add('hidden');
             dom.emptyState.classList.add('hidden');
             dom.videoGrid.classList.remove('hidden');
+
+            // Re-render the full list to ensure sorting/filtering is accurate
             renderVideoList();
         }
 
-        // Load More Button
+        // Infinite Scroll Sentinel
         if (state.nextPageToken && !state.debouncedSearchTerm) {
-            dom.loadMoreContainer.classList.remove('hidden');
-
-            if (state.loading && isLoadMore) {
-                dom.loadMoreIcon.classList.add('hidden');
-                dom.loadMoreLoading.classList.remove('hidden');
-                dom.loadMoreButton.disabled = true;
-            } else {
-                dom.loadMoreIcon.classList.remove('hidden');
-                dom.loadMoreLoading.classList.add('hidden');
-                dom.loadMoreButton.disabled = false;
-            }
+            dom.scrollSentinel.classList.remove('hidden');
         } else {
-            dom.loadMoreContainer.classList.add('hidden');
+            dom.scrollSentinel.classList.add('hidden');
         }
     }
 }

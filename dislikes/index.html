@@ -203,26 +203,20 @@
             </div>
 
             <!-- Video Grid -->
-            <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[50vh]">
                 <!-- Videos will be injected here -->
             </div>
 
-            <!-- Load More -->
-            <div id="load-more-container" class="hidden flex justify-center mt-12 mb-8">
-                <button id="load-more-button"
-                    class="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 font-medium rounded-full shadow-sm hover:bg-slate-50 hover:text-slate-800 hover:shadow transition-all flex items-center gap-2">
-                    <span>Load more videos</span>
-                    <svg id="load-more-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+            <!-- Infinite Scroll Sentinel -->
+            <div id="infinite-scroll-sentinel" class="hidden flex justify-center py-12">
+                <div class="flex items-center gap-3 text-slate-400 font-medium">
+                    <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
-                        <path d="m6 9 6 6 6-6" />
-                    </svg>
-                    <svg id="load-more-loading" class="hidden animate-spin" xmlns="http://www.w3.org/2000/svg"
-                        width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                     </svg>
-                </button>
+                    <span>Loading more...</span>
+                </div>
             </div>
         </div>
     </main>
