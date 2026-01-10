@@ -13,7 +13,8 @@ const state = {
     filteredVideos: [],
     loading: false,
     error: null,
-    searchTerm: ''
+    searchTerm: '',
+    nextPageToken: null
 };
 
 // --- DOM Elements ---
@@ -37,6 +38,11 @@ const dom = {
     contentLoader: document.getElementById('content-loader'),
     emptyState: document.getElementById('empty-state'),
     videoGrid: document.getElementById('video-grid'),
+
+    loadMoreContainer: document.getElementById('load-more-container'),
+    loadMoreButton: document.getElementById('load-more-button'),
+    loadMoreIcon: document.getElementById('load-more-icon'),
+    loadMoreLoading: document.getElementById('load-more-loading'),
 
     videoTemplate: document.getElementById('video-card-template')
 };
@@ -109,6 +115,8 @@ function setupEventListeners() {
         filterVideos();
         renderVideoList();
     });
+
+    dom.loadMoreButton.addEventListener('click', handleLoadMore);
 }
 
 function handleAuthClick() {
@@ -123,24 +131,40 @@ function handleAuthClick() {
 
 // --- Logic ---
 
-async function fetchDislikes() {
-    setLoading(true);
+async function fetchDislikes(pageToken = null) {
+    const isLoadMore = !!pageToken;
+    setLoading(true, isLoadMore);
     setError(null);
     try {
         const response = await window.gapi.client.youtube.videos.list({
             'myRating': 'dislike',
             'part': 'snippet,contentDetails,statistics',
-            'maxResults': 50
+            'maxResults': 50,
+            'pageToken': pageToken || ''
         });
 
         const items = response.result.items || [];
-        state.videos = items;
+        const nextToken = response.result.nextPageToken || null;
+
+        if (isLoadMore) {
+            state.videos = [...state.videos, ...items];
+        } else {
+            state.videos = items;
+        }
+
+        state.nextPageToken = nextToken;
         filterVideos();
     } catch (err) {
         console.error("Fetch error", err);
         setError(err?.result?.error?.message || "Failed to fetch disliked videos.");
     } finally {
-        setLoading(false);
+        setLoading(false, isLoadMore);
+    }
+}
+
+function handleLoadMore() {
+    if (state.nextPageToken) {
+        fetchDislikes(state.nextPageToken);
     }
 }
 
@@ -156,9 +180,9 @@ function filterVideos() {
     }
 }
 
-function setLoading(isLoading) {
+function setLoading(isLoading, isLoadMore = false) {
     state.loading = isLoading;
-    render();
+    render(isLoadMore);
 }
 
 function setError(err) {
@@ -172,7 +196,7 @@ function showError(msg) {
 
 // --- Rendering ---
 
-function render() {
+function render(isLoadMore = false) {
     const isReady = state.gapiInited && state.gisInited;
 
     // Auth Buttons
@@ -231,10 +255,11 @@ function render() {
 
     // Loading & Empty States
     if (state.isAuthenticated) {
-        if (state.loading) {
+        if (state.loading && !isLoadMore) {
             dom.contentLoader.classList.remove('hidden');
             dom.emptyState.classList.add('hidden');
             dom.videoGrid.classList.add('hidden');
+            dom.loadMoreContainer.classList.add('hidden');
         } else if (state.videos.length === 0) {
             dom.contentLoader.classList.add('hidden');
             dom.emptyState.classList.remove('hidden');
@@ -247,6 +272,23 @@ function render() {
             dom.emptyState.classList.add('hidden');
             dom.videoGrid.classList.remove('hidden');
             renderVideoList();
+        }
+
+        // Load More Button
+        if (state.nextPageToken && !state.searchTerm) {
+            dom.loadMoreContainer.classList.remove('hidden');
+
+            if (state.loading && isLoadMore) {
+                dom.loadMoreIcon.classList.add('hidden');
+                dom.loadMoreLoading.classList.remove('hidden');
+                dom.loadMoreButton.disabled = true;
+            } else {
+                dom.loadMoreIcon.classList.remove('hidden');
+                dom.loadMoreLoading.classList.add('hidden');
+                dom.loadMoreButton.disabled = false;
+            }
+        } else {
+            dom.loadMoreContainer.classList.add('hidden');
         }
     }
 }
