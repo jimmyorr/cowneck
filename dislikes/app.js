@@ -261,6 +261,12 @@ function filterVideos() {
                 if (isADeleted && !isBDeleted) return -1;
                 if (!isADeleted && isBDeleted) return 1;
                 return 0;
+            case 'content-type':
+                const isAMusic = a.snippet?.categoryId === '10';
+                const isBMusic = b.snippet?.categoryId === '10';
+                if (!isAMusic && isBMusic) return -1;
+                if (isAMusic && !isBMusic) return 1;
+                return 0;
             default:
                 return 0;
         }
