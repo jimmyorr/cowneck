@@ -150,6 +150,36 @@ function debounce(func, wait) {
     };
 }
 
+function checkIfDeleted(video) {
+    // Check for flags we might have set via onerror
+    if (video._is404) return true;
+
+    // Check status part (requires 'status' in part parameter)
+    if (video.status) {
+        if (video.status.uploadStatus === 'deleted' || video.status.uploadStatus === 'rejected') return true;
+        if (video.status.privacyStatus === 'private') return true;
+    }
+
+    // Check for specific common localized strings or missing snippets
+    if (!video.snippet) return true;
+
+    const title = video.snippet.title || '';
+    const lowerTitle = title.toLowerCase();
+
+    // Common localized strings for deleted/private videos
+    if (lowerTitle.includes('deleted video')) return true;
+    if (lowerTitle.includes('private video')) return true;
+    if (lowerTitle.includes('unavailable video')) return true;
+
+    // Check for missing thumbnails
+    if (!video.snippet.thumbnails || Object.keys(video.snippet.thumbnails).length === 0) return true;
+
+    // Check for missing statistics
+    if (!video.statistics || !video.statistics.viewCount) return true;
+
+    return false;
+}
+
 function handleAuthClick() {
     if (state.tokenClient) {
         if (window.gapi.client.getToken() === null) {
@@ -169,7 +199,7 @@ async function fetchDislikes(pageToken = null) {
     try {
         const response = await window.gapi.client.youtube.videos.list({
             'myRating': 'dislike',
-            'part': 'snippet,contentDetails,statistics',
+            'part': 'snippet,contentDetails,statistics,status',
             'maxResults': 50,
             'pageToken': pageToken || ''
         });
@@ -225,6 +255,12 @@ function filterVideos() {
                 return a.snippet.channelTitle.localeCompare(b.snippet.channelTitle);
             case 'title-az':
                 return a.snippet.title.localeCompare(b.snippet.title);
+            case 'deleted-first':
+                const isADeleted = checkIfDeleted(a);
+                const isBDeleted = checkIfDeleted(b);
+                if (isADeleted && !isBDeleted) return -1;
+                if (!isADeleted && isBDeleted) return 1;
+                return 0;
             default:
                 return 0;
         }
@@ -346,9 +382,9 @@ function renderVideoList() {
         const clone = dom.videoTemplate.content.cloneNode(true);
 
         const title = video.snippet.title;
-        const isDeleted = title === 'Deleted video' || title === 'Private video';
+        const isDeleted = checkIfDeleted(video);
         const isMusic = video.snippet.categoryId === '10';
-        const thumbnail = video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default?.url;
+        const thumbnail = video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url;
         const viewCount = video.statistics?.viewCount
             ? new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(video.statistics.viewCount)
             : 'N/A';
@@ -360,13 +396,20 @@ function renderVideoList() {
         img.src = thumbnail || '';
         img.alt = title;
 
-        // Detection Method 1: Metadata check
         if (isDeleted) {
             overlay.classList.remove('hidden');
         }
 
-        // Detection Method 2: 404 check (thumbnail doesn't exist)
+        // 404 check (thumbnail doesn't exist)
         img.onerror = () => {
+            if (!video._is404) {
+                video._is404 = true;
+                // If the user is currently sorting by deleted, we should refresh the list
+                if (state.sortBy === 'deleted-first') {
+                    filterVideos();
+                    renderVideoList();
+                }
+            }
             overlay.classList.remove('hidden');
             img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; // Transparent pixel
         };
