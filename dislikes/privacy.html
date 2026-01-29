@@ -51,7 +51,7 @@
             <h2 class="text-3xl font-bold text-slate-900 mb-8">Privacy policy</h2>
 
             <p class="text-slate-600 mb-8 leading-relaxed">
-                Last updated: January 10, 2026
+                Last updated: January 28, 2026
             </p>
 
             <section class="mb-10">
@@ -103,18 +103,26 @@
                 <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                     <span
                         class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm">04</span>
-                    Data Storage & Security
+                    Data Protection & Security
                 </h3>
                 <p class="text-slate-600 leading-relaxed mb-4">
                     <strong>We do not store your personal YouTube data on any servers.</strong> All information is
                     fetched directly from Google's APIs and resides only in your browser's temporary memory while the
                     app is open.
                 </p>
-                <p class="text-slate-600 leading-relaxed">
-                    To maintain your session, we store your OAuth authentication token in your browser's
-                    <code>localStorage</code>. This token is used exclusively to communicate with Google's APIs on your
-                    behalf.
+                <p class="text-slate-600 leading-relaxed mb-4">
+                    To protect your sensitive data, we implement the following mechanisms:
                 </p>
+                <ul class="list-disc list-inside text-slate-600 space-y-2 ml-4 mb-4">
+                    <li><strong>Encryption in Transit:</strong> All communication between your browser and Google's
+                        servers is encrypted using industry-standard Transport Layer Security (TLS/HTTPS).</li>
+                    <li><strong>Local Processing:</strong> Data is processed entirely on your local device, ensuring it
+                        is never transmitted to or stored on our servers.</li>
+                    <li><strong>Token Security:</strong> We store your OAuth authentication token in your browser's
+                        <code>localStorage</code>. This token is used exclusively to authorize requests to Google on
+                        your behalf and is never shared.
+                    </li>
+                </ul>
             </section>
 
             <section class="mb-10">
@@ -143,6 +151,30 @@
                     <li>Removing the application's access in your <a href="https://myaccount.google.com/permissions"
                             target="_blank" class="text-blue-600 hover:underline">Google Account Security settings</a>.
                     </li>
+                </ul>
+            </section>
+
+            <section class="mb-10">
+                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span
+                        class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">07</span>
+                    Data Retention & Deletion
+                </h3>
+                <p class="text-slate-600 leading-relaxed mb-4">
+                    We follow a strict data minimization and limited retention policy:
+                </p>
+                <ul class="list-disc list-inside text-slate-600 space-y-2 ml-4">
+                    <li><strong>User Data:</strong> Since we do not store your YouTube data on our servers, there is no
+                        permanent record of your data in our systems. Data held in your browser's memory is deleted
+                        immediately when the application tab is closed.</li>
+                    <li><strong>Authentication Tokens:</strong> The OAuth token stored in your browser's
+                        <code>localStorage</code> is retained to keep you signed in. You can delete this token and all
+                        associated local state at any time by clicking the "Sign out" button within the application.
+                    </li>
+                    <li><strong>Account Deletion:</strong> To "delete" your account or data from this application,
+                        simply sign out and revoke permissions in your Google Security settings. Since we hold no
+                        server-side data, this
+                        effectively removes all footprints of your usage.</li>
                 </ul>
             </section>
 
