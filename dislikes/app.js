@@ -48,7 +48,8 @@ const dom = {
 
     backToTop: document.getElementById('back-to-top'),
 
-    videoTemplate: document.getElementById('video-card-template')
+    videoTemplate: document.getElementById('video-card-template'),
+    skeletonTemplate: document.getElementById('skeleton-template')
 };
 
 // --- Initialization ---
@@ -483,18 +484,13 @@ function render() {
     // Loading & Empty States
     if (state.isAuthenticated) {
         if (state.loading && !isLoadMore) {
-            dom.contentLoader.classList.remove('hidden');
             dom.emptyState.classList.add('hidden');
-            dom.videoGrid.classList.add('hidden');
+            dom.videoGrid.classList.remove('hidden');
+            renderSkeletons();
         } else if (state.videos.length === 0) {
-            dom.contentLoader.classList.add('hidden');
             dom.emptyState.classList.remove('hidden');
             dom.videoGrid.classList.add('hidden');
-            // If we have videos but matched 0 with filter, we should show grid empty or different message?
-            // The original code showed "No disliked videos found" only if videos.length === 0
-            // If filteredVideos is empty but videos has items, we just show empty grid.
         } else {
-            dom.contentLoader.classList.add('hidden');
             dom.emptyState.classList.add('hidden');
             dom.videoGrid.classList.remove('hidden');
 
@@ -579,6 +575,15 @@ function renderVideoList() {
 
         dom.videoGrid.appendChild(clone);
     });
+}
+
+function renderSkeletons() {
+    dom.videoGrid.innerHTML = '';
+    // Show 12 skeleton cards (typical grid count)
+    for (let i = 0; i < 12; i++) {
+        const clone = dom.skeletonTemplate.content.cloneNode(true);
+        dom.videoGrid.appendChild(clone);
+    }
 }
 
 function getDynamicMetadata(video) {
