@@ -17,7 +17,8 @@ const state = {
     searchTerm: '',
     debouncedSearchTerm: '',
     sortBy: 'date-new',
-    nextPageToken: null
+    nextPageToken: null,
+    totalResults: null
 };
 
 // --- DOM Elements ---
@@ -280,6 +281,7 @@ async function fetchDislikes(pageToken = null) {
 
         const items = response.result.items || [];
         const nextToken = response.result.nextPageToken || null;
+        const total = response.result.pageInfo?.totalResults || null;
 
         if (isLoadMore) {
             state.videos = [...state.videos, ...items];
@@ -288,6 +290,7 @@ async function fetchDislikes(pageToken = null) {
         }
 
         state.nextPageToken = nextToken;
+        state.totalResults = total;
         filterVideos();
     } catch (err) {
         console.error("Fetch error", err);
@@ -421,7 +424,26 @@ function render() {
     }
 
     // Results Count
-    dom.resultsCount.textContent = `Showing ${state.filteredVideos.length} videos`;
+    let countText = '';
+    const currentCount = state.filteredVideos.length;
+    const totalCount = state.totalResults;
+    const fmt = (n) => new Intl.NumberFormat().format(n);
+
+    if (!state.debouncedSearchTerm) {
+        if (state.nextPageToken) {
+            if (totalCount && totalCount > currentCount) {
+                countText = `${fmt(currentCount)} of about ${fmt(totalCount)} videos loaded · Scroll for more`;
+            } else {
+                countText = `${fmt(currentCount)} videos loaded · Scroll for more`;
+            }
+        } else {
+            countText = `All ${fmt(currentCount)} videos loaded`;
+        }
+    } else {
+        countText = `Found ${fmt(currentCount)} videos`;
+    }
+
+    dom.resultsCount.textContent = countText;
 
     // Loading & Empty States
     if (state.isAuthenticated) {
@@ -448,6 +470,14 @@ function render() {
         // Infinite Scroll Sentinel
         if (state.nextPageToken && !state.debouncedSearchTerm) {
             dom.scrollSentinel.classList.remove('hidden');
+            if (state.loading && isLoadMore) {
+                dom.scrollSentinel.innerHTML = `
+                    <div class="loading-spinner inline-block w-4 h-4 border-2 border-gray-100 border-t-gray-400 rounded-full mr-2 align-middle"></div>
+                    <span>Loading more...</span>
+                `;
+            } else {
+                dom.scrollSentinel.textContent = 'Scroll for more';
+            }
         } else {
             dom.scrollSentinel.classList.add('hidden');
         }
