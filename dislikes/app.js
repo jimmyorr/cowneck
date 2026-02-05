@@ -332,8 +332,14 @@ function filterVideos() {
                 // But if we want to be explicit, we rely on the order in state.videos
                 // which is chronological from the API.
                 return 0;
+            case 'duration-long':
+                return parseDuration(b.contentDetails.duration) - parseDuration(a.contentDetails.duration);
+            case 'upload-old':
+                return new Date(a.snippet.publishedAt) - new Date(b.snippet.publishedAt);
+            case 'comments-most':
+                return parseInt(b.statistics.commentCount || 0) - parseInt(a.statistics.commentCount || 0);
             case 'views-high':
-                return parseInt(b.statistics.viewCount) - parseInt(a.statistics.viewCount);
+                return parseInt(b.statistics.viewCount || 0) - parseInt(a.statistics.viewCount || 0);
             case 'channel-az':
                 return a.snippet.channelTitle.localeCompare(b.snippet.channelTitle);
             case 'title-az':
@@ -537,16 +543,61 @@ function renderVideoList() {
         // Channel Info
         const channelEl = clone.querySelector('.channel-title');
         channelEl.innerHTML = highlightMatch(video.snippet.channelTitle || 'Unknown channel', state.debouncedSearchTerm);
-        clone.querySelector('.view-count').textContent = isDeleted ? 'No stats available' : `${viewCount} views`;
+
+        // Dynamic Metadata
+        const metadataEl = clone.querySelector('.dynamic-metadata');
+        metadataEl.textContent = isDeleted ? 'No stats' : getDynamicMetadata(video);
 
         dom.videoGrid.appendChild(clone);
     });
+}
+
+function getDynamicMetadata(video) {
+    const compact = (n) => new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(n || 0);
+    const full = (n) => new Intl.NumberFormat('en-US').format(n || 0);
+
+    switch (state.sortBy) {
+        case 'views-high':
+            return `${compact(video.statistics?.viewCount)} views`;
+        case 'duration-long':
+            return formatDuration(video.contentDetails?.duration);
+        case 'upload-old':
+            return new Date(video.snippet?.publishedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        case 'comments-most':
+            return `${compact(video.statistics?.commentCount)} comments`;
+        default:
+            // For Recent, Channel, Title, Deleted, etc.
+            return `${compact(video.statistics?.viewCount)} views`;
+    }
+}
+
+function formatDuration(duration) {
+    if (!duration) return '0:00';
+    const totalSeconds = parseDuration(duration);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+
+    if (h > 0) {
+        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+    return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 function highlightMatch(text, term) {
     if (!term) return text;
     const regex = new RegExp(`(${term})`, 'gi');
     return text.replace(regex, '<mark>$1</mark>');
+}
+
+function parseDuration(duration) {
+    if (!duration) return 0;
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return 0;
+    const hours = parseInt(match[1] || 0);
+    const minutes = parseInt(match[2] || 0);
+    const seconds = parseInt(match[3] || 0);
+    return hours * 3600 + minutes * 60 + seconds;
 }
 
 // Start
