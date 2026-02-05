@@ -310,10 +310,13 @@ async function fetchDislikes(pageToken = null) {
         filterVideos();
 
         // If we are in "Load All" mode, fetch the next page immediately
-        if (state.isFetchAll && state.nextPageToken) {
-            fetchDislikes(state.nextPageToken);
-        } else {
-            state.isFetchAll = false;
+        if (state.isFetchAll) {
+            if (state.nextPageToken) {
+                fetchDislikes(state.nextPageToken);
+            } else {
+                state.isFetchAll = false;
+                triggerCelebration();
+            }
         }
     } catch (err) {
         console.error("Fetch error", err);
@@ -634,6 +637,34 @@ function renderVideoList() {
 
         dom.videoGrid.appendChild(clone);
     });
+}
+
+function triggerCelebration() {
+    if (window.confetti) {
+        const duration = 3 * 1000;
+        const end = Date.now() + duration;
+
+        (function frame() {
+            confetti({
+                particleCount: 3,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#000000', '#666666']
+            });
+            confetti({
+                particleCount: 3,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#000000', '#666666']
+            });
+
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            }
+        }());
+    }
 }
 
 function renderSkeletons() {
