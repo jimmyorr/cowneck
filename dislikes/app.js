@@ -24,8 +24,6 @@ const state = {
 const dom = {
     authIndicator: document.getElementById('auth-indicator'),
     authButton: document.getElementById('auth-button'),
-    authIconLoading: document.getElementById('auth-icon-loading'),
-    authIconLogin: document.getElementById('auth-icon-login'),
     authText: document.getElementById('auth-text'),
     heroAuthButton: document.getElementById('hero-auth-button'),
     signoutButton: document.getElementById('signout-button'),
@@ -181,11 +179,11 @@ function setupEventListeners() {
 
     window.addEventListener('scroll', () => {
         if (window.scrollY > 500) {
-            dom.backToTop.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
-            dom.backToTop.classList.add('opacity-100', 'translate-y-0');
+            dom.backToTop.classList.remove('opacity-0', 'pointer-events-none');
+            dom.backToTop.classList.add('opacity-100');
         } else {
-            dom.backToTop.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
-            dom.backToTop.classList.remove('opacity-100', 'translate-y-0');
+            dom.backToTop.classList.add('opacity-0', 'pointer-events-none');
+            dom.backToTop.classList.remove('opacity-100');
         }
     });
 }
@@ -381,25 +379,18 @@ function render() {
     // Auth Buttons
     if (isReady) {
         dom.authButton.disabled = false;
-        dom.authButton.classList.remove('bg-slate-200', 'text-slate-400', 'cursor-not-allowed');
-        dom.authButton.classList.add('bg-slate-900', 'text-white', 'hover:bg-slate-800', 'shadow-md', 'hover:shadow-lg');
+        dom.authButton.classList.remove('opacity-50', 'cursor-not-allowed');
 
         dom.heroAuthButton.disabled = false;
         dom.heroAuthButton.textContent = 'Connect YouTube account';
-        dom.heroAuthButton.classList.remove('bg-slate-200', 'text-slate-400');
-        dom.heroAuthButton.classList.add('bg-red-600', 'text-white', 'hover:bg-red-700', 'shadow-xl', 'shadow-red-200');
+        dom.heroAuthButton.classList.remove('opacity-50');
 
-        dom.authIconLoading.classList.add('hidden');
-        dom.authIconLogin.classList.remove('hidden');
         dom.authText.textContent = 'Sign in';
     } else {
         dom.authButton.disabled = true;
         dom.heroAuthButton.disabled = true;
         dom.heroAuthButton.textContent = 'Initializing...';
-
-        dom.authIconLoading.classList.remove('hidden');
-        dom.authIconLogin.classList.add('hidden');
-        dom.authText.textContent = 'Loading API...';
+        dom.authText.textContent = 'Loading...';
     }
 
     // Auth State Views
@@ -525,7 +516,7 @@ function renderVideoList() {
 function highlightMatch(text, term) {
     if (!term) return text;
     const regex = new RegExp(`(${term})`, 'gi');
-    return text.replace(regex, '<mark class="bg-red-100 text-red-700 px-0.5 rounded">$1</mark>');
+    return text.replace(regex, '<mark>$1</mark>');
 }
 
 // Start

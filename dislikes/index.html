@@ -12,11 +12,10 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-6RNVL7JZVJ');
     </script>
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS for utility but used minimally -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Google Scripts -->
@@ -24,12 +23,67 @@
     <script src="https://apis.google.com/js/api.js" async defer></script>
 
     <style>
-        /* Custom Utilities */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            --bg: #ffffff;
+            --fg: #000000;
+            --dim: #666666;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--fg);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
         .hidden {
             display: none !important;
         }
 
-        @keyframes spin {
+        input,
+        select,
+        button {
+            font-family: inherit;
+        }
+
+        .video-card {
+            transition: opacity 0.2s ease;
+        }
+
+        .video-card:hover {
+            opacity: 0.8;
+        }
+
+        /* Minimal scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ccc;
+        }
+
+        mark {
+            background: #fffbeb;
+            color: #92400e;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        @keyframes rotate {
             from {
                 transform: rotate(0deg);
             }
@@ -39,363 +93,140 @@
             }
         }
 
-        .animate-spin {
-            animation: spin 1s linear infinite;
-        }
-
-        /* Smooth fade transitions */
-        .fade-enter {
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        .fade-enter-active {
-            opacity: 1;
+        .loading-spinner {
+            animation: rotate 1s linear infinite;
         }
     </style>
 </head>
 
-<body class="bg-slate-50 text-slate-900 font-sans min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Header -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
-        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <div class="bg-red-600 p-2 rounded-lg text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 14V2" />
-                        <path
-                            d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z" />
-                    </svg>
-                </div>
-                <h1 class="text-xl font-bold bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
-                    Dislikes
-                </h1>
+    <header class="border-b border-gray-100 py-4">
+        <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
+            <h1 class="text-lg font-medium tracking-tight">Dislikes</h1>
+
+            <div id="auth-indicator" class="hidden flex items-center gap-4 text-sm">
+                <span class="text-gray-400">Authenticated</span>
+                <button id="signout-button" class="text-gray-900 underline hover:no-underline">Sign out</button>
             </div>
 
-            <nav class="hidden md:flex items-center gap-6 mr-auto ml-10">
-                <a href="privacy.html"
-                    class="text-sm font-medium text-slate-500 hover:text-red-600 transition-colors">Privacy policy</a>
-                <a href="https://github.com/jimmyorr/cowneck/tree/main/dislikes" target="_blank"
-                    class="text-sm font-medium text-slate-500 hover:text-red-600 transition-colors">GitHub</a>
-            </nav>
-
-            <div class="flex items-center gap-4">
-                <!-- Authenticated State Indicator -->
-                <div id="auth-indicator" class="hidden flex items-center gap-3">
-                    <div
-                        class="hidden md:flex items-center gap-2 text-sm text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        Authenticated
-                    </div>
-                    <button id="signout-button"
-                        class="text-sm font-medium text-slate-500 hover:text-red-600 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-red-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                            <polyline points="16 17 21 12 16 7" />
-                            <line x1="21" x2="9" y1="12" y2="12" />
-                        </svg>
-                        Sign out
-                    </button>
-                </div>
-
-                <!-- Sign In Button -->
-                <button id="auth-button" disabled
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-slate-200 text-slate-400 cursor-not-allowed">
-                    <svg id="auth-icon-loading" class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="18"
-                        height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                    </svg>
-                    <svg id="auth-icon-login" class="hidden" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                        <polyline points="10 17 15 12 10 7" />
-                        <line x1="15" x2="3" y1="12" y2="12" />
-                    </svg>
-                    <span id="auth-text">Loading API...</span>
-                </button>
-            </div>
+            <button id="auth-button" disabled
+                class="text-sm font-medium px-3 py-1.5 border border-black rounded opacity-50 cursor-not-allowed">
+                <span id="auth-text">Loading...</span>
+            </button>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+    <main class="max-w-6xl mx-auto px-6 py-12 flex-grow w-full">
 
-        <!-- Error Container -->
-        <div id="error-container"
-            class="hidden mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 text-red-700">
-            <svg class="mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" x2="12" y1="8" y2="12" />
-                <line x1="12" x2="12.01" y1="16" y2="16" />
-            </svg>
-            <div>
-                <h3 class="font-semibold">Something went wrong</h3>
-                <p id="error-message" class="text-sm opacity-90"></p>
-            </div>
+        <!-- Error -->
+        <div id="error-container" class="hidden mb-8 p-4 border border-red-200 bg-red-50 text-red-600 text-sm">
+            <p id="error-message"></p>
         </div>
 
-        <!-- View: Welcome / Landing Page -->
-        <div id="view-welcome" class="flex flex-col items-center py-12 md:py-20 text-center">
-            <div
-                class="w-24 h-24 bg-red-100 rounded-3xl flex items-center justify-center text-red-500 mb-8 transform -rotate-12">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 14V2" />
-                    <path
-                        d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22h0a3.13 3.13 0 0 1-3-3.88Z" />
-                </svg>
-            </div>
-
-            <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
-                Your YouTube <span class="text-red-600">disliked</span> videos
-            </h2>
-            <p class="text-lg text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-                Dislikes helps you rediscover and explore your rating history on YouTube.
-                View your full history of disliked videos, sort them by view count, or search for specific content
-                using our clean and modern interface.
-            </p>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mb-12 text-left">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="11" cy="11" r="8" />
-                            <path d="m21 21-4.3-4.3" />
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-slate-800 mb-2">Smart search</h3>
-                    <p class="text-sm text-slate-500">Instantly find specific videos by title or channel name across
-                        your entire history.</p>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <div class="w-10 h-10 bg-cyan-50 text-cyan-600 rounded-lg flex items-center justify-center mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="m21 16-4 4-4-4" />
-                            <path d="M17 20V4" />
-                            <path d="m3 8 4-4 4 4" />
-                            <path d="M7 4v16" />
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-slate-800 mb-2">Advanced sorting</h3>
-                    <p class="text-sm text-slate-500">Order your dislikes by date, view count, or channel to find the
-                        content you're looking for.</p>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <div class="w-10 h-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-slate-800 mb-2">Privacy first</h3>
-                    <p class="text-sm text-slate-500">Read-only access. Your data never leaves your browser and is never
-                        stored on our servers.</p>
-                </div>
-            </div>
-
-            <div class="flex flex-col items-center gap-4">
-                <button id="hero-auth-button" disabled
-                    class="px-10 py-4 rounded-full font-bold text-xl transition-all transform hover:-translate-y-1 bg-slate-200 text-slate-400 cursor-not-allowed shadow-lg">
-                    Initializing...
-                </button>
-                <div class="flex items-center gap-6 text-sm text-slate-400">
-                    <span class="flex items-center gap-1.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            class="text-green-500">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-                        </svg>
-                        Secure OAuth2
-                    </span>
-                    <a href="privacy.html" class="underline hover:text-slate-600 decoration-slate-300">Privacy
-                        policy</a>
-                </div>
-            </div>
+        <!-- Landing -->
+        <div id="view-welcome" class="py-20 text-center">
+            <h2 class="text-3xl font-semibold mb-4">Your YouTube disliked videos.</h2>
+            <p class="text-gray-500 mb-10 max-w-md mx-auto">View, filter, and sort your dislikes. Simple, private, and
+                minimal.</p>
+            <button id="hero-auth-button" disabled
+                class="px-8 py-3 bg-black text-white rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">
+                Initializing...
+            </button>
+            <p class="text-[10px] text-gray-400 mt-4 tracking-wider uppercase">Local only. Data never leaves your
+                browser.</p>
         </div>
 
-        <!-- View: App Content (Hidden Initially) -->
+        <!-- App -->
         <div id="view-content" class="hidden">
-            <!-- Controls -->
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-800">Recent dislikes</h2>
-                    <p id="results-count" class="text-slate-500">Showing 0 videos</p>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-12">
+                <div class="space-y-1">
+                    <h2 class="text-2xl font-semibold">History</h2>
+                    <p id="results-count" class="text-sm text-gray-500">0 videos</p>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-                    <div class="relative w-full sm:w-48">
-                        <select id="sort-select"
-                            class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none outline-none transition-all shadow-sm text-sm font-medium text-slate-600 cursor-pointer">
-                            <option value="date-new">Recently disliked</option>
-                            <option value="views-high">Most views</option>
-                            <option value="channel-az">Channel (a-z)</option>
-                            <option value="title-az">Title (a-z)</option>
-                            <option value="deleted-first">Deleted first</option>
-                            <option value="content-type">Content type</option>
-                        </select>
-                        <div class="absolute left-3 top-3 text-slate-400 pointer-events-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="m21 16-4 4-4-4" />
-                                <path d="M17 20V4" />
-                                <path d="m3 8 4-4 4 4" />
-                                <path d="M7 4v16" />
-                            </svg>
-                        </div>
-                    </div>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="search-input" placeholder="Search..."
+                        class="px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:border-black w-full md:w-48">
 
-                    <div class="relative w-full sm:w-64">
-                        <input type="text" id="search-input" placeholder="Search titles or channels..."
-                            class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm">
-                        <div class="absolute left-3 top-3 text-slate-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8" />
-                                <path d="m21 21-4.3-4.3" />
-                            </svg>
-                        </div>
-                    </div>
+                    <select id="sort-select"
+                        class="px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:border-black bg-white">
+                        <option value="date-new">Recent</option>
+                        <option value="views-high">Views</option>
+                        <option value="channel-az">Channel</option>
+                        <option value="title-az">Title</option>
+                        <option value="deleted-first">Unavailable</option>
+                    </select>
                 </div>
             </div>
 
-            <!-- Loader -->
-            <div id="content-loader" class="hidden flex flex-col items-center justify-center py-20 text-slate-400">
-                <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                </svg>
-                <p class="mt-4">Fetching your dislikes...</p>
-            </div>
-
-            <!-- Empty State -->
-            <div id="empty-state"
-                class="hidden text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
-                <p class="text-lg text-slate-500">No disliked videos found (or access denied).</p>
-            </div>
-
-            <!-- Video Grid -->
-            <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[50vh]">
-                <!-- Videos will be injected here -->
-            </div>
-
-            <!-- Infinite Scroll Sentinel -->
-            <div id="infinite-scroll-sentinel" class="hidden flex justify-center py-12">
-                <div class="flex items-center gap-3 text-slate-400 font-medium">
-                    <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                    </svg>
-                    <span>Loading more...</span>
+            <div id="content-loader" class="hidden py-20 text-center text-gray-400">
+                <div
+                    class="loading-spinner inline-block w-6 h-6 border-2 border-gray-200 border-t-black rounded-full mb-2">
                 </div>
+                <p class="text-sm">Fetching videos...</p>
+            </div>
+
+            <div id="empty-state" class="hidden py-20 text-center border border-dashed border-gray-200 rounded">
+                <p class="text-gray-400">No results found.</p>
+            </div>
+
+            <div id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+                <!-- Video cards will be injected here -->
+            </div>
+
+            <div id="infinite-scroll-sentinel" class="hidden py-12 text-center text-gray-400 text-sm">
+                Loading more...
             </div>
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="mt-auto py-8 border-t border-slate-200 bg-white">
-        <div
-            class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-            <div class="flex items-center gap-6">
-                <a href="privacy.html" class="hover:text-red-600 transition-colors">Privacy policy</a>
-                <a href="https://github.com/jimmyorr/cowneck/tree/main/dislikes" target="_blank"
-                    class="hover:text-red-600 transition-colors">Source code</a>
+    <footer class="py-8 border-t border-gray-50 mt-12">
+        <div class="max-w-6xl mx-auto px-6 flex justify-between items-center text-xs text-gray-400">
+            <div class="flex gap-4">
+                <a href="privacy.html" class="hover:text-black">Privacy</a>
+                <a href="https://github.com/jimmyorr/cowneck" target="_blank" class="hover:text-black">GitHub</a>
             </div>
+            <span>© 2026</span>
         </div>
     </footer>
 
-    <!-- Floating Action Buttons -->
+    <!-- Back to Top -->
     <button id="back-to-top"
-        class="fixed bottom-8 right-8 p-3 bg-red-600 text-white rounded-full shadow-2xl hover:bg-red-700 transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-none z-50 group">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-            class="group-hover:-translate-y-1 transition-transform">
+        class="fixed bottom-8 right-8 w-10 h-10 bg-black text-white rounded flex items-center justify-center opacity-0 transition-opacity pointer-events-none">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
             <path d="m18 15-6-6-6 6" />
         </svg>
     </button>
 
     <!-- Templates -->
     <template id="video-card-template">
-        <div
-            class="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full">
-            <div class="relative aspect-video bg-slate-100 overflow-hidden">
-                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 video-thumbnail"
-                    src="" alt="">
-                <!-- Deleted/Private Overlay -->
+        <div class="video-card group flex flex-col gap-3">
+            <div class="relative w-full aspect-video">
+                <img class="video-thumbnail w-full h-full object-cover bg-gray-100 rounded-sm" src="" alt="">
                 <div
-                    class="deleted-overlay hidden absolute inset-0 bg-slate-900/80 backdrop-blur-[2px] flex flex-col items-center justify-center p-4 text-center">
-                    <svg class="text-slate-400 mb-2" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path
-                            d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                        <line x1="12" y1="9" x2="12" y2="13" />
-                        <line x1="12" y1="17" x2="12.01" y2="17" />
-                    </svg>
-                    <p class="text-white text-sm font-semibold mb-1">Content unavailable</p>
-                    <p class="text-slate-400 text-xs">This video has been deleted or set to private.</p>
+                    class="deleted-overlay hidden absolute inset-0 bg-white/90 flex items-center justify-center text-[10px] font-bold text-gray-400">
+                    UNAVAILABLE
                 </div>
-                <a href="" target="_blank" rel="noreferrer"
-                    class="video-link absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div
-                        class="bg-red-600 text-white p-3 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                            <polyline points="15 3 21 3 21 9" />
-                            <line x1="10" x2="21" y1="14" y2="3" />
-                        </svg>
-                    </div>
-                </a>
             </div>
-
-            <div class="p-4 flex flex-col flex-grow">
-                <div class="flex items-start justify-between gap-2 mb-2">
-                    <h3
-                        class="video-title font-semibold text-slate-800 line-clamp-2 leading-snug group-hover:text-red-600 transition-colors">
-                    </h3>
-                    <span class="music-badge hidden shrink-0 bg-cyan-50 text-cyan-700 p-1.5 rounded-md"
-                        title="Music category">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 18V5l12-2v13" />
-                            <circle cx="6" cy="18" r="3" />
-                            <circle cx="18" cy="16" r="3" />
-                        </svg>
-                    </span>
+            <div class="flex flex-col gap-1 min-w-0">
+                <div class="flex justify-between items-start gap-2">
+                    <a href="" target="_blank" class="video-link block min-w-0">
+                        <h3 class="video-title text-sm font-medium line-clamp-2 leading-snug group-hover:underline">
+                        </h3>
+                    </a>
+                    <span
+                        class="music-badge hidden shrink-0 text-[10px] border border-gray-200 px-1 rounded text-gray-400 mt-0.5">MUSIC</span>
                 </div>
-
-                <div class="mt-auto pt-4 border-t border-slate-50">
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="bg-slate-100 p-1 rounded-full">
-                            <svg class="text-slate-500" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                            </svg>
-                        </div>
-                        <p class="channel-title text-sm font-medium text-slate-600 truncate"></p>
-                    </div>
-                    <div class="flex items-center text-xs text-slate-400 gap-3">
-                        <span class="view-count"></span>
-                    </div>
+                <div class="flex items-center gap-3 text-xs text-gray-400">
+                    <span class="channel-title truncate"></span>
+                    <span class="view-count shrink-0"></span>
                 </div>
             </div>
         </div>
     </template>
 
-    <!-- Main Logic -->
     <script src="app.js"></script>
 </body>
 

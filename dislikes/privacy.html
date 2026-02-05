@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy policy - Dislikes</title>
+    <title>Privacy Policy - Dislikes</title>
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
@@ -12,7 +12,6 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-6RNVL7JZVJ');
     </script>
 
@@ -20,177 +19,184 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        .gradient-text {
-            background: linear-gradient(to right, #dc2626, #f87171);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            --bg: #ffffff;
+            --fg: #000000;
+            --dim: #666666;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--fg);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        a {
+            color: var(--fg);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        a:hover {
+            text-decoration: none;
+        }
+
+        section {
+            margin-bottom: 3rem;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+        }
+
+        .step-num {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--dim);
+            display: block;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
     </style>
 </head>
 
-<body class="bg-slate-50 text-slate-900 font-sans min-h-screen">
+<body class="min-h-screen flex flex-col">
 
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
-        <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
-            <a href="index.html" class="flex items-center gap-2 group">
-                <div class="bg-red-600 p-2 rounded-lg text-white group-hover:bg-red-700 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m15 18-6-6 6-6" />
-                    </svg>
-                </div>
-                <span class="font-bold text-slate-800">Back to App</span>
+    <header class="border-b border-gray-100 py-4">
+        <div class="max-w-4xl mx-auto px-6 flex justify-between items-center">
+            <a href="index.html"
+                class="text-sm font-medium hover:opacity-70 transition-opacity flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6" />
+                </svg>
+                Back to App
             </a>
-            <h1 class="text-lg font-bold gradient-text">Privacy policy</h1>
+            <h1 class="text-lg font-medium tracking-tight">Privacy Policy</h1>
         </div>
     </header>
 
-    <main class="max-w-3xl mx-auto px-6 py-12">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 md:p-12">
-            <h2 class="text-3xl font-bold text-slate-900 mb-8">Privacy policy</h2>
+    <main class="max-w-2xl mx-auto px-6 py-20 flex-grow w-full">
 
-            <p class="text-slate-600 mb-8 leading-relaxed">
-                Last updated: January 28, 2026
-            </p>
-
-            <section class="mb-10">
-                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span
-                        class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm">01</span>
-                    Introduction
-                </h3>
-                <p class="text-slate-600 leading-relaxed">
-                    Dislikes ("we", "us", or "our") is committed to protecting your privacy. This Privacy policy
-                    explains how our application accesses, uses, and protects your Google user data when you use our
-                    service.
-                </p>
-            </section>
-
-            <section class="mb-10">
-                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span
-                        class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-sm">02</span>
-                    Data We Access
-                </h3>
-                <p class="text-slate-600 leading-relaxed mb-4">
-                    Our application requests access to the following Google user data through the YouTube Data API:
-                </p>
-                <ul class="list-disc list-inside text-slate-600 space-y-2 ml-4">
-                    <li>Your YouTube rating history (specifically identifying videos you have disliked).</li>
-                    <li>Basic video metadata (titles, channel names, thumbnails, view counts).</li>
-                </ul>
-                <p class="text-slate-600 mt-4 leading-relaxed">
-                    We use the <code>https://www.googleapis.com/auth/youtube.readonly</code> scope to ensure read-only
-                    access to your data.
-                </p>
-            </section>
-
-            <section class="mb-10">
-                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span
-                        class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-sm">03</span>
-                    How We Use Your Data
-                </h3>
-                <p class="text-slate-600 leading-relaxed">
-                    The data we access is used solely to provide the core functionality of the application: displaying,
-                    searching, and sorting your list of disliked videos. This processing happens entirely within your
-                    web browser.
-                </p>
-            </section>
-
-            <section class="mb-10">
-                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span
-                        class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm">04</span>
-                    Data Protection & Security
-                </h3>
-                <p class="text-slate-600 leading-relaxed mb-4">
-                    <strong>We do not store your personal YouTube data on any servers.</strong> All information is
-                    fetched directly from Google's APIs and resides only in your browser's temporary memory while the
-                    app is open.
-                </p>
-                <p class="text-slate-600 leading-relaxed mb-4">
-                    To protect your sensitive data, we implement the following mechanisms:
-                </p>
-                <ul class="list-disc list-inside text-slate-600 space-y-2 ml-4 mb-4">
-                    <li><strong>Encryption in Transit:</strong> All communication between your browser and Google's
-                        servers is encrypted using industry-standard Transport Layer Security (TLS/HTTPS).</li>
-                    <li><strong>Local Processing:</strong> Data is processed entirely on your local device, ensuring it
-                        is never transmitted to or stored on our servers.</li>
-                    <li><strong>Token Security:</strong> We store your OAuth authentication token in your browser's
-                        <code>localStorage</code>. This token is used exclusively to authorize requests to Google on
-                        your behalf and is never shared.
-                    </li>
-                </ul>
-            </section>
-
-            <section class="mb-10">
-                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span
-                        class="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-sm">05</span>
-                    Data Sharing
-                </h3>
-                <p class="text-slate-600 leading-relaxed">
-                    We do not share, sell, or trade your Google user data with any third parties. Your data never leaves
-                    the connection between your browser and Google's official endpoints.
-                </p>
-            </section>
-
-            <section class="mb-10">
-                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span
-                        class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">06</span>
-                    User Control & Revocation
-                </h3>
-                <p class="text-slate-600 leading-relaxed mb-4">
-                    You can revoke the application's access to your data at any time by:
-                </p>
-                <ul class="list-disc list-inside text-slate-600 space-y-2 ml-4">
-                    <li>Clicking "Sign out" within the application.</li>
-                    <li>Removing the application's access in your <a href="https://myaccount.google.com/permissions"
-                            target="_blank" class="text-blue-600 hover:underline">Google Account Security settings</a>.
-                    </li>
-                </ul>
-            </section>
-
-            <section class="mb-10">
-                <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <span
-                        class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">07</span>
-                    Data Retention & Deletion
-                </h3>
-                <p class="text-slate-600 leading-relaxed mb-4">
-                    We follow a strict data minimization and limited retention policy:
-                </p>
-                <ul class="list-disc list-inside text-slate-600 space-y-2 ml-4">
-                    <li><strong>User Data:</strong> Since we do not store your YouTube data on our servers, there is no
-                        permanent record of your data in our systems. Data held in your browser's memory is deleted
-                        immediately when the application tab is closed.</li>
-                    <li><strong>Authentication Tokens:</strong> The OAuth token stored in your browser's
-                        <code>localStorage</code> is retained to keep you signed in. You can delete this token and all
-                        associated local state at any time by clicking the "Sign out" button within the application.
-                    </li>
-                    <li><strong>Account Deletion:</strong> To "delete" your account or data from this application,
-                        simply sign out and revoke permissions in your Google Security settings. Since we hold no
-                        server-side data, this
-                        effectively removes all footprints of your usage.</li>
-                </ul>
-            </section>
-
-            <section class="pt-8 border-t border-slate-100">
-                <h3 class="text-xl font-bold text-slate-800 mb-4">Contact</h3>
-                <p class="text-slate-600 leading-relaxed">
-                    If you have any questions about this Privacy policy, you can view the source code of this
-                    application on <a href="https://github.com/jimmyorr/cowneck" target="_blank"
-                        class="text-blue-600 hover:underline">GitHub</a>.
-                </p>
-            </section>
+        <div class="mb-16">
+            <h1 class="text-4xl font-semibold mb-4 tracking-tight">Privacy Policy</h1>
+            <p class="text-sm text-gray-500">Last updated: January 28, 2026</p>
         </div>
+
+        <section>
+            <span class="step-num">01</span>
+            <h2>Introduction</h2>
+            <p class="text-gray-600">
+                Dislikes ("we", "us", or "our") is committed to protecting your privacy. This Privacy policy
+                explains how our application accesses, uses, and protects your Google user data.
+            </p>
+        </section>
+
+        <section>
+            <span class="step-num">02</span>
+            <h2>Data We Access</h2>
+            <p class="text-gray-600 mb-4">
+                Our application requests access to the following Google user data through the YouTube Data API:
+            </p>
+            <ul class="list-disc list-outside text-gray-600 space-y-2 ml-4">
+                <li>Your YouTube rating history (specifically identifying videos you have disliked).</li>
+                <li>Basic video metadata (titles, channel names, thumbnails, view counts).</li>
+            </ul>
+            <p class="text-gray-600 mt-4">
+                We use the <code>youtube.readonly</code> scope to ensure read-only access to your data.
+            </p>
+        </section>
+
+        <section>
+            <span class="step-num">03</span>
+            <h2>How We Use Your Data</h2>
+            <p class="text-gray-600">
+                The data we access is used solely to provide the core functionality of the application: displaying,
+                searching, and sorting your list of disliked videos. This processing happens entirely within your
+                web browser.
+            </p>
+        </section>
+
+        <section>
+            <span class="step-num">04</span>
+            <h2>Data Protection & Security</h2>
+            <p class="text-gray-600 mb-4">
+                <strong>We do not store your personal YouTube data on any servers.</strong> All information is
+                fetched directly from Google's APIs and resides only in your browser's temporary memory while the
+                app is open.
+            </p>
+            <p class="text-gray-600 mb-4">
+                To protect your sensitive data, we implement the following:
+            </p>
+            <ul class="list-disc list-outside text-gray-600 space-y-2 ml-4">
+                <li><strong>Encryption:</strong> All communication between your browser and Google is encrypted via
+                    TLS/HTTPS.</li>
+                <li><strong>Local Processing:</strong> Data is processed entirely on your local device.</li>
+                <li><strong>Token Security:</strong> Authentication tokens are stored in your browser's local storage
+                    and used only to authorize requests to Google on your behalf.</li>
+            </ul>
+        </section>
+
+        <section>
+            <span class="step-num">05</span>
+            <h2>Data Sharing</h2>
+            <p class="text-gray-600">
+                We do not share, sell, or trade your Google user data with any third parties. Your data never leaves
+                the connection between your browser and Google's official endpoints.
+            </p>
+        </section>
+
+        <section>
+            <span class="step-num">06</span>
+            <h2>User Control</h2>
+            <p class="text-gray-600 mb-4">
+                You can revoke access at any time by:
+            </p>
+            <ul class="list-disc list-outside text-gray-600 space-y-2 ml-4">
+                <li>Clicking "Sign out" within the application.</li>
+                <li>Removing access in your <a href="https://myaccount.google.com/permissions" target="_blank">Google
+                        Account Security settings</a>.</li>
+            </ul>
+        </section>
+
+        <section>
+            <span class="step-num">07</span>
+            <h2>Retention & Deletion</h2>
+            <p class="text-gray-600 mb-4">
+                We follow a strict minimization policy:
+            </p>
+            <ul class="list-disc list-outside text-gray-600 space-y-2 ml-4">
+                <li><strong>User Data:</strong> We hold no permanent record of your data. Browser memory is cleared when
+                    the tab is closed.</li>
+                <li><strong>Tokens:</strong> Authentication tokens are retained locally to keep you signed in. You can
+                    delete them by signing out.</li>
+            </ul>
+        </section>
+
+        <section class="pt-12 border-t border-gray-100">
+            <h2>Contact</h2>
+            <p class="text-gray-600">
+                Questions? View the source code on <a href="https://github.com/jimmyorr/cowneck"
+                    target="_blank">GitHub</a>.
+            </p>
+        </section>
     </main>
 
-    <footer class="py-12 text-center text-sm text-slate-400">
-        <p>&copy; 2026 Dislikes. All rights reserved.</p>
+    <footer class="py-12 border-t border-gray-50 flex justify-center text-xs text-gray-400">
+        <p>&copy; 2026 Dislikes.</p>
     </footer>
 
 </body>
