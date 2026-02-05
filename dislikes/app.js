@@ -42,6 +42,7 @@ const dom = {
     contentLoader: document.getElementById('content-loader'),
     emptyState: document.getElementById('empty-state'),
     videoGrid: document.getElementById('video-grid'),
+    copyIdsButton: document.getElementById('copy-ids-button'),
 
     scrollSentinel: document.getElementById('infinite-scroll-sentinel'),
 
@@ -163,6 +164,8 @@ function setupEventListeners() {
         filterVideos();
         render();
     });
+
+    dom.copyIdsButton.addEventListener('click', handleCopyIds);
 
     // Infinite Scroll Observer
     const observer = new IntersectionObserver((entries) => {
@@ -309,6 +312,32 @@ async function fetchDislikes(pageToken = null) {
 function handleLoadMore() {
     if (state.nextPageToken) {
         fetchDislikes(state.nextPageToken);
+    }
+}
+
+async function handleCopyIds() {
+    if (state.filteredVideos.length === 0) return;
+
+    const ids = state.filteredVideos.map(v => v.id).join('\n');
+
+    try {
+        await navigator.clipboard.writeText(ids);
+
+        // Visual feedback
+        const originalBg = dom.copyIdsButton.innerHTML;
+        dom.copyIdsButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500"><polyline points="20 6 9 17 4 12"/></svg>
+        `;
+        dom.copyIdsButton.classList.add('border-green-500');
+
+        setTimeout(() => {
+            dom.copyIdsButton.innerHTML = originalBg;
+            dom.copyIdsButton.classList.remove('border-green-500');
+        }, 2000);
+
+    } catch (err) {
+        console.error('Failed to copy IDs:', err);
+        showError('Failed to copy to clipboard.');
     }
 }
 
