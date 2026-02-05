@@ -187,6 +187,35 @@
                             <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
                         </svg>
                     </button>
+
+                    <button id="insights-toggle"
+                        class="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded text-sm font-medium hover:border-black transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10" />
+                            <line x1="12" y1="20" x2="12" y2="4" />
+                            <line x1="6" y1="20" x2="6" y2="14" />
+                        </svg>
+                        <span>Insights</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Analytics Dashboard -->
+            <div id="analytics-container"
+                class="hidden mb-12 p-6 bg-gray-50 rounded-lg border border-gray-100 flex flex-col md:flex-row gap-8">
+                <div class="flex-1 space-y-4">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Top Channels</h3>
+                    <div id="top-channels-list" class="space-y-4">
+                        <!-- Top channels will be injected here -->
+                    </div>
+                </div>
+
+                <div class="flex-1 space-y-4">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">Category Breakdown</h3>
+                    <div id="categories-list" class="space-y-4 text-sm">
+                        <!-- Categories will be injected here -->
+                    </div>
                 </div>
             </div>
 
@@ -236,7 +265,7 @@
             <div class="flex flex-col gap-1 min-w-0">
                 <div class="flex justify-between items-start gap-2">
                     <a href="" target="_blank" class="video-link block min-w-0">
-                        <h3 class="video-title text-sm font-medium line-clamp-2 leading-snug group-hover:underline">
+                        <h3 class="video-title text-sm font-medium line-clamp-2 leading-snug hover:underline">
                         </h3>
                     </a>
                     <span

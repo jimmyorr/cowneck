@@ -18,7 +18,8 @@ const state = {
     debouncedSearchTerm: '',
     sortBy: 'date-new',
     nextPageToken: null,
-    totalResults: null
+    totalResults: null,
+    showInsights: false
 };
 
 // --- DOM Elements ---
@@ -43,6 +44,10 @@ const dom = {
     emptyState: document.getElementById('empty-state'),
     videoGrid: document.getElementById('video-grid'),
     copyIdsButton: document.getElementById('copy-ids-button'),
+    insightsToggle: document.getElementById('insights-toggle'),
+    analyticsContainer: document.getElementById('analytics-container'),
+    topChannelsList: document.getElementById('top-channels-list'),
+    categoriesList: document.getElementById('categories-list'),
 
     scrollSentinel: document.getElementById('infinite-scroll-sentinel'),
 
@@ -167,6 +172,10 @@ function setupEventListeners() {
     });
 
     dom.copyIdsButton.addEventListener('click', handleCopyIds);
+    dom.insightsToggle.addEventListener('click', () => {
+        state.showInsights = !state.showInsights;
+        render();
+    });
 
     // Infinite Scroll Observer
     const observer = new IntersectionObserver((entries) => {
@@ -481,6 +490,16 @@ function render() {
 
     dom.resultsCount.textContent = countText;
 
+    // Insights State
+    if (state.showInsights) {
+        dom.analyticsContainer.classList.remove('hidden');
+        dom.insightsToggle.classList.add('bg-black', 'text-white');
+        renderAnalytics();
+    } else {
+        dom.analyticsContainer.classList.add('hidden');
+        dom.insightsToggle.classList.remove('bg-black', 'text-white');
+    }
+
     // Loading & Empty States
     if (state.isAuthenticated) {
         if (state.loading && !isLoadMore) {
@@ -567,7 +586,14 @@ function renderVideoList() {
 
         // Channel Info
         const channelEl = clone.querySelector('.channel-title');
-        channelEl.innerHTML = highlightMatch(video.snippet.channelTitle || 'Unknown channel', state.debouncedSearchTerm);
+        const chName = video.snippet.channelTitle || 'Unknown channel';
+        const chId = video.snippet.channelId;
+
+        if (chId && !isDeleted) {
+            channelEl.innerHTML = `<a href="https://www.youtube.com/channel/${chId}" target="_blank" class="hover:text-black hover:underline">${highlightMatch(chName, state.debouncedSearchTerm)}</a>`;
+        } else {
+            channelEl.innerHTML = highlightMatch(chName, state.debouncedSearchTerm);
+        }
 
         // Dynamic Metadata
         const metadataEl = clone.querySelector('.dynamic-metadata');
@@ -584,6 +610,79 @@ function renderSkeletons() {
         const clone = dom.skeletonTemplate.content.cloneNode(true);
         dom.videoGrid.appendChild(clone);
     }
+}
+
+function renderAnalytics() {
+    if (state.videos.length === 0) return;
+
+    const data = calculateAnalytics();
+
+    // Render Top Channels
+    dom.topChannelsList.innerHTML = data.topChannels.map(ch => {
+        const display = ch.id ?
+            `<a href="https://www.youtube.com/channel/${ch.id}" target="_blank" class="hover:underline truncate pr-2">${ch.name}</a>` :
+            `<span class="truncate pr-2">${ch.name}</span>`;
+
+        return `
+            <div class="flex justify-between items-center text-sm">
+                ${display}
+                <span class="font-medium bg-gray-200 px-1.5 rounded text-[10px]">${ch.count}</span>
+            </div>
+        `;
+    }).join('');
+
+    const categoryNames = {
+        '1': 'Film', '2': 'Autos', '10': 'Music', '15': 'Pets', '17': 'Sports',
+        '20': 'Gaming', '22': 'Blogs', '23': 'Comedy', '24': 'Entertainment',
+        '25': 'News', '26': 'Howto', '27': 'Education', '28': 'Tech',
+        'deleted': 'Unavailable'
+    };
+
+    dom.categoriesList.innerHTML = data.topCategories.map(cat => `
+        <div class="space-y-1">
+            <div class="flex justify-between text-[10px] uppercase font-bold text-gray-400">
+                <span>${categoryNames[cat.id] || 'Other'}</span>
+                <span>${Math.round(cat.percent)}%</span>
+            </div>
+            <div class="w-full bg-gray-200 h-1 rounded-full overflow-hidden">
+                <div class="bg-gray-400 h-full" style="width: ${cat.percent}%"></div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function calculateAnalytics() {
+    const channels = {};
+    const categories = {};
+
+    state.videos.forEach(v => {
+        const isDeleted = checkIfDeleted(v);
+
+        // Channels
+        const chName = (isDeleted && !v.snippet?.channelTitle) ? 'Unavailable' : (v.snippet?.channelTitle || 'Unknown');
+        const chId = v.snippet?.channelId;
+
+        if (!channels[chName]) {
+            channels[chName] = { count: 0, id: isDeleted ? null : chId };
+        }
+        channels[chName].count++;
+
+        // Categories
+        const catId = isDeleted ? 'deleted' : (v.snippet?.categoryId || 'unknown');
+        categories[catId] = (categories[catId] || 0) + 1;
+    });
+
+    const topChannels = Object.entries(channels)
+        .map(([name, info]) => ({ name, count: info.count, id: info.id }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+
+    const topCategories = Object.entries(categories)
+        .map(([id, count]) => ({ id, count, percent: (count / state.videos.length) * 100 }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 4);
+
+    return { topChannels, topCategories };
 }
 
 function getDynamicMetadata(video) {
@@ -613,9 +712,9 @@ function formatDuration(duration) {
     const s = totalSeconds % 60;
 
     if (h > 0) {
-        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')} `;
     }
-    return `${m}:${s.toString().padStart(2, '0')}`;
+    return `${m}:${s.toString().padStart(2, '0')} `;
 }
 
 function highlightMatch(text, term) {
