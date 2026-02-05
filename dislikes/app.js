@@ -688,9 +688,9 @@ function renderAnalytics() {
             `<span class="truncate pr-2">${ch.name}</span>`;
 
         return `
-            <div class="flex justify-between items-center text-sm">
+            <div class="flex items-center gap-3 text-sm">
+                <span class="w-8 flex justify-center font-bold text-black bg-white border border-gray-200 rounded text-[10px] py-0.5 shrink-0">${ch.count}</span>
                 ${display}
-                <span class="font-medium bg-gray-200 px-1.5 rounded text-[10px]">${ch.count}</span>
             </div>
         `;
     }).join('');
@@ -704,12 +704,12 @@ function renderAnalytics() {
 
     dom.categoriesList.innerHTML = data.topCategories.map(cat => `
         <div class="space-y-1">
-            <div class="flex justify-between text-[10px] uppercase font-bold text-gray-400">
+            <div class="flex justify-between text-[10px] uppercase font-bold text-gray-500">
                 <span>${categoryNames[cat.id] || 'Other'}</span>
-                <span>${Math.round(cat.percent)}%</span>
+                <span class="text-black">${Math.round(cat.percent)}%</span>
             </div>
             <div class="w-full bg-gray-200 h-1 rounded-full overflow-hidden">
-                <div class="bg-gray-400 h-full" style="width: ${cat.percent}%"></div>
+                <div class="bg-black h-full" style="width: ${cat.percent}%"></div>
             </div>
         </div>
     `).join('');
