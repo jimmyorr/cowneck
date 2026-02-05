@@ -19,7 +19,8 @@ const state = {
     sortBy: 'date-new',
     nextPageToken: null,
     totalResults: null,
-    showInsights: false
+    showInsights: false,
+    isFetchAll: false
 };
 
 // --- DOM Elements ---
@@ -44,6 +45,7 @@ const dom = {
     emptyState: document.getElementById('empty-state'),
     videoGrid: document.getElementById('video-grid'),
     copyIdsButton: document.getElementById('copy-ids-button'),
+    loadAllButton: document.getElementById('load-all-button'),
     insightsToggle: document.getElementById('insights-toggle'),
     analyticsContainer: document.getElementById('analytics-container'),
     topChannelsList: document.getElementById('top-channels-list'),
@@ -172,6 +174,7 @@ function setupEventListeners() {
     });
 
     dom.copyIdsButton.addEventListener('click', handleCopyIds);
+    dom.loadAllButton.addEventListener('click', handleLoadAll);
     dom.insightsToggle.addEventListener('click', () => {
         state.showInsights = !state.showInsights;
         render();
@@ -305,6 +308,13 @@ async function fetchDislikes(pageToken = null) {
         state.nextPageToken = nextToken;
         state.totalResults = total;
         filterVideos();
+
+        // If we are in "Load All" mode, fetch the next page immediately
+        if (state.isFetchAll && state.nextPageToken) {
+            fetchDislikes(state.nextPageToken);
+        } else {
+            state.isFetchAll = false;
+        }
     } catch (err) {
         console.error("Fetch error", err);
         if (err?.status === 401) {
@@ -321,6 +331,13 @@ async function fetchDislikes(pageToken = null) {
 
 function handleLoadMore() {
     if (state.nextPageToken) {
+        fetchDislikes(state.nextPageToken);
+    }
+}
+
+function handleLoadAll() {
+    if (state.nextPageToken && !state.loading) {
+        state.isFetchAll = true;
         fetchDislikes(state.nextPageToken);
     }
 }
@@ -489,6 +506,22 @@ function render() {
     }
 
     dom.resultsCount.textContent = countText;
+
+    // Load All Button State
+    if (state.nextPageToken && !state.debouncedSearchTerm) {
+        dom.loadAllButton.classList.remove('hidden');
+        if (state.isFetchAll) {
+            dom.loadAllButton.textContent = 'Loading all...';
+            dom.loadAllButton.disabled = true;
+            dom.loadAllButton.classList.add('opacity-50');
+        } else {
+            dom.loadAllButton.textContent = 'Load all';
+            dom.loadAllButton.disabled = false;
+            dom.loadAllButton.classList.remove('opacity-50');
+        }
+    } else {
+        dom.loadAllButton.classList.add('hidden');
+    }
 
     // Insights State
     if (state.showInsights) {
