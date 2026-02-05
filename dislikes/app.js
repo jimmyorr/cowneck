@@ -609,8 +609,8 @@ function renderVideoList() {
             img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='; // Transparent pixel
         };
 
-        const link = clone.querySelector('.video-link');
-        link.href = `https://www.youtube.com/watch?v=${video.id}`;
+        const links = clone.querySelectorAll('.video-link');
+        links.forEach(l => l.href = `https://www.youtube.com/watch?v=${video.id}`);
 
         // Title & Music Icon
         const titleEl = clone.querySelector('.video-title');
