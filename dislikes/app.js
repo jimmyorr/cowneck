@@ -641,7 +641,7 @@ function renderVideoList() {
 
 function triggerCelebration() {
     if (window.confetti) {
-        const duration = 3 * 1000;
+        const duration = 1.5 * 1000;
         const end = Date.now() + duration;
 
         (function frame() {
