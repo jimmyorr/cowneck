@@ -497,12 +497,12 @@ function render() {
     if (!state.debouncedSearchTerm) {
         if (state.nextPageToken) {
             if (totalCount && totalCount > currentCount) {
-                countText = `${fmt(currentCount)} of about ${fmt(totalCount)} videos loaded · Scroll for more`;
+                countText = `${fmt(currentCount)} of about ${fmt(totalCount)} loaded`;
             } else {
-                countText = `${fmt(currentCount)} videos loaded · Scroll for more`;
+                countText = `${fmt(currentCount)} loaded`;
             }
         } else {
-            countText = `All ${fmt(currentCount)} videos loaded`;
+            countText = `All ${fmt(currentCount)} loaded`;
         }
     } else {
         countText = `Found ${fmt(currentCount)} videos`;
