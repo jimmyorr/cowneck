@@ -331,18 +331,56 @@ async function fetchVideos(pageToken = null) {
             throw new Error("YouTube API client not loaded.");
         }
 
-        const response = await window.gapi.client.youtube.videos.list({
-            'myRating': state.mode,
-            'part': 'snippet,contentDetails,statistics,status',
-            'maxResults': 50,
-            'pageToken': pageToken || ''
-        });
+        let items = [];
+        let nextToken = null;
+        let total = 0;
 
-        console.log("YouTube API Response:", response);
+        if (state.mode === 'like') {
+            // Use playlistItems for Likes to bypass the 1000-item limit of videos.list(myRating='like')
+            // 'LL' is the magic ID for the Liked Videos playlist
+            const plResponse = await window.gapi.client.youtube.playlistItems.list({
+                'playlistId': 'LL',
+                'part': 'contentDetails',
+                'maxResults': 50,
+                'pageToken': pageToken || ''
+            });
 
-        const items = response.result.items || [];
-        const nextToken = response.result.nextPageToken || null;
-        const total = response.result.pageInfo?.totalResults || 0;
+            console.log("PlaylistItems API Response:", plResponse);
+
+            const videoIds = (plResponse.result.items || []).map(item => item.contentDetails.videoId);
+            nextToken = plResponse.result.nextPageToken || null;
+            total = plResponse.result.pageInfo?.totalResults || 0;
+
+            if (videoIds.length > 0) {
+                const vResponse = await window.gapi.client.youtube.videos.list({
+                    'id': videoIds.join(','),
+                    'part': 'snippet,contentDetails,statistics,status'
+                });
+
+                const fetchedItems = vResponse.result.items || [];
+                // Maintain the order returned by the playlist
+                const itemsMap = fetchedItems.reduce((acc, item) => {
+                    acc[item.id] = item;
+                    return acc;
+                }, {});
+                items = videoIds.map(id => itemsMap[id]).filter(Boolean);
+            }
+        } else {
+            // Use videos.list for Dislikes
+            // NOTE: This filter is known to be capped at 1000 items by the YouTube API.
+            // Since there is no "Disliked Videos" playlist, this is the only way to fetch them.
+            const response = await window.gapi.client.youtube.videos.list({
+                'myRating': state.mode,
+                'part': 'snippet,contentDetails,statistics,status',
+                'maxResults': 50,
+                'pageToken': pageToken || ''
+            });
+
+            console.log("YouTube API Response:", response);
+            items = response.result.items || [];
+            nextToken = response.result.nextPageToken || null;
+            total = response.result.pageInfo?.totalResults || 0;
+        }
 
         if (isLoadMore) {
             state.videos = [...state.videos, ...items];
