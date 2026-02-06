@@ -21,7 +21,9 @@ const state = {
     nextPageToken: null,
     totalResults: null,
     showInsights: false,
-    isFetchAll: false
+    isFetchAll: false,
+    mode: 'dislike', // 'dislike' or 'like'
+    iconCache: {}
 };
 
 // --- DOM Elements ---
@@ -57,7 +59,13 @@ const dom = {
     backToTop: document.getElementById('back-to-top'),
 
     videoTemplate: document.getElementById('video-card-template'),
-    skeletonTemplate: document.getElementById('skeleton-template')
+    skeletonTemplate: document.getElementById('skeleton-template'),
+    modeToggle: document.getElementById('mode-toggle'),
+    welcomeTitle: document.getElementById('welcome-title'),
+    welcomeDesc: document.getElementById('welcome-desc'),
+    sectionTitle: document.getElementById('section-title'),
+    favicon: document.getElementById('favicon'),
+    appleIcon: document.getElementById('apple-icon')
 };
 
 // --- Initialization ---
@@ -105,7 +113,7 @@ function initGis() {
                     saveToken(resp);
                     state.isAuthenticated = true;
                     render();
-                    fetchDislikes();
+                    fetchVideos();
                 },
             });
             state.tokenClient = client;
@@ -157,7 +165,7 @@ function checkReady() {
             // Initialize with loading state to avoid "All 0 loaded" flash
             state.loading = true;
             render();
-            fetchDislikes();
+            fetchVideos();
         } else {
             console.log("No token found or already authenticated");
             render(); // Update UI to enable buttons
@@ -216,6 +224,23 @@ function setupEventListeners() {
             dom.backToTop.classList.add('opacity-0', 'pointer-events-none');
             dom.backToTop.classList.remove('opacity-100');
         }
+    });
+
+    dom.modeToggle.addEventListener('click', () => {
+        state.mode = state.mode === 'dislike' ? 'like' : 'dislike';
+
+        // Clear state for new mode
+        state.videos = [];
+        state.filteredVideos = [];
+        state.nextPageToken = null;
+        state.totalResults = null;
+        state.isFetchAll = false;
+
+        if (state.isAuthenticated) {
+            fetchVideos();
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        render();
     });
 }
 
@@ -297,7 +322,7 @@ function handleSignout() {
 
 // --- Logic ---
 
-async function fetchDislikes(pageToken = null) {
+async function fetchVideos(pageToken = null) {
     const isLoadMore = !!pageToken;
     setLoading(true, isLoadMore);
     setError(null);
@@ -307,7 +332,7 @@ async function fetchDislikes(pageToken = null) {
         }
 
         const response = await window.gapi.client.youtube.videos.list({
-            'myRating': 'dislike',
+            'myRating': state.mode,
             'part': 'snippet,contentDetails,statistics,status',
             'maxResults': 50,
             'pageToken': pageToken || ''
@@ -337,7 +362,7 @@ async function fetchDislikes(pageToken = null) {
         // If we are in "Load All" mode, fetch the next page immediately
         if (state.isFetchAll) {
             if (state.nextPageToken) {
-                fetchDislikes(state.nextPageToken);
+                fetchVideos(state.nextPageToken);
             } else {
                 state.isFetchAll = false;
                 triggerCelebration();
@@ -352,7 +377,7 @@ async function fetchDislikes(pageToken = null) {
             state.isAuthenticated = false;
             setError("Session expired. Please sign in again.");
         } else {
-            setError(err?.result?.error?.message || err?.message || "Failed to fetch disliked videos.");
+            setError(err?.result?.error?.message || err?.message || `Failed to fetch ${state.mode === 'dislike' ? 'disliked' : 'liked'} videos.`);
         }
     } finally {
         setLoading(false, isLoadMore);
@@ -361,14 +386,14 @@ async function fetchDislikes(pageToken = null) {
 
 function handleLoadMore() {
     if (state.nextPageToken) {
-        fetchDislikes(state.nextPageToken);
+        fetchVideos(state.nextPageToken);
     }
 }
 
 function handleLoadAll() {
     if (state.nextPageToken && !state.loading) {
         state.isFetchAll = true;
-        fetchDislikes(state.nextPageToken);
+        fetchVideos(state.nextPageToken);
     }
 }
 
@@ -487,6 +512,15 @@ function render() {
         dom.heroAuthButton.textContent = 'Initializing...';
         dom.authText.textContent = 'Loading...';
     }
+
+    // Dynamic Text based on mode
+    const isDislike = state.mode === 'dislike';
+    dom.modeToggle.textContent = isDislike ? 'Dislikes' : 'Likes';
+    dom.welcomeTitle.textContent = `Your YouTube ${isDislike ? 'disliked' : 'liked'} videos.`;
+    dom.welcomeDesc.textContent = `View, filter, and sort your ${isDislike ? 'dislikes' : 'likes'}. Simple, private, and minimal.`;
+    dom.sectionTitle.textContent = isDislike ? 'Dislikes' : 'Likes';
+    document.title = isDislike ? 'Dislikes' : 'Likes';
+    updateFavicon(state.mode);
 
     // Auth State Views
     if (state.isAuthenticated) {
@@ -824,6 +858,35 @@ function parseDuration(duration) {
     const minutes = parseInt(match[2] || 0);
     const seconds = parseInt(match[3] || 0);
     return hours * 3600 + minutes * 60 + seconds;
+}
+
+function updateFavicon(mode) {
+    if (state.iconCache[mode]) {
+        dom.favicon.href = state.iconCache[mode];
+        dom.appleIcon.href = state.iconCache[mode];
+        return;
+    }
+
+    const img = new Image();
+    img.src = 'icon.png';
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+
+        if (mode === 'like') {
+            // Vertical flip
+            ctx.translate(0, canvas.height);
+            ctx.scale(1, -1);
+        }
+
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL('image/png');
+        state.iconCache[mode] = dataUrl;
+        dom.favicon.href = dataUrl;
+        dom.appleIcon.href = dataUrl;
+    };
 }
 
 // Start
