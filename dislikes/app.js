@@ -23,7 +23,8 @@ const state = {
     showInsights: false,
     isFetchAll: false,
     mode: 'dislike', // 'dislike' or 'like'
-    iconCache: {}
+    iconCache: {},
+    showAllChannels: false
 };
 
 // --- DOM Elements ---
@@ -183,6 +184,15 @@ function setupEventListeners() {
         filterVideos();
         render();
     }, 300);
+
+    // More Channels Button Click (using delegation or direct since it's injected)
+    dom.analyticsContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('#channels-more-button');
+        if (btn) {
+            state.showAllChannels = !state.showAllChannels;
+            render();
+        }
+    });
 
     dom.searchInput.addEventListener('input', (e) => {
         state.searchTerm = e.target.value;
@@ -781,9 +791,11 @@ function renderAnalytics() {
     if (state.videos.length === 0) return;
 
     const data = calculateAnalytics();
+    const displayChannels = state.showAllChannels ? data.topChannels : data.topChannels.slice(0, 5);
+    const hasMore = data.topChannels.length > 5;
 
     // Render Top Channels
-    dom.topChannelsList.innerHTML = data.topChannels.map(ch => {
+    dom.topChannelsList.innerHTML = displayChannels.map(ch => {
         const display = ch.id ?
             `<a href="https://www.youtube.com/channel/${ch.id}" target="_blank" class="hover:underline truncate pr-2">${ch.name}</a>` :
             `<span class="truncate pr-2">${ch.name}</span>`;
@@ -795,6 +807,15 @@ function renderAnalytics() {
             </div>
         `;
     }).join('');
+
+    if (hasMore) {
+        const btnText = state.showAllChannels ? 'Show less' : 'More';
+        dom.topChannelsList.insertAdjacentHTML('beforeend', `
+            <button id="channels-more-button" class="mt-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-black transition-colors">
+                ${btnText}
+            </button>
+        `);
+    }
 
     const categoryNames = {
         '1': 'Film', '2': 'Autos', '10': 'Music', '15': 'Pets', '17': 'Sports',
@@ -840,7 +861,7 @@ function calculateAnalytics() {
     const topChannels = Object.entries(channels)
         .map(([name, info]) => ({ name, count: info.count, id: info.id }))
         .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
+        .slice(0, 100);
 
     const topCategories = Object.entries(categories)
         .map(([id, count]) => ({ id, count, percent: (count / state.videos.length) * 100 }))
