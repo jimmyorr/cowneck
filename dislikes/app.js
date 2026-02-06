@@ -114,9 +114,10 @@ function initGis() {
 }
 
 function saveToken(resp) {
+    const expiresIn = parseInt(resp.expires_in) || 3600;
     const tokenData = {
         ...resp,
-        expires_at: Date.now() + (resp.expires_in * 1000)
+        expires_at: Date.now() + (expiresIn * 1000)
     };
     localStorage.setItem('yt_dislikes_token', JSON.stringify(tokenData));
 }
@@ -126,13 +127,20 @@ function loadToken() {
     if (!data) return null;
     try {
         const tokenData = JSON.parse(data);
+        if (!tokenData || !tokenData.access_token) return null;
+
         // If it's expiring in less than 5 minutes, consider it expired
-        if (Date.now() > (tokenData.expires_at - 300000)) {
+        const now = Date.now();
+        const expiresAt = parseInt(tokenData.expires_at);
+
+        if (isNaN(expiresAt) || now > (expiresAt - 300000)) {
+            console.log("Token expired or invalid expiration date");
             localStorage.removeItem('yt_dislikes_token');
             return null;
         }
         return tokenData;
     } catch (e) {
+        console.error("Error loading token", e);
         return null;
     }
 }
@@ -141,11 +149,15 @@ function checkReady() {
     if (state.gapiInited && state.gisInited) {
         const token = loadToken();
         if (token && !state.isAuthenticated) {
+            console.log("Restoring session from token");
             window.gapi.client.setToken(token);
             state.isAuthenticated = true;
+            // Initialize with loading state to avoid "All 0 loaded" flash
+            state.loading = true;
             render();
             fetchDislikes();
         } else {
+            console.log("No token found or already authenticated");
             render(); // Update UI to enable buttons
         }
     }
@@ -288,6 +300,10 @@ async function fetchDislikes(pageToken = null) {
     setLoading(true, isLoadMore);
     setError(null);
     try {
+        if (!window.gapi?.client?.youtube) {
+            throw new Error("YouTube API client not loaded.");
+        }
+
         const response = await window.gapi.client.youtube.videos.list({
             'myRating': 'dislike',
             'part': 'snippet,contentDetails,statistics,status',
@@ -295,9 +311,11 @@ async function fetchDislikes(pageToken = null) {
             'pageToken': pageToken || ''
         });
 
+        console.log("YouTube API Response:", response);
+
         const items = response.result.items || [];
         const nextToken = response.result.nextPageToken || null;
-        const total = response.result.pageInfo?.totalResults || null;
+        const total = response.result.pageInfo?.totalResults || 0;
 
         if (isLoadMore) {
             state.videos = [...state.videos, ...items];
@@ -309,6 +327,11 @@ async function fetchDislikes(pageToken = null) {
         state.totalResults = total;
         filterVideos();
 
+        // If we acquired 0 items but totalResults > 0, something is wrong
+        if (items.length === 0 && total > 0 && !isLoadMore) {
+            console.warn("API returned 0 items but totalResults > 0. Account might be restricted or token issues.");
+        }
+
         // If we are in "Load All" mode, fetch the next page immediately
         if (state.isFetchAll) {
             if (state.nextPageToken) {
@@ -319,14 +342,16 @@ async function fetchDislikes(pageToken = null) {
             }
         }
     } catch (err) {
-        console.error("Fetch error", err);
-        if (err?.status === 401) {
+        console.error("Fetch error detail:", err);
+        const status = err?.status || err?.result?.error?.code;
+        if (status === 401) {
             // Token expired or invalid
             localStorage.removeItem('yt_dislikes_token');
             state.isAuthenticated = false;
-            render();
+            setError("Session expired. Please sign in again.");
+        } else {
+            setError(err?.result?.error?.message || err?.message || "Failed to fetch disliked videos.");
         }
-        setError(err?.result?.error?.message || "Failed to fetch disliked videos.");
     } finally {
         setLoading(false, isLoadMore);
     }
@@ -494,7 +519,9 @@ function render() {
     const totalCount = state.totalResults;
     const fmt = (n) => new Intl.NumberFormat().format(n);
 
-    if (!state.debouncedSearchTerm) {
+    if (state.loading && !isLoadMore) {
+        countText = 'Loading...';
+    } else if (!state.debouncedSearchTerm) {
         if (state.nextPageToken) {
             if (totalCount && totalCount > currentCount) {
                 countText = `${fmt(currentCount)} of about ${fmt(totalCount)} loaded`;

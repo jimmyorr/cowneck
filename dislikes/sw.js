@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dislikes-v1';
+const CACHE_NAME = 'dislikes-v2';
 const ASSETS = [
     './',
     './index.html',
