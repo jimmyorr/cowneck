@@ -2,6 +2,7 @@
 const CLIENT_ID = '932685095666-31l2s1psd94msj2a59d2ok7m4dfj3922.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/youtube.readonly';
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest';
+const VERSION = '1.0.1'; // Bumping for initialization fixes
 
 // --- State ---
 const state = {
@@ -62,6 +63,7 @@ const dom = {
 // --- Initialization ---
 
 function init() {
+    console.log(`Dislikes v${VERSION} initializing...`);
     initGapi();
     initGis();
     setupEventListeners();
