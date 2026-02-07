@@ -101,9 +101,7 @@ function initGapi() {
             clearInterval(checkGapi);
             window.gapi.load('client', async () => {
                 try {
-                    await window.gapi.client.init({
-                        discoveryDocs: [DISCOVERY_DOC],
-                    });
+                    await window.gapi.client.load('youtube', 'v3');
                     state.gapiInited = true;
                     checkReady();
                 } catch (err) {
@@ -136,6 +134,17 @@ function initGis() {
                         return;
                     }
                     saveToken(resp);
+
+                    // Explicitly set the token for gapi client
+                    if (window.gapi && window.gapi.client) {
+                        window.gapi.client.setToken({
+                            access_token: resp.access_token,
+                            expires_in: resp.expires_in,
+                            scope: resp.scope,
+                            token_type: resp.token_type
+                        });
+                    }
+
                     state.isAuthenticated = true;
                     render();
                     fetchVideos();
@@ -190,7 +199,13 @@ function checkReady() {
         const token = loadToken();
         if (token && !state.isAuthenticated) {
             console.log("Restoring session from token");
-            window.gapi.client.setToken(token);
+            // Only pass the necessary token properties to gapi
+            window.gapi.client.setToken({
+                access_token: token.access_token,
+                expires_in: token.expires_in,
+                scope: token.scope,
+                token_type: token.token_type
+            });
             state.isAuthenticated = true;
             // Initialize with loading state to avoid "All 0 loaded" flash
             state.loading = true;
@@ -417,9 +432,9 @@ async function fetchVideos(pageToken = null) {
                 'pageToken': pageToken || ''
             });
 
-            // Enforce 15-second timeout
+            // Enforce 30-second timeout
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Request timed out')), 15000)
+                setTimeout(() => reject(new Error('Request timed out')), 30000)
             );
 
             const response = await Promise.race([apiCall, timeoutPromise]);

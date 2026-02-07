@@ -53,7 +53,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         (async () => {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
             try {
                 const response = await fetch(event.request, { signal: controller.signal });
