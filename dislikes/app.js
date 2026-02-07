@@ -2,7 +2,7 @@
 const CLIENT_ID = '932685095666-31l2s1psd94msj2a59d2ok7m4dfj3922.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/youtube.readonly';
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest';
-const VERSION = '1.0.1'; // Bumping for initialization fixes
+const VERSION = '1.0.2'; // Bumping for cache synchronization
 
 // --- State ---
 const state = {
@@ -66,7 +66,10 @@ const dom = {
     welcomeDesc: document.getElementById('welcome-desc'),
     sectionTitle: document.getElementById('section-title'),
     favicon: document.getElementById('favicon'),
-    appleIcon: document.getElementById('apple-icon')
+    appleIcon: document.getElementById('apple-icon'),
+    footerResetButton: document.getElementById('footer-reset-button'),
+    resetAppLink: document.getElementById('reset-app-link'),
+    initializationTrouble: document.getElementById('initialization-trouble')
 };
 
 // --- Initialization ---
@@ -77,10 +80,20 @@ function init() {
     initGis();
     setupEventListeners();
     render();
+
+    // If it's taking too long (e.g. 8 seconds), show the troubleshooting link
+    setTimeout(() => {
+        if (!state.gapiInited || !state.gisInited) {
+            dom.initializationTrouble.classList.remove('hidden');
+        }
+    }, 8000);
 }
 
 function initGapi() {
+    let attempts = 0;
+    const maxAttempts = 100; // 10 seconds
     const checkGapi = setInterval(() => {
+        attempts++;
         if (window.gapi) {
             clearInterval(checkGapi);
             window.gapi.load('client', async () => {
@@ -95,12 +108,20 @@ function initGapi() {
                     showError("Failed to initialize Google API client.");
                 }
             });
+        } else if (attempts > maxAttempts) {
+            clearInterval(checkGapi);
+            console.error("GAPI load timeout");
+            // We don't show error yet, checkReady will handle the visual feedback
+            checkReady();
         }
     }, 100);
 }
 
 function initGis() {
+    let attempts = 0;
+    const maxAttempts = 100; // 10 seconds
     const checkGis = setInterval(() => {
+        attempts++;
         if (window.google) {
             clearInterval(checkGis);
             const client = window.google.accounts.oauth2.initTokenClient({
@@ -119,6 +140,10 @@ function initGis() {
             });
             state.tokenClient = client;
             state.gisInited = true;
+            checkReady();
+        } else if (attempts > maxAttempts) {
+            clearInterval(checkGis);
+            console.error("GIS load timeout");
             checkReady();
         }
     }, 100);
@@ -158,6 +183,7 @@ function loadToken() {
 
 function checkReady() {
     if (state.gapiInited && state.gisInited) {
+        dom.initializationTrouble.classList.add('hidden');
         const token = loadToken();
         if (token && !state.isAuthenticated) {
             console.log("Restoring session from token");
@@ -178,6 +204,11 @@ function setupEventListeners() {
     dom.authButton.addEventListener('click', handleAuthClick);
     dom.heroAuthButton.addEventListener('click', handleAuthClick);
     dom.signoutButton.addEventListener('click', handleSignout);
+    dom.footerResetButton.addEventListener('click', handleResetApp);
+    dom.resetAppLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        handleResetApp();
+    });
 
     const debouncedSearch = debounce((value) => {
         state.debouncedSearchTerm = value;
@@ -328,6 +359,37 @@ function handleSignout() {
     dom.searchInput.value = '';
 
     render();
+}
+
+async function handleResetApp() {
+    if (!confirm("This will clear all application caches and reset your session. Continue?")) return;
+
+    try {
+        // 1. Unregister Service Workers
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+                await registration.unregister();
+            }
+        }
+
+        // 2. Clear Caches
+        if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            for (const name of cacheNames) {
+                await caches.delete(name);
+            }
+        }
+
+        // 3. Clear Local Storage
+        localStorage.clear();
+
+        // 4. Force Reload
+        window.location.reload();
+    } catch (err) {
+        console.error("Reset failed:", err);
+        alert("Reset failed: " + err.message);
+    }
 }
 
 // --- Logic ---

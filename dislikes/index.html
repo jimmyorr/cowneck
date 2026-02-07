@@ -149,8 +149,11 @@
     <main class="max-w-6xl mx-auto px-6 py-12 flex-grow w-full">
 
         <!-- Error -->
-        <div id="error-container" class="hidden mb-8 p-4 border border-red-200 bg-red-50 text-red-600 text-sm">
+        <div id="error-container"
+            class="hidden mb-8 p-4 border border-red-200 bg-red-50 text-red-600 text-sm flex flex-col sm:flex-row justify-between items-center gap-4">
             <p id="error-message"></p>
+            <button onclick="window.location.reload()"
+                class="shrink-0 px-3 py-1 bg-red-600 text-white rounded font-medium hover:bg-red-700 transition-colors">Retry</button>
         </div>
 
         <!-- Landing -->
@@ -165,6 +168,10 @@
             </button>
             <p class="text-[10px] text-gray-400 mt-4 tracking-wider uppercase">Local only. Data never leaves your
                 browser.</p>
+            <div id="initialization-trouble" class="hidden mt-8 text-xs text-gray-400">
+                <p>Taking too long? <button id="reset-app-link" class="underline hover:text-black">Reset
+                        application</button></p>
+            </div>
         </div>
 
         <!-- App -->
@@ -259,10 +266,11 @@
             <div class="flex gap-4">
                 <a href="privacy.html" class="hover:text-black">Privacy</a>
                 <a href="https://github.com/jimmyorr/cowneck" target="_blank" class="hover:text-black">GitHub</a>
+                <button id="footer-reset-button" class="hover:text-black">Reset App</button>
             </div>
             <div class="flex gap-4 items-center">
                 <span>© 2026</span>
-                <span class="text-[9px] opacity-40">v1.0.1</span>
+                <span class="text-[9px] opacity-40">v1.0.2</span>
             </div>
         </div>
     </footer>
