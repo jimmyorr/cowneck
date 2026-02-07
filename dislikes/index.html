@@ -131,9 +131,17 @@
 
     <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 py-4">
         <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
-            <button id="mode-toggle" class="text-lg font-medium tracking-tight hover:opacity-70 transition-opacity">
-                <span id="mode-text">Dislikes</span>
-            </button>
+            <div class="flex items-center gap-3">
+                <a href="/" class="text-gray-300 hover:text-black transition-colors" title="Back to cowneck.com">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m15 18-6-6 6-6" />
+                    </svg>
+                </a>
+                <button id="mode-toggle" class="text-lg font-medium tracking-tight hover:opacity-70 transition-opacity">
+                    <span id="mode-text">Dislikes</span>
+                </button>
+            </div>
 
             <div class="flex items-center gap-2">
                 <div id="auth-indicator" class="hidden flex items-center gap-4 text-sm mr-2">
@@ -161,7 +169,8 @@
                         class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">GitHub source</a>
                     <hr class="my-1 border-gray-50">
                     <button id="header-reset-button"
-                        class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Reset app</button>
+                        class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Reset
+                        app</button>
                 </div>
 
                 <button id="auth-button" disabled
