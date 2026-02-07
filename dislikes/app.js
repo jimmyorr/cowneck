@@ -2,7 +2,7 @@
 const CLIENT_ID = '932685095666-31l2s1psd94msj2a59d2ok7m4dfj3922.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/youtube.readonly';
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest';
-const VERSION = '1.0.5'; // Sticky header and settings menu fix
+const VERSION = '1.0.6'; // API timeout and SW exclusions
 
 // --- State ---
 const state = {
@@ -406,12 +406,20 @@ async function fetchVideos(pageToken = null) {
             // Use videos.list for Dislikes
             // NOTE: This filter is known to be capped at 1000 items by the YouTube API.
             // Since there is no "Disliked Videos" playlist, this is the only way to fetch them.
-            const response = await window.gapi.client.youtube.videos.list({
+            // Timeout wrapper for GAPI calls
+            const apiCall = window.gapi.client.youtube.videos.list({
                 'myRating': state.mode,
                 'part': 'snippet,contentDetails,statistics,status',
                 'maxResults': 50,
                 'pageToken': pageToken || ''
             });
+
+            // Enforce 15-second timeout
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Request timed out')), 15000)
+            );
+
+            const response = await Promise.race([apiCall, timeoutPromise]);
 
             console.log("YouTube API Response:", response);
             items = response.result.items || [];

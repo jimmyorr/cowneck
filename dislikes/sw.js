@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dislikes-v1.0.5';
+const CACHE_NAME = 'dislikes-v1.0.6';
 const ASSETS = [
     './',
     './index.html',
@@ -16,8 +16,14 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('fetch', (event) => {
     // Basic network-first strategy for the app shell, 
-    // but we don't cache the API calls (google/youtube)
-    if (event.request.url.includes('googleapis.com')) {
+    // Exclude API calls and Google scripts from caching/interception
+    const exclusions = [
+        'googleapis.com',
+        'apis.google.com',
+        'accounts.google.com',
+        'gstatic.com'
+    ];
+    if (exclusions.some(domain => event.request.url.includes(domain))) {
         return;
     }
 
