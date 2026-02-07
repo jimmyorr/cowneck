@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earth to Moon: The Scale Challenge</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React & ReactDOM -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.344.0"
+      }
+    }
+    </script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            background-color: #020617;
+            overflow: hidden;
+        }
+
+        /* Custom scrollbar matching the design */
+        ::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { Rocket, RefreshCw, Info, ChevronRight, Star, ZoomOut, MousePointer2, ArrowRight } from 'lucide-react';
+
+        const EarthMoonGame = () => {
+            // Game Constants (Real world values in km)
+            const REAL_EARTH_DIAMETER = 12742;
+            const REAL_MOON_DIAMETER = 3474;
+            const REAL_DISTANCE = 384400; // Average center-to-center distance
+
+            // Game Config
+            const MIN_DIST_KM = 15000; // Closest you can put it
+            const MAX_DIST_KM = 800000; // Furthest (Deep space)
+            const EARTH_CENTER_X = 100; // Earth center is always fixed at this pixel X
+
+            // State
+            const [gameState, setGameState] = useState('intro'); // intro, playing, result
+            const [distanceKm, setDistanceKm] = useState(20000);
+            const [isDragging, setIsDragging] = useState(false);
+            const [score, setScore] = useState(0);
+            const [stars, setStars] = useState([]);
+            const [viewportWidth, setViewportWidth] = useState(1000);
+
+            // Refs
+            const containerRef = useRef(null);
+
+            // Initialize stars and viewport
+            useEffect(() => {
+                const updateWidth = () => {
+                    if (containerRef.current) {
+                        setViewportWidth(containerRef.current.clientWidth);
+                    }
+                };
+
+                window.addEventListener('resize', updateWidth);
+                updateWidth(); // Initial set
+
+                // Generate stars
+                const newStars = [];
+                for (let i = 0; i < 150; i++) {
+                    newStars.push({
+                        id: i,
+                        top: Math.random() * 100,
+                        left: Math.random() * 100,
+                        size: Math.random() * 2 + 1,
+                        opacity: Math.random() * 0.7 + 0.3,
+                        depth: Math.random() // Used for parallax
+                    });
+                }
+                setStars(newStars);
+
+                return () => window.removeEventListener('resize', updateWidth);
+            }, []);
+
+            // --- Core Logic ---
+
+            // 1. INPUT: Handle Dragging -> Updates Distance
+            const handleDrag = (clientX) => {
+                if (gameState !== 'playing') return;
+
+                // Calculate raw pixel offset from Earth center
+                // Clamp so we don't go off screen left or weirdly far right
+                const rawOffset = Math.max(50, clientX - EARTH_CENTER_X);
+                const maxOffset = viewportWidth - 50; // Keep some padding on right
+
+                // Map pixel position to Distance using Exponential Curve
+                // This allows covering huge distances smoothly
+                const progress = Math.min(1, Math.max(0, (rawOffset - 50) / (maxOffset - 50)));
+
+                // Exponential mapping: start at MIN_DIST, end at MAX_DIST
+                // Logarithmic slider feel
+                const logMin = Math.log(MIN_DIST_KM);
+                const logMax = Math.log(MAX_DIST_KM);
+                const logVal = logMin + (logMax - logMin) * progress;
+                const newDist = Math.exp(logVal);
+
+                setDistanceKm(newDist);
+            };
+
+            const handleMouseDown = (e) => {
+                if (gameState !== 'playing') return;
+                setIsDragging(true);
+                handleDrag(e.clientX);
+            };
+
+            const handleTouchStart = (e) => {
+                if (gameState !== 'playing') return;
+                setIsDragging(true);
+                handleDrag(e.touches[0].clientX);
+            };
+
+            const handleMove = (clientX) => {
+                if (isDragging && gameState === 'playing') {
+                    handleDrag(clientX);
+                }
+            };
+
+            const handleEndDrag = () => {
+                setIsDragging(false);
+            };
+
+            // 2. OUTPUT: Calculate Scale based on current Distance
+            const getVisualState = (dist) => {
+                const logMin = Math.log(MIN_DIST_KM);
+                const logMax = Math.log(MAX_DIST_KM);
+                const logCurrent = Math.log(dist);
+                let progress = (logCurrent - logMin) / (logMax - logMin);
+
+                const maxOffset = viewportWidth - 50;
+                const pixelOffset = 50 + (progress * (maxOffset - 50));
+
+                const scale = pixelOffset / dist;
+
+                return {
+                    scale,
+                    moonPixelOffset: pixelOffset
+                };
+            };
+
+            // 3. RESULT VIEW LOGIC
+            const getResultState = () => {
+                const maxDistToDisplay = Math.max(distanceKm, REAL_DISTANCE);
+                const targetMaxPx = viewportWidth * 0.8;
+                const resultScale = targetMaxPx / maxDistToDisplay;
+
+                return {
+                    scale: resultScale,
+                    moonPixelOffset: distanceKm * resultScale,
+                    realMoonPixelOffset: REAL_DISTANCE * resultScale
+                };
+            };
+
+            // Determine current render values
+            let currentScale, moonCenterPx, realMoonCenterPx;
+
+            if (gameState === 'result') {
+                const res = getResultState();
+                currentScale = res.scale;
+                moonCenterPx = EARTH_CENTER_X + res.moonPixelOffset;
+                realMoonCenterPx = EARTH_CENTER_X + res.realMoonPixelOffset;
+            } else {
+                const res = getVisualState(distanceKm);
+                currentScale = res.scale;
+                moonCenterPx = EARTH_CENTER_X + res.moonPixelOffset;
+            }
+
+            // Calculate Element Sizes
+            const earthSizePx = REAL_EARTH_DIAMETER * currentScale;
+            const moonSizePx = Math.max(2, REAL_MOON_DIAMETER * currentScale);
+
+            // --- Game Actions ---
+            const submitGuess = () => {
+                const error = Math.abs(distanceKm - REAL_DISTANCE);
+                const errorPercent = (error / REAL_DISTANCE) * 100;
+
+                let points = 0;
+                if (errorPercent < 5) points = 1000;
+                else if (errorPercent < 10) points = 900;
+                else if (errorPercent < 15) points = 800;
+                else if (errorPercent < 25) points = 600;
+                else if (errorPercent < 50) points = 300;
+                else points = 50;
+
+                setScore(points);
+                setGameState('result');
+                setIsDragging(false);
+            };
+
+            const resetGame = () => {
+                setGameState('intro');
+                setDistanceKm(20000);
+            };
+
+            const formatMiles = (km) => Math.round(km * 0.621371).toLocaleString();
+
+            return (
+                <div
+                    className="w-full h-screen bg-slate-950 text-white overflow-hidden flex flex-col font-sans select-none touch-none"
+                    onMouseUp={handleEndDrag}
+                    onMouseLeave={handleEndDrag}
+                    onTouchEnd={handleEndDrag}
+                    onMouseMove={(e) => handleMove(e.clientX)}
+                    onTouchMove={(e) => handleMove(e.touches[0].clientX)}
+                    ref={containerRef}
+                >
+                    {/* Background Stars */}
+                    <div className="absolute inset-0 pointer-events-none">
+                        {stars.map(star => {
+                            const moveFactor = (1 / (currentScale * 10000 + 1));
+                            return (
+                                <div
+                                    key={star.id}
+                                    className="absolute rounded-full bg-white transition-transform duration-75"
+                                    style={{
+                                        top: `${star.top}%`,
+                                        left: `${star.left}%`,
+                                        width: `${star.size}px`,
+                                        height: `${star.size}px`,
+                                        opacity: star.opacity,
+                                    }}
+                                />
+                            );
+                        })}
+                    </div>
+
+                    {/* Header / HUD */}
+                    <div className="relative z-20 w-full p-4 flex justify-between items-start pointer-events-none">
+                        <div>
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-sm">
+                                Space Scale
+                            </h1>
+                            {gameState === 'playing' && (
+                                <div className="flex items-center gap-2 text-slate-400 text-sm mt-1 animate-pulse">
+                                    <ArrowRight size={14} />
+                                    <span>Drag moon to expand space</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {gameState === 'playing' && (
+                            <div className="flex flex-col items-end gap-3 pointer-events-auto">
+                                <div className="bg-slate-900/50 backdrop-blur-md px-4 py-2 rounded-lg border border-slate-700/50 text-right min-w-[140px]">
+                                    <p className="text-[10px] uppercase tracking-wider text-slate-400">Current Distance</p>
+                                    <div className="flex flex-col">
+                                        <p className="font-mono text-xl text-blue-300 tabular-nums leading-none mb-1">
+                                            {Math.round(distanceKm).toLocaleString()} <span className="text-sm text-slate-500">km</span>
+                                        </p>
+                                        <p className="font-mono text-sm text-slate-400 tabular-nums leading-none">
+                                            {formatMiles(distanceKm)} <span className="text-xs text-slate-600">mi</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={submitGuess}
+                                    className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 flex items-center gap-2 group"
+                                >
+                                    Lock In Guess <Rocket size={18} className="group-hover:-translate-y-1 transition-transform" />
+                                </button>
+                            </div>
+                        )}
+
+                        {gameState === 'result' && (
+                            <button
+                                onClick={resetGame}
+                                className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg pointer-events-auto flex items-center gap-2"
+                            >
+                                Try Again <RefreshCw size={18} />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Main Game Stage */}
+                    <div className="flex-1 relative w-full h-full flex items-center">
+
+                        {/* Intro Overlay */}
+                        {gameState === 'intro' && (
+                            <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+                                <div className="max-w-md w-full bg-slate-900 p-8 rounded-2xl border border-slate-800 shadow-2xl relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+                                    <div className="flex justify-center mb-6">
+                                        <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center border border-blue-500/20">
+                                            <MousePointer2 className="text-blue-400" size={32} />
+                                        </div>
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-center mb-2 text-white">How far is the Moon?</h2>
+                                    <p className="text-slate-400 text-center mb-8">
+                                        Most pictures show them close together. But space is mostly empty.
+                                    </p>
+
+                                    <div className="space-y-3 mb-8">
+                                        <div className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-lg">
+                                            <div className="p-1 bg-blue-500/20 rounded text-blue-400"><ZoomOut size={16} /></div>
+                                            <p className="text-sm text-slate-300">Drag the Moon to the right. The scale will <span className="text-white font-semibold">automatically zoom out</span> as you pull further.</p>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => setGameState('playing')}
+                                        className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold text-lg shadow-xl shadow-blue-900/20 transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+                                    >
+                                        Start Challenge <ChevronRight />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Dynamic World Container */}
+                        <div className="w-full relative h-64" onMouseDown={(e) => gameState === 'playing' && handleMouseDown(e)}>
+
+                            <div className="absolute top-1/2 left-0 w-full h-[1px] bg-slate-800 -translate-y-1/2" />
+
+                            {/* EARTH */}
+                            <div
+                                className="absolute top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 transition-transform duration-75 ease-out pointer-events-none"
+                                style={{
+                                    left: `${EARTH_CENTER_X}px`,
+                                    width: `${earthSizePx}px`,
+                                    transform: 'translate(-50%, 0)'
+                                }}
+                            >
+                                <div
+                                    className="rounded-full bg-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.3)] relative overflow-hidden transition-all duration-75"
+                                    style={{ height: `${earthSizePx}px`, width: '100%' }}
+                                >
+                                    {earthSizePx > 8 && (
+                                        <>
+                                            <div className="absolute w-[40%] h-[60%] bg-green-500 rounded-full top-[10%] left-[20%] blur-[1px] opacity-80" />
+                                            <div className="absolute w-[30%] h-[30%] bg-green-600 rounded-full bottom-[20%] right-[20%] blur-[1px] opacity-80" />
+                                        </>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/60 rounded-full" />
+                                </div>
+                                <span
+                                    className="text-blue-200 font-bold tracking-widest text-center whitespace-nowrap transition-opacity duration-200"
+                                    style={{
+                                        fontSize: Math.max(10, earthSizePx * 0.3) + 'px',
+                                        opacity: earthSizePx > 15 ? 1 : 0
+                                    }}
+                                >
+                                    EARTH
+                                </span>
+                            </div>
+
+                            {/* CONNECTING LINE */}
+                            <div
+                                className="absolute top-1/2 left-0 h-[1px] bg-gradient-to-r from-blue-500/50 to-slate-500/50 -translate-y-1/2 transition-opacity duration-300 pointer-events-none"
+                                style={{
+                                    left: `${EARTH_CENTER_X}px`,
+                                    width: `${moonCenterPx - EARTH_CENTER_X}px`,
+                                    opacity: earthSizePx < 20 ? 0.5 : 0
+                                }}
+                            />
+
+                            {/* MOON (User Draggable) */}
+                            <div
+                                className="absolute top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2 touch-none cursor-ew-resize active:cursor-grabbing"
+                                style={{
+                                    left: `${moonCenterPx}px`,
+                                    transform: 'translate(-50%, 0)',
+                                    width: '60px',
+                                    height: '60px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                                onMouseDown={handleMouseDown}
+                                onTouchStart={handleTouchStart}
+                            >
+                                <div
+                                    className={`rounded-full bg-slate-200 relative shadow-[0_0_15px_rgba(255,255,255,0.4)] transition-all duration-75 ${gameState === 'result' ? 'opacity-30' : 'opacity-100'}`}
+                                    style={{
+                                        width: `${moonSizePx}px`,
+                                        height: `${moonSizePx}px`,
+                                        minWidth: '2px',
+                                        minHeight: '2px'
+                                    }}
+                                >
+                                    {gameState === 'playing' && (
+                                        <div className={`absolute -inset-4 rounded-full border border-white/20 ${isDragging ? 'scale-110 opacity-100' : 'scale-100 opacity-0 hover:opacity-100'} transition-all`} />
+                                    )}
+                                </div>
+
+                                <div
+                                    className={`absolute top-full mt-2 flex flex-col items-center pointer-events-none transition-opacity duration-300 ${isDragging || moonSizePx > 10 ? 'opacity-100' : 'opacity-0'}`}
+                                >
+                                    <span className="text-[10px] text-slate-300 font-bold tracking-widest whitespace-nowrap bg-slate-900/50 px-2 py-1 rounded-full backdrop-blur-sm">
+                                        MOON
+                                    </span>
+                                </div>
+                            </div>
+
+
+                            {/* REAL MOON GHOST */}
+                            {gameState === 'result' && (
+                                <div
+                                    className="absolute top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2 pointer-events-none"
+                                    style={{
+                                        left: `${realMoonCenterPx}px`,
+                                        transform: 'translate(-50%, 0)'
+                                    }}
+                                >
+                                    <div
+                                        className="rounded-full border border-emerald-500 bg-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.4)] animate-pulse"
+                                        style={{
+                                            width: `${Math.max(4, moonSizePx)}px`,
+                                            height: `${Math.max(4, moonSizePx)}px`
+                                        }}
+                                    />
+                                    <div className="absolute -top-8 bg-emerald-500 text-slate-900 text-[10px] font-bold px-2 py-1 rounded whitespace-nowrap shadow-lg">
+                                        ACTUAL DISTANCE
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Result Card */}
+                    {gameState === 'result' && (
+                        <div className="absolute inset-x-0 bottom-0 z-50 p-4 flex justify-center pointer-events-none">
+                            <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700 p-6 rounded-2xl shadow-2xl max-w-lg w-full pointer-events-auto animate-in slide-in-from-bottom-10 fade-in duration-500">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white">
+                                            {score > 900 ? "Astronomical! 🌟" : score > 500 ? "Not Bad! 🚀" : "Space is Big... 🌌"}
+                                        </h3>
+                                        <p className="text-slate-400 text-sm">
+                                            Score: <span className={score > 700 ? "text-emerald-400" : "text-blue-400"}>{score}</span> / 1000
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs text-slate-500 uppercase">Error</p>
+                                        <p className="text-red-400 font-mono">
+                                            {Math.abs(Math.round((distanceKm - REAL_DISTANCE) / REAL_DISTANCE * 100))}%
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2 mb-6 text-sm">
+                                    <div className="flex justify-between items-center p-2 bg-slate-800/50 rounded">
+                                        <span className="text-slate-400">Your Guess</span>
+                                        <div className="text-right">
+                                            <div className="font-mono text-blue-300">{Math.round(distanceKm).toLocaleString()} km</div>
+                                            <div className="font-mono text-slate-500 text-xs">{formatMiles(distanceKm)} mi</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-center p-2 bg-slate-800/50 rounded border border-emerald-500/20">
+                                        <span className="text-slate-400">Actual Distance</span>
+                                        <div className="text-right">
+                                            <div className="font-mono text-emerald-300">{REAL_DISTANCE.toLocaleString()} km</div>
+                                            <div className="font-mono text-emerald-500/50 text-xs">{formatMiles(REAL_DISTANCE)} mi</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p className="text-xs text-slate-500 italic text-center mb-4">
+                                    Kirby says: You can fit all 7 other planets in the solar system in that gap! Meow.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<EarthMoonGame />);
+    </script>
+</body>
+
+</html>
