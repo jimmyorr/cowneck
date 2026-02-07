@@ -1,7 +1,9 @@
-const CACHE_NAME = 'dislikes-v1.0.6';
+importScripts('version.js');
+const CACHE_NAME = `dislikes-v${APP_VERSION}`;
 const ASSETS = [
     './',
     './index.html',
+    './version.js',
     './app.js',
     './manifest.json',
     './icon.png'
