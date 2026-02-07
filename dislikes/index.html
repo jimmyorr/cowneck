@@ -270,7 +270,7 @@
             </div>
             <div class="flex gap-4 items-center">
                 <span>© 2026</span>
-                <span class="text-[9px] opacity-40">v1.0.2</span>
+                <span class="text-[9px] opacity-40">v1.0.3</span>
             </div>
         </div>
     </footer>
@@ -321,6 +321,47 @@
         </div>
     </template>
 
+    <script>
+        // Emergency Reset Fail-safe: Works even if app.js fails to load
+        async function emergencyReset() {
+            if (!confirm("This will clear all application data, caches, and sign you out. Continue?")) return;
+
+            // Visual feedback that something is happening
+            const btn = document.getElementById('footer-reset-button');
+            const originalText = btn.textContent;
+            btn.textContent = "Resetting...";
+            btn.disabled = true;
+
+            try {
+                if ('serviceWorker' in navigator) {
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    for (const r of regs) await r.unregister();
+                }
+                if ('caches' in window) {
+                    const keys = await caches.keys();
+                    for (const k of keys) await caches.delete(k);
+                }
+                localStorage.clear();
+                window.location.href = window.location.origin + window.location.pathname + '?r=' + Date.now();
+            } catch (e) {
+                alert("Reset failed: " + e.message);
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Attach immediately
+        const resetIds = ['footer-reset-button', 'reset-app-link'];
+        resetIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.onclick = (e) => {
+                    e.preventDefault();
+                    emergencyReset();
+                };
+            }
+        });
+    </script>
     <script src="app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {

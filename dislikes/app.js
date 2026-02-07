@@ -2,7 +2,7 @@
 const CLIENT_ID = '932685095666-31l2s1psd94msj2a59d2ok7m4dfj3922.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/youtube.readonly';
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest';
-const VERSION = '1.0.2'; // Bumping for cache synchronization
+const VERSION = '1.0.3'; // Bumping for emergency reset fix
 
 // --- State ---
 const state = {
@@ -204,11 +204,6 @@ function setupEventListeners() {
     dom.authButton.addEventListener('click', handleAuthClick);
     dom.heroAuthButton.addEventListener('click', handleAuthClick);
     dom.signoutButton.addEventListener('click', handleSignout);
-    dom.footerResetButton.addEventListener('click', handleResetApp);
-    dom.resetAppLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleResetApp();
-    });
 
     const debouncedSearch = debounce((value) => {
         state.debouncedSearchTerm = value;
@@ -361,36 +356,6 @@ function handleSignout() {
     render();
 }
 
-async function handleResetApp() {
-    if (!confirm("This will clear all application caches and reset your session. Continue?")) return;
-
-    try {
-        // 1. Unregister Service Workers
-        if ('serviceWorker' in navigator) {
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            for (const registration of registrations) {
-                await registration.unregister();
-            }
-        }
-
-        // 2. Clear Caches
-        if ('caches' in window) {
-            const cacheNames = await caches.keys();
-            for (const name of cacheNames) {
-                await caches.delete(name);
-            }
-        }
-
-        // 3. Clear Local Storage
-        localStorage.clear();
-
-        // 4. Force Reload
-        window.location.reload();
-    } catch (err) {
-        console.error("Reset failed:", err);
-        alert("Reset failed: " + err.message);
-    }
-}
 
 // --- Logic ---
 

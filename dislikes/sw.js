@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dislikes-v1.0.2';
+const CACHE_NAME = 'dislikes-v1.0.3';
 const ASSETS = [
     './',
     './index.html',
@@ -22,8 +22,20 @@ self.addEventListener('fetch', (event) => {
     }
 
     event.respondWith(
-        fetch(event.request).catch(() => {
-            return caches.match(event.request);
-        })
+        (async () => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+            try {
+                const response = await fetch(event.request, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                return response;
+            } catch (err) {
+                clearTimeout(timeoutId);
+                const cached = await caches.match(event.request);
+                if (cached) return cached;
+                throw err;
+            }
+        })()
     );
 });
