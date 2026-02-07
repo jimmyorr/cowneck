@@ -170,7 +170,7 @@
                 browser.</p>
             <div id="initialization-trouble" class="hidden mt-8 text-xs text-gray-400">
                 <p>Taking too long? <button id="reset-app-link" class="underline hover:text-black">Reset
-                        application</button></p>
+                        app</button></p>
             </div>
         </div>
 
@@ -266,11 +266,11 @@
             <div class="flex gap-4">
                 <a href="privacy.html" class="hover:text-black">Privacy</a>
                 <a href="https://github.com/jimmyorr/cowneck" target="_blank" class="hover:text-black">GitHub</a>
-                <button id="footer-reset-button" class="hover:text-black">Reset App</button>
+                <button id="footer-reset-button" class="hover:text-black">Reset app</button>
             </div>
             <div class="flex gap-4 items-center">
                 <span>© 2026</span>
-                <span class="text-[9px] opacity-40">v1.0.3</span>
+                <span class="text-[9px] opacity-40">v1.0.4</span>
             </div>
         </div>
     </footer>
@@ -322,11 +322,11 @@
     </template>
 
     <script>
-        // Emergency Reset Fail-safe: Works even if app.js fails to load
-        async function emergencyReset() {
-            if (!confirm("This will clear all application data, caches, and sign you out. Continue?")) return;
+        // Emergency Reset: Clears cached data and session immediately
+        async function emergencyReset(e) {
+            if (e) e.preventDefault();
+            if (!confirm("Reset all application data and sign out?")) return;
 
-            // Visual feedback that something is happening
             const btn = document.getElementById('footer-reset-button');
             const originalText = btn.textContent;
             btn.textContent = "Resetting...";
@@ -343,23 +343,17 @@
                 }
                 localStorage.clear();
                 window.location.href = window.location.origin + window.location.pathname + '?r=' + Date.now();
-            } catch (e) {
-                alert("Reset failed: " + e.message);
+            } catch (err) {
+                alert("Reset failed: " + err.message);
                 btn.textContent = originalText;
                 btn.disabled = false;
             }
         }
 
-        // Attach immediately
-        const resetIds = ['footer-reset-button', 'reset-app-link'];
-        resetIds.forEach(id => {
+        // Single point of attachment using IDs
+        ['footer-reset-button', 'reset-app-link'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) {
-                el.onclick = (e) => {
-                    e.preventDefault();
-                    emergencyReset();
-                };
-            }
+            if (el) el.onclick = emergencyReset;
         });
     </script>
     <script src="app.js"></script>
