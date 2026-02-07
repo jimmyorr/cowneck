@@ -129,20 +129,45 @@
 
 <body class="min-h-screen flex flex-col">
 
-    <header class="border-b border-gray-100 py-4">
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 py-4">
         <div class="max-w-6xl mx-auto px-6 flex justify-between items-center">
             <button id="mode-toggle"
                 class="text-lg font-medium tracking-tight hover:opacity-70 transition-opacity">Dislikes</button>
 
-            <div id="auth-indicator" class="hidden flex items-center gap-4 text-sm">
-                <span class="text-gray-400">Authenticated</span>
-                <button id="signout-button" class="text-gray-900 underline hover:no-underline">Sign out</button>
-            </div>
+            <div class="flex items-center gap-2">
+                <div id="auth-indicator" class="hidden flex items-center gap-4 text-sm mr-2">
+                    <span class="text-gray-400 hidden sm:inline">Authenticated</span>
+                    <button id="signout-button" class="text-gray-900 underline hover:no-underline font-medium">Sign
+                        out</button>
+                </div>
 
-            <button id="auth-button" disabled
-                class="text-sm font-medium px-3 py-1.5 border border-black rounded opacity-50 cursor-not-allowed">
-                <span id="auth-text">Loading...</span>
-            </button>
+                <button id="settings-button"
+                    class="p-2 text-gray-400 hover:text-black transition-colors rounded-full hover:bg-gray-50"
+                    title="Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                </button>
+
+                <div id="settings-menu"
+                    class="hidden absolute right-6 top-16 w-48 bg-white border border-gray-100 shadow-xl rounded-lg py-1 z-[60]">
+                    <a href="privacy.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Privacy
+                        policy</a>
+                    <a href="https://github.com/jimmyorr/cowneck" target="_blank"
+                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">GitHub source</a>
+                    <hr class="my-1 border-gray-50">
+                    <button id="header-reset-button"
+                        class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Reset app</button>
+                </div>
+
+                <button id="auth-button" disabled
+                    class="text-sm font-medium px-3 py-1.5 border border-black rounded opacity-50 cursor-not-allowed">
+                    <span id="auth-text">Loading...</span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -270,7 +295,7 @@
             </div>
             <div class="flex gap-4 items-center">
                 <span>© 2026</span>
-                <span class="text-[9px] opacity-40">v1.0.4</span>
+                <span class="text-[9px] opacity-40">v1.0.5</span>
             </div>
         </div>
     </footer>
@@ -351,10 +376,21 @@
         }
 
         // Single point of attachment using IDs
-        ['footer-reset-button', 'reset-app-link'].forEach(id => {
+        ['footer-reset-button', 'header-reset-button', 'reset-app-link'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.onclick = emergencyReset;
         });
+
+        // Settings menu toggle
+        const settingsBtn = document.getElementById('settings-button');
+        const settingsMenu = document.getElementById('settings-menu');
+        if (settingsBtn && settingsMenu) {
+            settingsBtn.onclick = (e) => {
+                e.stopPropagation();
+                settingsMenu.classList.toggle('hidden');
+            };
+            document.addEventListener('click', () => settingsMenu.classList.add('hidden'));
+        }
     </script>
     <script src="app.js"></script>
     <script>
