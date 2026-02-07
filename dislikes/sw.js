@@ -10,9 +10,30 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
+    // Force this SW to activate immediately
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => cache.addAll(ASSETS))
+    );
+});
+
+self.addEventListener('activate', (event) => {
+    // Take control of all open clients immediately
+    event.waitUntil(clients.claim());
+
+    // Delete old caches
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME && cacheName.startsWith('dislikes-v')) {
+                        console.log('SW: Deleting old cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
     );
 });
 

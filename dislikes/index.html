@@ -396,8 +396,29 @@
     <script src="app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
+            let refreshing = false;
+
+            // Detect when the SW has taken control (i.e. updated) and reload
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (refreshing) return;
+                refreshing = true;
+                window.location.reload();
+            });
+
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js');
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    // Check for updates periodically
+                    setInterval(() => {
+                        reg.update();
+                    }, 60 * 60 * 1000); // Check every hour
+
+                    // Check for updates when the user returns to the tab/app
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') {
+                            reg.update();
+                        }
+                    });
+                }).catch(err => console.error('SW registration failed:', err));
             });
         }
     </script>
