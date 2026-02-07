@@ -65,7 +65,7 @@ const dom = {
     modeText: document.getElementById('mode-text'),
     welcomeTitle: document.getElementById('welcome-title'),
     welcomeDesc: document.getElementById('welcome-desc'),
-    sectionTitle: document.getElementById('section-title'),
+
     favicon: document.getElementById('favicon'),
     appleIcon: document.getElementById('apple-icon'),
     footerResetButton: document.getElementById('footer-reset-button'),
@@ -608,7 +608,7 @@ function render() {
     }
     dom.welcomeTitle.textContent = `Your YouTube ${isDislike ? 'disliked' : 'liked'} videos.`;
     dom.welcomeDesc.textContent = `View, filter, and sort your ${isDislike ? 'dislikes' : 'likes'}. Simple, private, and minimal.`;
-    dom.sectionTitle.textContent = isDislike ? 'Dislikes' : 'Likes';
+
     document.title = isDislike ? 'Dislikes' : 'Likes';
     updateFavicon(state.mode);
 
