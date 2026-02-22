@@ -98,13 +98,21 @@
             const [showLogs, setShowLogs] = useState(false);
             const [humanPendingBid, setHumanPendingBid] = useState([]); // Indices of selected cards in hand
 
+            // Pre-game state
+            const [playerName, setPlayerName] = useState('You');
+            const [selectedOpponents, setSelectedOpponents] = useState(['Oliver', 'Miles', 'Kirby 🐱']);
+            const AVAILABLE_OPPONENTS = ['Oliver', 'Miles', 'Kirby 🐱', 'Pookie', 'Jimmy'];
+
             // --- INITIALIZATION ---
             const startGame = () => {
                 const initialPlayers = [
-                    { id: 0, name: 'You', hand: [...MONEY_CARDS], bid: [], won: [], passed: false, isEliminated: false },
-                    { id: 1, name: 'Oliver', hand: [...MONEY_CARDS], bid: [], won: [], passed: false, isEliminated: false },
-                    { id: 2, name: 'Miles', hand: [...MONEY_CARDS], bid: [], won: [], passed: false, isEliminated: false },
-                    { id: 3, name: 'Kirby 🐱', hand: [...MONEY_CARDS], bid: [], won: [], passed: false, isEliminated: false },
+                    { id: 0, name: playerName.trim() || 'You', hand: [...MONEY_CARDS], bid: [], won: [], passed: false, isEliminated: false },
+                    ...selectedOpponents.map((name, index) => ({
+                        id: index + 1,
+                        name: name,
+                        hand: [...MONEY_CARDS],
+                        bid: [], won: [], passed: false, isEliminated: false
+                    }))
                 ];
                 setPlayers(initialPlayers);
 
@@ -292,10 +300,10 @@
             };
 
             const goToNextPlayer = (currentPlayers = players) => {
-                let next = (turn + 1) % 4;
+                let next = (turn + 1) % currentPlayers.length;
                 let safeGuard = 0;
-                while (currentPlayers[next].passed && safeGuard < 5) {
-                    next = (next + 1) % 4;
+                while (currentPlayers[next].passed && safeGuard < currentPlayers.length + 1) {
+                    next = (next + 1) % currentPlayers.length;
                     safeGuard++;
                 }
                 setTurn(next);
@@ -312,7 +320,7 @@
                         endAuction(currentPlayers, activePlayers[0].id);
                     } else if (activePlayers.length === 0) {
                         addLog(`Everyone passed. The card is discarded.`);
-                        drawNextCard(deck, currentPlayers, darkCardsDrawn, (turn + 1) % 4);
+                        drawNextCard(deck, currentPlayers, darkCardsDrawn, (turn + 1) % currentPlayers.length);
                     } else {
                         goToNextPlayer(currentPlayers);
                     }
@@ -511,16 +519,58 @@
                     )}
 
                     {gameState === 'start' && (
-                        <div className="flex-1 flex flex-col items-center justify-center space-y-8 bg-green-900">
-                            <div className="bg-emerald-800 p-8 rounded-xl shadow-2xl border border-yellow-500 max-w-lg text-center mx-4">
-                                <h2 className="text-4xl font-serif text-yellow-400 mb-4">High Society</h2>
-                                <p className="text-gray-200 mb-6">Outbid Oliver, Miles, and Kirby for luxury, but don't be the poorest at the end, or you'll be ruined!</p>
-                                <button
-                                    onClick={startGame}
-                                    className="bg-yellow-500 hover:bg-yellow-400 text-green-900 font-bold py-3 px-8 rounded-full text-xl shadow-lg transition transform hover:scale-105"
-                                >
-                                    Start Game
-                                </button>
+                        <div className="flex-1 flex flex-col items-center justify-center space-y-8 bg-green-900 overflow-y-auto py-10">
+                            <div className="bg-emerald-800 p-6 sm:p-8 rounded-xl shadow-2xl border border-yellow-500 max-w-lg w-full mx-4">
+                                <h2 className="text-4xl font-serif text-yellow-400 mb-4 text-center">High Society</h2>
+                                <p className="text-gray-200 mb-6 text-center">Outbid your rivals for luxury, but don't be the poorest at the end, or you'll be ruined!</p>
+
+                                <div className="mb-6">
+                                    <label className="block text-yellow-400 font-bold mb-2">Your Name</label>
+                                    <input
+                                        type="text"
+                                        value={playerName}
+                                        onChange={(e) => setPlayerName(e.target.value)}
+                                        className="w-full bg-green-900 border border-green-700 rounded p-2 text-white focus:outline-none focus:border-yellow-500"
+                                        maxLength="16"
+                                        placeholder="You"
+                                    />
+                                </div>
+
+                                <div className="mb-8">
+                                    <label className="block text-yellow-400 font-bold mb-3">Select Opponents (2 to 4)</label>
+                                    <div className="flex flex-wrap gap-2 justify-center">
+                                        {AVAILABLE_OPPONENTS.map(opp => {
+                                            const isSelected = selectedOpponents.includes(opp);
+                                            return (
+                                                <button
+                                                    key={opp}
+                                                    onClick={() => {
+                                                        if (isSelected) {
+                                                            if (selectedOpponents.length > 2) setSelectedOpponents(selectedOpponents.filter(o => o !== opp));
+                                                        } else {
+                                                            if (selectedOpponents.length < 4) setSelectedOpponents([...selectedOpponents, opp]);
+                                                        }
+                                                    }}
+                                                    className={`px-4 py-2 rounded-full border shadow-md transition transform hover:scale-105 text-sm font-bold ${isSelected ? 'bg-yellow-500 text-green-900 border-yellow-400' : 'bg-green-950 text-gray-400 border-green-700 hover:bg-green-800'}`}
+                                                >
+                                                    {opp}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                    <p className="text-sm text-gray-400 mt-4 text-center italic">
+                                        {selectedOpponents.length} selected. Total players: {selectedOpponents.length + 1}
+                                    </p>
+                                </div>
+
+                                <div className="text-center mt-6">
+                                    <button
+                                        onClick={startGame}
+                                        className="bg-yellow-500 hover:bg-yellow-400 text-green-900 font-bold py-3 px-8 rounded-full text-xl shadow-lg transition transform hover:scale-105 w-full sm:w-auto"
+                                    >
+                                        Start Game
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -529,9 +579,9 @@
                         <div className="flex-1 flex flex-col relative overflow-hidden">
 
                             {/* OPPONENTS AREA */}
-                            <div className="flex justify-around p-2 bg-green-900/50">
+                            <div className="flex justify-around p-2 bg-green-900/50 flex-wrap">
                                 {players.slice(1).map(p => (
-                                    <div key={p.id} className={`flex flex-col items-center p-2 rounded-lg transition-colors w-[32%] ${turn === p.id ? 'bg-yellow-500/20 border border-yellow-500' : 'border border-transparent'}`}>
+                                    <div key={p.id} style={{ width: `${100 / (players.length - 1)}%`, maxWidth: '200px' }} className={`flex flex-col items-center p-2 rounded-lg transition-colors flex-1 ${turn === p.id ? 'bg-yellow-500/20 border border-yellow-500' : 'border border-transparent'}`}>
                                         <div className="font-bold text-yellow-300 text-sm md:text-base text-center whitespace-nowrap overflow-hidden text-ellipsis w-full">{p.name}</div>
                                         <div className="text-[10px] text-gray-300 mb-2">Hand: {p.hand.length}</div>
 
