@@ -16,6 +16,9 @@
     <!-- Babel for in-browser JSX compilation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <style>
         /* Custom animation for newly revealed cards */
         @keyframes fadeIn {
@@ -199,6 +202,33 @@
                     return () => clearTimeout(timer);
                 }
             }, [turn, gameState, revealedCard, fastForward]);
+
+            // --- FIREWORKS ---
+            useEffect(() => {
+                if (gameState === 'end' && window.confetti) {
+                    const duration = 3000;
+                    const animationEnd = Date.now() + duration;
+                    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+
+                    const interval = setInterval(function () {
+                        const timeLeft = animationEnd - Date.now();
+
+                        if (timeLeft <= 0) {
+                            return clearInterval(interval);
+                        }
+
+                        const particleCount = 50 * (timeLeft / duration);
+                        window.confetti({
+                            ...defaults, particleCount,
+                            origin: { x: Math.random() * 0.5 + 0.25, y: Math.random() - 0.2 }
+                        });
+                        window.confetti({
+                            ...defaults, particleCount,
+                            origin: { x: Math.random() * 0.5 + 0.5, y: Math.random() - 0.2 }
+                        });
+                    }, 250);
+                }
+            }, [gameState]);
 
             const processAITurn = () => {
                 const ai = players[turn];
