@@ -97,6 +97,7 @@
             const [logs, setLogs] = useState([]);
             const [showLogs, setShowLogs] = useState(false);
             const [humanPendingBid, setHumanPendingBid] = useState([]); // Indices of selected cards in hand
+            const [fastForward, setFastForward] = useState(false);
 
             // Pre-game state
             const [playerName, setPlayerName] = useState('You');
@@ -186,7 +187,7 @@
                 if (currentPlayer.hand.length === 0) {
                     const timer = setTimeout(() => {
                         executePass(turn);
-                    }, 1000);
+                    }, fastForward ? 50 : 1000);
                     return () => clearTimeout(timer);
                 }
 
@@ -194,10 +195,10 @@
                 if (currentPlayer.isAI) {
                     const timer = setTimeout(() => {
                         processAITurn();
-                    }, 1200);
+                    }, fastForward ? 50 : 1200);
                     return () => clearTimeout(timer);
                 }
-            }, [turn, gameState, revealedCard]);
+            }, [turn, gameState, revealedCard, fastForward]);
 
             const processAITurn = () => {
                 const ai = players[turn];
@@ -408,7 +409,7 @@
 
                 setTimeout(() => {
                     drawNextCard(deck, updatedPlayers, darkCardsDrawn, winnerId);
-                }, 1500);
+                }, fastForward ? 100 : 1500);
             };
 
             // --- GAME END ---
@@ -701,13 +702,18 @@
                                 </div>
                             </div>
 
-                            {/* PLAYER AREA */}
                             {(() => {
                                 const human = players.find(p => !p.isAI);
                                 if (!human) return (
-                                    <div className="mt-auto p-8 border-t-2 bg-green-900 border-green-700 flex flex-col items-center justify-center">
+                                    <div className="mt-auto p-8 border-t-2 bg-green-900 border-green-700 flex flex-col items-center justify-center relative">
                                         <div className="text-yellow-500 text-2xl uppercase tracking-widest font-bold mb-2">Spectator Mode</div>
                                         <div className="text-gray-300">Watch the AI players battle for high society!</div>
+                                        <button
+                                            onClick={() => setFastForward(!fastForward)}
+                                            className={`mt-4 px-6 py-2 rounded-full font-bold shadow transition-colors text-sm ${fastForward ? 'bg-yellow-500 text-green-900' : 'bg-green-800 text-yellow-400 border border-yellow-500 hover:bg-green-700'}`}
+                                        >
+                                            {fastForward ? '⏩ FAST FORWARD (ON)' : '▶️ FAST FORWARD (OFF)'}
+                                        </button>
                                     </div>
                                 );
 
