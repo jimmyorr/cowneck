@@ -575,6 +575,8 @@
                                                     if (newOpp.length === 3) break;
                                                 }
                                                 setSelectedOpponents(newOpp);
+                                            } else if (!isChecked && selectedOpponents.length > 4) {
+                                                setSelectedOpponents(selectedOpponents.slice(0, 4));
                                             }
                                         }}
                                         className="w-6 h-6 accent-yellow-500 cursor-pointer"
