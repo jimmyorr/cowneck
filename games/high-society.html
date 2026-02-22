@@ -101,7 +101,7 @@
 
             // Pre-game state
             const [playerName, setPlayerName] = useState('You');
-            const [includeHuman, setIncludeHuman] = useState(true);
+            const [spectatorMode, setSpectatorMode] = useState(false);
             const [selectedOpponents, setSelectedOpponents] = useState(['Oliver', 'Miles', 'Kirby 🐱']);
             const AVAILABLE_OPPONENTS = ['Oliver', 'Miles', 'Kirby 🐱', 'Pookie', 'Jimmy'];
 
@@ -110,7 +110,7 @@
                 let initialPlayers = [];
                 let playerIndex = 0;
 
-                if (includeHuman) {
+                if (!spectatorMode) {
                     initialPlayers.push({ id: playerIndex++, name: playerName.trim() || 'You', isAI: false, hand: [...MONEY_CARDS], bid: [], won: [], passed: false, isEliminated: false, pendingDiscard: false });
                 }
 
@@ -560,15 +560,15 @@
                                 <p className="text-gray-200 mb-6 text-center">Outbid your rivals for luxury, but don't be the poorest at the end, or you'll be ruined!</p>
 
                                 <div className="mb-6 flex flex-col sm:flex-row items-center justify-between bg-green-950/50 p-4 rounded-lg border border-green-700">
-                                    <label className="text-yellow-400 font-bold mb-2 sm:mb-0 cursor-pointer" onClick={() => document.getElementById('humanToggle').click()}>Play as a Human?</label>
+                                    <label className="text-yellow-400 font-bold mb-2 sm:mb-0 cursor-pointer" onClick={() => document.getElementById('spectatorToggle').click()}>Spectator mode</label>
                                     <input
-                                        id="humanToggle"
+                                        id="spectatorToggle"
                                         type="checkbox"
-                                        checked={includeHuman}
+                                        checked={spectatorMode}
                                         onChange={(e) => {
                                             const isChecked = e.target.checked;
-                                            setIncludeHuman(isChecked);
-                                            if (!isChecked && selectedOpponents.length < 3) {
+                                            setSpectatorMode(isChecked);
+                                            if (isChecked && selectedOpponents.length < 3) {
                                                 const newOpp = [...selectedOpponents];
                                                 for (let opp of AVAILABLE_OPPONENTS) {
                                                     if (!newOpp.includes(opp)) newOpp.push(opp);
@@ -581,7 +581,7 @@
                                     />
                                 </div>
 
-                                {includeHuman && (
+                                {!spectatorMode && (
                                     <div className="mb-6">
                                         <label className="block text-yellow-400 font-bold mb-2">Your name</label>
                                         <input
@@ -596,7 +596,7 @@
                                 )}
 
                                 <div className="mb-8">
-                                    <label className="block text-yellow-400 font-bold mb-3">Select opponents ({includeHuman ? '2 to 4' : '3 to 5'})</label>
+                                    <label className="block text-yellow-400 font-bold mb-3">Select opponents ({!spectatorMode ? '2 to 4' : '3 to 5'})</label>
                                     <div className="flex flex-wrap gap-2 justify-center">
                                         {AVAILABLE_OPPONENTS.map(opp => {
                                             const isSelected = selectedOpponents.includes(opp);
@@ -605,9 +605,9 @@
                                                     key={opp}
                                                     onClick={() => {
                                                         if (isSelected) {
-                                                            if (selectedOpponents.length > (includeHuman ? 2 : 3)) setSelectedOpponents(selectedOpponents.filter(o => o !== opp));
+                                                            if (selectedOpponents.length > (!spectatorMode ? 2 : 3)) setSelectedOpponents(selectedOpponents.filter(o => o !== opp));
                                                         } else {
-                                                            if (selectedOpponents.length < (includeHuman ? 4 : 5)) setSelectedOpponents([...selectedOpponents, opp]);
+                                                            if (selectedOpponents.length < (!spectatorMode ? 4 : 5)) setSelectedOpponents([...selectedOpponents, opp]);
                                                         }
                                                     }}
                                                     className={`px-4 py-2 rounded-full border shadow-md transition transform hover:scale-105 text-sm font-bold ${isSelected ? 'bg-yellow-500 text-green-900 border-yellow-400' : 'bg-green-950 text-gray-400 border-green-700 hover:bg-green-800'}`}
@@ -618,7 +618,7 @@
                                         })}
                                     </div>
                                     <p className="text-sm text-gray-400 mt-4 text-center italic">
-                                        {selectedOpponents.length} selected. Total players: {selectedOpponents.length + (includeHuman ? 1 : 0)}
+                                        {selectedOpponents.length} selected. Total players: {selectedOpponents.length + (!spectatorMode ? 1 : 0)}
                                     </p>
                                 </div>
 
