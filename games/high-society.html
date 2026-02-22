@@ -108,6 +108,14 @@
             const [selectedOpponents, setSelectedOpponents] = useState(['Oliver', 'Miles', 'Kirby 🐱']);
             const [hoveredOpponent, setHoveredOpponent] = useState(null);
 
+            const isSimulatingRef = React.useRef(false);
+            const simCountRef = React.useRef(0);
+            const simTargetRef = React.useRef(0);
+            const simResultsRef = React.useRef({});
+
+            const [targetSimulations, setTargetSimulations] = useState(100);
+            const [simulationResults, setSimulationResults] = useState({});
+
             const OPPONENT_DETAILS = {
                 'Oliver': { name: 'Oliver', desc: 'The Penny-Pincher. Drops out early to save money, strong endgame.' },
                 'Miles': { name: 'Miles', desc: 'The High Roller. Over-values multipliers and big drops. Often runs out.' },
@@ -141,14 +149,31 @@
                 let shuffledDeck = shuffle(INITIAL_DECK);
                 setDeck(shuffledDeck);
                 setDarkCardsDrawn(0);
-                setLogs(['The game of High Society has begun!']);
+                if (!isSimulatingRef.current) {
+                    setLogs(['The game of High Society has begun!']);
+                }
                 setGameState('playing');
                 setTurn(0); // Human starts
                 drawNextCard(shuffledDeck, initialPlayers, 0, 0);
             };
 
+            const startSimulation = () => {
+                if (!spectatorMode) return;
+                isSimulatingRef.current = true;
+                simCountRef.current = 1;
+                simTargetRef.current = targetSimulations;
+
+                const stats = {};
+                selectedOpponents.forEach(o => stats[o] = 0);
+                simResultsRef.current = stats;
+                setSimulationResults(stats);
+
+                startGame();
+            };
+
             const addLog = (msg) => {
-                setLogs((prev) => [msg, ...prev]);
+                if (isSimulatingRef.current) return;
+                setLogs((prev) => [msg, ...prev].slice(0, 50));
             };
 
             const drawNextCard = (currentDeck = deck, currentPlayers = players, darkCount = darkCardsDrawn, nextTurn = turn) => {
@@ -199,7 +224,7 @@
                 if (currentPlayer.hand.length === 0) {
                     const timer = setTimeout(() => {
                         executePass(turn);
-                    }, fastForward ? 50 : 1000);
+                    }, isSimulatingRef.current ? 0 : (fastForward ? 50 : 1000));
                     return () => clearTimeout(timer);
                 }
 
@@ -207,14 +232,14 @@
                 if (currentPlayer.isAI) {
                     const timer = setTimeout(() => {
                         processAITurn();
-                    }, fastForward ? 50 : 1200);
+                    }, isSimulatingRef.current ? 0 : (fastForward ? 50 : 1200));
                     return () => clearTimeout(timer);
                 }
             }, [turn, gameState, revealedCard, fastForward]);
 
             // --- FIREWORKS ---
             useEffect(() => {
-                if (gameState === 'end' && window.confetti) {
+                if (gameState === 'end' && !isSimulatingRef.current && window.confetti) {
                     const duration = 3000;
                     const animationEnd = Date.now() + duration;
                     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
@@ -498,7 +523,7 @@
 
                 setTimeout(() => {
                     drawNextCard(deck, updatedPlayers, darkCardsDrawn, winnerId);
-                }, fastForward ? 100 : 1500);
+                }, isSimulatingRef.current ? 0 : (fastForward ? 100 : 1500));
             };
 
             // --- GAME END ---
@@ -552,6 +577,21 @@
                     if (a.score !== b.score) return b.score - a.score;
                     return sumArray(b.hand) - sumArray(a.hand);
                 });
+
+                if (isSimulatingRef.current) {
+                    const winner = finalPlayers[0];
+                    simResultsRef.current[winner.name] += 1;
+                    setSimulationResults({ ...simResultsRef.current });
+
+                    if (simCountRef.current < simTargetRef.current) {
+                        simCountRef.current += 1;
+                        setTimeout(() => startGame(), 0);
+                    } else {
+                        isSimulatingRef.current = false;
+                        setGameState('simulation-end');
+                    }
+                    return;
+                }
 
                 setPlayers(finalPlayers);
                 setGameState('end');
@@ -723,17 +763,43 @@
                                 <div className="text-center mt-6">
                                     <button
                                         onClick={startGame}
-                                        className="bg-yellow-500 hover:bg-yellow-400 text-green-900 font-bold py-3 px-8 rounded-full text-xl shadow-lg transition transform hover:scale-105 w-full sm:w-auto"
+                                        className={`${spectatorMode ? 'bg-green-700 hover:bg-green-600 border border-green-500 text-yellow-300 w-full mb-3' : 'bg-yellow-500 hover:bg-yellow-400 text-green-900 w-full sm:w-auto'} font-bold py-3 px-8 rounded-full text-xl shadow-lg transition transform hover:scale-105`}
                                     >
                                         Start game
                                     </button>
                                 </div>
+                                {spectatorMode && (
+                                    <div className="bg-green-950/50 p-4 rounded-lg border border-green-700 mt-4">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <label className="text-yellow-400 font-bold">Simulate Seasons</label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="1000"
+                                                value={targetSimulations}
+                                                onChange={(e) => setTargetSimulations(parseInt(e.target.value) || 1)}
+                                                className="w-24 bg-green-900 border border-green-700 rounded p-1 text-white text-center focus:outline-none focus:border-yellow-500 font-bold"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={startSimulation}
+                                            className="w-full bg-blue-700 hover:bg-blue-600 text-white font-bold py-3 rounded-full shadow transition text-lg tracking-wide uppercase"
+                                        >
+                                            Run Simulation
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
 
                     {gameState === 'playing' && (
                         <div className="flex-1 flex flex-col relative overflow-hidden">
+                            {isSimulatingRef.current && (
+                                <div className="bg-yellow-500 text-green-900 font-bold text-center z-50 py-1 shadow-md w-full">
+                                    SIMULATING SEASON {simCountRef.current} OF {simTargetRef.current}...
+                                </div>
+                            )}
 
                             {/* OPPONENTS AREA */}
                             <div className="flex justify-around p-2 bg-green-900/50 flex-wrap">
@@ -960,6 +1026,32 @@
                                         Play Another Season
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {gameState === 'simulation-end' && (
+                        <div className="flex-1 flex flex-col items-center justify-center space-y-8 bg-green-900 overflow-y-auto py-10 relative z-20">
+                            <div className="bg-emerald-800 p-6 sm:p-8 rounded-xl shadow-2xl border border-yellow-500 max-w-lg w-full mx-4 text-center">
+                                <h2 className="text-3xl font-serif text-yellow-400 mb-6 font-bold uppercase tracking-widest">Simulation Complete</h2>
+                                <p className="text-gray-200 mb-6 block text-lg">Results after {simTargetRef.current} seasons:</p>
+
+                                <div className="flex flex-col space-y-3 mb-8 text-left max-w-xs mx-auto">
+                                    {Object.entries(simulationResults)
+                                        .sort((a, b) => b[1] - a[1]) // highest wins first
+                                        .map(([name, wins], i) => (
+                                            <div key={name} className="flex justify-between items-center bg-green-900 p-3 rounded border border-green-700">
+                                                <span className="text-yellow-300 font-bold">#{i + 1} {name}</span>
+                                                <span className="text-white font-bold">{wins} <span className="text-gray-400 font-normal text-sm ml-1">({((wins / simTargetRef.current) * 100).toFixed(1)}%)</span></span>
+                                            </div>
+                                        ))}
+                                </div>
+                                <button
+                                    onClick={() => setGameState('start')}
+                                    className="bg-yellow-500 hover:bg-yellow-400 text-green-900 font-bold py-3 px-8 rounded-full text-xl shadow transition mt-4"
+                                >
+                                    Back to Menu
+                                </button>
                             </div>
                         </div>
                     )}
