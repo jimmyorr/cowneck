@@ -166,15 +166,28 @@
                 addLog(`New auction: ${card.name} (${card.type === 'disgrace' ? 'First to pass gets it!' : 'Highest bidder wins!'})`);
             };
 
-            // --- AI LOGIC ---
+            // --- AI LOGIC & AUTO PASS ---
             useEffect(() => {
-                if (gameState !== 'playing' || turn === 0) return;
+                if (gameState !== 'playing') return;
 
-                const timer = setTimeout(() => {
-                    processAITurn();
-                }, 1200);
+                const currentPlayer = players[turn];
+                if (!currentPlayer || currentPlayer.passed) return;
 
-                return () => clearTimeout(timer);
+                // Auto-pass if the player has completely run out of money
+                if (currentPlayer.hand.length === 0) {
+                    const timer = setTimeout(() => {
+                        executePass(turn);
+                    }, 1000);
+                    return () => clearTimeout(timer);
+                }
+
+                // If it is an AI turn and they have money, process AI turn
+                if (turn !== 0) {
+                    const timer = setTimeout(() => {
+                        processAITurn();
+                    }, 1200);
+                    return () => clearTimeout(timer);
+                }
             }, [turn, gameState, revealedCard]);
 
             const processAITurn = () => {
