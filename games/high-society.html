@@ -100,20 +100,29 @@
 
             // Pre-game state
             const [playerName, setPlayerName] = useState('You');
+            const [includeHuman, setIncludeHuman] = useState(true);
             const [selectedOpponents, setSelectedOpponents] = useState(['Oliver', 'Miles', 'Kirby 🐱']);
             const AVAILABLE_OPPONENTS = ['Oliver', 'Miles', 'Kirby 🐱', 'Pookie', 'Jimmy'];
 
             // --- INITIALIZATION ---
             const startGame = () => {
-                const initialPlayers = [
-                    { id: 0, name: playerName.trim() || 'You', hand: [...MONEY_CARDS], bid: [], won: [], passed: false, isEliminated: false, pendingDiscard: false },
-                    ...selectedOpponents.map((name, index) => ({
-                        id: index + 1,
+                let initialPlayers = [];
+                let playerIndex = 0;
+
+                if (includeHuman) {
+                    initialPlayers.push({ id: playerIndex++, name: playerName.trim() || 'You', isAI: false, hand: [...MONEY_CARDS], bid: [], won: [], passed: false, isEliminated: false, pendingDiscard: false });
+                }
+
+                selectedOpponents.forEach(name => {
+                    initialPlayers.push({
+                        id: playerIndex++,
                         name: name,
+                        isAI: true,
                         hand: [...MONEY_CARDS],
                         bid: [], won: [], passed: false, isEliminated: false, pendingDiscard: false
-                    }))
-                ];
+                    });
+                });
+
                 setPlayers(initialPlayers);
 
                 let shuffledDeck = shuffle(INITIAL_DECK);
@@ -182,7 +191,7 @@
                 }
 
                 // If it is an AI turn and they have money, process AI turn
-                if (turn !== 0) {
+                if (currentPlayer.isAI) {
                     const timer = setTimeout(() => {
                         processAITurn();
                     }, 1200);
@@ -258,13 +267,15 @@
             };
 
             const handleHumanBid = () => {
-                const p = players[0];
+                const humanIndex = players.findIndex(p => !p.isAI);
+                if (humanIndex === -1) return;
+                const p = players[humanIndex];
                 const selectedCards = humanPendingBid.map(i => p.hand[i]);
                 const proposedTotal = sumArray(p.bid) + sumArray(selectedCards);
 
                 if (proposedTotal <= currentHighestBid) return;
 
-                executeBid(0, selectedCards);
+                executeBid(humanIndex, selectedCards);
             };
 
             const executeBid = (playerId, additionalCards) => {
@@ -547,20 +558,44 @@
                                 <h2 className="text-4xl font-serif text-yellow-400 mb-4 text-center">High Society</h2>
                                 <p className="text-gray-200 mb-6 text-center">Outbid your rivals for luxury, but don't be the poorest at the end, or you'll be ruined!</p>
 
-                                <div className="mb-6">
-                                    <label className="block text-yellow-400 font-bold mb-2">Your name</label>
+                                <div className="mb-6 flex flex-col sm:flex-row items-center justify-between bg-green-950/50 p-4 rounded-lg border border-green-700">
+                                    <label className="text-yellow-400 font-bold mb-2 sm:mb-0 cursor-pointer" onClick={() => document.getElementById('humanToggle').click()}>Play as a Human?</label>
                                     <input
-                                        type="text"
-                                        value={playerName}
-                                        onChange={(e) => setPlayerName(e.target.value)}
-                                        className="w-full bg-green-900 border border-green-700 rounded p-2 text-white focus:outline-none focus:border-yellow-500"
-                                        maxLength="16"
-                                        placeholder="You"
+                                        id="humanToggle"
+                                        type="checkbox"
+                                        checked={includeHuman}
+                                        onChange={(e) => {
+                                            const isChecked = e.target.checked;
+                                            setIncludeHuman(isChecked);
+                                            if (!isChecked && selectedOpponents.length < 3) {
+                                                const newOpp = [...selectedOpponents];
+                                                for (let opp of AVAILABLE_OPPONENTS) {
+                                                    if (!newOpp.includes(opp)) newOpp.push(opp);
+                                                    if (newOpp.length === 3) break;
+                                                }
+                                                setSelectedOpponents(newOpp);
+                                            }
+                                        }}
+                                        className="w-6 h-6 accent-yellow-500 cursor-pointer"
                                     />
                                 </div>
 
+                                {includeHuman && (
+                                    <div className="mb-6">
+                                        <label className="block text-yellow-400 font-bold mb-2">Your name</label>
+                                        <input
+                                            type="text"
+                                            value={playerName}
+                                            onChange={(e) => setPlayerName(e.target.value)}
+                                            className="w-full bg-green-900 border border-green-700 rounded p-2 text-white focus:outline-none focus:border-yellow-500"
+                                            maxLength="16"
+                                            placeholder="You"
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="mb-8">
-                                    <label className="block text-yellow-400 font-bold mb-3">Select opponents (2 to 4)</label>
+                                    <label className="block text-yellow-400 font-bold mb-3">Select opponents ({includeHuman ? '2 to 4' : '3 to 5'})</label>
                                     <div className="flex flex-wrap gap-2 justify-center">
                                         {AVAILABLE_OPPONENTS.map(opp => {
                                             const isSelected = selectedOpponents.includes(opp);
@@ -569,9 +604,9 @@
                                                     key={opp}
                                                     onClick={() => {
                                                         if (isSelected) {
-                                                            if (selectedOpponents.length > 2) setSelectedOpponents(selectedOpponents.filter(o => o !== opp));
+                                                            if (selectedOpponents.length > (includeHuman ? 2 : 3)) setSelectedOpponents(selectedOpponents.filter(o => o !== opp));
                                                         } else {
-                                                            if (selectedOpponents.length < 4) setSelectedOpponents([...selectedOpponents, opp]);
+                                                            if (selectedOpponents.length < (includeHuman ? 4 : 5)) setSelectedOpponents([...selectedOpponents, opp]);
                                                         }
                                                     }}
                                                     className={`px-4 py-2 rounded-full border shadow-md transition transform hover:scale-105 text-sm font-bold ${isSelected ? 'bg-yellow-500 text-green-900 border-yellow-400' : 'bg-green-950 text-gray-400 border-green-700 hover:bg-green-800'}`}
@@ -582,7 +617,7 @@
                                         })}
                                     </div>
                                     <p className="text-sm text-gray-400 mt-4 text-center italic">
-                                        {selectedOpponents.length} selected. Total players: {selectedOpponents.length + 1}
+                                        {selectedOpponents.length} selected. Total players: {selectedOpponents.length + (includeHuman ? 1 : 0)}
                                     </p>
                                 </div>
 
@@ -603,8 +638,8 @@
 
                             {/* OPPONENTS AREA */}
                             <div className="flex justify-around p-2 bg-green-900/50 flex-wrap">
-                                {players.slice(1).map(p => (
-                                    <div key={p.id} style={{ width: `${100 / (players.length - 1)}%`, maxWidth: '200px' }} className={`flex flex-col items-center p-2 rounded-lg transition-colors flex-1 ${turn === p.id ? 'bg-yellow-500/20 border border-yellow-500' : 'border border-transparent'}`}>
+                                {players.filter(p => p.isAI).map(p => (
+                                    <div key={p.id} style={{ width: `${100 / players.filter(p => p.isAI).length}%`, maxWidth: '200px' }} className={`flex flex-col items-center p-2 rounded-lg transition-colors flex-1 ${turn === p.id ? 'bg-yellow-500/20 border border-yellow-500' : 'border border-transparent'}`}>
                                         <div className="font-bold text-yellow-300 text-sm md:text-base text-center whitespace-nowrap overflow-hidden text-ellipsis w-full">{p.name}</div>
                                         <div className="text-[10px] text-gray-300 mb-2">Hand: {p.hand.length}</div>
 
@@ -667,96 +702,109 @@
                             </div>
 
                             {/* PLAYER AREA */}
-                            <div className={`mt-auto p-4 border-t-2 ${turn === 0 ? 'bg-green-800 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' : 'bg-green-900 border-green-700'}`}>
-                                <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-4 max-w-6xl mx-auto gap-4">
-
-                                    {/* Player Won Cards */}
-                                    <div className="w-full md:w-auto flex-1 flex flex-col items-center md:items-start">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <div className="text-xs text-yellow-300 font-bold uppercase tracking-wider">Your Estate</div>
-                                            {players[0].pendingDiscard && <div className="text-xs bg-red-900 border border-red-500 text-red-300 px-1.5 py-0.5 rounded font-bold animate-pulse">PENDING DROP!</div>}
-                                        </div>
-                                        <div className="flex flex-wrap justify-center md:justify-start gap-1 min-h-[96px] content-start">
-                                            {players[0].won.map((c, i) => <React.Fragment key={i}>{renderCard(c, 'small')}</React.Fragment>)}
-                                            {players[0].won.length === 0 && <span className="text-gray-500 text-sm italic mt-4">Empty</span>}
-                                        </div>
+                            {(() => {
+                                const human = players.find(p => !p.isAI);
+                                if (!human) return (
+                                    <div className="mt-auto p-8 border-t-2 bg-green-900 border-green-700 flex flex-col items-center justify-center">
+                                        <div className="text-yellow-500 text-2xl uppercase tracking-widest font-bold mb-2">Spectator Mode</div>
+                                        <div className="text-gray-300">Watch the AI players battle for high society!</div>
                                     </div>
+                                );
 
-                                    {/* Player Controls */}
-                                    <div className="flex-1 flex flex-col items-center w-full">
+                                const isHumanTurn = turn === human.id;
+                                return (
+                                    <div className={`mt-auto p-4 border-t-2 ${isHumanTurn ? 'bg-green-800 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' : 'bg-green-900 border-green-700'}`}>
+                                        <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-4 max-w-6xl mx-auto gap-4">
 
-                                        {/* Current Bid Display */}
-                                        <div className="mb-2 h-14 flex items-center space-x-2">
-                                            <span className="text-sm text-gray-300">On Table:</span>
-                                            {players[0].passed ? (
-                                                <span className="text-red-400 font-bold px-3 py-1 bg-red-900/50 rounded">You Passed</span>
-                                            ) : (
-                                                players[0].bid.map((val, idx) => (
-                                                    <div key={idx} className="w-10 h-14 bg-gray-200 rounded border border-gray-400 flex items-center justify-center text-sm text-green-900 font-bold shadow">
-                                                        {val}k
-                                                    </div>
-                                                ))
-                                            )}
-                                            {players[0].bid.length === 0 && !players[0].passed && <span className="text-gray-500 text-sm">Nothing</span>}
-                                        </div>
-
-                                        {/* Pending Selection & Actions */}
-                                        {turn === 0 && !players[0].passed && (
-                                            <div className="flex flex-wrap justify-center items-center gap-4 bg-black/30 p-2 sm:p-3 rounded-lg w-full max-w-md">
-                                                <div className="flex space-x-4">
-                                                    <div className="text-center">
-                                                        <div className="text-[10px] sm:text-xs text-gray-400 uppercase">Adding</div>
-                                                        <div className="text-lg sm:text-xl font-bold text-white">
-                                                            +{sumArray(humanPendingBid.map(i => players[0].hand[i]))}k
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-center border-l border-gray-600 pl-4">
-                                                        <div className="text-[10px] sm:text-xs text-yellow-500 uppercase">New Total</div>
-                                                        <div className="text-lg sm:text-xl font-bold text-yellow-300">
-                                                            {sumArray(players[0].bid) + sumArray(humanPendingBid.map(i => players[0].hand[i]))}k
-                                                        </div>
-                                                    </div>
+                                            {/* Player Won Cards */}
+                                            <div className="w-full md:w-auto flex-1 flex flex-col items-center md:items-start">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <div className="text-xs text-yellow-300 font-bold uppercase tracking-wider">Your Estate</div>
+                                                    {human.pendingDiscard && <div className="text-xs bg-red-900 border border-red-500 text-red-300 px-1.5 py-0.5 rounded font-bold animate-pulse">PENDING DROP!</div>}
                                                 </div>
-                                                <div className="flex space-x-2 w-full sm:w-auto mt-2 sm:mt-0">
-                                                    <button
-                                                        onClick={handleHumanBid}
-                                                        disabled={(sumArray(players[0].bid) + sumArray(humanPendingBid.map(i => players[0].hand[i]))) <= currentHighestBid}
-                                                        className="flex-1 bg-yellow-500 disabled:bg-gray-600 disabled:text-gray-400 hover:bg-yellow-400 text-green-900 font-bold py-2 px-4 sm:px-6 rounded shadow transition text-sm sm:text-base"
-                                                    >
-                                                        {players[0].bid.length > 0 ? 'Raise Bid' : 'Submit Bid'}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => executePass(0)}
-                                                        className="flex-1 sm:flex-none bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 sm:px-6 rounded shadow transition text-sm sm:text-base"
-                                                    >
-                                                        Pass
-                                                    </button>
+                                                <div className="flex flex-wrap justify-center md:justify-start gap-1 min-h-[96px] content-start">
+                                                    {human.won.map((c, i) => <React.Fragment key={i}>{renderCard(c, 'small')}</React.Fragment>)}
+                                                    {human.won.length === 0 && <span className="text-gray-500 text-sm italic mt-4">Empty</span>}
                                                 </div>
                                             </div>
-                                        )}
-                                        {turn !== 0 && (
-                                            <div className="text-yellow-400 font-bold animate-pulse py-4">Waiting for {players[turn]?.name}...</div>
-                                        )}
-                                    </div>
-                                </div>
 
-                                {/* Player Hand */}
-                                <div className="flex justify-start sm:justify-center gap-1 sm:gap-2 max-w-6xl mx-auto overflow-x-auto pb-4 px-2 w-full">
-                                    {(() => {
-                                        const handItems = players[0].hand.map((val, originalIndex) => ({ val, originalIndex }));
-                                        handItems.sort((a, b) => a.val - b.val);
-                                        return handItems.map((item, sortedIdx) => (
-                                            <React.Fragment key={sortedIdx}>
-                                                {renderMoneyCard(
-                                                    item.val,
-                                                    humanPendingBid.includes(item.originalIndex),
-                                                    turn === 0 && !players[0].passed ? () => toggleHumanPendingCard(item.originalIndex) : undefined
+                                            {/* Player Controls */}
+                                            <div className="flex-1 flex flex-col items-center w-full">
+
+                                                {/* Current Bid Display */}
+                                                <div className="mb-2 h-14 flex items-center space-x-2">
+                                                    <span className="text-sm text-gray-300">On Table:</span>
+                                                    {human.passed ? (
+                                                        <span className="text-red-400 font-bold px-3 py-1 bg-red-900/50 rounded">You Passed</span>
+                                                    ) : (
+                                                        human.bid.map((val, idx) => (
+                                                            <div key={idx} className="w-10 h-14 bg-gray-200 rounded border border-gray-400 flex items-center justify-center text-sm text-green-900 font-bold shadow">
+                                                                {val}k
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                    {human.bid.length === 0 && !human.passed && <span className="text-gray-500 text-sm">Nothing</span>}
+                                                </div>
+
+                                                {/* Pending Selection & Actions */}
+                                                {isHumanTurn && !human.passed && (
+                                                    <div className="flex flex-wrap justify-center items-center gap-4 bg-black/30 p-2 sm:p-3 rounded-lg w-full max-w-md">
+                                                        <div className="flex space-x-4">
+                                                            <div className="text-center">
+                                                                <div className="text-[10px] sm:text-xs text-gray-400 uppercase">Adding</div>
+                                                                <div className="text-lg sm:text-xl font-bold text-white">
+                                                                    +{sumArray(humanPendingBid.map(i => human.hand[i]))}k
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-center border-l border-gray-600 pl-4">
+                                                                <div className="text-[10px] sm:text-xs text-yellow-500 uppercase">New Total</div>
+                                                                <div className="text-lg sm:text-xl font-bold text-yellow-300">
+                                                                    {sumArray(human.bid) + sumArray(humanPendingBid.map(i => human.hand[i]))}k
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex space-x-2 w-full sm:w-auto mt-2 sm:mt-0">
+                                                            <button
+                                                                onClick={handleHumanBid}
+                                                                disabled={(sumArray(human.bid) + sumArray(humanPendingBid.map(i => human.hand[i]))) <= currentHighestBid}
+                                                                className="flex-1 bg-yellow-500 disabled:bg-gray-600 disabled:text-gray-400 hover:bg-yellow-400 text-green-900 font-bold py-2 px-4 sm:px-6 rounded shadow transition text-sm sm:text-base"
+                                                            >
+                                                                {human.bid.length > 0 ? 'Raise Bid' : 'Submit Bid'}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => executePass(human.id)}
+                                                                className="flex-1 sm:flex-none bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 sm:px-6 rounded shadow transition text-sm sm:text-base"
+                                                            >
+                                                                Pass
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 )}
-                                            </React.Fragment>
-                                        ));
-                                    })()}
-                                </div>
-                            </div>
+                                                {!isHumanTurn && (
+                                                    <div className="text-yellow-400 font-bold animate-pulse py-4">Waiting for {players[turn]?.name}...</div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Player Hand */}
+                                        <div className="flex justify-start sm:justify-center gap-1 sm:gap-2 max-w-6xl mx-auto overflow-x-auto pb-4 px-2 w-full">
+                                            {(() => {
+                                                const handItems = human.hand.map((val, originalIndex) => ({ val, originalIndex }));
+                                                handItems.sort((a, b) => a.val - b.val);
+                                                return handItems.map((item, sortedIdx) => (
+                                                    <React.Fragment key={sortedIdx}>
+                                                        {renderMoneyCard(
+                                                            item.val,
+                                                            humanPendingBid.includes(item.originalIndex),
+                                                            isHumanTurn && !human.passed ? () => toggleHumanPendingCard(item.originalIndex) : undefined
+                                                        )}
+                                                    </React.Fragment>
+                                                ));
+                                            })()}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
                     )}
 
