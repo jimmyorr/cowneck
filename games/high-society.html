@@ -106,7 +106,16 @@
             const [playerName, setPlayerName] = useState('You');
             const [spectatorMode, setSpectatorMode] = useState(false);
             const [selectedOpponents, setSelectedOpponents] = useState(['Oliver', 'Miles', 'Kirby 🐱']);
-            const AVAILABLE_OPPONENTS = ['Oliver', 'Miles', 'Kirby 🐱', 'Pookie', 'Jimmy'];
+            const [hoveredOpponent, setHoveredOpponent] = useState(null);
+
+            const OPPONENT_DETAILS = {
+                'Oliver': { name: 'Oliver', desc: 'The Penny-Pincher. Drops out early to save money, strong endgame.' },
+                'Miles': { name: 'Miles', desc: 'The High Roller. Over-values multipliers and big drops. Often runs out.' },
+                'Kirby 🐱': { name: 'Kirby 🐱', desc: 'The Wild-Card. Very erratic bidding, can push bids unexpectedly.' },
+                'Pookie': { name: 'Pookie', desc: 'The Avoidant. Extremely averse to disgrace. Pays heavy to avoid negatives.' },
+                'Jimmy': { name: 'Jimmy', desc: 'The Opportunist. Balanced early game, aggressive in later rounds.' }
+            };
+            const AVAILABLE_OPPONENTS = Object.keys(OPPONENT_DETAILS);
 
             // --- INITIALIZATION ---
             const startGame = () => {
@@ -241,17 +250,67 @@
                 const availableTotal = sumArray(ai.hand) + currentBidTotal;
                 const isNegativeAuction = revealedCard.type === 'disgrace';
 
-                // Heuristics for max willingness to pay
+                // Heuristics for max willingness to pay based on personality
                 let maxWillingness = 0;
-                if (isNegativeAuction) {
-                    maxWillingness = 12; // Risk up to 12k to avoid disgrace
-                    if (currentHighestBid > 8 && Math.random() > 0.4) maxWillingness = 0;
-                } else {
-                    if (revealedCard.type === 'prestige') maxWillingness = 15;
-                    else maxWillingness = revealedCard.value * 1.5;
+                let negativeThreshold = 8;
+                let negativeDropChance = 0.4;
+
+                if (ai.name === 'Oliver') { // Penny Pincher
+                    if (isNegativeAuction) {
+                        maxWillingness = 8;
+                        negativeDropChance = 0.7;
+                    } else {
+                        if (revealedCard.type === 'prestige') maxWillingness = 10;
+                        else maxWillingness = revealedCard.value;
+                    }
+                } else if (ai.name === 'Miles') { // High Roller
+                    if (isNegativeAuction) {
+                        maxWillingness = 15;
+                        negativeDropChance = 0.2;
+                    } else {
+                        if (revealedCard.type === 'prestige') maxWillingness = 25;
+                        else maxWillingness = revealedCard.value * 2;
+                    }
+                } else if (ai.name === 'Kirby 🐱') { // Unpredictable
+                    const roll = Math.random();
+                    if (isNegativeAuction) {
+                        maxWillingness = roll > 0.5 ? 20 : 5;
+                        negativeDropChance = roll > 0.5 ? 0.1 : 0.8;
+                    } else {
+                        if (revealedCard.type === 'prestige') maxWillingness = roll > 0.5 ? 22 : 8;
+                        else maxWillingness = roll > 0.5 ? revealedCard.value * 2.5 : revealedCard.value;
+                    }
+                } else if (ai.name === 'Pookie') { // Averse to negatives
+                    if (isNegativeAuction) {
+                        maxWillingness = 25;
+                        negativeDropChance = 0.05;
+                    } else {
+                        if (revealedCard.type === 'prestige') maxWillingness = 12;
+                        else maxWillingness = revealedCard.value * 1.2;
+                    }
+                } else if (ai.name === 'Jimmy') { // Balanced/Aggressive Late
+                    if (isNegativeAuction) {
+                        maxWillingness = deck.length < 8 ? 20 : 10;
+                        negativeDropChance = deck.length < 8 ? 0.1 : 0.5;
+                    } else {
+                        if (revealedCard.type === 'prestige') maxWillingness = 18;
+                        else maxWillingness = revealedCard.value * 1.5;
+                    }
+                } else { // default
+                    if (isNegativeAuction) {
+                        maxWillingness = 12;
+                        negativeDropChance = 0.4;
+                    } else {
+                        if (revealedCard.type === 'prestige') maxWillingness = 15;
+                        else maxWillingness = revealedCard.value * 1.5;
+                    }
                 }
 
-                if (availableTotal < 30) maxWillingness *= 0.6;
+                if (isNegativeAuction) {
+                    if (currentHighestBid > negativeThreshold && Math.random() < negativeDropChance) maxWillingness = 0;
+                }
+
+                if (availableTotal < 30 && ai.name !== 'Kirby 🐱') maxWillingness *= 0.6;
 
                 let bestAdditionalCards = null;
                 let lowestSufficientTotal = Infinity;
@@ -629,12 +688,14 @@
 
                                 <div className="mb-8">
                                     <label className="block text-yellow-400 font-bold mb-3">Select opponents ({!spectatorMode ? '2 to 4' : '3 to 5'})</label>
-                                    <div className="flex flex-wrap gap-2 justify-center">
+                                    <div className="flex flex-wrap gap-2 justify-center mb-4 relative">
                                         {AVAILABLE_OPPONENTS.map(opp => {
                                             const isSelected = selectedOpponents.includes(opp);
                                             return (
                                                 <button
                                                     key={opp}
+                                                    onMouseEnter={() => setHoveredOpponent(opp)}
+                                                    onMouseLeave={() => setHoveredOpponent(null)}
                                                     onClick={() => {
                                                         if (isSelected) {
                                                             if (selectedOpponents.length > (!spectatorMode ? 2 : 3)) setSelectedOpponents(selectedOpponents.filter(o => o !== opp));
@@ -648,8 +709,13 @@
                                                 </button>
                                             )
                                         })}
+
+                                        {/* Tooltip for Opponent Descriptions */}
+                                        <div className="h-8 md:h-6 w-full mt-2 text-center text-xs md:text-sm text-yellow-300 italic transition-opacity duration-200">
+                                            {hoveredOpponent ? OPPONENT_DETAILS[hoveredOpponent].desc : "Hover over an opponent to see their playstyle."}
+                                        </div>
                                     </div>
-                                    <p className="text-sm text-gray-400 mt-4 text-center italic">
+                                    <p className="text-sm text-gray-400 text-center italic mt-2">
                                         {selectedOpponents.length} selected. Total players: {selectedOpponents.length + (!spectatorMode ? 1 : 0)}
                                     </p>
                                 </div>
