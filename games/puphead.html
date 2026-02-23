@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pup Head: Don't Deal with the Pound</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #f4ecd8;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        canvas {
+            display: block;
+            background-color: #f4ecd8;
+            /* Sepia paper tone */
+            image-rendering: pixelated;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: -50px;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="controls">Arrows to Move/Aim | Z to Jump/Select | X to Shoot</div>
+    </div>
+
+    <script>
+        /**
+         * PUP HEAD - A Retro 1930s Style Game Prototype
+         * Features: Overworld, Run & Gun, Boss Battles, Flying Shmup
+         */
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- GAME STATE & CONSTANTS ---
+        const GAME_WIDTH = 800;
+        const GAME_HEIGHT = 600;
+        const GRAVITY = 0.6;
+        const SEPIA = '#f4ecd8';
+        const INK = '#111111';
+        const RED = '#c43a31';
+
+        let gameState = 'TITLE'; // TITLE, OVERWORLD, RUNGUN, BOSS, FLYING, GAMEOVER, VICTORY
+        let frameCount = 0;
+        let filmGrain = [];
+
+        // Input handling
+        const keys = {
+            ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false,
+            z: false, x: false, c: false
+        };
+        let justPressed = { z: false, x: false };
+
+        window.addEventListener('keydown', (e) => {
+            if (keys.hasOwnProperty(e.key)) {
+                if (!keys[e.key]) justPressed[e.key] = true;
+                keys[e.key] = true;
+                e.preventDefault();
+            }
+            // Handle lower case mapping
+            const lower = e.key.toLowerCase();
+            if (keys.hasOwnProperty(lower)) {
+                if (!keys[lower]) justPressed[lower] = true;
+                keys[lower] = true;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+            const lower = e.key.toLowerCase();
+            if (keys.hasOwnProperty(lower)) keys[lower] = false;
+        });
+
+        function consumeKey(key) {
+            if (justPressed[key]) {
+                justPressed[key] = false;
+                return true;
+            }
+            return false;
+        }
+
+        // --- DATA STRUCTURES ---
+
+        const levels = [
+            { id: 0, name: 'Barking Burg', type: 'RUNGUN', x: 150, y: 400, completed: false, desc: 'Run & Gun' },
+            { id: 1, name: 'Meowser the Terrible', type: 'BOSS', x: 300, y: 450, completed: false, desc: 'Boss Fight' },
+            { id: 2, name: 'Pigeon Patrol', type: 'FLYING', x: 450, y: 350, completed: false, desc: 'Flying Level' },
+            { id: 3, name: 'Hydrant Havoc', type: 'RUNGUN', x: 250, y: 200, completed: false, desc: 'Run & Gun' },
+            { id: 4, name: 'The Vaccuuminator', type: 'BOSS', x: 450, y: 150, completed: false, desc: 'Boss Fight' },
+            { id: 5, name: 'Flea Circus', type: 'FLYING', x: 650, y: 250, completed: false, desc: 'Flying Level' }
+        ];
+
+        let player = {
+            x: 0, y: 0, vx: 0, vy: 0, width: 40, height: 60,
+            hp: 3, maxHp: 3, facingRight: true,
+            isGrounded: false, isInvulnerable: 0,
+            mapNodeIndex: 0, shootCooldown: 0,
+            isPlane: false
+        };
+
+        let entities = [];
+        let particles = [];
+        let platforms = [];
+        let currentLevelData = null;
+        let cameraX = 0;
+        let levelProgress = 0; // Distance or Time depending on mode
+        let bossRef = null;
+
+        // --- INITIALIZATION ---
+
+        function init() {
+            // Generate static film grain buffer for performance
+            for (let i = 0; i < 100; i++) {
+                filmGrain.push({
+                    x: Math.random() * GAME_WIDTH,
+                    y: Math.random() * GAME_HEIGHT,
+                    w: Math.random() * 2 + 1,
+                    h: Math.random() * 5 + 2
+                });
+            }
+            resetPlayerToOverworld();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resetPlayerToOverworld() {
+            gameState = 'OVERWORLD';
+            player.x = levels[player.mapNodeIndex].x;
+            player.y = levels[player.mapNodeIndex].y;
+            player.hp = player.maxHp;
+            player.isPlane = false;
+        }
+
+        function startLevel(levelIndex) {
+            currentLevelData = levels[levelIndex];
+            player.hp = player.maxHp;
+            entities = [];
+            particles = [];
+            platforms = [];
+            cameraX = 0;
+            levelProgress = 0;
+            bossRef = null;
+
+            if (currentLevelData.type === 'RUNGUN') {
+                gameState = 'RUNGUN';
+                player.x = 100;
+                player.y = 300;
+                player.isPlane = false;
+                // Generate platforms
+                platforms.push({ x: 0, y: 500, w: 2000, h: 100 }); // Ground
+                platforms.push({ x: 400, y: 400, w: 150, h: 20 });
+                platforms.push({ x: 800, y: 350, w: 150, h: 20 });
+                platforms.push({ x: 1200, y: 400, w: 150, h: 20 });
+                platforms.push({ x: 2200, y: 500, w: 1000, h: 100 }); // End zone
+            }
+            else if (currentLevelData.type === 'BOSS') {
+                gameState = 'BOSS';
+                player.x = 100;
+                player.y = 400;
+                player.isPlane = false;
+                platforms.push({ x: -100, y: 500, w: 1200, h: 100 }); // Ground
+
+                // Spawn Boss
+                bossRef = new Boss(currentLevelData.id);
+                entities.push(bossRef);
+            }
+            else if (currentLevelData.type === 'FLYING') {
+                gameState = 'FLYING';
+                player.x = 100;
+                player.y = 300;
+                player.isPlane = true;
+                // No platforms in flying mode
+            }
+        }
+
+        // --- CLASSES ---
+
+        class Bullet {
+            constructor(x, y, vx, vy, isEnemy) {
+                this.x = x; this.y = y;
+                this.vx = vx; this.vy = vy;
+                this.isEnemy = isEnemy;
+                this.width = 10; this.height = 10;
+                this.active = true;
+                this.life = 100;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+                if (this.life <= 0) this.active = false;
+            }
+            draw(ctx, camX) {
+                ctx.fillStyle = this.isEnemy ? RED : '#55ccee';
+                ctx.beginPath();
+                ctx.arc(this.x - camX, this.y, this.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = INK;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        class Enemy {
+            constructor(x, y, type) {
+                this.x = x; this.y = y;
+                this.type = type; // 'WALKER', 'FLYER'
+                this.width = 40; this.height = 40;
+                this.hp = 3;
+                this.active = true;
+                this.timer = 0;
+            }
+            update() {
+                this.timer++;
+                if (this.type === 'WALKER') {
+                    this.x -= 2;
+                    this.y += GRAVITY; // simple gravity, assuming floor at 460
+                    if (this.y > 460) this.y = 460;
+                } else if (this.type === 'FLYER') {
+                    this.x -= 3;
+                    this.y += Math.sin(this.timer * 0.05) * 2;
+                }
+
+                // Despawn if offscreen
+                if (this.x < cameraX - 100) this.active = false;
+            }
+            draw(ctx, camX) {
+                ctx.fillStyle = INK;
+                let drawX = this.x - camX;
+                ctx.beginPath();
+                if (this.type === 'WALKER') {
+                    ctx.rect(drawX, this.y, this.width, this.height);
+                } else {
+                    ctx.arc(drawX + 20, this.y + 20, 20, 0, Math.PI * 2);
+                }
+                ctx.fill();
+
+                // Eyes (Pie cut)
+                ctx.fillStyle = SEPIA;
+                ctx.beginPath();
+                ctx.arc(drawX + 10, this.y + 15, 6, 0, Math.PI * 2);
+                ctx.arc(drawX + 30, this.y + 15, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = INK;
+                ctx.beginPath();
+                ctx.moveTo(drawX + 10, this.y + 15); ctx.lineTo(drawX + 16, this.y + 10); ctx.lineTo(drawX + 16, this.y + 20);
+                ctx.moveTo(drawX + 30, this.y + 15); ctx.lineTo(drawX + 36, this.y + 10); ctx.lineTo(drawX + 36, this.y + 20);
+                ctx.fill();
+            }
+        }
+
+        class Boss {
+            constructor(id) {
+                this.id = id;
+                this.x = 600;
+                this.y = 300;
+                this.width = 150;
+                this.height = 150;
+                this.maxHp = id === 1 ? 100 : 150;
+                this.hp = this.maxHp;
+                this.active = true;
+                this.timer = 0;
+                this.state = 'IDLE';
+            }
+            update() {
+                this.timer++;
+
+                // Basic pattern: bob up and down, shoot occasionally
+                this.y = 250 + Math.sin(this.timer * 0.03) * 100;
+
+                if (this.timer % 120 === 0) {
+                    // Shoot spread
+                    for (let i = -1; i <= 1; i++) {
+                        entities.push(new Bullet(this.x, this.y + 75, -5, i * 2, true));
+                    }
+                }
+
+                if (this.hp <= 0) {
+                    this.active = false;
+                    // Spawn explosions
+                    for (let i = 0; i < 20; i++) createParticle(this.x + Math.random() * this.width, this.y + Math.random() * this.height, RED);
+                    setTimeout(() => { gameState = 'VICTORY'; currentLevelData.completed = true; }, 2000);
+                }
+            }
+            draw(ctx, camX) {
+                let drawX = this.x - camX;
+                ctx.save();
+                ctx.translate(drawX + this.width / 2, this.y + this.height / 2);
+
+                if (this.hp < this.maxHp * 0.3 && frameCount % 10 < 5) ctx.fillStyle = RED;
+                else ctx.fillStyle = INK;
+
+                // Draw Boss Shape
+                if (this.id === 1) { // Cat
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 75, 0, Math.PI * 2); // Head
+                    ctx.moveTo(-50, -50); ctx.lineTo(-80, -100); ctx.lineTo(-20, -70); // Ear L
+                    ctx.moveTo(50, -50); ctx.lineTo(80, -100); ctx.lineTo(20, -70); // Ear R
+                    ctx.fill();
+
+                    // Whiskers
+                    ctx.strokeStyle = INK; ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.moveTo(-30, 0); ctx.lineTo(-100, -20); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(-30, 10); ctx.lineTo(-100, 10); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(30, 0); ctx.lineTo(100, -20); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(30, 10); ctx.lineTo(100, 10); ctx.stroke();
+                } else { // Vacuum
+                    ctx.fillRect(-60, -70, 120, 140);
+                    ctx.fillStyle = SEPIA;
+                    ctx.fillRect(-40, -50, 80, 40); // Eye area
+                    ctx.fillStyle = INK;
+                    ctx.beginPath(); ctx.arc(-10, -30, 10, 0, Math.PI * 2); ctx.fill(); // Eye
+                    ctx.beginPath(); ctx.arc(10, -30, 10, 0, Math.PI * 2); ctx.fill(); // Eye
+
+                    // Hose
+                    ctx.strokeStyle = INK; ctx.lineWidth = 20;
+                    ctx.beginPath();
+                    ctx.moveTo(-60, 50);
+                    ctx.quadraticCurveTo(-150, 50, -100 + Math.sin(this.timer * 0.1) * 20, 120);
+                    ctx.stroke();
+                }
+
+                // Crazy Eyes
+                if (this.id === 1) {
+                    ctx.fillStyle = SEPIA;
+                    ctx.beginPath(); ctx.arc(-30, -20, 20, 0, Math.PI * 2); ctx.arc(30, -20, 20, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = INK;
+                    ctx.beginPath(); ctx.arc(-30 + Math.random() * 4, -20 + Math.random() * 4, 5, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(30 + Math.random() * 4, -20 + Math.random() * 4, 5, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        function createParticle(x, y, color) {
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
+                life: 30, color: color, size: Math.random() * 10 + 5
+            });
+        }
+
+        // --- UPDATE LOGIC ---
+
+        function updatePlayer() {
+            if (player.isInvulnerable > 0) player.isInvulnerable--;
+            if (player.shootCooldown > 0) player.shootCooldown--;
+
+            if (player.isPlane) {
+                // Flying movement
+                let speed = 5;
+                if (keys.ArrowUp) player.y -= speed;
+                if (keys.ArrowDown) player.y += speed;
+                if (keys.ArrowLeft) player.x -= speed;
+                if (keys.ArrowRight) player.x += speed;
+
+                // Bounds
+                if (player.x < cameraX) player.x = cameraX;
+                if (player.x > cameraX + GAME_WIDTH - player.width) player.x = cameraX + GAME_WIDTH - player.width;
+                if (player.y < 0) player.y = 0;
+                if (player.y > GAME_HEIGHT - player.height) player.y = GAME_HEIGHT - player.height;
+
+            } else {
+                // Platformer movement
+                let speed = 4;
+                if (keys.ArrowLeft) { player.vx = -speed; player.facingRight = false; }
+                else if (keys.ArrowRight) { player.vx = speed; player.facingRight = true; }
+                else { player.vx = 0; }
+
+                if (consumeKey('z') && player.isGrounded) {
+                    player.vy = -12;
+                    player.isGrounded = false;
+                }
+
+                player.vy += GRAVITY;
+
+                // Apply velocity
+                player.x += player.vx;
+                player.y += player.vy;
+
+                // Platform Collisions
+                player.isGrounded = false;
+                for (let p of platforms) {
+                    // Simple top collision
+                    if (player.vy > 0 &&
+                        player.x + player.width > p.x &&
+                        player.x < p.x + p.w &&
+                        player.y + player.height >= p.y &&
+                        player.y + player.height <= p.y + player.vy + 2) {
+                        player.y = p.y - player.height;
+                        player.vy = 0;
+                        player.isGrounded = true;
+                    }
+                }
+
+                // Bounds
+                if (player.x < cameraX) player.x = cameraX;
+                if (player.y > GAME_HEIGHT) hitPlayer(); // Fall in pit
+            }
+
+            // Shooting
+            if (keys.x && player.shootCooldown <= 0) {
+                player.shootCooldown = 8;
+                let bvx = player.facingRight ? 12 : -12;
+                let bx = player.facingRight ? player.x + player.width : player.x;
+                if (player.isPlane) { bvx = 15; bx = player.x + player.width; } // Planes always shoot right
+
+                entities.push(new Bullet(bx, player.y + player.height / 2, bvx, 0, false));
+                // Recoil effect
+                createParticle(bx, player.y + player.height / 2, '#fff');
+            }
+        }
+
+        function hitPlayer() {
+            if (player.isInvulnerable > 0) return;
+            player.hp--;
+            player.isInvulnerable = 60;
+            for (let i = 0; i < 10; i++) createParticle(player.x + 20, player.y + 30, RED);
+
+            if (player.hp <= 0) {
+                gameState = 'GAMEOVER';
+                setTimeout(() => { if (gameState === 'GAMEOVER') resetPlayerToOverworld(); }, 3000);
+            }
+        }
+
+        function updateEntities() {
+            // Check collisions
+            let playerRect = { x: player.x, y: player.y, w: player.width, h: player.height };
+
+            for (let i = entities.length - 1; i >= 0; i--) {
+                let e = entities[i];
+                e.update();
+
+                if (e.active) {
+                    let eRect = { x: e.x, y: e.y, w: e.width, h: e.height };
+
+                    // Entity vs Player
+                    if (e.isEnemy !== false && rectIntersect(playerRect, eRect)) {
+                        hitPlayer();
+                    }
+
+                    // Bullet vs Entities
+                    if (!e.isEnemy && e instanceof Bullet) { // Player bullet
+                        for (let j = 0; j < entities.length; j++) {
+                            let target = entities[j];
+                            if (target !== e && (target instanceof Enemy || target instanceof Boss) && target.active) {
+                                if (rectIntersect({ x: e.x, y: e.y, w: e.width, h: e.height }, { x: target.x, y: target.y, w: target.width, h: target.height })) {
+                                    target.hp--;
+                                    e.active = false;
+                                    createParticle(e.x, e.y, '#ffd700');
+                                    if (target.hp <= 0 && target instanceof Enemy) {
+                                        target.active = false;
+                                        for (let k = 0; k < 5; k++) createParticle(target.x, target.y, INK);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!e.active) entities.splice(i, 1);
+            }
+
+            // Update Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy;
+                p.life--;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function rectIntersect(r1, r2) {
+            return !(r2.x > r1.x + r1.w ||
+                r2.x + r2.w < r1.x ||
+                r2.y > r1.y + r1.h ||
+                r2.y + r2.h < r1.y);
+        }
+
+        function updateGame() {
+            frameCount++;
+
+            if (gameState === 'TITLE') {
+                if (consumeKey('z')) gameState = 'OVERWORLD';
+            }
+            else if (gameState === 'OVERWORLD') {
+                let speed = 3;
+                if (keys.ArrowUp) player.y -= speed;
+                if (keys.ArrowDown) player.y += speed;
+                if (keys.ArrowLeft) player.x -= speed;
+                if (keys.ArrowRight) player.x += speed;
+
+                // Keep in bounds
+                player.x = Math.max(50, Math.min(GAME_WIDTH - 50, player.x));
+                player.y = Math.max(50, Math.min(GAME_HEIGHT - 50, player.y));
+
+                // Check level overlap
+                let onLevel = -1;
+                for (let i = 0; i < levels.length; i++) {
+                    let dx = player.x - levels[i].x;
+                    let dy = player.y - levels[i].y;
+                    if (Math.sqrt(dx * dx + dy * dy) < 30) {
+                        onLevel = i;
+                        break;
+                    }
+                }
+
+                if (onLevel !== -1 && consumeKey('z')) {
+                    player.mapNodeIndex = onLevel;
+                    startLevel(onLevel);
+                }
+            }
+            else if (gameState === 'RUNGUN') {
+                updatePlayer();
+                updateEntities();
+
+                // Camera logic
+                if (player.x > cameraX + GAME_WIDTH / 2) {
+                    cameraX = player.x - GAME_WIDTH / 2;
+                }
+
+                // Spawn Enemies
+                if (frameCount % 100 === 0 && cameraX < 2000) {
+                    entities.push(new Enemy(cameraX + GAME_WIDTH + 50, 400, 'WALKER'));
+                }
+
+                // Win Condition
+                if (player.x > 2500) {
+                    gameState = 'VICTORY';
+                    currentLevelData.completed = true;
+                    setTimeout(() => { if (gameState === 'VICTORY') resetPlayerToOverworld(); }, 3000);
+                }
+            }
+            else if (gameState === 'BOSS') {
+                updatePlayer();
+                updateEntities();
+                // Camera stays static in boss fight
+                cameraX = 0;
+
+                // Keep player in bounds
+                if (player.x > GAME_WIDTH - player.width) player.x = GAME_WIDTH - player.width;
+            }
+            else if (gameState === 'FLYING') {
+                updatePlayer();
+                updateEntities();
+
+                cameraX += 3; // Auto scroll
+                player.x += 3; // Move player with camera
+                levelProgress += 3;
+
+                // Spawn Enemies
+                if (frameCount % 60 === 0 && levelProgress < 3000) {
+                    entities.push(new Enemy(cameraX + GAME_WIDTH + 50, Math.random() * 500 + 50, 'FLYER'));
+                }
+
+                // Mini boss at end
+                if (levelProgress > 3000 && !bossRef) {
+                    bossRef = new Boss(2);
+                    bossRef.x = cameraX + 600;
+                    bossRef.maxHp = 50; bossRef.hp = 50;
+                    entities.push(bossRef);
+                }
+
+                if (bossRef && bossRef.active) {
+                    bossRef.x = cameraX + 500; // stick to camera right side
+                }
+
+                // Win
+                if (levelProgress > 3000 && bossRef && !bossRef.active && gameState !== 'VICTORY') {
+                    gameState = 'VICTORY';
+                    currentLevelData.completed = true;
+                    setTimeout(() => { if (gameState === 'VICTORY') resetPlayerToOverworld(); }, 3000);
+                }
+            }
+
+            // Clear justPressed for next frame if not consumed
+            justPressed.z = false;
+            justPressed.x = false;
+        }
+
+        // --- DRAWING ---
+
+        function drawDog(x, y, scale, facingRight, frame, inPlane) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+            if (!facingRight) {
+                ctx.scale(-1, 1);
+                ctx.translate(-40, 0); // adjust for width
+            }
+
+            // Bobbing animation
+            let bob = Math.sin(frame * 0.2) * 2;
+            ctx.translate(0, bob);
+
+            if (inPlane) {
+                // Draw Plane
+                ctx.fillStyle = RED;
+                ctx.beginPath();
+                ctx.ellipse(20, 40, 30, 15, 0, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                // Propeller
+                ctx.beginPath(); ctx.moveTo(50, 25); ctx.lineTo(50, 55); ctx.lineWidth = 3; ctx.stroke();
+                if (frame % 4 < 2) { ctx.beginPath(); ctx.arc(50, 40, 15, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.stroke(); }
+                ctx.translate(0, -10); // Sit dog higher
+            } else {
+                // Legs
+                ctx.strokeStyle = INK;
+                ctx.lineWidth = 4;
+                let walkOffset = Math.sin(frame * 0.5) * 10;
+                if (!player.isGrounded && !inPlane) walkOffset = 0; // jump pose
+                if (player.vx === 0) walkOffset = 0; // stand still
+
+                // Back leg
+                ctx.beginPath(); ctx.moveTo(15, 45); ctx.quadraticCurveTo(15, 55, 15 - walkOffset, 60); ctx.stroke();
+                // Front leg
+                ctx.beginPath(); ctx.moveTo(25, 45); ctx.quadraticCurveTo(25, 55, 25 + walkOffset, 60); ctx.stroke();
+            }
+
+            // Body
+            ctx.fillStyle = INK;
+            ctx.beginPath();
+            ctx.ellipse(20, 35, 12, 16, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head (Cup/Bowl shape)
+            ctx.fillStyle = SEPIA;
+            ctx.beginPath();
+            ctx.arc(20, 15, 15, 0, Math.PI); // bottom round
+            ctx.lineTo(35, 5); // top right
+            ctx.lineTo(5, 5); // top left
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Bowl lip/liquid
+            ctx.fillStyle = 'white';
+            ctx.beginPath(); ctx.ellipse(20, 5, 15, 4, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+            // Straw/Bone sticking out
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(25, 5); ctx.lineTo(30, -10); ctx.lineTo(35, -10); ctx.stroke();
+
+            // Eyes (Pie cut)
+            ctx.fillStyle = INK;
+            ctx.beginPath(); ctx.arc(25, 12, 4, 0, Math.PI * 2); ctx.fill(); // Right eye
+            ctx.beginPath(); ctx.arc(15, 12, 3, 0, Math.PI * 2); ctx.fill(); // Left eye
+            // The "Pie cut" triangle (white)
+            ctx.fillStyle = SEPIA;
+            ctx.beginPath(); ctx.moveTo(25, 12); ctx.lineTo(28, 9); ctx.lineTo(28, 15); ctx.fill();
+
+            // Floppy Ear
+            ctx.fillStyle = INK;
+            ctx.beginPath();
+            ctx.moveTo(5, 15);
+            ctx.quadraticCurveTo(-10, 20, -5, 30);
+            ctx.quadraticCurveTo(5, 25, 10, 15);
+            ctx.fill();
+
+            // Arm (shooting or normal)
+            ctx.strokeStyle = INK;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            if (player.shootCooldown > 0) {
+                // Shooting arm straight out
+                ctx.moveTo(20, 35); ctx.lineTo(40, 35);
+                ctx.fillStyle = 'white';
+                ctx.arc(40, 35, 4, 0, Math.PI * 2); ctx.fill(); // Glove
+            } else {
+                // Arm bent
+                ctx.moveTo(20, 35); ctx.quadraticCurveTo(10, 40, 15, 45);
+            }
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawRetroText(text, x, y, size, align = 'left', color = INK) {
+            ctx.fillStyle = color;
+            ctx.font = `bold ${size}px 'Courier New', monospace`; // Fallback retro font
+            ctx.textAlign = align;
+            ctx.textBaseline = 'middle';
+
+            // Draw shadow for 3D effect
+            ctx.fillStyle = SEPIA;
+            ctx.fillText(text, x + 2, y + 2);
+            ctx.fillStyle = color;
+            ctx.fillText(text, x, y);
+        }
+
+        function drawPostProcessing() {
+            // Vignette
+            let gradient = ctx.createRadialGradient(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_HEIGHT / 3, GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH / 1.5);
+            gradient.addColorStop(0, 'rgba(0,0,0,0)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0.5)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            // Film Grain (Lines & Dots)
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            if (frameCount % 3 === 0) {
+                // Shift grain occasionally
+                for (let g of filmGrain) {
+                    g.x = Math.random() * GAME_WIDTH;
+                    g.y = Math.random() * GAME_HEIGHT;
+                }
+            }
+            for (let g of filmGrain) {
+                ctx.fillRect(g.x, g.y, g.w, g.h);
+            }
+
+            // Vertical scratches
+            if (Math.random() > 0.8) {
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.fillRect(Math.random() * GAME_WIDTH, 0, 1 + Math.random() * 2, GAME_HEIGHT);
+            }
+
+            // Border
+            ctx.strokeStyle = INK;
+            ctx.lineWidth = 10;
+            ctx.strokeRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        }
+
+        function drawGame() {
+            // Clear & Base Color
+            ctx.fillStyle = SEPIA;
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            if (gameState === 'TITLE') {
+                drawRetroText("PUP HEAD", GAME_WIDTH / 2, 200, 80, 'center');
+                drawRetroText("Don't Deal with the Pound!", GAME_WIDTH / 2, 280, 20, 'center', RED);
+                if (Math.floor(frameCount / 30) % 2 === 0) {
+                    drawRetroText("Press 'Z' to Start", GAME_WIDTH / 2, 450, 24, 'center');
+                }
+                drawDog(GAME_WIDTH / 2 - 20, 320, 2, true, frameCount, false);
+            }
+            else if (gameState === 'OVERWORLD') {
+                // Map Paths
+                ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([10, 10]);
+                ctx.beginPath();
+                for (let i = 0; i < levels.length - 1; i++) {
+                    ctx.moveTo(levels[i].x, levels[i].y);
+                    ctx.lineTo(levels[i + 1].x, levels[i + 1].y);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Map Nodes
+                for (let l of levels) {
+                    ctx.fillStyle = l.completed ? '#aaaaaa' : 'white';
+                    ctx.beginPath();
+                    ctx.arc(l.x, l.y, 15, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = INK;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    // Draw node type icon
+                    ctx.fillStyle = INK;
+                    if (l.type === 'RUNGUN') ctx.fillRect(l.x - 5, l.y - 5, 10, 10);
+                    if (l.type === 'BOSS') { ctx.beginPath(); ctx.moveTo(l.x, l.y - 8); ctx.lineTo(l.x - 8, l.y + 6); ctx.lineTo(l.x + 8, l.y + 6); ctx.fill(); }
+                    if (l.type === 'FLYING') { ctx.beginPath(); ctx.arc(l.x, l.y, 6, 0, Math.PI * 2); ctx.stroke(); }
+                }
+
+                // Draw Player Icon
+                drawDog(player.x - 20, player.y - 30, 1, true, frameCount, false);
+
+                // Tooltip
+                let onLevel = -1;
+                for (let i = 0; i < levels.length; i++) {
+                    let dx = player.x - levels[i].x;
+                    let dy = player.y - levels[i].y;
+                    if (Math.sqrt(dx * dx + dy * dy) < 30) {
+                        onLevel = i; break;
+                    }
+                }
+
+                if (onLevel !== -1) {
+                    let lvl = levels[onLevel];
+                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                    ctx.fillRect(GAME_WIDTH / 2 - 150, 20, 300, 80);
+                    ctx.strokeRect(GAME_WIDTH / 2 - 150, 20, 300, 80);
+                    drawRetroText(lvl.name, GAME_WIDTH / 2, 40, 20, 'center');
+                    drawRetroText(lvl.desc, GAME_WIDTH / 2, 65, 16, 'center', '#666');
+                    drawRetroText("Press Z to Enter", GAME_WIDTH / 2, 85, 14, 'center', RED);
+                } else {
+                    drawRetroText("ISLE I", GAME_WIDTH / 2, 40, 30, 'center');
+                }
+            }
+            else if (gameState === 'RUNGUN' || gameState === 'BOSS' || gameState === 'FLYING') {
+
+                // Background Parallax
+                if (gameState === 'FLYING') {
+                    // Draw clouds moving left
+                    ctx.fillStyle = 'white';
+                    ctx.strokeStyle = INK;
+                    for (let i = 0; i < 5; i++) {
+                        let cx = ((i * 300 - cameraX * 0.5) % 1500 + 1500) % 1500 - 200;
+                        ctx.beginPath(); ctx.arc(cx, 100 + i * 50, 40, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                        ctx.beginPath(); ctx.arc(cx + 30, 100 + i * 50, 30, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                        ctx.beginPath(); ctx.arc(cx - 30, 100 + i * 50, 30, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                    }
+                } else if (gameState === 'RUNGUN') {
+                    // Draw trees/bg elements
+                    ctx.fillStyle = '#d3c9b3';
+                    for (let i = 0; i < 10; i++) {
+                        let tx = ((i * 400 - cameraX * 0.3) % 2000 + 2000) % 2000;
+                        ctx.fillRect(tx, 300, 50, 200); // trunk
+                        ctx.beginPath(); ctx.arc(tx + 25, 280, 80, 0, Math.PI * 2); ctx.fill(); // leaves
+                    }
+                }
+
+                // Platforms
+                ctx.fillStyle = INK;
+                for (let p of platforms) {
+                    ctx.fillRect(p.x - cameraX, p.y, p.w, p.h);
+                }
+
+                // Entities
+                for (let e of entities) {
+                    e.draw(ctx, cameraX);
+                }
+
+                // Player
+                if (player.isInvulnerable === 0 || Math.floor(frameCount / 5) % 2 === 0) {
+                    drawDog(player.x - cameraX, player.y, 1, player.facingRight, frameCount, player.isPlane);
+                }
+
+                // Particles
+                for (let p of particles) {
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x - cameraX, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // UI - HP
+                for (let i = 0; i < player.maxHp; i++) {
+                    ctx.fillStyle = i < player.hp ? RED : '#555';
+                    ctx.beginPath();
+                    // Draw simple heart
+                    let hx = 30 + i * 40;
+                    let hy = 40;
+                    ctx.arc(hx - 8, hy, 10, Math.PI, 0); ctx.arc(hx + 8, hy, 10, Math.PI, 0);
+                    ctx.moveTo(hx - 18, hy); ctx.lineTo(hx, hy + 20); ctx.lineTo(hx + 18, hy);
+                    ctx.fill();
+                }
+
+                // Boss HP Bar
+                if (bossRef && bossRef.active) {
+                    ctx.fillStyle = INK;
+                    ctx.fillRect(GAME_WIDTH - 220, 20, 200, 20);
+                    ctx.fillStyle = RED;
+                    let hpPct = Math.max(0, bossRef.hp / bossRef.maxHp);
+                    ctx.fillRect(GAME_WIDTH - 218, 22, 196 * hpPct, 16);
+                }
+            }
+            else if (gameState === 'GAMEOVER') {
+                drawRetroText("YOU DIED!", GAME_WIDTH / 2, GAME_HEIGHT / 2, 60, 'center', RED);
+            }
+            else if (gameState === 'VICTORY') {
+                drawRetroText("A KNOCKOUT!", GAME_WIDTH / 2, GAME_HEIGHT / 2, 60, 'center', '#d4af37'); // Gold
+            }
+
+            drawPostProcessing();
+        }
+
+        // --- MAIN LOOP ---
+
+        function gameLoop(timestamp) {
+            updateGame();
+            drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+
+</html>
