@@ -36,7 +36,7 @@ const renderCard = (card, size = 'large') => {
 
     return (
         <div className={`${containerClasses} ${bgClasses}`}>
-            <div className={titleClasses}>{card.name}</div>
+            <div className={titleClasses}>{card.type === 'luxury' ? 'Luxury' : card.name}</div>
             {(card.type === 'luxury' || card.type === 'prestige') && (
                 <div className={valueClasses}>
                     {card.type === 'luxury' ? card.value : 'x2'}
@@ -279,17 +279,22 @@ function GamePlayArea({
                 const isHumanTurn = turn === human.id;
                 return (
                     <div className={`mt-auto p-2 sm:p-4 border-t-2 ${isHumanTurn ? 'bg-green-800 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' : 'bg-green-900 border-green-700'}`}>
-                        <div className="flex flex-row justify-between items-end mb-2 sm:mb-4 max-w-6xl mx-auto w-full">
+                        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end mb-2 sm:mb-4 max-w-6xl mx-auto w-full gap-2 sm:gap-0">
 
                             {/* Player Won Cards */}
-                            <div className="flex-1 flex-col items-start hidden sm:flex">
+                            <div className="flex-1 flex flex-col items-center sm:items-start w-full sm:w-auto">
                                 <div className="flex items-center gap-1 sm:gap-2 mb-1">
                                     <div className="text-[10px] sm:text-xs text-yellow-300 font-bold uppercase tracking-wider">Your estate</div>
                                     {human.pendingDiscard && <div className="text-[9px] sm:text-xs bg-red-900 border border-red-500 text-red-300 px-1 py-0.5 rounded font-bold animate-pulse">PENDING DROP!</div>}
                                 </div>
-                                <div className="flex flex-wrap justify-center md:justify-start gap-1 min-h-[48px] sm:min-h-[96px] content-start">
-                                    {human.won.map((c, i) => <React.Fragment key={i}>{renderCard(c, 'small')}</React.Fragment>)}
-                                    {human.won.length === 0 && <span className="text-gray-500 text-xs sm:text-sm italic mt-1 sm:mt-4">Empty</span>}
+                                <div className="flex flex-wrap justify-center sm:justify-start gap-1 min-h-[32px] sm:min-h-[96px] content-start">
+                                    {human.won.map((c, i) => (
+                                        <React.Fragment key={i}>
+                                            <div className="hidden sm:block">{renderCard(c, 'small')}</div>
+                                            <div className="block sm:hidden">{renderCard(c, 'tiny')}</div>
+                                        </React.Fragment>
+                                    ))}
+                                    {human.won.length === 0 && <span className="text-gray-500 text-[10px] sm:text-sm italic mt-1 sm:mt-4">Empty</span>}
                                 </div>
                             </div>
 
