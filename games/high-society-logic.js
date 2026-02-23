@@ -54,55 +54,58 @@ function calculateAIBid({ ai, deckLength, revealedCard, currentHighestBid, sumAr
     let negativeThreshold = 8;
     let negativeDropChance = 0.4;
 
-    if (ai.name === 'Oliver') { // Penny Pincher
-        if (isNegativeAuction) {
-            maxWillingness = 12;
-            negativeDropChance = 0.45;
-        } else {
-            if (revealedCard.type === 'prestige') maxWillingness = 14;
-            else maxWillingness = revealedCard.value * 1.3;
-        }
-    } else if (ai.name === 'Miles') { // High Roller
-        if (isNegativeAuction) {
-            maxWillingness = 15;
-            negativeDropChance = 0.2;
-        } else {
-            if (revealedCard.type === 'prestige') maxWillingness = 25;
-            else maxWillingness = revealedCard.value * 2;
-        }
-    } else if (ai.name === 'Kirby 🐱') { // Unpredictable
-        const roll = Math.random();
-        if (isNegativeAuction) {
-            maxWillingness = roll > 0.5 ? 20 : 5;
-            negativeDropChance = roll > 0.5 ? 0.1 : 0.8;
-        } else {
-            if (revealedCard.type === 'prestige') maxWillingness = roll > 0.5 ? 22 : 8;
-            else maxWillingness = roll > 0.5 ? revealedCard.value * 2.5 : revealedCard.value;
-        }
-    } else if (ai.name === 'Pookie') { // Averse to negatives
-        if (isNegativeAuction) {
-            maxWillingness = 18;
-            negativeDropChance = 0.15;
-        } else {
-            if (revealedCard.type === 'prestige') maxWillingness = 16;
-            else maxWillingness = revealedCard.value * 1.4;
-        }
-    } else if (ai.name === 'Jimmy') { // Balanced/Aggressive Late
-        if (isNegativeAuction) {
-            maxWillingness = deckLength < 8 ? 20 : 10;
-            negativeDropChance = deckLength < 8 ? 0.1 : 0.5;
-        } else {
-            if (revealedCard.type === 'prestige') maxWillingness = 18;
-            else maxWillingness = revealedCard.value * 1.5;
-        }
-    } else { // default
-        if (isNegativeAuction) {
-            maxWillingness = 12;
-            negativeDropChance = 0.4;
-        } else {
-            if (revealedCard.type === 'prestige') maxWillingness = 15;
-            else maxWillingness = revealedCard.value * 1.5;
-        }
+    switch (ai.name) {
+        case 'Oliver': // Penny Pincher
+            if (isNegativeAuction) {
+                maxWillingness = 12;
+                negativeDropChance = 0.45;
+            } else {
+                maxWillingness = revealedCard.type === 'prestige' ? 14 : revealedCard.value * 1.3;
+            }
+            break;
+        case 'Miles': // High Roller
+            if (isNegativeAuction) {
+                maxWillingness = 15;
+                negativeDropChance = 0.2;
+            } else {
+                maxWillingness = revealedCard.type === 'prestige' ? 25 : revealedCard.value * 2;
+            }
+            break;
+        case 'Kirby 🐱': // Unpredictable
+            const roll = Math.random();
+            if (isNegativeAuction) {
+                maxWillingness = roll > 0.5 ? 20 : 5;
+                negativeDropChance = roll > 0.5 ? 0.1 : 0.8;
+            } else {
+                maxWillingness = revealedCard.type === 'prestige'
+                    ? (roll > 0.5 ? 22 : 8)
+                    : (roll > 0.5 ? revealedCard.value * 2.5 : revealedCard.value);
+            }
+            break;
+        case 'Pookie': // Averse to negatives
+            if (isNegativeAuction) {
+                maxWillingness = 18;
+                negativeDropChance = 0.15;
+            } else {
+                maxWillingness = revealedCard.type === 'prestige' ? 16 : revealedCard.value * 1.4;
+            }
+            break;
+        case 'Jimmy': // Balanced/Aggressive Late
+            if (isNegativeAuction) {
+                maxWillingness = deckLength < 8 ? 20 : 10;
+                negativeDropChance = deckLength < 8 ? 0.1 : 0.5;
+            } else {
+                maxWillingness = revealedCard.type === 'prestige' ? 18 : revealedCard.value * 1.5;
+            }
+            break;
+        default: // Default AI behavior
+            if (isNegativeAuction) {
+                maxWillingness = 12;
+                negativeDropChance = 0.4;
+            } else {
+                maxWillingness = revealedCard.type === 'prestige' ? 15 : revealedCard.value * 1.5;
+            }
+            break;
     }
 
     if (isNegativeAuction) {
@@ -184,22 +187,28 @@ function calculateFinalScores(players, sumFn) {
 }
 
 function createInitialPlayers({ spectatorMode, playerName, selectedOpponents, MONEY_CARDS }) {
-    let initialPlayers = [];
+    const initialPlayers = [];
     let playerIndex = 0;
 
     if (!spectatorMode) {
-        initialPlayers.push({ id: playerIndex++, name: playerName.trim() || 'You', isAI: false, hand: [...MONEY_CARDS], bid: [], won: [], passed: false, isEliminated: false, pendingDiscard: false });
-    }
-
-    selectedOpponents.forEach(name => {
         initialPlayers.push({
             id: playerIndex++,
-            name: name,
-            isAI: true,
+            name: playerName.trim() || 'You',
+            isAI: false,
             hand: [...MONEY_CARDS],
             bid: [], won: [], passed: false, isEliminated: false, pendingDiscard: false
         });
-    });
+    }
+
+    const aiPlayers = selectedOpponents.map(name => ({
+        id: playerIndex++,
+        name: name,
+        isAI: true,
+        hand: [...MONEY_CARDS],
+        bid: [], won: [], passed: false, isEliminated: false, pendingDiscard: false
+    }));
+
+    initialPlayers.push(...aiPlayers);
 
     return initialPlayers;
 }
