@@ -56,11 +56,11 @@ function calculateAIBid({ ai, deckLength, revealedCard, currentHighestBid, sumAr
 
     if (ai.name === 'Oliver') { // Penny Pincher
         if (isNegativeAuction) {
-            maxWillingness = 8;
-            negativeDropChance = 0.7;
+            maxWillingness = 12;
+            negativeDropChance = 0.45;
         } else {
-            if (revealedCard.type === 'prestige') maxWillingness = 10;
-            else maxWillingness = revealedCard.value;
+            if (revealedCard.type === 'prestige') maxWillingness = 14;
+            else maxWillingness = revealedCard.value * 1.3;
         }
     } else if (ai.name === 'Miles') { // High Roller
         if (isNegativeAuction) {
@@ -81,11 +81,11 @@ function calculateAIBid({ ai, deckLength, revealedCard, currentHighestBid, sumAr
         }
     } else if (ai.name === 'Pookie') { // Averse to negatives
         if (isNegativeAuction) {
-            maxWillingness = 25;
-            negativeDropChance = 0.05;
+            maxWillingness = 18;
+            negativeDropChance = 0.15;
         } else {
-            if (revealedCard.type === 'prestige') maxWillingness = 12;
-            else maxWillingness = revealedCard.value * 1.2;
+            if (revealedCard.type === 'prestige') maxWillingness = 16;
+            else maxWillingness = revealedCard.value * 1.4;
         }
     } else if (ai.name === 'Jimmy') { // Balanced/Aggressive Late
         if (isNegativeAuction) {

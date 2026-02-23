@@ -75,16 +75,16 @@ test('calculateAIBid: Penny Pincher (Oliver) passes early on prestige', (t) => {
     };
     const prestigeCard = { type: 'prestige', value: 'x2', name: 'Award (x2)', isDark: true };
 
-    // Oliver max willingness for prestige is 10. If current is 12, he passes
+    // Oliver max willingness for prestige is 14. If current is 15, he passes
     let bid = calculateAIBid({
         ai: mockAI,
         deckLength: 10,
         revealedCard: prestigeCard,
-        currentHighestBid: 12,
+        currentHighestBid: 15,
         sumArray
     });
 
-    assert.strictEqual(bid, null, "Oliver should drop out if the bid exceeds 10 for prestige");
+    assert.strictEqual(bid, null, "Oliver should drop out if the bid exceeds 14 for prestige");
 });
 
 test('calculateFinalScores: Accurately eliminates lowest money player, calculates base scores, and handles multipliers/divisors', (t) => {
