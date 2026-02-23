@@ -510,8 +510,9 @@ function App() {
             setLogs(['The game of High Society has begun!']);
         }
         setGameState('playing');
-        setTurn(0); // Human starts
-        drawNextCard(shuffledDeck, initialPlayers, 0, 0);
+        const startingTurn = Math.floor(Math.random() * initialPlayers.length);
+        setTurn(startingTurn);
+        drawNextCard(shuffledDeck, initialPlayers, 0, startingTurn);
     };
 
     const startSimulation = () => {
