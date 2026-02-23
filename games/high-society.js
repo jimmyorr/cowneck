@@ -356,54 +356,12 @@ function App() {
 
     // --- GAME END ---
     const endGame = (currentPlayers) => {
-        let finalPlayers = [...currentPlayers];
+        const { finalPlayers, minMoney } = calculateFinalScores(currentPlayers, sumArray);
 
         finalPlayers.forEach(p => {
-            p.hand = [...p.hand, ...p.bid];
-            p.bid = [];
-        });
-
-        let minMoney = Infinity;
-        finalPlayers.forEach(p => {
-            const money = sumArray(p.hand);
-            if (money < minMoney) minMoney = money;
-        });
-
-        finalPlayers.forEach(p => {
-            if (sumArray(p.hand) === minMoney) {
-                p.isEliminated = true;
+            if (p.isEliminated && sumArray(p.hand) === minMoney) {
                 addLog(`💀 ${p.name} eliminated for having the least money (${minMoney}k)!`);
             }
-        });
-
-        finalPlayers.forEach(p => {
-            if (p.isEliminated) {
-                p.score = 0;
-                return;
-            }
-
-            let baseScore = 0;
-            let multipliers = 0;
-            let divisors = 0;
-
-            p.won.forEach(card => {
-                if (card.type === 'luxury') baseScore += card.value;
-                if (card.id === 'd2') baseScore -= 5; // Passé is d2 now
-                if (card.type === 'prestige') multipliers++;
-                if (card.id === 'd3') divisors++;
-            });
-
-            for (let i = 0; i < multipliers; i++) baseScore *= 2;
-            for (let i = 0; i < divisors; i++) baseScore = Math.ceil(baseScore / 2);
-
-            p.score = baseScore;
-        });
-
-        finalPlayers.sort((a, b) => {
-            if (a.isEliminated && !b.isEliminated) return 1;
-            if (!a.isEliminated && b.isEliminated) return -1;
-            if (a.score !== b.score) return b.score - a.score;
-            return sumArray(b.hand) - sumArray(a.hand);
         });
 
         if (isSimulatingRef.current) {

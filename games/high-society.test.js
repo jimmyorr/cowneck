@@ -15,7 +15,8 @@ const {
     sumArray,
     shuffle,
     getSubsets,
-    calculateAIBid
+    calculateAIBid,
+    calculateFinalScores
 } = require('./high-society-logic.js');
 
 test('sumArray', (t) => {
@@ -84,4 +85,60 @@ test('calculateAIBid: Penny Pincher (Oliver) passes early on prestige', (t) => {
     });
 
     assert.strictEqual(bid, null, "Oliver should drop out if the bid exceeds 10 for prestige");
+});
+
+test('calculateFinalScores: Accurately eliminates lowest money player, calculates base scores, and handles multipliers/divisors', (t) => {
+    // Player 1: Has lowest money -> gets eliminated, score 0
+    const p1 = {
+        name: 'Poor Player',
+        hand: [1], // Total 1
+        bid: [],
+        won: [{ type: 'luxury', value: 10 }]
+    };
+
+    // Player 2: Middle money -> gets base score minus 5 for passed card
+    const p2 = {
+        name: 'Passé Player',
+        hand: [2, 3], // Total 5
+        bid: [],
+        won: [
+            { type: 'luxury', value: 20 },
+            { id: 'd2', type: 'disgrace', value: '-5' }
+        ]
+    };
+
+    // Player 3: High money -> gets a multiplier and a divisor
+    const p3 = {
+        name: 'Crypto Bro',
+        hand: [10], // Total 10
+        bid: [],
+        won: [
+            { type: 'luxury', value: 15 },
+            { type: 'prestige', value: 'x2' }, // x2
+            { id: 'd3', type: 'disgrace', value: '/2' } // Divide by 2
+        ]
+    };
+
+    const players = [p1, p2, p3];
+    const { finalPlayers, minMoney } = calculateFinalScores(players, sumArray);
+
+    assert.strictEqual(minMoney, 1, "The lowest money calculation should be 1");
+
+    const finalP1 = finalPlayers.find(p => p.name === 'Poor Player');
+    assert.ok(finalP1.isEliminated, "Player 1 should be eliminated");
+    assert.strictEqual(finalP1.score, 0, "Eliminated players score 0");
+
+    const finalP2 = finalPlayers.find(p => p.name === 'Passé Player');
+    assert.ok(!finalP2.isEliminated, "Player 2 survives");
+    assert.strictEqual(finalP2.score, 15, "Player 2 score should be 20 minus 5 = 15");
+
+    const finalP3 = finalPlayers.find(p => p.name === 'Crypto Bro');
+    assert.ok(!finalP3.isEliminated, "Player 3 survives");
+    assert.strictEqual(finalP3.score, 15, "Player 3 score is Math.ceil((15 * 2) / 2) = 15");
+
+    // finalPlayers array should be sorted by score descending, then money descending.
+    // p2 and p3 both have score 15. p3 has 10 money, p2 has 5 money. p3 should be first.
+    assert.strictEqual(finalPlayers[0].name, 'Crypto Bro', 'Crypto Bro wins tie breaker based on remaining money');
+    assert.strictEqual(finalPlayers[1].name, 'Passé Player', 'Passé Player is 2nd');
+    assert.strictEqual(finalPlayers[2].name, 'Poor Player', 'Poor Player is last');
 });

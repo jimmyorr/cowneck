@@ -131,6 +131,58 @@ function calculateAIBid({ ai, deckLength, revealedCard, currentHighestBid, sumAr
     return bestAdditionalCards;
 }
 
+function calculateFinalScores(players, sumFn) {
+    let finalPlayers = players.map(p => ({
+        ...p,
+        hand: [...p.hand, ...p.bid],
+        bid: []
+    }));
+
+    let minMoney = Infinity;
+    finalPlayers.forEach(p => {
+        const money = sumFn(p.hand);
+        if (money < minMoney) minMoney = money;
+    });
+
+    finalPlayers.forEach(p => {
+        if (sumFn(p.hand) === minMoney) {
+            p.isEliminated = true;
+        }
+    });
+
+    finalPlayers.forEach(p => {
+        if (p.isEliminated) {
+            p.score = 0;
+            return;
+        }
+
+        let baseScore = 0;
+        let multipliers = 0;
+        let divisors = 0;
+
+        p.won.forEach(card => {
+            if (card.type === 'luxury') baseScore += card.value;
+            if (card.id === 'd2') baseScore -= 5;
+            if (card.type === 'prestige') multipliers++;
+            if (card.id === 'd3') divisors++;
+        });
+
+        for (let i = 0; i < multipliers; i++) baseScore *= 2;
+        for (let i = 0; i < divisors; i++) baseScore = Math.ceil(baseScore / 2);
+
+        p.score = baseScore;
+    });
+
+    finalPlayers.sort((a, b) => {
+        if (a.isEliminated && !b.isEliminated) return 1;
+        if (!a.isEliminated && b.isEliminated) return -1;
+        if (a.score !== b.score) return b.score - a.score;
+        return sumFn(b.hand) - sumFn(a.hand);
+    });
+
+    return { finalPlayers, minMoney };
+}
+
 // Support Node.js testing
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -139,6 +191,7 @@ if (typeof module !== 'undefined' && module.exports) {
         sumArray,
         shuffle,
         getSubsets,
-        calculateAIBid
+        calculateAIBid,
+        calculateFinalScores
     };
 }
