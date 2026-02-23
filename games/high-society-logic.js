@@ -121,9 +121,17 @@ function calculateAIBid({ ai, deckLength, revealedCard, currentHighestBid, sumAr
 
     for (const combo of allCombinations) {
         const proposedTotal = currentBidTotal + sumArray(combo);
-        if (proposedTotal > currentHighestBid && proposedTotal <= maxWillingness && proposedTotal < lowestSufficientTotal) {
-            lowestSufficientTotal = proposedTotal;
-            bestAdditionalCards = combo;
+        if (proposedTotal > currentHighestBid && proposedTotal <= maxWillingness) {
+            if (proposedTotal < lowestSufficientTotal) {
+                lowestSufficientTotal = proposedTotal;
+                bestAdditionalCards = combo;
+            } else if (proposedTotal === lowestSufficientTotal) {
+                // If totals are equal, prefer the combination with fewer cards 
+                // to preserve smaller bills for maximum bidding flexibility later
+                if (bestAdditionalCards && combo.length < bestAdditionalCards.length) {
+                    bestAdditionalCards = combo;
+                }
+            }
         }
     }
 
