@@ -795,7 +795,7 @@ function App() {
     };
 
     return (
-        <div className="min-h-screen bg-green-950 text-white font-sans flex flex-col">
+        <div className="h-[100dvh] bg-green-950 text-white font-sans flex flex-col overflow-hidden">
 
             {/* HEADER & LOGS */}
             <div className="bg-green-900 p-2 border-b border-green-700 flex justify-between items-center shadow-md z-20 relative">
