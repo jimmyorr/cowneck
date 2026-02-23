@@ -223,59 +223,69 @@ function getNextTurn(players, currentTurn) {
     return next;
 }
 
+function resolveNegativeAuction(updatedPlayers, winnerId, revealedCard, logs) {
+    const winner = updatedPlayers[winnerId];
+
+    updatedPlayers.forEach(p => {
+        if (p.id === winnerId) {
+            p.won.push(revealedCard);
+            p.hand = [...p.hand, ...p.bid];
+            p.bid = [];
+        } else {
+            p.bid = [];
+        }
+    });
+
+    if (revealedCard.value === 'discard') {
+        const luxuryCards = winner.won.filter(c => c.type === 'luxury');
+        if (luxuryCards.length > 0) {
+            luxuryCards.sort((a, b) => a.value - b.value);
+            const lowest = luxuryCards[0];
+            winner.won = winner.won.filter(c => c.id !== lowest.id);
+            logs.push(`${winner.name} took Faux Pas and automatically discarded their lowest luxury: ${lowest.name}!`);
+        } else {
+            winner.pendingDiscard = true;
+            logs.push(`${winner.name} took Faux Pas but had no Luxury cards. The next Luxury card they win will be discarded!`);
+        }
+    } else if (revealedCard.value === '-5') {
+        logs.push(`${winner.name} took ${revealedCard.name} and saved their money! Others lost their bids.`);
+    } else {
+        logs.push(`${winner.name} took the negative card and saved their money! Others lost their bids.`);
+    }
+}
+
+function resolveLuxuryAuction(updatedPlayers, winnerId, revealedCard, currentHighestBid, logs) {
+    const winner = updatedPlayers[winnerId];
+
+    updatedPlayers.forEach(p => {
+        if (p.id === winnerId) {
+            if (p.pendingDiscard && revealedCard.type === 'luxury') {
+                p.pendingDiscard = false;
+                p.won.push(revealedCard);
+                winner.won = winner.won.filter(c => c.id !== revealedCard.id);
+                logs.push(`${winner.name} won ${revealedCard.name}, but it was immediately discarded due to their pending Faux Pas!`);
+            } else {
+                p.won.push(revealedCard);
+                logs.push(`${winner.name} won ${revealedCard.name} for ${currentHighestBid}k!`);
+            }
+            p.bid = [];
+        } else {
+            p.hand = [...p.hand, ...p.bid];
+            p.bid = [];
+        }
+    });
+}
+
 function resolveAuction({ players, winnerId, revealedCard, currentHighestBid }) {
     const isNegativeAuction = revealedCard.type === 'disgrace';
     // Deep copy to ensure pure function
     const updatedPlayers = JSON.parse(JSON.stringify(players));
-    const winner = updatedPlayers[winnerId];
     let logs = [];
 
     if (isNegativeAuction) {
-        updatedPlayers.forEach(p => {
-            if (p.id === winnerId) {
-                p.won.push(revealedCard);
-                p.hand = [...p.hand, ...p.bid];
-                p.bid = [];
-            } else {
-                p.bid = [];
-            }
-        });
-
-        if (revealedCard.value === 'discard') {
-            const luxuryCards = winner.won.filter(c => c.type === 'luxury');
-            if (luxuryCards.length > 0) {
-                luxuryCards.sort((a, b) => a.value - b.value);
-                const lowest = luxuryCards[0];
-                winner.won = winner.won.filter(c => c.id !== lowest.id);
-                logs.push(`${winner.name} took Faux Pas and automatically discarded their lowest luxury: ${lowest.name}!`);
-            } else {
-                winner.pendingDiscard = true;
-                logs.push(`${winner.name} took Faux Pas but had no Luxury cards. The next Luxury card they win will be discarded!`);
-            }
-        } else if (revealedCard.value === '-5') {
-            logs.push(`${winner.name} took ${revealedCard.name} and saved their money! Others lost their bids.`);
-        } else {
-            logs.push(`${winner.name} took the negative card and saved their money! Others lost their bids.`);
-        }
-
+        resolveNegativeAuction(updatedPlayers, winnerId, revealedCard, logs);
     } else {
-        updatedPlayers.forEach(p => {
-            if (p.id === winnerId) {
-                if (p.pendingDiscard && revealedCard.type === 'luxury') {
-                    p.pendingDiscard = false;
-                    p.won.push(revealedCard);
-                    winner.won = winner.won.filter(c => c.id !== revealedCard.id);
-                    logs.push(`${winner.name} won ${revealedCard.name}, but it was immediately discarded due to their pending Faux Pas!`);
-                } else {
-                    p.won.push(revealedCard);
-                    logs.push(`${winner.name} won ${revealedCard.name} for ${currentHighestBid}k!`);
-                }
-                p.bid = [];
-            } else {
-                p.hand = [...p.hand, ...p.bid];
-                p.bid = [];
-            }
-        });
+        resolveLuxuryAuction(updatedPlayers, winnerId, revealedCard, currentHighestBid, logs);
     }
 
     return { updatedPlayers, logs };
