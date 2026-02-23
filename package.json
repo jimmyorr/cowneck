@@ -1,0 +1,10 @@
+{
+    "name": "cowneck",
+    "version": "1.0.0",
+    "scripts": {
+        "test": "node --test games/*.test.js"
+    },
+    "devDependencies": {
+        "jest": "^29.7.0"
+    }
+}
