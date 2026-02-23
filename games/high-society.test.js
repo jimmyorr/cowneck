@@ -43,7 +43,7 @@ test('calculateAIBid: High Roller (Miles) avoids negatives but pays heavy for pr
         hand: [1, 5, 10],
         bid: []
     };
-    const prestigeCard = { type: 'prestige', value: 'x2', name: 'Award (x2)', isDark: true };
+    const prestigeCard = { type: 'prestige', value: 'x2', name: 'Prestige (x2)', isDark: true };
     const disgraceCard = { type: 'disgrace', value: '-5', name: 'Passé (-5)', isDark: false };
 
     // Test on prestige card, current bid 5, he should bid over
@@ -76,7 +76,7 @@ test('calculateAIBid: Penny Pincher (Oliver) passes early on prestige', (t) => {
         hand: [1, 2, 5, 10, 12],
         bid: []
     };
-    const prestigeCard = { type: 'prestige', value: 'x2', name: 'Award (x2)', isDark: true };
+    const prestigeCard = { type: 'prestige', value: 'x2', name: 'Prestige (x2)', isDark: true };
 
     // Oliver max willingness for prestige is 14. If current is 15, he passes
     let bid = calculateAIBid({
