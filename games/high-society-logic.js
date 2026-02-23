@@ -183,6 +183,95 @@ function calculateFinalScores(players, sumFn) {
     return { finalPlayers, minMoney };
 }
 
+function createInitialPlayers({ spectatorMode, playerName, selectedOpponents, MONEY_CARDS }) {
+    let initialPlayers = [];
+    let playerIndex = 0;
+
+    if (!spectatorMode) {
+        initialPlayers.push({ id: playerIndex++, name: playerName.trim() || 'You', isAI: false, hand: [...MONEY_CARDS], bid: [], won: [], passed: false, isEliminated: false, pendingDiscard: false });
+    }
+
+    selectedOpponents.forEach(name => {
+        initialPlayers.push({
+            id: playerIndex++,
+            name: name,
+            isAI: true,
+            hand: [...MONEY_CARDS],
+            bid: [], won: [], passed: false, isEliminated: false, pendingDiscard: false
+        });
+    });
+
+    return initialPlayers;
+}
+
+function getNextTurn(players, currentTurn) {
+    let next = (currentTurn + 1) % players.length;
+    let safeGuard = 0;
+    while (players[next].passed && safeGuard < players.length + 1) {
+        next = (next + 1) % players.length;
+        safeGuard++;
+    }
+    return next;
+}
+
+function resolveAuction({ players, winnerId, revealedCard, currentHighestBid }) {
+    const isNegativeAuction = revealedCard.type === 'disgrace';
+    // Deep copy to ensure pure function
+    const updatedPlayers = JSON.parse(JSON.stringify(players));
+    const winner = updatedPlayers[winnerId];
+    let logs = [];
+
+    if (isNegativeAuction) {
+        updatedPlayers.forEach(p => {
+            if (p.id === winnerId) {
+                p.won.push(revealedCard);
+                p.hand = [...p.hand, ...p.bid];
+                p.bid = [];
+            } else {
+                p.bid = [];
+            }
+        });
+
+        if (revealedCard.value === 'discard') {
+            const luxuryCards = winner.won.filter(c => c.type === 'luxury');
+            if (luxuryCards.length > 0) {
+                luxuryCards.sort((a, b) => a.value - b.value);
+                const lowest = luxuryCards[0];
+                winner.won = winner.won.filter(c => c.id !== lowest.id);
+                logs.push(`${winner.name} took Faux Pas and automatically discarded their lowest luxury: ${lowest.name}!`);
+            } else {
+                winner.pendingDiscard = true;
+                logs.push(`${winner.name} took Faux Pas but had no Luxury cards. The next Luxury card they win will be discarded!`);
+            }
+        } else if (revealedCard.value === '-5') {
+            logs.push(`${winner.name} took ${revealedCard.name} and saved their money! Others lost their bids.`);
+        } else {
+            logs.push(`${winner.name} took the negative card and saved their money! Others lost their bids.`);
+        }
+
+    } else {
+        updatedPlayers.forEach(p => {
+            if (p.id === winnerId) {
+                if (p.pendingDiscard && revealedCard.type === 'luxury') {
+                    p.pendingDiscard = false;
+                    p.won.push(revealedCard);
+                    winner.won = winner.won.filter(c => c.id !== revealedCard.id);
+                    logs.push(`${winner.name} won ${revealedCard.name}, but it was immediately discarded due to their pending Faux Pas!`);
+                } else {
+                    p.won.push(revealedCard);
+                    logs.push(`${winner.name} won ${revealedCard.name} for ${currentHighestBid}k!`);
+                }
+                p.bid = [];
+            } else {
+                p.hand = [...p.hand, ...p.bid];
+                p.bid = [];
+            }
+        });
+    }
+
+    return { updatedPlayers, logs };
+}
+
 // Support Node.js testing
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -192,6 +281,9 @@ if (typeof module !== 'undefined' && module.exports) {
         shuffle,
         getSubsets,
         calculateAIBid,
-        calculateFinalScores
+        calculateFinalScores,
+        createInitialPlayers,
+        getNextTurn,
+        resolveAuction
     };
 }

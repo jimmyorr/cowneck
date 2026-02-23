@@ -16,7 +16,10 @@ const {
     shuffle,
     getSubsets,
     calculateAIBid,
-    calculateFinalScores
+    calculateFinalScores,
+    createInitialPlayers,
+    getNextTurn,
+    resolveAuction
 } = require('./high-society-logic.js');
 
 test('sumArray', (t) => {
@@ -142,3 +145,53 @@ test('calculateFinalScores: Accurately eliminates lowest money player, calculate
     assert.strictEqual(finalPlayers[1].name, 'Passé Player', 'Passé Player is 2nd');
     assert.strictEqual(finalPlayers[2].name, 'Poor Player', 'Poor Player is last');
 });
+
+test('createInitialPlayers: correctly sets up human and AI players', (t) => {
+    const players = createInitialPlayers({
+        spectatorMode: false,
+        playerName: 'Alice',
+        selectedOpponents: ['Bob', 'Charlie'],
+        MONEY_CARDS: [1, 2]
+    });
+
+    assert.strictEqual(players.length, 3, 'Should create 3 players');
+    assert.strictEqual(players[0].name, 'Alice', 'First player is human named Alice');
+    assert.strictEqual(players[0].isAI, false, 'First player is not AI');
+    assert.strictEqual(players[1].name, 'Bob', 'Second player is AI Bob');
+    assert.strictEqual(players[1].isAI, true, 'Second player is AI');
+});
+
+test('getNextTurn: skips players who have passed', (t) => {
+    const players = [
+        { id: 0, passed: false },
+        { id: 1, passed: true },
+        { id: 2, passed: false }
+    ];
+
+    const nextTurn = getNextTurn(players, 0);
+    assert.strictEqual(nextTurn, 2, 'Should skip player 1 because they passed');
+});
+
+test('resolveAuction: correctly handles luxury auction winner', (t) => {
+    const players = [
+        { id: 0, hand: [5], bid: [10], won: [] },
+        { id: 1, hand: [5], bid: [8], won: [] } // Losing player
+    ];
+
+    const card = { type: 'luxury', value: 5, name: 'Jewels' };
+
+    const { updatedPlayers, logs } = resolveAuction({
+        players,
+        winnerId: 0,
+        revealedCard: card,
+        currentHighestBid: 10
+    });
+
+    assert.strictEqual(updatedPlayers[0].won.length, 1, 'Winner gets the card');
+    assert.strictEqual(updatedPlayers[0].bid.length, 0, 'Winner bid is cleared');
+    assert.strictEqual(updatedPlayers[0].hand.length, 1, 'Winner hand is unchanged (spent 10)');
+
+    assert.strictEqual(updatedPlayers[1].hand.length, 2, 'Loser gets their bid back into hand');
+    assert.strictEqual(updatedPlayers[1].bid.length, 0, 'Loser bid is cleared');
+});
+

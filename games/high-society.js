@@ -41,21 +41,11 @@ function App() {
 
     // --- INITIALIZATION ---
     const startGame = () => {
-        let initialPlayers = [];
-        let playerIndex = 0;
-
-        if (!spectatorMode) {
-            initialPlayers.push({ id: playerIndex++, name: playerName.trim() || 'You', isAI: false, hand: [...MONEY_CARDS], bid: [], won: [], passed: false, isEliminated: false, pendingDiscard: false });
-        }
-
-        selectedOpponents.forEach(name => {
-            initialPlayers.push({
-                id: playerIndex++,
-                name: name,
-                isAI: true,
-                hand: [...MONEY_CARDS],
-                bid: [], won: [], passed: false, isEliminated: false, pendingDiscard: false
-            });
+        let initialPlayers = createInitialPlayers({
+            spectatorMode,
+            playerName,
+            selectedOpponents,
+            MONEY_CARDS
         });
 
         setPlayers(initialPlayers);
@@ -267,12 +257,7 @@ function App() {
     };
 
     const goToNextPlayer = (currentPlayers = players) => {
-        let next = (turn + 1) % currentPlayers.length;
-        let safeGuard = 0;
-        while (currentPlayers[next].passed && safeGuard < currentPlayers.length + 1) {
-            next = (next + 1) % currentPlayers.length;
-            safeGuard++;
-        }
+        const next = getNextTurn(currentPlayers, turn);
         setTurn(next);
     };
 
@@ -295,59 +280,15 @@ function App() {
     };
 
     const endAuction = (currentPlayers, winnerId) => {
-        const isNegativeAuction = revealedCard.type === 'disgrace';
-        const updatedPlayers = [...currentPlayers];
-        const winner = updatedPlayers[winnerId];
-
-        if (isNegativeAuction) {
-            updatedPlayers.forEach(p => {
-                if (p.id === winnerId) {
-                    p.won.push(revealedCard);
-                    p.hand = [...p.hand, ...p.bid];
-                    p.bid = [];
-                } else {
-                    p.bid = [];
-                }
-            });
-
-            if (revealedCard.value === 'discard') {
-                const luxuryCards = winner.won.filter(c => c.type === 'luxury');
-                if (luxuryCards.length > 0) {
-                    luxuryCards.sort((a, b) => a.value - b.value);
-                    const lowest = luxuryCards[0];
-                    winner.won = winner.won.filter(c => c.id !== lowest.id);
-                    addLog(`${winner.name} took Faux Pas and automatically discarded their lowest luxury: ${lowest.name}!`);
-                } else {
-                    winner.pendingDiscard = true;
-                    addLog(`${winner.name} took Faux Pas but had no Luxury cards. The next Luxury card they win will be discarded!`);
-                }
-            } else if (revealedCard.value === '-5') {
-                addLog(`${winner.name} took ${revealedCard.name} and saved their money! Others lost their bids.`);
-            } else {
-                addLog(`${winner.name} took the negative card and saved their money! Others lost their bids.`);
-            }
-
-        } else {
-            updatedPlayers.forEach(p => {
-                if (p.id === winnerId) {
-                    if (p.pendingDiscard && revealedCard.type === 'luxury') {
-                        p.pendingDiscard = false;
-                        p.won.push(revealedCard); // Technically it gets discarded immediately but keeping it out of the final score logic via removing it
-                        winner.won = winner.won.filter(c => c.id !== revealedCard.id); // Remove immediately to represent discard
-                        addLog(`${winner.name} won ${revealedCard.name}, but it was immediately discarded due to their pending Faux Pas!`);
-                    } else {
-                        p.won.push(revealedCard);
-                        addLog(`${winner.name} won ${revealedCard.name} for ${currentHighestBid}k!`);
-                    }
-                    p.bid = [];
-                } else {
-                    p.hand = [...p.hand, ...p.bid];
-                    p.bid = [];
-                }
-            });
-        }
+        const { updatedPlayers, logs: auctionLogs } = resolveAuction({
+            players: currentPlayers,
+            winnerId,
+            revealedCard,
+            currentHighestBid
+        });
 
         setPlayers(updatedPlayers);
+        auctionLogs.forEach(addLog);
 
         setTimeout(() => {
             drawNextCard(deck, updatedPlayers, darkCardsDrawn, winnerId);
