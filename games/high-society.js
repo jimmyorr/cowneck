@@ -475,6 +475,17 @@ function App() {
     const [showLogs, setShowLogs] = useState(false);
     const [humanPendingBid, setHumanPendingBid] = useState([]); // Indices of selected cards in hand
     const [fastForward, setFastForward] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && gameState === 'playing') {
+                setIsPaused(p => !p);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [gameState]);
 
     // Pre-game state
     const [playerName, setPlayerName] = useState('You');
@@ -573,7 +584,7 @@ function App() {
 
     // --- AI LOGIC & AUTO PASS ---
     useEffect(() => {
-        if (gameState !== 'playing') return;
+        if (gameState !== 'playing' || isPaused) return;
 
         const currentPlayer = players[turn];
         if (!currentPlayer || currentPlayer.passed) return;
@@ -593,7 +604,7 @@ function App() {
             }, isSimulatingRef.current ? 0 : (fastForward ? 50 : 1200));
             return () => clearTimeout(timer);
         }
-    }, [turn, gameState, revealedCard, fastForward]);
+    }, [turn, gameState, revealedCard, fastForward, isPaused]);
 
     // --- FIREWORKS ---
     useEffect(() => {
@@ -849,6 +860,31 @@ function App() {
                     simulationResults={simulationResults}
                     setGameState={setGameState}
                 />
+            )}
+
+            {isPaused && gameState === 'playing' && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                    <div className="bg-emerald-900 border-2 border-yellow-500 rounded-xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center">
+                        <h2 className="text-3xl font-serif text-yellow-400 mb-6 font-bold tracking-widest uppercase">Game paused</h2>
+                        <div className="flex flex-col gap-4 w-full">
+                            <button
+                                onClick={() => setIsPaused(false)}
+                                className="bg-yellow-500 hover:bg-yellow-400 text-green-900 font-bold py-3 px-6 rounded-full text-lg shadow transition w-full"
+                            >
+                                Resume game
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setIsPaused(false);
+                                    setGameState('start');
+                                }}
+                                className="bg-red-800 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full text-lg shadow transition w-full"
+                            >
+                                Quit to menu
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
         </div>
