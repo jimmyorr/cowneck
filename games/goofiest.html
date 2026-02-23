@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Goofiest Game on Earth</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #ffeb3b;
+            font-family: 'Comic Neue', cursive, sans-serif;
+            touch-action: none;
+            /* Prevent pull-to-refresh on mobile */
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .hud-text {
+            font-size: 2rem;
+            color: #fff;
+            text-shadow: 3px 3px 0px #000;
+            font-weight: bold;
+        }
+
+        #score-display {
+            align-self: flex-start;
+        }
+
+        #goofy-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-5deg);
+            font-size: 3rem;
+            color: #ff00ff;
+            text-shadow: 4px 4px 0px #00ffff;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            pointer-events: none;
+            text-align: center;
+        }
+
+        #start-screen,
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 4rem;
+            color: #ffeb3b;
+            text-shadow: 5px 5px 0px #ff0055;
+            text-align: center;
+            margin-bottom: 20px;
+            animation: wobble 2s infinite ease-in-out;
+        }
+
+        .btn {
+            background: #00ff00;
+            color: #000;
+            border: 4px solid #000;
+            padding: 20px 40px;
+            font-size: 2rem;
+            font-family: 'Comic Neue', cursive, sans-serif;
+            cursor: pointer;
+            box-shadow: 8px 8px 0px #000;
+            transition: transform 0.1s;
+            margin-top: 20px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 4px 4px 0px #000;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @keyframes wobble {
+
+            0%,
+            100% {
+                transform: rotate(-3deg);
+            }
+
+            50% {
+                transform: rotate(3deg);
+            }
+        }
+
+        /* Goofy particle animation */
+        @keyframes pop {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="ui-layer">
+        <div id="score-display">Bananas: 0 🍌</div>
+        <div id="goofy-message">SPLAT!</div>
+    </div>
+
+    <div id="start-screen">
+        <h1>THE GOOFIEST GAME<br>ON EARTH</h1>
+        <p style="color: white; font-size: 1.5rem; text-align: center; max-width: 600px;">
+            You are a <b>Wobbly Jelly</b>.<br>
+            Collect <b>Flying Tacos</b> 🌮.<br>
+            Avoid <b>Grumpy Clouds</b> ☁️.<br>
+            <br>
+            <i>(Mouse/Touch to move)</i>
+        </p>
+        <button id="start-btn" class="btn">LET'S GET GOOFY!</button>
+    </div>
+
+    <div id="game-over-screen" class="hidden">
+        <h1>YOU GOT BAMBOOZLED!</h1>
+        <p id="final-score" style="color: white; font-size: 2rem;">Bananas Collected: 0</p>
+        <button id="restart-btn" class="btn">TRY AGAIN?</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        /** * THE GOOFIEST GAME ENGINE 
+         * Written with maximum silly in mind.
+         */
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Elements
+        const scoreDisplay = document.getElementById('score-display');
+        const goofyMessage = document.getElementById('goofy-message');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Game State
+        let width, height;
+        let isPlaying = false;
+        let score = 0;
+        let frameCount = 0;
+        let difficultyMultiplier = 1;
+
+        // Input
+        let mouseX = 0;
+        let mouseY = 0;
+        let isTouch = false;
+
+        // Entities
+        let player;
+        let tacos = [];
+        let clouds = [];
+        let particles = [];
+        let texts = [];
+
+        // Goofy Messages Bank
+        const sillyMessages = [
+            "WOAH THERE!", "PIZZA TIME?", "TOO WOBBLY!", "NICE SHOES!",
+            "BANANA POWER!", "LOOK BEHIND YOU!", "BOING!", "SQUISH!",
+            "DON'T BLINK!", "GOOFY OVERLOAD!"
+        ];
+
+        // Colors
+        const palette = ['#ff0055', '#00ff00', '#00ffff', '#ffeb3b', '#ff00ff', '#ff9900'];
+
+        // Setup Canvas
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Input Handling
+        function updateInput(x, y) {
+            mouseX = x;
+            mouseY = y;
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isTouch) updateInput(e.clientX, e.clientY);
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            isTouch = true;
+            e.preventDefault(); // Prevent scrolling
+            updateInput(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        document.addEventListener('touchstart', (e) => {
+            isTouch = true;
+            updateInput(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        // --- Classes ---
+
+        class Player {
+            constructor() {
+                this.x = width / 2;
+                this.y = height / 2;
+                this.radius = 40;
+                this.points = [];
+                this.numPoints = 12;
+                this.angle = 0;
+
+                // Initialize wobbly points
+                for (let i = 0; i < this.numPoints; i++) {
+                    this.points.push({
+                        baseAngle: (Math.PI * 2 * i) / this.numPoints,
+                        offset: 0,
+                        speed: 0.1 + Math.random() * 0.1
+                    });
+                }
+
+                this.faceScale = 1;
+                this.blinkTimer = 0;
+            }
+
+            update() {
+                // Smooth follow
+                const dx = mouseX - this.x;
+                const dy = mouseY - this.y;
+                this.x += dx * 0.1;
+                this.y += dy * 0.1;
+
+                // Wobble logic
+                this.angle += 0.05;
+                this.points.forEach((p, i) => {
+                    p.offset = Math.sin(frameCount * p.speed + i) * 10;
+                });
+
+                // Blink
+                if (this.blinkTimer > 0) this.blinkTimer--;
+                if (Math.random() < 0.01 && this.blinkTimer === 0) this.blinkTimer = 10;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Draw Body
+                ctx.beginPath();
+                ctx.fillStyle = '#00ffff';
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 4;
+
+                // Draw elastic blob shape
+                for (let i = 0; i <= this.numPoints; i++) {
+                    const idx = i % this.numPoints;
+                    const p = this.points[idx];
+                    const r = this.radius + p.offset;
+                    const x = Math.cos(p.baseAngle + this.angle) * r;
+                    const y = Math.sin(p.baseAngle + this.angle) * r;
+
+                    if (i === 0) ctx.moveTo(x, y);
+                    else {
+                        // Simple quadratic curve for smoothness would be better, but lineTo fits the 'janky' goofy style
+                        const prevIdx = (i - 1 + this.numPoints) % this.numPoints;
+                        const prevP = this.points[prevIdx];
+                        const prevR = this.radius + prevP.offset;
+                        const prevX = Math.cos(prevP.baseAngle + this.angle) * prevR;
+                        const prevY = Math.sin(prevP.baseAngle + this.angle) * prevR;
+
+                        const cpX = (prevX + x) / 2;
+                        const cpY = (prevY + y) / 2;
+
+                        ctx.quadraticCurveTo(prevX, prevY, cpX, cpY);
+                    }
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Draw Face
+                ctx.fillStyle = '#000';
+
+                // Eyes
+                const eyeOffset = Math.sin(frameCount * 0.2) * 5;
+
+                if (this.blinkTimer > 0) {
+                    // Blink lines
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(-15 + eyeOffset, -10);
+                    ctx.lineTo(-5 + eyeOffset, -10);
+                    ctx.moveTo(5 + eyeOffset, -10);
+                    ctx.lineTo(15 + eyeOffset, -10);
+                    ctx.stroke();
+                } else {
+                    // Open eyes (Googly)
+                    ctx.beginPath();
+                    ctx.arc(-10 + eyeOffset, -10, 8, 0, Math.PI * 2); // Left White
+                    ctx.arc(10 + eyeOffset, -10, 10, 0, Math.PI * 2); // Right White (bigger)
+                    ctx.fillStyle = '#fff';
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(-10 + eyeOffset + Math.random() * 2, -10 + Math.random() * 2, 3, 0, Math.PI * 2); // Left Pupil
+                    ctx.arc(10 + eyeOffset + Math.random() * 2, -10 + Math.random() * 2, 3, 0, Math.PI * 2); // Right Pupil
+                    ctx.fillStyle = '#000';
+                    ctx.fill();
+                }
+
+                // Mouth
+                ctx.beginPath();
+                ctx.lineWidth = 3;
+                ctx.arc(0, 10, 10 + Math.sin(frameCount * 0.3) * 5, 0.2, Math.PI - 0.2);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        class Taco {
+            constructor() {
+                this.respawn();
+            }
+
+            respawn() {
+                this.x = Math.random() * (width - 60) + 30;
+                this.y = -50 - Math.random() * 500;
+                this.speed = 2 + Math.random() * 3 + (difficultyMultiplier * 0.5);
+                this.rot = 0;
+                this.rotSpeed = (Math.random() - 0.5) * 0.2;
+                this.size = 30;
+                this.collected = false;
+            }
+
+            update() {
+                this.y += this.speed;
+                this.rot += this.rotSpeed;
+
+                // Bounce off walls
+                if (this.x < 0 || this.x > width) {
+                    this.x = Math.max(0, Math.min(width, this.x));
+                }
+
+                if (this.y > height + 50) {
+                    this.respawn();
+                }
+            }
+
+            draw() {
+                if (this.collected) return;
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rot);
+
+                // Draw Taco Shell
+                ctx.beginPath();
+                ctx.arc(0, 0, this.size, Math.PI, 0);
+                ctx.fillStyle = '#ffcc00';
+                ctx.fill();
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#cc9900';
+                ctx.stroke();
+
+                // Fillings (random colored blobs)
+                ctx.fillStyle = '#ff0000'; // Meat/Tomato
+                ctx.beginPath();
+                ctx.arc(-10, -5, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#00ff00'; // Lettuce
+                ctx.beginPath();
+                ctx.arc(10, -5, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#fff'; // Sour cream
+                ctx.beginPath();
+                ctx.arc(0, -8, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Goofy Eyes on Taco? YES.
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(-5, 5, 2, 0, Math.PI * 2);
+                ctx.arc(5, 5, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class Cloud {
+            constructor() {
+                this.respawn(true);
+            }
+
+            respawn(initial = false) {
+                // Spawn from left or right
+                this.direction = Math.random() > 0.5 ? 1 : -1;
+                this.x = this.direction === 1 ? -100 : width + 100;
+
+                // Random height, but generally avoid the very top where tacos spawn
+                this.y = Math.random() * (height * 0.8) + 50;
+
+                this.speed = (2 + Math.random() * 2 + difficultyMultiplier) * this.direction;
+                this.size = 40 + Math.random() * 30;
+                this.angryLevel = 0;
+            }
+
+            update() {
+                this.x += this.speed;
+                this.angryLevel += 0.05;
+
+                if ((this.direction === 1 && this.x > width + 100) ||
+                    (this.direction === -1 && this.x < -100)) {
+                    this.respawn();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Draw Cloud
+                ctx.fillStyle = '#ccc';
+                ctx.beginPath();
+                ctx.arc(-20, 0, 20, 0, Math.PI * 2);
+                ctx.arc(20, 0, 25, 0, Math.PI * 2);
+                ctx.arc(0, -20, 20, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#555';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Face (Grumpy)
+                ctx.fillStyle = '#000';
+
+                // Eyebrows
+                ctx.beginPath();
+                ctx.moveTo(-25, -15);
+                ctx.lineTo(-10, -5); // Angry slant
+                ctx.moveTo(25, -15);
+                ctx.lineTo(10, -5);
+                ctx.stroke();
+
+                // Eyes
+                ctx.beginPath();
+                ctx.arc(-15, -5, 4, 0, Math.PI * 2);
+                ctx.arc(15, -5, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Mouth (frown)
+                ctx.beginPath();
+                ctx.arc(0, 15, 10, Math.PI + 0.5, -0.5);
+                ctx.stroke();
+
+                // Lightning/Rain if very angry? Nah, simple is goofier.
+                // Just maybe turn redder.
+
+                ctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10;
+                this.life = 1.0;
+                this.size = Math.random() * 10 + 5;
+                this.shape = Math.random() > 0.5 ? 'circle' : 'rect';
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.5; // Gravity
+                this.life -= 0.02;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                if (this.shape === 'circle') {
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                } else {
+                    ctx.rect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
+                }
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        class FloatingText {
+            constructor(x, y, text) {
+                this.x = x;
+                this.y = y;
+                this.text = text;
+                this.life = 1.0;
+                this.dy = -2;
+            }
+
+            update() {
+                this.y += this.dy;
+                this.life -= 0.015;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = '#fff';
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.font = 'bold 24px "Comic Neue"';
+                ctx.textAlign = 'center';
+                ctx.strokeText(this.text, this.x, this.y);
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        // --- Game Logic ---
+
+        function initGame() {
+            score = 0;
+            difficultyMultiplier = 1;
+            scoreDisplay.innerText = "Bananas: 0 🍌";
+
+            player = new Player();
+            tacos = [];
+            for (let i = 0; i < 3; i++) tacos.push(new Taco());
+
+            clouds = [];
+            for (let i = 0; i < 3; i++) clouds.push(new Cloud()); // More clouds = harder
+
+            particles = [];
+            texts = [];
+
+            // Reset inputs to center to avoid instant death if mouse was in a corner
+            mouseX = width / 2;
+            mouseY = height / 2;
+        }
+
+        function spawnConfetti(x, y) {
+            for (let i = 0; i < 15; i++) {
+                particles.push(new Particle(x, y, palette[Math.floor(Math.random() * palette.length)]));
+            }
+        }
+
+        function triggerGoofyEvent() {
+            const msg = sillyMessages[Math.floor(Math.random() * sillyMessages.length)];
+            goofyMessage.innerText = msg;
+            goofyMessage.style.opacity = 1;
+            goofyMessage.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 20 - 10}deg) scale(1.5)`;
+
+            // Random background flash
+            document.body.style.backgroundColor = palette[Math.floor(Math.random() * palette.length)];
+
+            setTimeout(() => {
+                goofyMessage.style.opacity = 0;
+                goofyMessage.style.transform = 'translate(-50%, -50%) rotate(0deg) scale(1)';
+            }, 800);
+        }
+
+        function checkCollisions() {
+            // Player vs Tacos
+            tacos.forEach(taco => {
+                const dx = player.x - taco.x;
+                const dy = player.y - taco.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < player.radius + taco.size) {
+                    taco.respawn();
+                    score++;
+                    scoreDisplay.innerText = `Bananas: ${score} 🍌`;
+                    spawnConfetti(taco.x, taco.y);
+                    texts.push(new FloatingText(taco.x, taco.y, "+1 Banana"));
+
+                    // Difficulty Scaling
+                    if (score % 5 === 0) {
+                        difficultyMultiplier += 0.5;
+                        triggerGoofyEvent();
+                        // Add new enemy occasionally
+                        if (score % 10 === 0) {
+                            clouds.push(new Cloud());
+                        }
+                    }
+                }
+            });
+
+            // Player vs Clouds
+            clouds.forEach(cloud => {
+                // Simplified bounding box collision for clouds (more forgiving)
+                const dx = player.x - cloud.x;
+                const dy = player.y - cloud.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < player.radius + 20) { // 20 is approx cloud inner radius
+                    gameOver();
+                }
+            });
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            finalScoreDisplay.innerText = `Bananas Collected: ${score}`;
+            gameOverScreen.classList.remove('hidden');
+            document.body.style.backgroundColor = '#ffeb3b'; // Reset color
+        }
+
+        function gameLoop() {
+            if (!isPlaying) return;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Update & Draw Player
+            player.update();
+            player.draw();
+
+            // Update & Draw Tacos
+            tacos.forEach(taco => {
+                taco.update();
+                taco.draw();
+            });
+
+            // Update & Draw Clouds
+            clouds.forEach(cloud => {
+                cloud.update();
+                cloud.draw();
+            });
+
+            // Update & Draw Particles
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            // Update & Draw Text
+            texts = texts.filter(t => t.life > 0);
+            texts.forEach(t => {
+                t.update();
+                t.draw();
+            });
+
+            checkCollisions();
+            frameCount++;
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- Buttons ---
+
+        startBtn.addEventListener('click', () => {
+            startScreen.classList.add('hidden');
+            isPlaying = true;
+            initGame();
+            gameLoop();
+        });
+
+        restartBtn.addEventListener('click', () => {
+            gameOverScreen.classList.add('hidden');
+            isPlaying = true;
+            initGame();
+            gameLoop();
+        });
+
+        // Initial draw to look nice behind menu
+        function menuLoop() {
+            if (isPlaying) return;
+            ctx.clearRect(0, 0, width, height);
+            // Draw some floaty elements in background
+            ctx.globalAlpha = 0.3;
+            const time = Date.now() * 0.001;
+            ctx.fillStyle = '#ff0055';
+            ctx.beginPath();
+            ctx.arc(width / 2 + Math.sin(time) * 100, height / 2 + Math.cos(time) * 50, 50, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+            requestAnimationFrame(menuLoop);
+        }
+        menuLoop();
+
+    </script>
+</body>
+
+</html>
