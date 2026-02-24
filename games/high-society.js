@@ -254,18 +254,16 @@ function GamePlayArea({
                 </div>
 
                 {/* Auction Status */}
-                <div className="text-center bg-black/40 p-2 sm:p-4 rounded-xl border border-green-700 w-full sm:w-auto min-w-[200px] max-w-md shrink-0">
-                    <h3 className="text-yellow-400 font-bold uppercase tracking-widest text-[10px] sm:text-sm mb-1 sm:mb-2">
+                <div className="text-center flex flex-col justify-center bg-black/40 p-2 sm:p-4 rounded-xl border border-green-700 w-full sm:w-[320px] h-32 sm:h-40 shrink-0">
+                    <h3 className="text-yellow-400 font-bold uppercase tracking-widest text-[10px] sm:text-sm mb-1 sm:mb-2 min-h-[2.5rem] flex items-center justify-center">
                         {revealedCard?.type === 'disgrace' ? 'Avoidance auction (first to pass gets it!)' : 'Luxury auction'}
                     </h3>
                     <div className="text-lg sm:text-2xl font-serif">
                         Highest bid: <span className="text-yellow-300 font-bold">{currentHighestBid}k</span>
                     </div>
-                    {highestBidder !== null && (
-                        <div className="text-gray-300 text-[10px] sm:text-sm mt-0 sm:mt-1">
-                            by {players[highestBidder].name}
-                        </div>
-                    )}
+                    <div className="h-4 sm:h-6 text-gray-300 text-[10px] sm:text-sm mt-0 sm:mt-1 flex items-center justify-center">
+                        {highestBidder !== null ? `by ${players[highestBidder].name}` : ''}
+                    </div>
                 </div>
             </div>
 
