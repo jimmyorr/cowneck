@@ -20,15 +20,15 @@ const renderCard = (card, size = 'large') => {
 
     if (size === 'large') {
         containerClasses += 'w-20 h-32 sm:w-32 sm:h-48 border-2 text-sm sm:text-lg ' + (isDark ? 'border-yellow-500' : isNegative ? 'border-red-800' : 'border-emerald-800');
-        titleClasses += 'text-xs sm:text-xl px-1 mt-1 sm:mt-0';
+        titleClasses += 'text-[10px] sm:text-xl px-1 mt-1 sm:mt-0 break-words w-full';
         valueClasses += 'mt-1 sm:mt-4 text-xl sm:text-4xl';
     } else if (size === 'small') {
-        containerClasses += 'w-10 h-16 sm:w-16 sm:h-24 border sm:border-2 text-[10px] sm:text-xs ' + (isDark ? 'border-yellow-500' : isNegative ? 'border-red-800' : 'border-emerald-800');
-        titleClasses += 'text-[8px] sm:text-xs px-0.5 mt-0.5 sm:mt-1';
+        containerClasses += 'w-10 h-16 sm:w-16 sm:h-24 border sm:border-2 overflow-hidden ' + (isDark ? 'border-yellow-500' : isNegative ? 'border-red-800' : 'border-emerald-800');
+        titleClasses += 'text-[7.5px] sm:text-[11px] leading-[1] px-0.5 mt-0.5 sm:mt-1 break-words w-full tracking-tighter';
         valueClasses += 'mt-0 sm:mt-1 text-xs sm:text-xl';
     } else if (size === 'tiny') {
-        containerClasses += 'w-8 h-12 sm:w-12 sm:h-16 border border-gray-400 ' + (isDark ? 'border-yellow-500' : isNegative ? 'border-red-800' : 'border-emerald-800');
-        valueClasses += 'text-xs sm:text-lg my-auto mx-auto';
+        containerClasses += 'w-8 h-12 sm:w-12 sm:h-16 border border-gray-400 overflow-hidden ' + (isDark ? 'border-yellow-500' : isNegative ? 'border-red-800' : 'border-emerald-800');
+        valueClasses += 'text-[9px] sm:text-sm my-auto mx-auto tracking-tighter px-0.5 break-words w-full text-center leading-none';
     }
 
     const bgClasses = isDark ? 'bg-emerald-900 text-yellow-400' : isNegative ? 'bg-red-100 text-red-800' : 'bg-amber-50 text-emerald-900';
