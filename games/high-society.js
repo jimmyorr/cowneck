@@ -19,9 +19,9 @@ const renderCard = (card, size = 'large') => {
     let valueClasses = 'font-serif font-bold ';
 
     if (size === 'large') {
-        containerClasses += 'w-20 h-32 sm:w-32 sm:h-48 border-2 text-sm sm:text-lg ' + (isDark ? 'border-yellow-500' : isNegative ? 'border-red-800' : 'border-emerald-800');
-        titleClasses += 'text-[10px] sm:text-xl px-1 mt-1 sm:mt-0 break-words w-full';
-        valueClasses += 'mt-1 sm:mt-4 text-xl sm:text-4xl';
+        containerClasses += 'w-20 h-32 sm:w-28 sm:h-40 border-2 text-sm sm:text-base ' + (isDark ? 'border-yellow-500' : isNegative ? 'border-red-800' : 'border-emerald-800');
+        titleClasses += 'text-[10px] sm:text-lg px-1 mt-1 sm:mt-0 break-words w-full';
+        valueClasses += 'mt-1 sm:mt-2 text-xl sm:text-3xl';
     } else if (size === 'small') {
         containerClasses += 'w-10 h-16 sm:w-16 sm:h-24 border sm:border-2 overflow-hidden ' + (isDark ? 'border-yellow-500' : isNegative ? 'border-red-800' : 'border-emerald-800');
         titleClasses += 'text-[7.5px] sm:text-[11px] leading-[1] px-0.5 mt-0.5 sm:mt-1 break-words w-full tracking-tighter';
@@ -205,7 +205,7 @@ function GamePlayArea({
             )}
 
             {/* OPPONENTS AREA */}
-            <div className="flex justify-around p-1 sm:p-2 bg-green-900/50 flex-wrap">
+            <div className="flex justify-around p-1 sm:p-1 bg-green-900/50 flex-wrap shrink-0">
                 {players.filter(p => p.isAI).map(p => (
                     <div key={p.id} style={{ width: `${100 / players.filter(p => p.isAI).length}%`, maxWidth: '200px' }} className={`flex flex-col items-center p-1 sm:p-2 rounded-lg transition-colors flex-1 ${turn === p.id ? 'bg-yellow-500/20 border border-yellow-500' : 'border border-transparent'}`}>
                         <div className="font-bold text-yellow-300 text-xs sm:text-base text-center whitespace-nowrap overflow-hidden text-ellipsis w-full">{p.name}</div>
@@ -240,11 +240,11 @@ function GamePlayArea({
             </div>
 
             {/* TABLE CENTER */}
-            <div className="flex-1 flex flex-col items-center justify-center relative z-10 p-2 sm:p-4">
+            <div className="flex-1 flex flex-col sm:flex-row items-center justify-center relative z-10 p-2 sm:p-4 min-h-0 sm:gap-8">
                 {/* Deck and Revealed Card */}
-                <div className="flex items-center space-x-3 sm:space-x-8 mb-2 sm:mb-6">
-                    <div className="relative w-16 h-28 sm:w-32 sm:h-48 rounded-lg border-2 border-green-700 bg-green-800 flex items-center justify-center shadow-inner">
-                        <span className="text-green-600 font-bold opacity-50 text-sm sm:text-xl text-center leading-tight">
+                <div className="flex items-center space-x-3 sm:space-x-4 mb-2 sm:mb-0 shrink-0">
+                    <div className="relative w-16 h-28 sm:w-28 sm:h-40 rounded-lg border-2 border-green-700 bg-green-800 flex items-center justify-center shadow-inner">
+                        <span className="text-green-600 font-bold opacity-50 text-sm sm:text-lg text-center leading-tight">
                             {deck.length} <br />Left
                         </span>
                     </div>
@@ -254,7 +254,7 @@ function GamePlayArea({
                 </div>
 
                 {/* Auction Status */}
-                <div className="text-center bg-black/40 p-2 sm:p-4 rounded-xl border border-green-700 w-full max-w-md">
+                <div className="text-center bg-black/40 p-2 sm:p-4 rounded-xl border border-green-700 w-full sm:w-auto min-w-[200px] max-w-md shrink-0">
                     <h3 className="text-yellow-400 font-bold uppercase tracking-widest text-[10px] sm:text-sm mb-1 sm:mb-2">
                         {revealedCard?.type === 'disgrace' ? 'Avoidance auction (first to pass gets it!)' : 'Luxury auction'}
                     </h3>
@@ -286,8 +286,8 @@ function GamePlayArea({
 
                 const isHumanTurn = turn === human.id;
                 return (
-                    <div className={`mt-auto p-2 sm:p-4 border-t-2 ${isHumanTurn ? 'bg-green-800 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' : 'bg-green-900 border-green-700'}`}>
-                        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end mb-2 sm:mb-4 max-w-6xl mx-auto w-full gap-2 sm:gap-0">
+                    <div className={`mt-auto p-2 sm:p-3 border-t-2 shrink-0 ${isHumanTurn ? 'bg-green-800 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)]' : 'bg-green-900 border-green-700'}`}>
+                        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end mb-2 sm:mb-2 max-w-6xl mx-auto w-full gap-2 sm:gap-0">
 
                             {/* Player Won Cards */}
                             <div className="flex-1 flex flex-col items-center sm:items-start w-full sm:w-auto">
@@ -367,7 +367,7 @@ function GamePlayArea({
                         </div>
 
                         {/* Player Hand */}
-                        <div className="flex justify-start sm:justify-center -space-x-1 sm:space-x-0 sm:gap-2 max-w-6xl mx-auto pb-2 pt-2 px-2 w-full overflow-x-auto flex-nowrap">
+                        <div className="flex justify-start sm:justify-center -space-x-1 sm:space-x-0 sm:gap-2 max-w-6xl mx-auto pb-1 pt-1 px-2 w-full overflow-x-auto flex-nowrap">
                             {(() => {
                                 const handItems = human.hand.map((val, originalIndex) => ({ val, originalIndex }));
                                 handItems.sort((a, b) => a.val - b.val);
