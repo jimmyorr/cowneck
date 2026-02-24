@@ -480,6 +480,8 @@ function GameSimulationEndScreen({ simTargetRef, simulationResults, setGameState
 }
 
 function App() {
+    const isMobile = typeof navigator !== 'undefined' && /Mobi|Android/i.test(navigator.userAgent);
+    const SIM_DELAY = isMobile ? 1 : 0;
     const [gameState, setGameState] = useState('start'); // 'start', 'playing', 'end'
     const [players, setPlayers] = useState([]);
     const [deck, setDeck] = useState([]);
@@ -612,7 +614,7 @@ function App() {
         if (currentPlayer.hand.length === 0) {
             const timer = setTimeout(() => {
                 executePass(turn);
-            }, isSimulatingRef.current ? 1 : (fastForward ? 50 : 1000));
+            }, isSimulatingRef.current ? SIM_DELAY : (fastForward ? 50 : 1000));
             return () => clearTimeout(timer);
         }
 
@@ -620,7 +622,7 @@ function App() {
         if (currentPlayer.isAI) {
             const timer = setTimeout(() => {
                 processAITurn();
-            }, isSimulatingRef.current ? 1 : (fastForward ? 50 : 1200));
+            }, isSimulatingRef.current ? SIM_DELAY : (fastForward ? 50 : 1200));
             return () => clearTimeout(timer);
         }
     }, [turn, gameState, revealedCard, fastForward, isPaused]);
@@ -776,7 +778,7 @@ function App() {
 
         setTimeout(() => {
             drawNextCard(deck, updatedPlayers, darkCardsDrawn, winnerId);
-        }, isSimulatingRef.current ? 1 : (fastForward ? 100 : 1500));
+        }, isSimulatingRef.current ? SIM_DELAY : (fastForward ? 100 : 1500));
     };
 
     // --- GAME END ---
@@ -796,7 +798,7 @@ function App() {
 
             if (simCountRef.current < simTargetRef.current) {
                 simCountRef.current += 1;
-                setTimeout(() => startGame(), 1);
+                setTimeout(() => startGame(), SIM_DELAY);
             } else {
                 isSimulatingRef.current = false;
                 setGameState('simulation-end');
