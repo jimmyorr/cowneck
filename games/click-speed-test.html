@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-6RNVL7JZVJ');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Speed Click Test</title>
@@ -68,7 +78,7 @@
         .mode-btn.active {
             background: #1d2b3a;
             color: #29b6f6;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         /* Main Click Area */
@@ -86,7 +96,8 @@
             outline: none;
         }
 
-        #click-zone:active, #click-zone.active-key {
+        #click-zone:active,
+        #click-zone.active-key {
             background: radial-gradient(circle at center, #1c2530 0%, #0a0a12 70%);
         }
 
@@ -104,11 +115,11 @@
             line-height: 1;
             transition: color 0.2s;
         }
-        
+
         .timer.active {
             color: #29b6f6;
         }
-        
+
         .timer.danger {
             color: #ff3366;
         }
@@ -148,7 +159,10 @@
         #results-modal {
             display: none;
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(10, 10, 18, 0.95);
             backdrop-filter: blur(5px);
             z-index: 20;
@@ -163,20 +177,37 @@
             padding: 40px;
             border-radius: 12px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             animation: slideUp 0.3s ease-out;
             max-width: 90%;
             width: 400px;
         }
 
         @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
-        .result-title { color: #8899a6; font-size: 14px; letter-spacing: 2px; }
-        .result-cps { font-size: 50px; color: #fff; font-weight: 800; margin: 5px 0; }
-        
+        .result-title {
+            color: #8899a6;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        .result-cps {
+            font-size: 50px;
+            color: #fff;
+            font-weight: 800;
+            margin: 5px 0;
+        }
+
         .rank-badge {
             display: inline-block;
             padding: 8px 20px;
@@ -202,14 +233,18 @@
             font-weight: bold;
             letter-spacing: 1px;
         }
-        
+
         .speed-number {
             color: #ffcc00;
             font-size: 24px;
         }
 
-        .result-detail { color: #8899a6; margin-bottom: 30px; font-size: 12px; }
-        
+        .result-detail {
+            color: #8899a6;
+            margin-bottom: 30px;
+            font-size: 12px;
+        }
+
         .btn-restart {
             background: #29b6f6;
             color: #000;
@@ -223,7 +258,7 @@
             text-transform: uppercase;
             width: 100%;
         }
-        
+
         .btn-restart:hover {
             background: #039be5;
             transform: translateY(-2px);
@@ -235,12 +270,19 @@
         }
 
         @keyframes stampIn {
-            0% { opacity: 0; transform: scale(3) rotate(-10deg); }
-            100% { opacity: 1; transform: scale(1) rotate(0deg); }
-        }
+            0% {
+                opacity: 0;
+                transform: scale(3) rotate(-10deg);
+            }
 
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <div id="app-container">
@@ -267,9 +309,9 @@
         <div class="result-box">
             <div class="result-title">SPEED RESULTS</div>
             <div id="final-cps" class="result-cps">0.0 CPS</div>
-            
+
             <div id="final-rank" class="rank-badge stamp">CAR</div>
-            
+
             <div class="speed-display">
                 VIRTUAL SPEED: <span id="final-speed" class="speed-number">0 MPH</span>
             </div>
@@ -297,26 +339,26 @@
 
         // Audio
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
+
         function playClickSound() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
+
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            
+
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            
+
             // Randomize pitch
             const freq = 600 + Math.random() * 200;
-            
+
             osc.type = 'sine';
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-            
+
             gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            
+
             osc.start();
             osc.stop(audioCtx.currentTime + 0.1);
         }
@@ -326,7 +368,7 @@
             if (isActive) return;
             duration = seconds;
             resetGame();
-            
+
             // Update UI buttons
             btns.forEach(btn => {
                 btn.classList.remove('active');
@@ -343,17 +385,17 @@
             clicks = 1; // Count first click
             timeLeft = duration;
             timerEl.classList.add('active');
-            
+
             updateDisplay();
 
             const startTime = Date.now();
-            
+
             timerInterval = setInterval(() => {
                 const elapsed = (Date.now() - startTime) / 1000;
                 timeLeft = Math.max(0, duration - elapsed);
-                
+
                 timerEl.innerText = formatTime(timeLeft);
-                
+
                 if (timeLeft <= 1.0) {
                     timerEl.classList.remove('active');
                     timerEl.classList.add('danger');
@@ -389,7 +431,7 @@
             { cps: 9.4, name: "LAND SPEED RECORD", speed: "763" },
             { cps: 9.2, name: "SOUND WAVE", speed: "767" },
             { cps: 9.0, name: "COMMERCIAL JET", speed: "575" },
-            
+
             // --- ADDED HYPERCARS ---
             { cps: 8.95, name: "KOENIGSEGG JESKO", speed: "330+" },
             { cps: 8.90, name: "HENNESSEY VENOM F5", speed: "301" },
@@ -458,16 +500,16 @@
             hasEnded = true;
             clearInterval(timerInterval);
             timerEl.innerText = "0.00";
-            
+
             // Calculate Stats
             const cps = parseFloat((clicks / duration).toFixed(2));
             const stats = getRankAndSpeed(cps);
-            
+
             document.getElementById('final-cps').innerText = `${cps} CPS`;
             document.getElementById('final-rank').innerText = stats.rank;
             document.getElementById('final-speed').innerText = `${stats.speed} MPH`;
             document.getElementById('final-detail').innerText = `${clicks} clicks in ${duration} seconds`;
-            
+
             // Color code based on CPS
             const rankEl = document.getElementById('final-rank');
             if (cps >= 10) {
@@ -480,7 +522,7 @@
                 rankEl.style.color = '#fff'; // White
                 rankEl.style.borderColor = '#fff';
             }
-            
+
             modal.style.display = 'flex';
         }
 
@@ -490,7 +532,7 @@
             clicks = 0;
             timeLeft = duration;
             clearInterval(timerInterval);
-            
+
             timerEl.innerText = formatTime(duration);
             timerEl.classList.remove('active', 'danger');
             countEl.innerText = "0 CLICKS";
@@ -502,13 +544,13 @@
             ripple.className = 'ripple';
             ripple.style.left = `${x}px`;
             ripple.style.top = `${y}px`;
-            
+
             const size = 50 + Math.random() * 50;
             ripple.style.width = `${size}px`;
             ripple.style.height = `${size}px`;
 
             zone.appendChild(ripple);
-            
+
             setTimeout(() => {
                 ripple.remove();
             }, 400);
@@ -552,10 +594,10 @@
 
         zone.addEventListener('mousedown', clickHandler);
         zone.addEventListener('touchstart', (e) => {
-            if(e.target.closest('.hud') || e.target === zone) {
-                 clickHandler(e);
+            if (e.target.closest('.hud') || e.target === zone) {
+                clickHandler(e);
             }
-        }, {passive: false});
+        }, { passive: false });
 
         // Spacebar Interaction
         window.addEventListener('keydown', (e) => {
@@ -563,13 +605,13 @@
                 // Visual feedback for keyboard press
                 zone.classList.add('active-key');
                 setTimeout(() => zone.classList.remove('active-key'), 100);
-                
+
                 // Create random ripple in center
                 const rect = zone.getBoundingClientRect();
                 const centerX = rect.width / 2 + (Math.random() * 100 - 50);
                 const centerY = rect.height / 2 + (Math.random() * 100 - 50);
                 createRipple(centerX, centerY);
-                
+
                 handleInput(e);
             }
         });
@@ -579,4 +621,5 @@
 
     </script>
 </body>
+
 </html>
