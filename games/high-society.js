@@ -392,8 +392,8 @@ function GamePlayArea({
 
 function GameOverScreen({ players, startGame }) {
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-green-900 overflow-y-auto">
-            <div className="bg-emerald-800 p-6 md:p-10 rounded-xl shadow-2xl border border-yellow-500 w-full max-w-4xl">
+        <div className="flex-1 flex flex-col items-center p-4 bg-green-900 overflow-y-auto">
+            <div className="bg-emerald-800 p-6 md:p-10 rounded-xl shadow-2xl border border-yellow-500 w-full max-w-4xl m-auto">
                 <h2 className="text-3xl md:text-5xl font-serif text-yellow-400 mb-2 text-center">Game over</h2>
                 <p className="text-center text-gray-300 mb-8">The 4th dark card was revealed, closing the auctions!</p>
 
