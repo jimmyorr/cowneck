@@ -2,22 +2,22 @@
 const MONEY_CARDS = [1, 2, 3, 4, 5, 8, 10, 12, 15, 20, 25];
 
 const INITIAL_DECK = [
-    { id: 'l1', type: 'luxury', value: 1, name: 'Luxury 1', isDark: false },
-    { id: 'l2', type: 'luxury', value: 2, name: 'Luxury 2', isDark: false },
-    { id: 'l3', type: 'luxury', value: 3, name: 'Luxury 3', isDark: false },
-    { id: 'l4', type: 'luxury', value: 4, name: 'Luxury 4', isDark: false },
-    { id: 'l5', type: 'luxury', value: 5, name: 'Luxury 5', isDark: false },
-    { id: 'l6', type: 'luxury', value: 6, name: 'Luxury 6', isDark: false },
-    { id: 'l7', type: 'luxury', value: 7, name: 'Luxury 7', isDark: false },
-    { id: 'l8', type: 'luxury', value: 8, name: 'Luxury 8', isDark: false },
-    { id: 'l9', type: 'luxury', value: 9, name: 'Luxury 9', isDark: false },
-    { id: 'l10', type: 'luxury', value: 10, name: 'Luxury 10', isDark: false },
+    { id: 'l1', type: 'luxury', value: 1, name: 'Parfum', isDark: false },
+    { id: 'l2', type: 'luxury', value: 2, name: 'Champagne', isDark: false },
+    { id: 'l3', type: 'luxury', value: 3, name: 'Cuisine', isDark: false },
+    { id: 'l4', type: 'luxury', value: 4, name: 'Casino', isDark: false },
+    { id: 'l5', type: 'luxury', value: 5, name: 'Couture', isDark: false },
+    { id: 'l6', type: 'luxury', value: 6, name: 'Vacances', isDark: false },
+    { id: 'l7', type: 'luxury', value: 7, name: 'Beaux-Arts', isDark: false },
+    { id: 'l8', type: 'luxury', value: 8, name: 'Joaillerie', isDark: false },
+    { id: 'l9', type: 'luxury', value: 9, name: 'Dressage', isDark: false },
+    { id: 'l10', type: 'luxury', value: 10, name: 'Grand Tour', isDark: false },
     { id: 'p1', type: 'prestige', value: 'x2', name: 'Prestige (x2)', isDark: true },
     { id: 'p2', type: 'prestige', value: 'x2', name: 'Prestige (x2)', isDark: true },
     { id: 'p3', type: 'prestige', value: 'x2', name: 'Prestige (x2)', isDark: true },
-    { id: 'd1', type: 'disgrace', value: 'discard', name: 'Faux Pas (Drop)', isDark: false },
-    { id: 'd2', type: 'disgrace', value: '-5', name: 'Passé (-5)', isDark: false },
-    { id: 'd3', type: 'disgrace', value: '/2', name: 'Scandale (/2)', isDark: true },
+    { id: 'd1', type: 'disgrace', value: 'discard', name: 'Faux Pas! (Drop)', isDark: false },
+    { id: 'd2', type: 'disgrace', value: '-5', name: 'Passé! (-5)', isDark: false },
+    { id: 'd3', type: 'disgrace', value: '/2', name: 'Scandale! (/2)', isDark: true },
 ];
 
 const sumArray = (arr) => arr.reduce((a, b) => a + b, 0);

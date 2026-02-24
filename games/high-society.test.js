@@ -44,7 +44,7 @@ test('calculateAIBid: High Roller (Miles) avoids negatives but pays heavy for pr
         bid: []
     };
     const prestigeCard = { type: 'prestige', value: 'x2', name: 'Prestige (x2)', isDark: true };
-    const disgraceCard = { type: 'disgrace', value: '-5', name: 'Passé (-5)', isDark: false };
+    const disgraceCard = { type: 'disgrace', value: '-5', name: 'Passé! (-5)', isDark: false };
 
     // Test on prestige card, current bid 5, he should bid over
     let bid = calculateAIBid({

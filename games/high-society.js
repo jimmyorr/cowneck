@@ -27,19 +27,27 @@ const renderCard = (card, size = 'large') => {
         titleClasses += 'text-[8px] sm:text-xs px-0.5 mt-0.5 sm:mt-1';
         valueClasses += 'mt-0 sm:mt-1 text-xs sm:text-xl';
     } else if (size === 'tiny') {
-        containerClasses += 'w-8 h-12 sm:w-12 sm:h-16 border border-gray-400 text-[8px] sm:text-[10px] ' + (isDark ? 'border-yellow-500' : isNegative ? 'border-red-800' : 'border-emerald-800');
-        titleClasses += 'text-[8px] sm:text-[10px] px-0 leading-[1] sm:px-0.5 mt-0 sm:mt-0.5 tracking-tighter';
-        valueClasses += 'text-[10px] sm:text-sm';
+        containerClasses += 'w-8 h-12 sm:w-12 sm:h-16 border border-gray-400 ' + (isDark ? 'border-yellow-500' : isNegative ? 'border-red-800' : 'border-emerald-800');
+        valueClasses += 'text-xs sm:text-lg my-auto mx-auto';
     }
 
     const bgClasses = isDark ? 'bg-emerald-900 text-yellow-400' : isNegative ? 'bg-red-100 text-red-800' : 'bg-amber-50 text-emerald-900';
+    const displayValue = card.type === 'luxury' ? card.value : (card.type === 'prestige' ? 'x2' : (card.value === 'discard' ? 'Drop' : card.value));
+
+    if (size === 'tiny') {
+        return (
+            <div className={`${containerClasses} ${bgClasses}`}>
+                <div className={valueClasses}>{displayValue}</div>
+            </div>
+        );
+    }
 
     return (
         <div className={`${containerClasses} ${bgClasses}`}>
-            <div className={titleClasses}>{card.type === 'luxury' ? 'Luxury' : card.name}</div>
+            <div className={titleClasses}>{card.name}</div>
             {(card.type === 'luxury' || card.type === 'prestige') && (
                 <div className={valueClasses}>
-                    {card.type === 'luxury' ? card.value : 'x2'}
+                    {displayValue}
                 </div>
             )}
         </div>
