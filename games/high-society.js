@@ -390,7 +390,7 @@ function GamePlayArea({
 }
 
 
-function GameOverScreen({ players, startGame }) {
+function GameOverScreen({ players, startGame, setGameState }) {
     return (
         <div className="flex-1 flex flex-col items-center p-4 bg-green-900 overflow-y-auto">
             <div className="bg-emerald-800 p-6 md:p-10 rounded-xl shadow-2xl border border-yellow-500 w-full max-w-4xl m-auto">
@@ -431,12 +431,18 @@ function GameOverScreen({ players, startGame }) {
                     ))}
                 </div>
 
-                <div className="mt-10 text-center">
+                <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <button
                         onClick={startGame}
                         className="bg-yellow-500 hover:bg-yellow-400 text-green-900 font-bold py-3 px-8 rounded-full text-xl shadow-lg transition"
                     >
                         Play another game
+                    </button>
+                    <button
+                        onClick={() => setGameState('start')}
+                        className="bg-green-700 hover:bg-green-600 border border-green-500 text-yellow-300 font-bold py-3 px-8 rounded-full text-xl shadow-lg transition"
+                    >
+                        Main menu
                     </button>
                 </div>
             </div>
@@ -864,7 +870,7 @@ function App() {
             )}
 
             {gameState === 'end' && (
-                <GameOverScreen players={players} startGame={startGame} />
+                <GameOverScreen players={players} startGame={startGame} setGameState={setGameState} />
             )}
 
             {gameState === 'simulation-end' && (
