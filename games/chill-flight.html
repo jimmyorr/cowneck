@@ -176,6 +176,14 @@
         <button class="station-btn" data-station="2">2</button>
         <button class="station-btn" data-station="3">3</button>
         <button class="station-btn" data-station="4">4</button>
+        <button class="station-btn" data-station="5" style="border-color: #ff4444; color: #ff4444;"
+            title="Lofi Girl">LG</button>
+        <button class="station-btn" data-station="6" style="border-color: #ff4444; color: #ff4444;"
+            title="Nice Guys">NG</button>
+    </div>
+
+    <div id="yt-container" style="position: absolute; opacity: 0; pointer-events: none; z-index: -1;">
+        <div id="youtube-player"></div>
     </div>
 
     <script>
@@ -609,6 +617,35 @@
         // Start loop
         window.onload = animate;
 
+        // --- YOUTUBE API SETUP ---
+        let ytPlayer;
+        let ytPlayerReady = false;
+
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('youtube-player', {
+                height: '10',
+                width: '10',
+                videoId: 'jfKfPfyJRdk',
+                playerVars: {
+                    'playsinline': 1,
+                    'controls': 0,
+                    'disablekb': 1
+                },
+                events: {
+                    'onReady': () => {
+                        ytPlayerReady = true;
+                        if (currentStation === 5) ytPlayer.loadVideoById('jfKfPfyJRdk');
+                        if (currentStation === 6) ytPlayer.loadVideoById('0cvzztYZXYs');
+                    }
+                }
+            });
+        }
+
         // --- 7. PROCEDURAL AUDIO RADIO ---
         let audioCtx;
         let mainGain;
@@ -617,7 +654,7 @@
         let beatCount = 0;
         let scheduleTimer;
 
-        const stationNames = ["OFF", "Ambient Dream", "Lofi Chords", "Minimal Pulse", "Deep Drone"];
+        const stationNames = ["OFF", "Ambient Dream", "Lofi Chords", "Minimal Pulse", "Deep Drone", "Lofi Girl (YT)", "Nice Guys (YT)"];
         // Pentatonic scale for pleasing chill vibes
         const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
 
@@ -641,6 +678,7 @@
 
         function scheduleAudio() {
             if (!audioCtx) return;
+            if (currentStation < 1 || currentStation > 4) return;
             // Schedule ahead
             while (nextNoteTime < audioCtx.currentTime + 0.1) {
                 if (currentStation === 1) { // Ambient: random slow sines
@@ -672,7 +710,7 @@
                 }
                 beatCount++;
             }
-            if (currentStation !== 0) {
+            if (currentStation >= 1 && currentStation <= 4) {
                 scheduleTimer = requestAnimationFrame(scheduleAudio);
             }
         }
@@ -686,7 +724,20 @@
                 if (parseInt(b.getAttribute('data-station')) === num) b.classList.add('active');
             });
 
-            if (num > 0 && !audioCtx) {
+            // Handle YouTube player playback
+            if (ytPlayerReady) {
+                if (num === 5) {
+                    ytPlayer.loadVideoById('jfKfPfyJRdk');
+                } else if (num === 6) {
+                    ytPlayer.loadVideoById('0cvzztYZXYs');
+                } else {
+                    ytPlayer.pauseVideo();
+                }
+            }
+
+            const isProcedural = (num >= 1 && num <= 4);
+
+            if (isProcedural && !audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 mainGain = audioCtx.createGain();
                 mainGain.connect(audioCtx.destination);
@@ -695,12 +746,12 @@
                 mainGain.connect(comp);
                 comp.connect(audioCtx.destination);
             }
-            if (audioCtx && audioCtx.state === 'suspended') {
+            if (audioCtx && audioCtx.state === 'suspended' && isProcedural) {
                 audioCtx.resume();
             }
 
             cancelAnimationFrame(scheduleTimer);
-            if (num !== 0) {
+            if (isProcedural) {
                 if (audioCtx) nextNoteTime = audioCtx.currentTime + 0.1;
                 scheduleAudio();
             }
