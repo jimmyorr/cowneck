@@ -465,14 +465,50 @@
         const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x5D4037, flatShading: true });
         const treeLeavesMat = new THREE.MeshStandardMaterial({ color: 0x2E7D32, flatShading: true });
 
+        function getBiome(x, z) {
+            // Very low frequency noise for large regions (continents, oceans)
+            return simplex.noise2D(x * 0.00005 + 1000, z * 0.00005 + 1000);
+        }
+
         // Function to get height at any X/Z coordinate
         function getElevation(x, z) {
-            let n = simplex.noise2D(x * 0.001, z * 0.001) * 150;
-            n += simplex.noise2D(x * 0.003, z * 0.003) * 50;
-            n += simplex.noise2D(x * 0.01, z * 0.01) * 10;
+            const biome = getBiome(x, z);
 
-            // Add a base offset
-            n += 60;
+            let heightScale = 150;
+            let offset = 60;
+            let roughness = 50;
+            let rockiness = 10;
+
+            if (biome < -0.2) {
+                // Ocean / Archipelagos biome
+                const t = Math.min(1, (-0.2 - biome) * 3); // 0 to 1
+                offset = THREE.MathUtils.lerp(60, -70, t);
+                heightScale = THREE.MathUtils.lerp(150, 100, t);
+                roughness = THREE.MathUtils.lerp(50, 20, t);
+            } else if (biome > 0.2) {
+                // Mountain ranges biome
+                const t = Math.min(1, (biome - 0.2) * 3); // 0 to 1
+                offset = THREE.MathUtils.lerp(60, 20, t);
+                heightScale = THREE.MathUtils.lerp(150, 250, t);
+                roughness = THREE.MathUtils.lerp(50, 100, t);
+                rockiness = THREE.MathUtils.lerp(10, 30, t);
+            }
+
+            let n = simplex.noise2D(x * 0.001, z * 0.001) * heightScale;
+
+            // Add sharp mountain ridges for high biomes
+            if (biome > 0.2) {
+                const t = Math.min(1, (biome - 0.2) * 3);
+                // Ridged fractal (valleys are wide, peaks are sharp)
+                let ridge = 1.0 - Math.abs(simplex.noise2D(x * 0.0008, z * 0.0008));
+                n += (ridge * 220 - 100) * t;
+            }
+
+            n += simplex.noise2D(x * 0.003, z * 0.003) * roughness;
+            n += simplex.noise2D(x * 0.01, z * 0.01) * rockiness;
+
+            // Add base offset last
+            n += offset;
 
             // River/Lake plains
             if (n < WATER_LEVEL) {
@@ -799,8 +835,8 @@
             }
 
             // Ceiling to prevent flying infinitely high
-            if (planeGroup.position.y > 600) {
-                planeGroup.position.y = 600;
+            if (planeGroup.position.y > 800) {
+                planeGroup.position.y = 800;
             }
 
             // 5. Camera Follow logic
