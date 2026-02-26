@@ -226,16 +226,13 @@
 
     <div id="radio-ui">
         <div>Radio: <span id="station-name">Off</span></div>
-        <button class="station-btn active" data-station="0">0</button>
-        <button class="station-btn" data-station="1">1</button>
-        <button class="station-btn" data-station="2">2</button>
-        <button class="station-btn" data-station="3">3</button>
-        <button class="station-btn" data-station="4">4</button>
-        <button class="station-btn" data-station="5" style="border-color: #ff4444; color: #ff4444;"
+        <button class="station-btn active" data-station="0" title="Off">0</button>
+        <button class="station-btn" data-station="procedural" title="Procedural Music">♫</button>
+        <button class="station-btn" data-station="2" style="border-color: #ff4444; color: #ff4444;"
             title="Lofi Girl">LG</button>
-        <button class="station-btn" data-station="6" style="border-color: #ff4444; color: #ff4444;"
+        <button class="station-btn" data-station="3" style="border-color: #ff4444; color: #ff4444;"
             title="Nice Guys">NG</button>
-        <button class="station-btn" data-station="7" style="border-color: #ff4444; color: #ff4444;"
+        <button class="station-btn" data-station="4" style="border-color: #ff4444; color: #ff4444;"
             title="Bootleg Boy">BB</button>
     </div>
 
@@ -712,16 +709,17 @@
             if (isPaused) {
                 pauseOverlay.style.display = 'flex';
                 if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
-                if (ytPlayerReady && (currentStation === 5 || currentStation === 6)) ytPlayer.pauseVideo();
+                if (ytPlayerReady && (currentStation >= 2 && currentStation <= 4)) ytPlayer.pauseVideo();
             } else {
                 pauseOverlay.style.display = 'none';
                 clock.getDelta(); // clear accumulated time so plane doesn't skip
 
-                if (currentStation >= 1 && currentStation <= 4 && audioCtx && audioCtx.state === 'suspended') {
+                const isProcedural = (currentStation === 1 || (currentStation >= 5 && currentStation <= 7));
+                if (isProcedural && audioCtx && audioCtx.state === 'suspended') {
                     audioCtx.resume();
                     nextNoteTime = audioCtx.currentTime + 0.1;
                 }
-                if (ytPlayerReady && (currentStation === 5 || currentStation === 6)) ytPlayer.playVideo();
+                if (ytPlayerReady && (currentStation >= 2 && currentStation <= 4)) ytPlayer.playVideo();
             }
         }
 
@@ -965,7 +963,7 @@
         let beatCount = 0;
         let scheduleTimer;
 
-        const stationNames = ["Off", "Ambient dream", "Lofi chords", "Minimal pulse", "Deep drone", "Lofi Girl (YT)", "Nice Guys (YT)", "Bootleg Boy (YT)"];
+        const stationNames = ["Off", "Ambient dream", "Lofi Girl (YT)", "Nice Guys (YT)", "Bootleg Boy (YT)", "Lofi chords", "Minimal pulse", "Deep drone"];
         // Pentatonic scale for pleasing chill vibes
         const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
 
@@ -989,7 +987,8 @@
 
         function scheduleAudio() {
             if (!audioCtx) return;
-            if (currentStation < 1 || currentStation > 4) return;
+            const isProcedural = (currentStation === 1 || (currentStation >= 5 && currentStation <= 7));
+            if (!isProcedural) return;
             // Schedule ahead
             while (nextNoteTime < audioCtx.currentTime + 0.1) {
                 if (currentStation === 1) { // Ambient: random slow sines
@@ -998,7 +997,7 @@
                         playTone(freq, 'sine', nextNoteTime, 4.0, 0.15);
                     }
                     nextNoteTime += 1.0;
-                } else if (currentStation === 2) { // Lofi chords: slow stacked triangles
+                } else if (currentStation === 5) { // Lofi chords: slow stacked triangles
                     if (beatCount % 4 === 0) {
                         const rootIdx = Math.floor(Math.random() * 5);
                         playTone(scale[rootIdx] / 2, 'triangle', nextNoteTime, 3.0, 0.1);
@@ -1007,11 +1006,11 @@
                     }
                     if (Math.random() > 0.7) playTone(scale[Math.floor(Math.random() * scale.length)], 'sine', nextNoteTime, 0.5, 0.05); // little melody plucks
                     nextNoteTime += 0.5;
-                } else if (currentStation === 3) { // Minimal: steady rhythmic plucks
+                } else if (currentStation === 6) { // Minimal: steady rhythmic plucks
                     playTone(scale[beatCount % scale.length] / 2, 'square', nextNoteTime, 0.3, 0.02);
                     if (beatCount % 4 === 0) playTone(scale[0] / 4, 'sine', nextNoteTime, 1.0, 0.1);
                     nextNoteTime += 0.25;
-                } else if (currentStation === 4) { // Drone: very low slowly shifting sines
+                } else if (currentStation === 7) { // Drone: very low slowly shifting sines
                     if (beatCount % 8 === 0) {
                         const freq = scale[Math.floor(Math.random() * 3)] / 4;
                         playTone(freq, 'sawtooth', nextNoteTime, 8.0, 0.05);
@@ -1021,7 +1020,7 @@
                 }
                 beatCount++;
             }
-            if (currentStation >= 1 && currentStation <= 4) {
+            if (isProcedural) {
                 scheduleTimer = requestAnimationFrame(scheduleAudio);
             }
         }
@@ -1032,19 +1031,24 @@
 
             document.querySelectorAll('.station-btn').forEach(b => {
                 b.classList.remove('active');
-                if (parseInt(b.getAttribute('data-station')) === num) b.classList.add('active');
+                const ds = b.getAttribute('data-station');
+                if (ds === 'procedural') {
+                    if (num === 1 || (num >= 5 && num <= 7)) b.classList.add('active');
+                } else {
+                    if (parseInt(ds) === num) b.classList.add('active');
+                }
             });
 
             // Handle YouTube player playback & Visibility
             const ytContainer = document.getElementById('yt-container');
             if (ytPlayerReady) {
-                if (num === 5) {
+                if (num === 2) {
                     ytContainer.style.display = 'block';
                     ytPlayer.loadVideoById('jfKfPfyJRdk');
-                } else if (num === 6) {
+                } else if (num === 3) {
                     ytContainer.style.display = 'block';
                     ytPlayer.loadVideoById('0cvzztYZXYs');
-                } else if (num === 7) {
+                } else if (num === 4) {
                     ytContainer.style.display = 'block';
                     // The YouTube API's setShuffle only randomizes the *next* videos in the queue. 
                     // To avoid hearing the same first song every time, we must start at a random index!
@@ -1062,7 +1066,7 @@
                 }
             }
 
-            const isProcedural = (num >= 1 && num <= 4);
+            const isProcedural = (num === 1 || (num >= 5 && num <= 7));
 
             if (isProcedural && !audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1086,8 +1090,18 @@
 
         document.querySelectorAll('.station-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const s = parseInt(e.target.getAttribute('data-station'));
-                setStation(s);
+                const s = e.target.getAttribute('data-station');
+                if (s === 'procedural') {
+                    const procList = [1, 5, 6, 7];
+                    let idx = procList.indexOf(currentStation);
+                    if (idx !== -1) {
+                        setStation(procList[(idx + 1) % procList.length]);
+                    } else {
+                        setStation(1);
+                    }
+                } else {
+                    setStation(parseInt(s));
+                }
             });
         });
 
@@ -1096,9 +1110,19 @@
                 const debugMenu = document.getElementById('debug-menu');
                 debugMenu.style.display = debugMenu.style.display === 'block' ? 'none' : 'block';
             }
-            if (e.key >= '0' && e.key <= '7') {
-                const s = parseInt(e.key);
-                setStation(s);
+            if (e.key === '1') {
+                // 1 cycles procedural stations
+                const procList = [1, 5, 6, 7];
+                let idx = procList.indexOf(currentStation);
+                if (idx !== -1) {
+                    setStation(procList[(idx + 1) % procList.length]);
+                } else {
+                    setStation(1);
+                }
+            } else if (e.key === '0') {
+                setStation(0);
+            } else if (e.key >= '2' && e.key <= '4') {
+                setStation(parseInt(e.key));
             }
         });
 
