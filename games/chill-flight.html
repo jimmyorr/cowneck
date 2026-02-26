@@ -193,6 +193,8 @@
     <div id="ui-layer">
         <div class="title">Chill Flight</div>
         <div class="controls">Press <strong>ESC</strong> to pause</div>
+        <button id="mobile-pause-btn" class="btn"
+            style="display: none; padding: 8px 16px; margin-top: 10px; font-size: 14px;">Pause</button>
     </div>
     <div id="crosshair"></div>
     <div id="pause-overlay">
@@ -540,13 +542,40 @@
         let targetPitch = 0;
         let targetRoll = 0;
 
-        window.addEventListener('mousemove', (e) => {
-            // Normalize mouse to -1 to +1
-            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+        function updateInputPosition(clientX, clientY) {
+            // Normalize to -1 to +1
+            mouseX = (clientX / window.innerWidth) * 2 - 1;
             // Standard Inverted Y: 
             // Cursor Up -> clientY approaches 0 -> mouseY becomes positive -> pitches nose down
-            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            mouseY = -(clientY / window.innerHeight) * 2 + 1;
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            updateInputPosition(e.clientX, e.clientY);
         });
+
+        // Touch support for mobile
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                // Prevent default scrolling when playing
+                if (!e.target.closest('#radio-ui') && !isPaused) {
+                    e.preventDefault();
+                }
+                updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchend', () => {
+            // Optional: Return to center when lifting finger, or leave where it was.
+            // We'll let it stay where it was for a more relaxed experience.
+        });
+
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -557,25 +586,52 @@
         let isPaused = false;
         const pauseOverlay = document.getElementById('pause-overlay');
 
+        function togglePause() {
+            isPaused = !isPaused;
+            if (isPaused) {
+                pauseOverlay.style.display = 'flex';
+                if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
+                if (ytPlayerReady && (currentStation === 5 || currentStation === 6)) ytPlayer.pauseVideo();
+            } else {
+                pauseOverlay.style.display = 'none';
+                clock.getDelta(); // clear accumulated time so plane doesn't skip
+
+                if (currentStation >= 1 && currentStation <= 4 && audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                    nextNoteTime = audioCtx.currentTime + 0.1;
+                }
+                if (ytPlayerReady && (currentStation === 5 || currentStation === 6)) ytPlayer.playVideo();
+            }
+        }
+
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                isPaused = !isPaused;
-                if (isPaused) {
-                    pauseOverlay.style.display = 'flex';
-                    if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
-                    if (ytPlayerReady && (currentStation === 5 || currentStation === 6)) ytPlayer.pauseVideo();
-                } else {
-                    pauseOverlay.style.display = 'none';
-                    clock.getDelta(); // clear accumulated time so plane doesn't skip
-
-                    if (currentStation >= 1 && currentStation <= 4 && audioCtx && audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                        nextNoteTime = audioCtx.currentTime + 0.1;
-                    }
-                    if (ytPlayerReady && (currentStation === 5 || currentStation === 6)) ytPlayer.playVideo();
-                }
+                togglePause();
             }
         });
+
+        document.getElementById('mobile-pause-btn').addEventListener('click', () => {
+            togglePause();
+        });
+
+        // Show mobile pause btn, shrink radio UI slightly, reposition YT screen if screen is narrow
+        if (window.innerWidth <= 768) {
+            document.querySelector('.controls').style.display = 'none';
+            document.getElementById('mobile-pause-btn').style.display = 'block';
+
+            const radioUI = document.getElementById('radio-ui');
+            radioUI.style.flexWrap = 'wrap';
+            radioUI.style.maxWidth = '100%';
+            radioUI.style.bottom = '10px';
+            radioUI.style.right = '10px';
+            radioUI.style.padding = '10px';
+
+            const ytContainer = document.getElementById('yt-container');
+            ytContainer.style.bottom = '110px';
+            ytContainer.style.right = '10px';
+            ytContainer.style.width = '180px';
+            ytContainer.style.height = '101px';
+        }
 
         // --- 6. MAIN GAME LOOP ---
         const clock = new THREE.Clock();
