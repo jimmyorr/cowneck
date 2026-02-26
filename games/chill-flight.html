@@ -530,9 +530,17 @@
                 isPaused = !isPaused;
                 if (isPaused) {
                     pauseOverlay.style.display = 'flex';
+                    if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
+                    if (ytPlayerReady && (currentStation === 5 || currentStation === 6)) ytPlayer.pauseVideo();
                 } else {
                     pauseOverlay.style.display = 'none';
                     clock.getDelta(); // clear accumulated time so plane doesn't skip
+
+                    if (currentStation >= 1 && currentStation <= 4 && audioCtx && audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                        nextNoteTime = audioCtx.currentTime + 0.1;
+                    }
+                    if (ytPlayerReady && (currentStation === 5 || currentStation === 6)) ytPlayer.playVideo();
                 }
             }
         });
@@ -762,6 +770,13 @@
                 const s = parseInt(e.target.getAttribute('data-station'));
                 setStation(s);
             });
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '6') {
+                const s = parseInt(e.key);
+                setStation(s);
+            }
         });
 
     </script>
