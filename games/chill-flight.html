@@ -61,6 +61,47 @@
             transform: translate(-50%, -50%);
             pointer-events: none;
         }
+
+        #pause-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        #pause-overlay h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            letter-spacing: 5px;
+            font-weight: 300;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
     </style>
     <!-- Load Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -70,8 +111,14 @@
 
     <div id="ui-layer">
         <div class="title">CHILL FLIGHT</div>
+        <div class="controls">Press <strong>ESC</strong> to Pause</div>
     </div>
     <div id="crosshair"></div>
+    <div id="pause-overlay">
+        <h1>PAUSED</h1>
+        <p style="margin-bottom: 10px; font-size: 18px; color: #ccc;">Press ESC to resume</p>
+        <a href="index.html" class="btn">Exit Game</a>
+    </div>
 
     <script>
         // --- 1. SIMPLEX NOISE IMPLEMENTATION ---
@@ -409,6 +456,21 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
+        let isPaused = false;
+        const pauseOverlay = document.getElementById('pause-overlay');
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                isPaused = !isPaused;
+                if (isPaused) {
+                    pauseOverlay.style.display = 'flex';
+                } else {
+                    pauseOverlay.style.display = 'none';
+                    clock.getDelta(); // clear accumulated time so plane doesn't skip
+                }
+            }
+        });
+
         // --- 6. MAIN GAME LOOP ---
         const clock = new THREE.Clock();
 
@@ -417,6 +479,8 @@
 
         function animate() {
             requestAnimationFrame(animate);
+
+            if (isPaused) return;
 
             const delta = clock.getDelta();
 
