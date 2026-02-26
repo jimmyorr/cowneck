@@ -473,6 +473,8 @@
 
         const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x5D4037, flatShading: true });
         const treeLeavesMat = new THREE.MeshStandardMaterial({ color: 0x2E7D32, flatShading: true });
+        const snowTreeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x4E342E, flatShading: true });
+        const snowTreeLeavesMat = new THREE.MeshStandardMaterial({ color: 0xE0F7FA, flatShading: true });
 
         function getBiome(x, z) {
             // Very low frequency noise for large regions (continents, oceans)
@@ -542,6 +544,7 @@
             const worldOffsetZ = chunkZ * CHUNK_SIZE;
 
             const treePositions = [];
+            const snowTreePositions = [];
 
             for (let i = 0; i < positions.length; i += 3) {
                 const localX = positions[i];
@@ -552,30 +555,34 @@
                 const height = getElevation(worldX, worldZ);
                 positions[i + 1] = height; // Set Y
 
+                // Determine base temperature for snowy biomes
+                const temperature = simplex.noise2D(worldX * 0.0001 + 5000, worldZ * 0.0001 + 5000);
+                const isSnowBiome = temperature < -0.3;
+
                 // Colorize based on height
                 if (height <= WATER_LEVEL + 2) {
                     // Water / Sand transition
                     if (height <= WATER_LEVEL) {
-                        colorObj.setHex(0x40C4FF); // Blue river
+                        colorObj.setHex(isSnowBiome ? 0x88CCFF : 0x40C4FF); // Icy river or Blue river
                     } else {
-                        colorObj.setHex(0xE0E0A8); // Sandy bank
+                        colorObj.setHex(isSnowBiome ? 0xDDDDDD : 0xE0E0A8); // Snow covered bank vs Sandy bank
                     }
-                } else if (height > MOUNTAIN_LEVEL) {
+                } else if (height > MOUNTAIN_LEVEL || (isSnowBiome && height > MOUNTAIN_LEVEL - 50)) {
                     // Snow/Rock
-                    const steepness = Math.random(); // pseudo-steepness
-                    if (height > MOUNTAIN_LEVEL + 40) colorObj.setHex(0xFFFFFF); // Snow
+                    if (height > MOUNTAIN_LEVEL + 40 || isSnowBiome) colorObj.setHex(0xFFFFFF); // Snow
                     else colorObj.setHex(0x7F8C8D); // Grey rock
                 } else {
                     // Forest / Grass
                     const isForest = simplex.noise2D(worldX * 0.005 + 100, worldZ * 0.005) > 0.2;
                     if (isForest) {
-                        colorObj.setHex(0x388E3C); // Darker forest green
+                        colorObj.setHex(isSnowBiome ? 0x8BA192 : 0x388E3C); // Snowy forest green vs normal
                         // Random chance to spawn a tree in forest area
                         if (Math.random() < 0.15) {
-                            treePositions.push({ x: localX, y: height, z: localZ });
+                            if (isSnowBiome) snowTreePositions.push({ x: localX, y: height, z: localZ });
+                            else treePositions.push({ x: localX, y: height, z: localZ });
                         }
                     } else {
-                        colorObj.setHex(0x7CB342); // Lighter grass
+                        colorObj.setHex(isSnowBiome ? 0xFAFAFA : 0x7CB342); // Snow plains or Lighter grass
                     }
                 }
 
@@ -590,13 +597,35 @@
             group.add(mesh);
 
             // 2. Generate Trees (InstancedMesh for performance)
+            const dummy = new THREE.Object3D();
+
             if (treePositions.length > 0) {
                 const trunkInst = new THREE.InstancedMesh(treeTrunkGeo, treeTrunkMat, treePositions.length);
                 const leavesInst = new THREE.InstancedMesh(treeLeavesGeo, treeLeavesMat, treePositions.length);
 
-                const dummy = new THREE.Object3D();
-
                 treePositions.forEach((pos, index) => {
+                    const scale = 0.8 + Math.random() * 0.6;
+                    dummy.position.set(pos.x, pos.y, pos.z);
+                    dummy.scale.set(scale, scale, scale);
+                    dummy.rotation.y = Math.random() * Math.PI * 2;
+                    dummy.updateMatrix();
+
+                    trunkInst.setMatrixAt(index, dummy.matrix);
+                    leavesInst.setMatrixAt(index, dummy.matrix);
+                });
+
+                trunkInst.position.set(worldOffsetX, 0, worldOffsetZ);
+                leavesInst.position.set(worldOffsetX, 0, worldOffsetZ);
+
+                group.add(trunkInst);
+                group.add(leavesInst);
+            }
+
+            if (snowTreePositions.length > 0) {
+                const trunkInst = new THREE.InstancedMesh(treeTrunkGeo, snowTreeTrunkMat, snowTreePositions.length);
+                const leavesInst = new THREE.InstancedMesh(treeLeavesGeo, snowTreeLeavesMat, snowTreePositions.length);
+
+                snowTreePositions.forEach((pos, index) => {
                     const scale = 0.8 + Math.random() * 0.6;
                     dummy.position.set(pos.x, pos.y, pos.z);
                     dummy.scale.set(scale, scale, scale);
