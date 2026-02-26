@@ -150,7 +150,7 @@
 
         #yt-container {
             position: absolute;
-            bottom: 90px;
+            bottom: 100px;
             right: 30px;
             width: 220px;
             height: 124px;
@@ -786,14 +786,22 @@
         if (window.innerWidth <= 768) {
 
             const radioUI = document.getElementById('radio-ui');
-            radioUI.style.flexWrap = 'wrap';
+            radioUI.style.flexWrap = 'nowrap';
             radioUI.style.maxWidth = '100%';
             radioUI.style.bottom = '10px';
-            radioUI.style.right = '10px';
-            radioUI.style.padding = '10px';
+            radioUI.style.right = '5px';
+            radioUI.style.padding = '8px';
+            radioUI.style.gap = '5px';
+
+            const stationName = document.getElementById('station-name');
+            stationName.style.width = '100px';
+            stationName.style.whiteSpace = 'nowrap';
+            stationName.style.overflow = 'hidden';
+            stationName.style.textOverflow = 'ellipsis';
+            stationName.style.verticalAlign = 'bottom';
 
             const ytContainer = document.getElementById('yt-container');
-            ytContainer.style.bottom = '110px';
+            ytContainer.style.bottom = '66px';
             ytContainer.style.right = '10px';
             ytContainer.style.width = '180px';
             ytContainer.style.height = '101px';
