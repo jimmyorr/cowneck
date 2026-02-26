@@ -24,7 +24,8 @@
             pointer-events: none;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
+            gap: 15px;
             padding: 30px;
             box-sizing: border-box;
             color: rgba(255, 255, 255, 0.9);
@@ -35,20 +36,14 @@
             font-size: 28px;
             font-weight: 300;
             letter-spacing: 2px;
+            pointer-events: auto;
+            cursor: pointer;
+            display: inline-block;
+            transition: opacity 0.2s;
         }
 
-        .controls {
-            font-size: 16px;
-            font-weight: 400;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 15px 25px;
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
-            align-self: flex-start;
-        }
-
-        .controls strong {
-            color: #FFD700;
+        .title:hover {
+            opacity: 0.8;
         }
 
         #crosshair {
@@ -219,15 +214,13 @@
 <body>
 
     <div id="ui-layer">
-        <div class="title">Chill Flight</div>
-        <div class="controls">Press <strong>ESC</strong> to pause</div>
-        <button id="mobile-pause-btn" class="btn"
-            style="display: none; padding: 8px 16px; margin-top: 10px; font-size: 14px;">Pause</button>
+        <div class="title" id="game-title">Chill Flight</div>
     </div>
     <div id="crosshair"></div>
     <div id="pause-overlay">
         <h1>Paused</h1>
         <p style="margin-bottom: 10px; font-size: 18px; color: #ccc;">Press ESC to resume</p>
+        <button id="resume-btn" class="btn" style="margin-bottom: 15px;">Resume flight</button>
         <a href="index.html" class="btn">Exit game</a>
     </div>
 
@@ -738,14 +731,16 @@
             }
         });
 
-        document.getElementById('mobile-pause-btn').addEventListener('click', () => {
+        document.getElementById('game-title').addEventListener('click', () => {
             togglePause();
         });
 
-        // Show mobile pause btn, shrink radio UI slightly, reposition YT screen if screen is narrow
+        document.getElementById('resume-btn').addEventListener('click', () => {
+            togglePause();
+        });
+
+        // Shrink radio UI slightly, reposition YT screen if screen is narrow
         if (window.innerWidth <= 768) {
-            document.querySelector('.controls').style.display = 'none';
-            document.getElementById('mobile-pause-btn').style.display = 'block';
 
             const radioUI = document.getElementById('radio-ui');
             radioUI.style.flexWrap = 'wrap';
