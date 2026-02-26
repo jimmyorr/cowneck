@@ -152,6 +152,37 @@
             color: black;
             border-color: #FFD700;
         }
+
+        #yt-container {
+            position: absolute;
+            bottom: 90px;
+            right: 30px;
+            width: 220px;
+            height: 124px;
+            background: #111;
+            border: 4px solid #222;
+            border-bottom-width: 8px;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 0, 0, 1);
+            overflow: hidden;
+            display: none;
+            z-index: 49;
+            transition: opacity 0.3s;
+        }
+
+        /* Screen glare effect over the video */
+        #yt-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.2) 100%);
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9);
+            border-radius: 4px;
+        }
     </style>
     <!-- Load Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -183,7 +214,7 @@
             title="Nice Guys">NG</button>
     </div>
 
-    <div id="yt-container" style="position: absolute; opacity: 0; pointer-events: none; z-index: -1;">
+    <div id="yt-container">
         <div id="youtube-player"></div>
     </div>
 
@@ -637,8 +668,8 @@
 
         function onYouTubeIframeAPIReady() {
             ytPlayer = new YT.Player('youtube-player', {
-                height: '10',
-                width: '10',
+                height: '124',
+                width: '220',
                 videoId: 'jfKfPfyJRdk',
                 playerVars: {
                     'playsinline': 1,
@@ -733,13 +764,17 @@
                 if (parseInt(b.getAttribute('data-station')) === num) b.classList.add('active');
             });
 
-            // Handle YouTube player playback
+            // Handle YouTube player playback & Visibility
+            const ytContainer = document.getElementById('yt-container');
             if (ytPlayerReady) {
                 if (num === 5) {
+                    ytContainer.style.display = 'block';
                     ytPlayer.loadVideoById('jfKfPfyJRdk');
                 } else if (num === 6) {
+                    ytContainer.style.display = 'block';
                     ytPlayer.loadVideoById('0cvzztYZXYs');
                 } else {
+                    ytContainer.style.display = 'none';
                     ytPlayer.pauseVideo();
                 }
             }
