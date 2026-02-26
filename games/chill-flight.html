@@ -170,6 +170,34 @@
             transition: opacity 0.3s;
         }
 
+        #debug-menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            display: none;
+            z-index: 100;
+        }
+
+        #debug-menu button {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin: 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        #debug-menu button.active {
+            background: #FFD700;
+            color: black;
+        }
+
         /* Screen glare effect over the video */
         #yt-container::after {
             content: '';
@@ -218,6 +246,20 @@
 
     <div id="yt-container">
         <div id="youtube-player"></div>
+    </div>
+
+    <div id="debug-menu">
+        <div style="margin-bottom: 10px; font-weight: bold;">Debug Controls</div>
+        <div>Time: <span id="debug-time">06:00</span></div>
+        <div>Dir: <span id="debug-dir">N</span></div>
+        <div style="margin-top: 10px;">
+            <div style="margin-bottom: 5px;">Time Speed:</div>
+            <button class="speed-btn" data-speed="0.5">0.5x</button>
+            <button class="speed-btn active" data-speed="1">1x</button>
+            <button class="speed-btn" data-speed="2">2x</button>
+            <button class="speed-btn" data-speed="4">4x</button>
+            <button class="speed-btn" data-speed="8">8x</button>
+        </div>
     </div>
 
     <script>
@@ -309,8 +351,49 @@
         scene.add(hemiLight);
 
         const dirLight = new THREE.DirectionalLight(0xfff0dd, 0.8);
-        dirLight.position.set(1000, 1500, 1000);
         scene.add(dirLight);
+
+        // --- 2.5 DAY / NIGHT CYCLE SETUP ---
+        // timeOfDay goes from 0 to 2PI (0 = midnight, PI/2 = 6am, PI = noon, 3PI/2 = 6pm)
+        let timeOfDay = Math.PI / 2; // Start at 06:00
+        const BASE_DAY_SPEED = 0.02; // How fast the sun moves
+        let daySpeedMultiplier = 1;
+
+        // Sky Objects Group (follows player, hosts celestial bodies)
+        const skyGroup = new THREE.Group();
+        scene.add(skyGroup);
+
+        // Sun
+        const sunGeo = new THREE.SphereGeometry(100, 32, 32);
+        const sunMat = new THREE.MeshBasicMaterial({ color: 0xffddaa, fog: false });
+        const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+        skyGroup.add(sunMesh);
+
+        // Moon
+        const moonGeo = new THREE.SphereGeometry(60, 32, 32);
+        const moonMat = new THREE.MeshBasicMaterial({ color: 0xddddff, fog: false });
+        const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+        skyGroup.add(moonMesh);
+
+        // Stars
+        const starsGeo = new THREE.BufferGeometry();
+        const starsCount = 2000;
+        const starsPos = new Float32Array(starsCount * 3);
+        for (let i = 0; i < starsCount * 3; i += 3) {
+            // Random point on a large sphere
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+            const r = 1500 + Math.random() * 500;
+            starsPos[i] = r * Math.sin(phi) * Math.cos(theta);
+            starsPos[i + 1] = r * Math.sin(phi) * Math.sin(theta);
+            starsPos[i + 2] = r * Math.cos(phi);
+        }
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
+        const starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 4, sizeAttenuation: true, fog: false, transparent: true });
+        const starsMesh = new THREE.Points(starsGeo, starsMat);
+        skyGroup.add(starsMesh);
 
         // --- 3. CREATE AIRPLANE ---
         const planeGroup = new THREE.Group();
@@ -749,6 +832,75 @@
             // 6. Update environment and weather
             updateChunks();
 
+            // --- DAY/NIGHT CYCLE LOGIC ---
+            timeOfDay += delta * BASE_DAY_SPEED * daySpeedMultiplier;
+            if (timeOfDay > Math.PI * 2) timeOfDay -= Math.PI * 2;
+
+            // Update Debug Menu
+            const debugMenu = document.getElementById('debug-menu');
+            if (debugMenu && debugMenu.style.display !== 'none') {
+                const debugTimeEl = document.getElementById('debug-time');
+                if (debugTimeEl) {
+                    const hours = (timeOfDay / (Math.PI * 2)) * 24;
+                    const hh = Math.floor(hours).toString().padStart(2, '0');
+                    const mm = Math.floor((hours % 1) * 60).toString().padStart(2, '0');
+                    debugTimeEl.innerText = `${hh}:${mm}`;
+                }
+                const debugDirEl = document.getElementById('debug-dir');
+                if (debugDirEl) {
+                    // Plane faces -Z initially (North). 
+                    // Positive Y rotation turns left (West)
+                    let heading = planeGroup.rotation.y % (Math.PI * 2);
+                    if (heading < 0) heading += Math.PI * 2;
+                    let deg = heading * (180 / Math.PI);
+
+                    const dirs = ['N', 'NW', 'W', 'SW', 'S', 'SE', 'E', 'NE'];
+                    let sector = Math.floor(((deg + 22.5) % 360) / 45);
+                    debugDirEl.innerText = dirs[sector];
+                }
+            }
+
+            // Update celestial positions relative to skyGroup center
+            const orbitRadius = 2000;
+            // 0 = midnight (Y=-1), PI/2 = 6am (X=1, East), PI = noon (Y=1), 3PI/2 = 6pm (X=-1, West)
+            const sunY = -Math.cos(timeOfDay);
+            const sunX = Math.sin(timeOfDay);
+            const sunZ = Math.cos(timeOfDay) * 0.3; // Slight tilt so it doesn't pass exactly overhead
+
+            sunMesh.position.set(sunX * orbitRadius, sunY * orbitRadius, sunZ * orbitRadius);
+            moonMesh.position.set(-sunX * orbitRadius, -sunY * orbitRadius, -sunZ * orbitRadius); // Opposite to sun
+            dirLight.position.copy(sunMesh.position).add(planeGroup.position); // Light comes from sun
+
+            // Center the entire skyGroup on the camera so stars/sun stay far away
+            skyGroup.position.copy(camera.position);
+
+            // Determine time of day aesthetics
+            let dayFactor = Math.max(0, Math.min(1, (sunY + 0.2) * 2)); // 0 = night, 1 = day, transition happens smoothly around horizon
+            let uncloudedSkyColor = new THREE.Color().setHex(0x050510); // Default Night Black
+            let uncloudedFogColor = new THREE.Color().setHex(0x020208);
+
+            if (dayFactor > 0.0) {
+                // Determine if it is sunrise/sunset vs full day
+                let sunRiseSetFactor = 1.0 - Math.min(1, Math.abs(sunY) * 4); // 1 = exactly on horizon, 0 = high in sky or deep night
+                sunRiseSetFactor = Math.max(0, sunRiseSetFactor);
+
+                const daySky = new THREE.Color(0xa0d8ef); // Blue
+                const sunriseSky = new THREE.Color(0xff8c42); // Orange/Pink
+
+                uncloudedSkyColor.lerpColors(new THREE.Color(0x050510), sunriseSky, dayFactor); // Fade night to sunrise
+                uncloudedSkyColor.lerp(daySky, 1.0 - sunRiseSetFactor); // Fade sunrise to day
+
+                uncloudedFogColor.copy(uncloudedSkyColor);
+            }
+
+            // Fade stars in at night
+            starsMat.opacity = 1.0 - dayFactor;
+
+            // Dim lights at night
+            hemiLight.intensity = THREE.MathUtils.lerp(0.1, 0.6, dayFactor);
+            dirLight.intensity = THREE.MathUtils.lerp(0, 0.8, dayFactor);
+
+
             // Dynamic Weather/Cloudiness based on player location
             // Use low frequency noise so we slowly transition between clear and overcast regions
             let weatherNoise = (simplex.noise2D((planeGroup.position.x / CHUNK_SIZE) * 0.1 + 500, (planeGroup.position.z / CHUNK_SIZE) * 0.1) + 1) / 2; // 0 to 1
@@ -759,13 +911,15 @@
                 weatherNoise = (weatherNoise - weatherThreshold) / (1 - weatherThreshold); // Lerp towards cloudy
             }
 
-            // Interpolate sky color and fog
-            const clearColor = new THREE.Color(0xa0d8ef);
-            const cloudyColor = new THREE.Color(0x8899aa);
-            const targetColor = clearColor.clone().lerp(cloudyColor, weatherNoise);
+            // The 'cloudy' overcast visual changes depending on the time of day as well (darker grey at night)
+            const cloudyColor = new THREE.Color().setHex(0x0a0c10).lerp(new THREE.Color(0x8899aa), dayFactor);
 
-            scene.background.lerp(targetColor, 0.01);
-            scene.fog.color.lerp(targetColor, 0.01);
+            const finalSkyColor = uncloudedSkyColor.clone().lerp(cloudyColor, weatherNoise);
+            const finalFogColor = uncloudedFogColor.clone().lerp(cloudyColor, weatherNoise);
+
+            scene.background.lerp(finalSkyColor, 0.05);
+            scene.fog.color.lerp(finalFogColor, 0.05);
+
             // Drastically reduce fog dynamically if weather is clear. 0.0003 is very thin fog.
             const targetFogDensity = THREE.MathUtils.lerp(0.0003, 0.0018, weatherNoise);
             scene.fog.density = THREE.MathUtils.lerp(scene.fog.density, targetFogDensity, 0.01);
@@ -929,10 +1083,22 @@
         });
 
         window.addEventListener('keydown', (e) => {
+            if (e.key === 'd' || e.key === 'D') {
+                const debugMenu = document.getElementById('debug-menu');
+                debugMenu.style.display = debugMenu.style.display === 'block' ? 'none' : 'block';
+            }
             if (e.key >= '0' && e.key <= '6') {
                 const s = parseInt(e.key);
                 setStation(s);
             }
+        });
+
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                daySpeedMultiplier = parseFloat(e.target.getAttribute('data-speed'));
+            });
         });
 
     </script>
