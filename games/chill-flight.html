@@ -241,16 +241,24 @@
     </div>
 
     <div id="debug-menu">
-        <div style="margin-bottom: 10px; font-weight: bold;">Debug Controls</div>
+        <div style="margin-bottom: 10px; font-weight: bold;">Debug controls</div>
         <div>Time: <span id="debug-time">06:00</span></div>
         <div>Dir: <span id="debug-dir">N</span></div>
         <div style="margin-top: 10px;">
-            <div style="margin-bottom: 5px;">Time Speed:</div>
+            <div style="margin-bottom: 5px;">Time speed:</div>
             <button class="speed-btn" data-speed="0.5">0.5x</button>
             <button class="speed-btn active" data-speed="1">1x</button>
             <button class="speed-btn" data-speed="2">2x</button>
             <button class="speed-btn" data-speed="4">4x</button>
             <button class="speed-btn" data-speed="8">8x</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <div style="margin-bottom: 5px;">Plane speed:</div>
+            <button class="plane-speed-btn" data-pspeed="0.5">0.5x</button>
+            <button class="plane-speed-btn active" data-pspeed="1">1x</button>
+            <button class="plane-speed-btn" data-pspeed="2">2x</button>
+            <button class="plane-speed-btn" data-pspeed="4">4x</button>
+            <button class="plane-speed-btn" data-pspeed="10">10x</button>
         </div>
     </div>
 
@@ -322,8 +330,9 @@
         const MOUNTAIN_LEVEL = 180;
 
         // Flight parameters
-        const FLIGHT_SPEED = 2.5;
+        const BASE_FLIGHT_SPEED = 2.5;
         const TURN_SPEED = 0.03;
+        let flightSpeedMultiplier = 1;
 
         // --- 2. SETUP SCENE, CAMERA, RENDERER ---
         const scene = new THREE.Scene();
@@ -823,7 +832,7 @@
             planeGroup.rotation.y += planeGroup.rotation.z * 0.02;
 
             // 3. Move forward locally
-            planeGroup.translateZ(-FLIGHT_SPEED);
+            planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
 
             // 4. Ground Avoidance & Bounds (Chill Mode)
             const terrainHeight = getElevation(planeGroup.position.x, planeGroup.position.z);
@@ -1326,6 +1335,14 @@
                 document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 daySpeedMultiplier = parseFloat(e.target.getAttribute('data-speed'));
+            });
+        });
+
+        document.querySelectorAll('.plane-speed-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.plane-speed-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                flightSpeedMultiplier = parseFloat(e.target.getAttribute('data-pspeed'));
             });
         });
 
