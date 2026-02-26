@@ -477,8 +477,24 @@
         const snowTreeLeavesMat = new THREE.MeshStandardMaterial({ color: 0xE0F7FA, flatShading: true });
 
         function getBiome(x, z) {
-            // Very low frequency noise for large regions (continents, oceans)
-            return simplex.noise2D(x * 0.00005 + 1000, z * 0.00005 + 1000);
+            // Base low frequency noise
+            let noise = simplex.noise2D(x * 0.00005 + 1000, z * 0.00005 + 1000) * 0.5;
+
+            // Directional influences over a 10000 unit distance
+            // East (+X) = Water (Biome < -0.2)
+            // West (-X) = Plains (Biome ~ 0)
+            // South (+Z) = Mountains (Biome > 0.2)
+
+            const mapScale = 10000;
+            let biomeBase = 0;
+
+            // East influence pulls biome negative
+            if (x > 0) biomeBase -= Math.min(1, x / mapScale);
+
+            // South influence pulls biome positive
+            if (z > 0) biomeBase += Math.min(1, z / mapScale);
+
+            return Math.max(-1, Math.min(1, biomeBase + noise));
         }
 
         // Function to get height at any X/Z coordinate
@@ -556,7 +572,9 @@
                 positions[i + 1] = height; // Set Y
 
                 // Determine base temperature for snowy biomes
-                const temperature = simplex.noise2D(worldX * 0.0001 + 5000, worldZ * 0.0001 + 5000);
+                // North (-Z) pushes temperature much lower
+                const northInfluence = Math.max(0, Math.min(1, -worldZ / 10000));
+                const temperature = simplex.noise2D(worldX * 0.0001 + 5000, worldZ * 0.0001 + 5000) - (northInfluence * 1.5);
                 const isSnowBiome = temperature < -0.3;
 
                 // Colorize based on height
