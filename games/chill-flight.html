@@ -494,6 +494,49 @@
                 group.add(leavesInst);
             }
 
+            // 3. Generate Clouds
+            // Cloud density depends on simplex noise (lower frequency) to create cloudy/clear regions
+            let cloudiness = (simplex.noise2D(chunkX * 0.1 + 500, chunkZ * 0.1) + 1) / 2; // 0 to 1
+
+            // Map the noise so that anything below a threshold is 0 (clear sky), 
+            // and anything above scales up quickly (cloudy patches).
+            const cloudThreshold = 0.5;
+            if (cloudiness < cloudThreshold) {
+                cloudiness = 0;
+            } else {
+                cloudiness = (cloudiness - cloudThreshold) / (1 - cloudThreshold);
+            }
+
+            const numClouds = Math.floor(cloudiness * 40); // 0 to 40 clouds in cloudy chunks
+
+            const cloudGeo = new THREE.BoxGeometry(1, 1, 1);
+            const cloudMat = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.85,
+                flatShading: true,
+                roughness: 1.0
+            });
+
+            for (let i = 0; i < numClouds; i++) {
+                // assemble a cloud from 3-5 random overlapping boxes
+                const cx = (Math.random() - 0.5) * CHUNK_SIZE;
+                const cz = (Math.random() - 0.5) * CHUNK_SIZE;
+                const cy = 350 + Math.random() * 150; // altitude 350 to 500
+
+                const cloudGroup = new THREE.Group();
+                const parts = 3 + Math.floor(Math.random() * 3);
+                for (let p = 0; p < parts; p++) {
+                    const mesh = new THREE.Mesh(cloudGeo, cloudMat);
+                    mesh.position.set((Math.random() - 0.5) * 50, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 50);
+                    mesh.scale.set(40 + Math.random() * 60, 20 + Math.random() * 30, 40 + Math.random() * 60);
+                    mesh.rotation.y = Math.random() * Math.PI;
+                    cloudGroup.add(mesh);
+                }
+                cloudGroup.position.set(worldOffsetX + cx, cy, worldOffsetZ + cz);
+                group.add(cloudGroup);
+            }
+
             scene.add(group);
             return group;
         }
@@ -703,8 +746,29 @@
             currentLookTarget.lerp(idealLookTarget, 0.1);
             camera.lookAt(currentLookTarget);
 
-            // 6. Update environment
+            // 6. Update environment and weather
             updateChunks();
+
+            // Dynamic Weather/Cloudiness based on player location
+            // Use low frequency noise so we slowly transition between clear and overcast regions
+            let weatherNoise = (simplex.noise2D((planeGroup.position.x / CHUNK_SIZE) * 0.1 + 500, (planeGroup.position.z / CHUNK_SIZE) * 0.1) + 1) / 2; // 0 to 1
+            const weatherThreshold = 0.5;
+            if (weatherNoise < weatherThreshold) {
+                weatherNoise = 0; // Pure clear sky
+            } else {
+                weatherNoise = (weatherNoise - weatherThreshold) / (1 - weatherThreshold); // Lerp towards cloudy
+            }
+
+            // Interpolate sky color and fog
+            const clearColor = new THREE.Color(0xa0d8ef);
+            const cloudyColor = new THREE.Color(0x8899aa);
+            const targetColor = clearColor.clone().lerp(cloudyColor, weatherNoise);
+
+            scene.background.lerp(targetColor, 0.01);
+            scene.fog.color.lerp(targetColor, 0.01);
+            // Drastically reduce fog dynamically if weather is clear. 0.0003 is very thin fog.
+            const targetFogDensity = THREE.MathUtils.lerp(0.0003, 0.0018, weatherNoise);
+            scene.fog.density = THREE.MathUtils.lerp(scene.fog.density, targetFogDensity, 0.01);
 
             // 7. Render
             renderer.render(scene, camera);
