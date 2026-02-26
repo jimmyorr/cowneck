@@ -102,6 +102,55 @@
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.05);
         }
+
+        #radio-ui {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 50;
+            font-size: 14px;
+        }
+
+        #station-name {
+            font-weight: bold;
+            color: #FFD700;
+            display: inline-block;
+            width: 120px;
+        }
+
+        .station-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            padding: 0;
+        }
+
+        .station-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .station-btn.active {
+            background: #FFD700;
+            color: black;
+            border-color: #FFD700;
+        }
     </style>
     <!-- Load Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -118,6 +167,15 @@
         <h1>PAUSED</h1>
         <p style="margin-bottom: 10px; font-size: 18px; color: #ccc;">Press ESC to resume</p>
         <a href="index.html" class="btn">Exit Game</a>
+    </div>
+
+    <div id="radio-ui">
+        <div>RADIO: <span id="station-name">OFF</span></div>
+        <button class="station-btn active" data-station="0">0</button>
+        <button class="station-btn" data-station="1">1</button>
+        <button class="station-btn" data-station="2">2</button>
+        <button class="station-btn" data-station="3">3</button>
+        <button class="station-btn" data-station="4">4</button>
     </div>
 
     <script>
@@ -550,6 +608,110 @@
 
         // Start loop
         window.onload = animate;
+
+        // --- 7. PROCEDURAL AUDIO RADIO ---
+        let audioCtx;
+        let mainGain;
+        let currentStation = 0;
+        let nextNoteTime = 0;
+        let beatCount = 0;
+        let scheduleTimer;
+
+        const stationNames = ["OFF", "Ambient Dream", "Lofi Chords", "Minimal Pulse", "Deep Drone"];
+        // Pentatonic scale for pleasing chill vibes
+        const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+
+        function playTone(freq, type, startTime, dur, vol) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, startTime);
+
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(vol, startTime + dur * 0.2);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+
+            osc.connect(gain);
+            gain.connect(mainGain);
+
+            osc.start(startTime);
+            osc.stop(startTime + dur);
+        }
+
+        function scheduleAudio() {
+            if (!audioCtx) return;
+            // Schedule ahead
+            while (nextNoteTime < audioCtx.currentTime + 0.1) {
+                if (currentStation === 1) { // Ambient: random slow sines
+                    if (Math.random() > 0.4) {
+                        const freq = scale[Math.floor(Math.random() * scale.length)] / 2;
+                        playTone(freq, 'sine', nextNoteTime, 4.0, 0.15);
+                    }
+                    nextNoteTime += 1.0;
+                } else if (currentStation === 2) { // Lofi chords: slow stacked triangles
+                    if (beatCount % 4 === 0) {
+                        const rootIdx = Math.floor(Math.random() * 5);
+                        playTone(scale[rootIdx] / 2, 'triangle', nextNoteTime, 3.0, 0.1);
+                        playTone(scale[rootIdx + 2] / 2, 'triangle', nextNoteTime, 3.0, 0.1);
+                        playTone(scale[rootIdx + 4] / 2, 'triangle', nextNoteTime, 3.0, 0.1);
+                    }
+                    if (Math.random() > 0.7) playTone(scale[Math.floor(Math.random() * scale.length)], 'sine', nextNoteTime, 0.5, 0.05); // little melody plucks
+                    nextNoteTime += 0.5;
+                } else if (currentStation === 3) { // Minimal: steady rhythmic plucks
+                    playTone(scale[beatCount % scale.length] / 2, 'square', nextNoteTime, 0.3, 0.02);
+                    if (beatCount % 4 === 0) playTone(scale[0] / 4, 'sine', nextNoteTime, 1.0, 0.1);
+                    nextNoteTime += 0.25;
+                } else if (currentStation === 4) { // Drone: very low slowly shifting sines
+                    if (beatCount % 8 === 0) {
+                        const freq = scale[Math.floor(Math.random() * 3)] / 4;
+                        playTone(freq, 'sawtooth', nextNoteTime, 8.0, 0.05);
+                        playTone(freq * 1.5, 'sine', nextNoteTime, 8.0, 0.05);
+                    }
+                    nextNoteTime += 1.0;
+                }
+                beatCount++;
+            }
+            if (currentStation !== 0) {
+                scheduleTimer = requestAnimationFrame(scheduleAudio);
+            }
+        }
+
+        function setStation(num) {
+            currentStation = num;
+            document.getElementById('station-name').innerText = stationNames[num];
+
+            document.querySelectorAll('.station-btn').forEach(b => {
+                b.classList.remove('active');
+                if (parseInt(b.getAttribute('data-station')) === num) b.classList.add('active');
+            });
+
+            if (num > 0 && !audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                mainGain = audioCtx.createGain();
+                mainGain.connect(audioCtx.destination);
+                // Simple master compressor for safety
+                const comp = audioCtx.createDynamicsCompressor();
+                mainGain.connect(comp);
+                comp.connect(audioCtx.destination);
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            cancelAnimationFrame(scheduleTimer);
+            if (num !== 0) {
+                if (audioCtx) nextNoteTime = audioCtx.currentTime + 0.1;
+                scheduleAudio();
+            }
+        }
+
+        document.querySelectorAll('.station-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const s = parseInt(e.target.getAttribute('data-station'));
+                setStation(s);
+            });
+        });
 
     </script>
 </body>
