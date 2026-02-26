@@ -231,9 +231,9 @@
         <button class="station-btn" data-station="2" style="border-color: #ff4444; color: #ff4444;"
             title="Lofi Girl">LG</button>
         <button class="station-btn" data-station="3" style="border-color: #ff4444; color: #ff4444;"
-            title="Nice Guys">NG</button>
-        <button class="station-btn" data-station="4" style="border-color: #ff4444; color: #ff4444;"
             title="Bootleg Boy">BB</button>
+        <button class="station-btn" data-station="4" style="border-color: #ff4444; color: #ff4444;"
+            title="Nice Guys">NG</button>
     </div>
 
     <div id="yt-container">
@@ -963,7 +963,7 @@
         let beatCount = 0;
         let scheduleTimer;
 
-        const stationNames = ["Off", "Ambient dream", "Lofi Girl (YT)", "Nice Guys (YT)", "Bootleg Boy (YT)", "Ethereal chords", "Minimal pulse", "Lofi beats"];
+        const stationNames = ["Off", "Ambient dream", "Lofi Girl (YT)", "Bootleg Boy (YT)", "Nice Guys (YT)", "Ethereal chords", "Minimal pulse", "Lofi beats"];
         // Pentatonic scale for pleasing chill vibes
         const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
 
@@ -1206,9 +1206,6 @@
                     ytPlayer.loadVideoById('jfKfPfyJRdk');
                 } else if (num === 3) {
                     ytContainer.style.display = 'block';
-                    ytPlayer.loadVideoById('0cvzztYZXYs');
-                } else if (num === 4) {
-                    ytContainer.style.display = 'block';
                     // The YouTube API's setShuffle only randomizes the *next* videos in the queue. 
                     // To avoid hearing the same first song every time, we must start at a random index!
                     const randomStartIndex = Math.floor(Math.random() * 30); // 30+ videos in the playlist
@@ -1219,6 +1216,9 @@
                     });
                     // Shuffle the remainder of the playlist
                     ytPlayer.setShuffle(true);
+                } else if (num === 4) {
+                    ytContainer.style.display = 'block';
+                    ytPlayer.loadVideoById('0cvzztYZXYs');
                 } else {
                     ytContainer.style.display = 'none';
                     ytPlayer.pauseVideo();
