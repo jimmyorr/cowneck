@@ -958,6 +958,11 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+
+            const ytContainer = document.getElementById('yt-container');
+            if (currentStation === 2 || currentStation === 3) {
+                ytContainer.style.display = window.innerWidth <= 768 ? 'none' : 'block';
+            }
         });
 
         let isPaused = false;
@@ -1654,10 +1659,10 @@
             const ytContainer = document.getElementById('yt-container');
             if (ytPlayerReady) {
                 if (num === 2) {
-                    ytContainer.style.display = 'block';
+                    ytContainer.style.display = window.innerWidth <= 768 ? 'none' : 'block';
                     ytPlayer.loadVideoById('jfKfPfyJRdk');
                 } else if (num === 3) {
-                    ytContainer.style.display = 'block';
+                    ytContainer.style.display = window.innerWidth <= 768 ? 'none' : 'block';
                     // The YouTube API's setShuffle only randomizes the *next* videos in the queue. 
                     // To avoid hearing the same first song every time, we must start at a random index!
                     const randomStartIndex = Math.floor(Math.random() * 30); // 30+ videos in the playlist
