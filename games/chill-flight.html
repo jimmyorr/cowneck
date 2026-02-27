@@ -974,12 +974,31 @@
             targetPitch = effMouseY * maxPitch;
             targetRoll = -effMouseX * maxRoll;
 
+            // Manual airplane banking via keyboard (Overrides mouse roll, allows barrel rolls)
+            let isManualBanking = false;
+            let manualRollSpeed = 3.5; // rad/s
+            if (keys.ArrowLeft) {
+                planeGroup.rotation.z += manualRollSpeed * delta;
+                isManualBanking = true;
+            } else if (keys.ArrowRight) {
+                planeGroup.rotation.z -= manualRollSpeed * delta;
+                isManualBanking = true;
+            }
+
             // Smooth interpolation towards targets
             planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetPitch, TURN_SPEED);
-            planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, targetRoll, TURN_SPEED);
+
+            if (!isManualBanking) {
+                // Normalize rotation.z to be within PI of targetRoll so we smoothly un-roll without unwinding multiple 360s
+                while (planeGroup.rotation.z > targetRoll + Math.PI) planeGroup.rotation.z -= 2 * Math.PI;
+                while (planeGroup.rotation.z < targetRoll - Math.PI) planeGroup.rotation.z += 2 * Math.PI;
+
+                planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, targetRoll, TURN_SPEED);
+            }
 
             // Yaw turns naturally as the plane rolls (banking)
-            planeGroup.rotation.y += planeGroup.rotation.z * 0.02;
+            let yawTurnMultiplier = isManualBanking ? 0.045 : 0.02; // Tighter turns when using keyboard
+            planeGroup.rotation.y += planeGroup.rotation.z * yawTurnMultiplier;
 
             // 3. Move forward locally
             planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
@@ -1491,8 +1510,12 @@
                 }
             });
         });
+        const keys = { ArrowLeft: false, ArrowRight: false };
 
         window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
+            if (e.key === 'ArrowRight') keys.ArrowRight = true;
+
             if (e.key === 'd' || e.key === 'D') {
                 const debugMenu = document.getElementById('debug-menu');
                 debugMenu.style.display = debugMenu.style.display === 'block' ? 'none' : 'block';
@@ -1519,6 +1542,11 @@
                 flightSpeedMultiplier = Math.max(0.5, flightSpeedMultiplier / 1.2);
                 updateSpeedUI();
             }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
+            if (e.key === 'ArrowRight') keys.ArrowRight = false;
         });
 
         function updateSpeedUI() {
