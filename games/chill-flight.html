@@ -639,6 +639,18 @@
         const snowTreeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x4E342E, flatShading: true });
         const snowTreeLeavesMat = new THREE.MeshStandardMaterial({ color: 0xE0F7FA, flatShading: true });
 
+        // NEW 3D BIRD IMPLEMENTATION (Hawks & Geese)
+        // Simple Geometric Bird Parts
+        const birdBodyGeo = new THREE.BoxGeometry(1, 0.8, 4); // Elongated box body
+        const birdWingGeo = new THREE.BoxGeometry(6, 0.1, 2); // Flat wing
+        birdWingGeo.translate(3, 0, 0); // Offset so it rotates from the body edge (shoulder)
+
+        const birdHeadGeo = new THREE.ConeGeometry(0.5, 1.5, 4);
+        birdHeadGeo.rotateX(-Math.PI / 2); // Point forward
+        birdHeadGeo.translate(0, 0, -2); // Position at front of body
+
+        const hawkMat = new THREE.MeshStandardMaterial({ color: 0x442200, flatShading: true });
+
         function getBiome(x, z) {
             // Base low frequency noise
             let noise = simplex.noise2D(x * 0.00005 + 1000, z * 0.00005 + 1000) * 0.5;
@@ -865,6 +877,52 @@
                 }
                 cloudGroup.position.set(worldOffsetX + cx, cy, worldOffsetZ + cz);
                 group.add(cloudGroup);
+            }
+
+            // 4. Generate Birds (Rarely)
+            // Birds are stored in an array attached to the chunk group so we can animate them in the render loop.
+            group.userData.birds = [];
+
+            // 20% chance for a chunk to spawn a soaring hawk
+            if (Math.random() < 0.20) {
+                const baseX = worldOffsetX + (Math.random() - 0.5) * CHUNK_SIZE;
+                const baseZ = worldOffsetZ + (Math.random() - 0.5) * CHUNK_SIZE;
+                let baseY = getElevation(baseX, baseZ) + 150 + Math.random() * 200; // High in the sky
+
+                // Keep birds under the cloud layer roughly
+                if (baseY > 400) baseY = 400;
+
+                const baseRotationY = Math.random() * Math.PI * 2; // Direction of travel
+
+                function assembleBird(mat, scale) {
+                    const bird = new THREE.Group();
+                    const body = new THREE.Mesh(birdBodyGeo, mat);
+                    const head = new THREE.Mesh(birdHeadGeo, mat);
+                    const wingL = new THREE.Mesh(birdWingGeo, mat);
+                    const wingR = new THREE.Mesh(birdWingGeo, mat);
+                    wingL.rotation.y = Math.PI;
+                    bird.add(body); bird.add(head); bird.add(wingL); bird.add(wingR);
+                    bird.scale.set(scale, scale, scale);
+                    bird.userData.wings = [wingL, wingR];
+                    return bird;
+                }
+
+                // Single Soaring Hawk
+                const hawk = assembleBird(hawkMat, 4.0); // Hawk is larger
+                hawk.position.set(baseX, baseY, baseZ);
+                hawk.rotation.y = baseRotationY;
+
+                hawk.userData.type = 'hawk';
+                hawk.userData.speed = 0.4;
+                hawk.userData.circleSpeed = 0.3 + Math.random() * 0.2;
+                hawk.userData.circleRadius = 150 + Math.random() * 100;
+                hawk.userData.circleCenter = new THREE.Vector3(baseX, baseY, baseZ);
+                hawk.userData.angle = Math.random() * Math.PI * 2;
+                hawk.userData.flapPhase = 0;
+                hawk.userData.flapSpeed = 2;
+
+                group.add(hawk);
+                group.userData.birds.push(hawk);
             }
 
             scene.add(group);
@@ -1284,6 +1342,46 @@
 
             // 6. Update environment and weather
             updateChunks();
+
+            // 6.5 Animate Birds
+            const time = clock.elapsedTime;
+            chunks.forEach(chunkGroup => {
+                if (chunkGroup.userData.birds) {
+                    chunkGroup.userData.birds.forEach(bird => {
+                        const data = bird.userData;
+
+                        // Wing Flapping Animation
+                        // Wing Flapping Animation via rotation
+                        const flap = Math.sin(time * data.flapSpeed + data.flapPhase) * 0.5;
+                        if (data.wings) {
+                            data.wings[0].rotation.z = flap; // Left wing
+                            data.wings[1].rotation.z = -flap; // Right wing
+                        }
+
+                        // Move forward
+                        bird.translateZ(-(data.speed * delta * 50));
+
+                        if (data.type === 'hawk') {
+                            // Hawk Soaring logic (circling)
+                            data.angle += data.circleSpeed * delta;
+                            const targetX = data.circleCenter.x + Math.cos(data.angle) * data.circleRadius;
+                            const targetZ = data.circleCenter.z + Math.sin(data.angle) * data.circleRadius;
+
+                            // Bank the hawk as it turns
+                            bird.rotation.z = 0.3; // Constant bank for circling
+
+                            // Look along the tangent of the circle
+                            bird.lookAt(
+                                data.circleCenter.x + Math.cos(data.angle + 0.1) * data.circleRadius,
+                                bird.position.y,
+                                data.circleCenter.z + Math.sin(data.angle + 0.1) * data.circleRadius
+                            );
+
+                            bird.position.set(targetX, bird.position.y, targetZ);
+                        }
+                    });
+                }
+            });
 
             // --- DAY/NIGHT CYCLE LOGIC ---
             timeOfDay += delta * BASE_DAY_SPEED * daySpeedMultiplier;
