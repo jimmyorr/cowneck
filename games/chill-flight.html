@@ -271,7 +271,9 @@
     <div id="crosshair"></div>
     <div id="pause-overlay">
         <h1>Paused</h1>
-        <p style="margin-bottom: 10px; font-size: 18px; color: #ccc;">Press ESC to resume</p>
+        <p style="margin-bottom: 5px; font-size: 18px; color: #ccc;">Press ESC to resume</p>
+        <p style="margin-bottom: 20px; font-size: 12px; color: #888;">Controls: Up/Down (Speed) &bull; Left/Right
+            (Barrel roll) &bull; L (Headlight)</p>
         <button id="resume-btn" class="btn" style="margin-bottom: 15px;">Resume flight</button>
         <a href="index.html" class="btn">Exit game</a>
     </div>
@@ -520,6 +522,28 @@
 
         // Better rotation order for airplanes (Yaw, then Pitch, then Roll)
         planeGroup.rotation.order = 'YXZ';
+
+        // Add Headlight (SpotLight) pointing forward with much softer parameters
+        const headlight = new THREE.SpotLight(0xffffee, 0); // Start off
+        headlight.position.set(0, 0, -10); // Nose of the plane
+
+        // Target is slightly down and far forward
+        const headlightTarget = new THREE.Object3D();
+        headlightTarget.position.set(0, -20, -100);
+        planeGroup.add(headlightTarget);
+        headlight.target = headlightTarget;
+
+        headlight.angle = Math.PI / 4; // 45 degree cone, much wider
+        headlight.penumbra = 1.0; // Completely soft edges (100% feathering instead of 50%)
+        headlight.distance = 1500;
+        headlight.decay = 2.0; // More realistic physical light falloff
+
+        // Minor ambient glow around the plane when light is on so the plane itself is subtly lit
+        const headlightGlow = new THREE.PointLight(0xffffee, 0, 50);
+        headlightGlow.position.set(0, 5, 0);
+        planeGroup.add(headlightGlow);
+
+        planeGroup.add(headlight);
 
         // Set initial plane position
         planeGroup.position.set(0, 200, 0);
@@ -1498,6 +1522,18 @@
             if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
             if (e.key === 'ArrowRight') keys.ArrowRight = true;
 
+            // Toggle Headlight (softened to not be a solid white circle)
+            if (e.key === 'l' || e.key === 'L') {
+                if (headlight.intensity === 0) {
+                    headlight.intensity = 3; // Very subtle headlight
+                    headlightGlow.intensity = 0.2; // Very subtle glow
+                } else {
+                    headlight.intensity = 0;
+                    headlightGlow.intensity = 0;
+                }
+            }
+
+            // Toggle debug menu
             if (e.key === 'd' || e.key === 'D') {
                 const debugMenu = document.getElementById('debug-menu');
                 debugMenu.style.display = debugMenu.style.display === 'block' ? 'none' : 'block';
