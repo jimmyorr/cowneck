@@ -924,12 +924,14 @@
         }
 
         window.addEventListener('mousemove', (e) => {
-            updateInputPosition(e.clientX, e.clientY);
+            if (!e.target.closest('#cockpit-ui') && !e.target.closest('#debug-menu') && !e.target.closest('.title')) {
+                updateInputPosition(e.clientX, e.clientY);
+            }
         });
 
         // Touch support for mobile
         window.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 0) {
+            if (e.touches.length > 0 && !e.target.closest('#cockpit-ui') && !e.target.closest('#debug-menu') && !e.target.closest('.title')) {
                 updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
             }
         }, { passive: false });
@@ -940,7 +942,9 @@
                 if (!e.target.closest('#cockpit-ui') && !isPaused) {
                     e.preventDefault();
                 }
-                updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
+                if (!e.target.closest('#cockpit-ui') && !e.target.closest('#debug-menu') && !e.target.closest('.title')) {
+                    updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
+                }
             }
         }, { passive: false });
 
