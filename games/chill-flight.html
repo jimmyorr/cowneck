@@ -523,7 +523,7 @@
         planeGroup.rotation.order = 'YXZ';
 
         // Add Headlight (SpotLight) pointing forward with much softer parameters
-        const headlight = new THREE.SpotLight(0xffffee, 0); // Start off
+        const headlight = new THREE.SpotLight(0xffd1a3, 0); // Warm incandescent off-white
         headlight.position.set(0, 0, -10); // Nose of the plane
 
         // Target is slightly down and far forward
@@ -538,7 +538,7 @@
         headlight.decay = 2.0; // More realistic physical light falloff
 
         // Minor ambient glow around the plane when light is on so the plane itself is subtly lit
-        const headlightGlow = new THREE.PointLight(0xffffee, 0, 50);
+        const headlightGlow = new THREE.PointLight(0xffd1a3, 0, 50);
         headlightGlow.position.set(0, 5, 0);
         planeGroup.add(headlightGlow);
 
@@ -1524,8 +1524,8 @@
             // Toggle Headlight (softened to not be a solid white circle)
             if (e.key === 'l' || e.key === 'L') {
                 if (headlight.intensity === 0) {
-                    headlight.intensity = 3; // Very subtle headlight
-                    headlightGlow.intensity = 0.2; // Very subtle glow
+                    headlight.intensity = 2; // Very subtle headlight
+                    headlightGlow.intensity = 0.1; // Very subtle glow
                 } else {
                     headlight.intensity = 0;
                     headlightGlow.intensity = 0;
