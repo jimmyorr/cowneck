@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chained Climb</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #0f172a; color: white; font-family: sans-serif; }
+        canvas { display: block; }
+        /* Add a subtle glow text utility */
+        .glow-text { text-shadow: 0 0 15px currentColor; }
+    </style>
+</head>
+<body>
+    <!-- Start Screen -->
+    <div id="ui" class="absolute inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-1000 bg-slate-900/80">
+        <h1 class="text-7xl font-extrabold mb-4 text-orange-500 glow-text tracking-wider">CHAINED CLIMB</h1>
+        <div class="mt-6 text-center bg-slate-800/80 p-8 rounded-xl border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.2)] max-w-lg">
+            <h2 class="text-3xl font-bold text-purple-400 mb-4 glow-text">How to Play</h2>
+            <p class="text-xl text-gray-200 mb-2"><span class="font-bold text-white">WASD</span> or <span class="font-bold text-white">Arrows</span> to Fly Active Ball</p>
+            <p class="text-xl text-gray-200"><span class="font-bold text-white">SPACEBAR</span> to Switch & Anchor</p>
+            <p class="text-md text-gray-400 mt-6">Anchor one ball and fly the other to climb!</p>
+        </div>
+        <p class="mt-12 text-2xl text-gray-300">You are chained together. Work together to climb out.</p>
+        <p class="mt-8 text-lg font-bold text-orange-400 animate-pulse">Press ANY KEY to start</p>
+    </div>
+    
+    <!-- HUD -->
+    <div id="hud" class="absolute top-6 left-6 z-40 opacity-0 transition-opacity duration-500 pointer-events-none">
+        <div class="bg-slate-800/80 px-6 py-3 rounded-xl border border-slate-600 shadow-lg">
+            <div class="text-3xl text-orange-400 font-bold font-mono">Altitude: <span id="score">0</span>m</div>
+        </div>
+    </div>
+
+    <!-- Win Screen -->
+    <div id="win-screen" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 transition-opacity duration-1000 bg-black/90 z-50 pointer-events-none">
+        <h1 class="text-7xl font-bold mb-4 text-green-400 glow-text">YOU ESCAPED!</h1>
+        <p class="text-2xl text-gray-300 mb-2">Excellent teamwork.</p>
+        <p class="text-xl text-gray-400 mb-10">Max Altitude Reached.</p>
+        <button id="restart-btn" class="px-8 py-4 bg-orange-600 hover:bg-orange-500 text-white text-2xl rounded-xl font-bold cursor-pointer shadow-[0_0_20px_rgba(234,88,12,0.5)] hover:scale-105 transition-transform pointer-events-auto">Play Again</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 transition-opacity duration-500 bg-red-900/90 z-50 pointer-events-none">
+        <h1 class="text-7xl font-bold mb-4 text-red-400 glow-text">ZAPPED!</h1>
+        <p class="text-2xl text-gray-300 mb-10">You touched an electrified obstacle.</p>
+        <button id="retry-btn" class="px-8 py-4 bg-red-600 hover:bg-red-500 text-white text-2xl rounded-xl font-bold cursor-pointer shadow-[0_0_20px_rgba(220,38,38,0.5)] hover:scale-105 transition-transform pointer-events-auto">Try Again</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Matter.js Aliases
+        const Engine = Matter.Engine,
+              Bodies = Matter.Bodies,
+              Body = Matter.Body,
+              Composite = Matter.Composite,
+              Constraint = Matter.Constraint,
+              Query = Matter.Query;
+
+        let engine, p1, p2, links, constraints, platforms;
+        let activePlayerId = 0; // 0 for p1, 1 for p2
+        let gameState = 'START'; // START, PLAYING, WIN, GAMEOVER
+        let cameraX = 500;
+        let cameraY = 800;
+        
+        let particles = [];
+        let p1Trail = [];
+        let p2Trail = [];
+        let screenShake = 0;
+        
+        const keys = {};
+        const prevKeys = {};
+
+        // Input Handling
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                keys['space'] = true;
+                e.preventDefault(); // Prevent scrolling
+            } else {
+                keys[e.key.toLowerCase()] = true;
+            }
+            
+            if (gameState === 'START') {
+                gameState = 'PLAYING';
+                document.getElementById('ui').classList.add('opacity-0');
+                document.getElementById('hud').classList.remove('opacity-0');
+            }
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') {
+                keys['space'] = false;
+            } else {
+                keys[e.key.toLowerCase()] = false;
+            }
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            document.getElementById('win-screen').classList.add('opacity-0');
+            document.getElementById('win-screen').classList.remove('pointer-events-auto');
+            gameState = 'PLAYING';
+            initGame();
+        });
+
+        document.getElementById('retry-btn').addEventListener('click', () => {
+            document.getElementById('game-over-screen').classList.add('opacity-0');
+            document.getElementById('game-over-screen').classList.remove('pointer-events-auto');
+            gameState = 'PLAYING';
+            initGame();
+        });
+
+        function triggerGameOver(playerPos) {
+            if (gameState === 'GAMEOVER') return;
+            gameState = 'GAMEOVER';
+            screenShake = 30; // Heavy shake effect
+            document.getElementById('game-over-screen').classList.remove('opacity-0');
+            document.getElementById('game-over-screen').classList.add('pointer-events-auto');
+            
+            // Spawn death explosion
+            for(let i = 0; i < 40; i++) {
+                particles.push({
+                    x: playerPos.x, y: playerPos.y,
+                    vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20,
+                    life: 1.0, color: Math.random() > 0.5 ? '#ef4444' : '#f59e0b'
+                });
+            }
+        }
+
+        function initGame() {
+            if (!engine) {
+                engine = Engine.create({ positionIterations: 12, velocityIterations: 12 });
+                
+                // Add collision event for electrified walls
+                Matter.Events.on(engine, 'collisionStart', (event) => {
+                    if (gameState !== 'PLAYING') return;
+                    event.pairs.forEach((pair) => {
+                        const { bodyA, bodyB } = pair;
+                        const isPlayer = (b) => b === p1 || b === p2;
+                        const isWall = (b) => b.isWall;
+
+                        if (isPlayer(bodyA) && isWall(bodyB)) triggerGameOver(bodyA.position);
+                        if (isWall(bodyA) && isPlayer(bodyB)) triggerGameOver(bodyB.position);
+                    });
+                });
+            }
+            Matter.World.clear(engine.world);
+            engine.world.gravity.y = 1.4; // Slightly higher gravity for punchier swinging
+
+            platforms = [];
+            links = [];
+            constraints = [];
+            particles = [];
+            p1Trail = [];
+            p2Trail = [];
+            screenShake = 0;
+
+            // 1. Level Boundaries & Ground
+            platforms.push(Bodies.rectangle(500, 800, 1000, 100, { isStatic: true })); // Ground
+            
+            // Electrified Walls
+            const leftWall = Bodies.rectangle(-25, -4500, 50, 11000, { isStatic: true });
+            leftWall.isWall = true;
+            const rightWall = Bodies.rectangle(1025, -4500, 50, 11000, { isStatic: true });
+            rightWall.isWall = true;
+            platforms.push(leftWall, rightWall);
+
+            // 2. Win Platform at the top
+            const winPlatform = Bodies.rectangle(500, -10000, 1000, 50, { isStatic: true });
+            winPlatform.isWin = true;
+            platforms.push(winPlatform);
+
+            // 3. Procedural Platforms
+            let currentY = 600;
+            while (currentY > -9500) {
+                // Make platforms generally smaller to act as anchor points
+                const isBig = Math.random() > 0.8;
+                const width = isBig ? 200 : (80 + Math.random() * 80);
+                const minX = width / 2 + 50; // Keep slightly off the main walls
+                const maxX = 950 - width / 2;
+                const x = minX + Math.random() * (maxX - minX);
+                
+                const plat = Bodies.rectangle(x, currentY, width, 40, { isStatic: true, friction: 0.8 });
+                plat.isWall = true;
+                platforms.push(plat);
+                
+                // Occasional alternate split path (made much rarer to reduce clutter)
+                if (Math.random() > 0.9) {
+                    const altX = x > 500 ? x - 400 : x + 400;
+                    const altPlat = Bodies.rectangle(Math.max(minX, Math.min(maxX, altX)), currentY + (Math.random()*100 - 50), width*0.8, 40, { isStatic: true, friction: 0.8 });
+                    altPlat.isWall = true;
+                    platforms.push(altPlat);
+                }
+
+                // Massive gaps to allow for long coasting and swinging
+                const gap = 350 + Math.random() * 250; 
+                currentY -= gap;
+            }
+
+            // 4. Players
+            const playerOptions = { 
+                restitution: 0.05, 
+                friction: 0.8, 
+                frictionAir: 0.01, 
+                density: 0.05, 
+                inertia: Infinity // Prevent rolling
+            };
+            p1 = Bodies.circle(450, 700, 18, playerOptions);
+            p2 = Bodies.circle(550, 700, 18, playerOptions);
+
+            // 5. The Chain
+            const chainGroup = Body.nextGroup(true); // Don't collide with each other
+            const numLinks = 12;
+            const linkLength = 15;
+
+            // Small circle links slide nicely over platform edges
+            for (let i = 0; i < numLinks; i++) {
+                links.push(Bodies.circle(465 + i * 5, 700, 4, {
+                    collisionFilter: { group: chainGroup },
+                    density: 0.01,
+                    friction: 0.1,
+                    restitution: 0.5
+                }));
+            }
+
+            // Connect P1 to Chain
+            constraints.push(Constraint.create({ bodyA: p1, bodyB: links[0], length: 15, stiffness: 0.9 }));
+            // Connect Chain Links
+            for (let i = 0; i < numLinks - 1; i++) {
+                constraints.push(Constraint.create({ bodyA: links[i], bodyB: links[i+1], length: linkLength, stiffness: 0.9 }));
+            }
+            // Connect Chain to P2
+            constraints.push(Constraint.create({ bodyA: links[numLinks-1], bodyB: p2, length: 15, stiffness: 0.9 }));
+
+            // Initial setup: anchor p2, let p1 swing
+            Body.setStatic(p2, true);
+            activePlayerId = 0;
+
+            Composite.add(engine.world, [p1, p2, ...links, ...constraints, ...platforms]);
+            
+            cameraX = 500;
+            cameraY = 800;
+        }
+
+        function drawBackground() {
+            ctx.fillStyle = '#0f172a'; // Deep slate
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Infinite Parallax Grid
+            const gridSize = 100;
+            const offsetX = (cameraX * 0.2) % gridSize;
+            const offsetY = (cameraY * 0.2) % gridSize;
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let x = -offsetX; x < canvas.width; x += gridSize) {
+                ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+            }
+            for (let y = -offsetY; y < canvas.height; y += gridSize) {
+                ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+            }
+            ctx.stroke();
+        }
+
+        function drawWorld() {
+            // Draw Trails
+            const drawTrail = (trail, color) => {
+                if (trail.length < 2) return;
+                ctx.beginPath();
+                ctx.moveTo(trail[0].x, trail[0].y);
+                for(let i=1; i<trail.length; i++) ctx.lineTo(trail[i].x, trail[i].y);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.globalAlpha = 0.3;
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+            };
+            drawTrail(p1Trail, '#60a5fa');
+            drawTrail(p2Trail, '#f87171');
+
+            // Draw Platforms
+            platforms.forEach(p => {
+                ctx.fillStyle = p.isWin ? '#064e3b' : (p.isWall ? '#450a0a' : '#1e293b'); 
+                ctx.strokeStyle = p.isWin ? '#22c55e' : (p.isWall ? '#ef4444' : '#334155');
+                
+                if (p.isWin) {
+                    ctx.shadowColor = '#22c55e';
+                    ctx.shadowBlur = 25;
+                } else if (p.isWall) {
+                    ctx.shadowColor = '#ef4444';
+                    ctx.shadowBlur = 15;
+                }
+
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                p.vertices.forEach((v, i) => {
+                    if (i === 0) ctx.moveTo(v.x, v.y);
+                    else ctx.lineTo(v.x, v.y);
+                });
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.shadowBlur = 0; // reset
+
+                if (!p.isWall) {
+                    // Lighter top highlight for depth (skip for walls)
+                    ctx.beginPath();
+                    ctx.moveTo(p.vertices[0].x, p.vertices[0].y);
+                    ctx.lineTo(p.vertices[1].x, p.vertices[1].y);
+                    ctx.strokeStyle = p.isWin ? '#4ade80' : '#64748b';
+                    ctx.stroke();
+                }
+            });
+
+            // Draw Chain Constraints
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            constraints.forEach(c => {
+                ctx.moveTo(c.bodyA.position.x, c.bodyA.position.y);
+                ctx.lineTo(c.bodyB.position.x, c.bodyB.position.y);
+            });
+            ctx.stroke();
+
+            // Draw Chain Links (Joints)
+            ctx.fillStyle = '#e2e8f0';
+            links.forEach(link => {
+                ctx.beginPath();
+                ctx.arc(link.position.x, link.position.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw Players
+            const drawPlayer = (player, baseColor, glowColor, label, isActive) => {
+                if (isActive) {
+                    ctx.shadowColor = '#ffffff';
+                    ctx.shadowBlur = 20;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(player.position.x, player.position.y, 23, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.shadowColor = glowColor;
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = baseColor;
+                ctx.beginPath();
+                ctx.arc(player.position.x, player.position.y, 18, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Eye / Center detail
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(player.position.x - 6, player.position.y - 6, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Player Label
+                ctx.fillStyle = glowColor;
+                ctx.font = 'bold 12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(label, player.position.x, player.position.y - 25);
+            };
+
+            drawPlayer(p1, '#2563eb', '#60a5fa', 'P1', activePlayerId === 0 && gameState !== 'GAMEOVER'); // Blue
+            drawPlayer(p2, '#dc2626', '#f87171', 'P2', activePlayerId === 1 && gameState !== 'GAMEOVER'); // Red
+
+            // Draw Particles
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4 + p.life * 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        // Main Game Loop
+        function loop() {
+            requestAnimationFrame(loop);
+            
+            if (screenShake > 0) screenShake *= 0.9;
+            if (screenShake < 0.5) screenShake = 0;
+            
+            if (gameState === 'PLAYING') {
+                Engine.update(engine, 1000 / 60);
+
+                const justPressed = (key) => keys[key] && !prevKeys[key];
+                const activeBall = activePlayerId === 0 ? p1 : p2;
+
+                // Update Trails
+                p1Trail.push({x: p1.position.x, y: p1.position.y});
+                if (p1Trail.length > 15) p1Trail.shift();
+                p2Trail.push({x: p2.position.x, y: p2.position.y});
+                if (p2Trail.length > 15) p2Trail.shift();
+
+                // --- Switching Mechanic ---
+                if (justPressed('space')) {
+                    activePlayerId = 1 - activePlayerId;
+                    const newActive = activePlayerId === 0 ? p1 : p2;
+                    const newAnchor = activePlayerId === 0 ? p2 : p1;
+                    
+                    // Lock the anchor in place
+                    Body.setStatic(newAnchor, true);
+                    Body.setVelocity(newAnchor, { x: 0, y: 0 }); // Stabilize on catch
+                    
+                    // Release the new active ball so gravity pulls it
+                    Body.setStatic(newActive, false);
+                    Body.setVelocity(newActive, { x: 0, y: 0.1 }); 
+                    
+                    // Spawn a small poof of particles on switch
+                    for(let i=0; i<8; i++) {
+                        particles.push({
+                            x: newAnchor.position.x, y: newAnchor.position.y,
+                            vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5,
+                            life: 1.0, color: '#e2e8f0'
+                        });
+                    }
+                }
+
+                // --- Flying Mechanics ---
+                const flyAccel = 1.5; // Increased for snappier movement
+                let vx = activeBall.velocity.x;
+                let vy = activeBall.velocity.y;
+
+                // WASD to fly (combats gravity)
+                let flying = false;
+                if (keys['a'] || keys['arrowleft']) { vx -= flyAccel; flying = true; }
+                if (keys['d'] || keys['arrowright']) { vx += flyAccel; flying = true; }
+                if (keys['w'] || keys['arrowup']) { vy -= flyAccel; flying = true; }
+                if (keys['s'] || keys['arrowdown']) { vy += flyAccel; flying = true; }
+
+                if (flying && Math.random() > 0.5) {
+                    particles.push({
+                        x: activeBall.position.x + (Math.random()-0.5)*10, 
+                        y: activeBall.position.y + (Math.random()-0.5)*10,
+                        vx: -vx * 0.2 + (Math.random()-0.5)*2, 
+                        vy: -vy * 0.2 + (Math.random()-0.5)*2,
+                        life: 1.0, color: activePlayerId === 0 ? '#93c5fd' : '#fca5a5'
+                    });
+                }
+
+                // Clamp to terminal velocity for control
+                const maxV = 16; // Increased max speed
+                vx = Math.max(-maxV, Math.min(maxV, vx));
+                vy = Math.max(-maxV, Math.min(maxV, vy));
+
+                // Add horizontal drag so they don't slide forever
+                vx *= 0.95; 
+                
+                Body.setVelocity(activeBall, { x: vx, y: vy });
+
+                // --- Win Check ---
+                if (p1.position.y < -9950 || p2.position.y < -9950) {
+                    gameState = 'WIN';
+                    document.getElementById('win-screen').classList.remove('opacity-0');
+                    document.getElementById('win-screen').classList.add('pointer-events-auto');
+                }
+
+                // --- HUD Update ---
+                const altitude = Math.max(0, Math.floor((800 - Math.min(p1.position.y, p2.position.y)) / 10));
+                document.getElementById('score').innerText = altitude;
+            }
+
+            // Update Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.03;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            // --- Rendering ---
+            drawBackground();
+            
+            // Smooth Camera tracking (centers on the midpoint of the two players)
+            const targetX = (p1.position.x + p2.position.x) / 2;
+            const targetY = (p1.position.y + p2.position.y) / 2;
+            cameraX += (targetX - cameraX) * 0.1;
+            cameraY += (targetY - cameraY) * 0.1;
+
+            ctx.save();
+            
+            // Apply Screen Shake
+            let shakeOffsetX = (Math.random() - 0.5) * screenShake;
+            let shakeOffsetY = (Math.random() - 0.5) * screenShake;
+            
+            // Offset view so players are visible slightly in the lower half of the screen
+            ctx.translate(canvas.width / 2 - cameraX + shakeOffsetX, canvas.height * 0.65 - cameraY + shakeOffsetY);
+            drawWorld();
+            ctx.restore();
+
+            // Track previous keys for 'just pressed' events (jump)
+            for (let key in keys) prevKeys[key] = keys[key];
+        }
+
+        // Initialize and Start Loop
+        initGame();
+        requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>
