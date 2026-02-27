@@ -108,20 +108,58 @@
             transform: scale(1.05);
         }
 
-        #radio-ui {
+        #cockpit-ui {
             position: absolute;
-            bottom: 30px;
-            right: 30px;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 15px;
-            border-radius: 12px;
-            backdrop-filter: blur(4px);
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(8px);
             color: white;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 20px;
             z-index: 50;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .cockpit-grid {
+            display: grid;
+            grid-template-columns: auto auto;
+            grid-template-rows: auto auto;
+            column-gap: 25px;
+            row-gap: 8px;
+        }
+
+        .cockpit-module {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .cockpit-label {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            width: 35px;
+            /* Fixed width for alignment */
+            text-align: right;
+        }
+
+        .cockpit-value {
             font-size: 14px;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            color: #FFD700;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+            min-width: 60px;
+            /* Prevent jitter on value change */
         }
 
         #station-name {
@@ -132,29 +170,33 @@
         }
 
         .station-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.8);
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            /* Squarer buttons for compact look */
             cursor: pointer;
-            font-weight: bold;
+            font-size: 11px;
+            font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             padding: 0;
         }
 
         .station-btn:hover {
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
         }
 
         .station-btn.active {
             background: #FFD700;
-            color: black;
+            color: #000;
             border-color: #FFD700;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
         }
 
         #yt-container {
@@ -234,16 +276,40 @@
         <a href="index.html" class="btn">Exit game</a>
     </div>
 
-    <div id="radio-ui">
-        <div>Radio: <span id="station-name">Off</span></div>
-        <button class="station-btn active" data-station="0" title="Off">0</button>
-        <button class="station-btn" data-station="procedural" title="Procedural Music">♫</button>
-        <button class="station-btn" data-station="2" style="border-color: #ff4444; color: #ff4444;"
-            title="Lofi Girl">LG</button>
-        <button class="station-btn" data-station="3" style="border-color: #ff4444; color: #ff4444;"
-            title="Bootleg Boy 2">BB</button>
-        <button class="station-btn" data-station="4" style="border-color: #ff4444; color: #ff4444;"
-            title="Nice Guys">NG</button>
+    <div id="cockpit-ui">
+        <div class="cockpit-grid">
+            <div class="cockpit-module">
+                <span class="cockpit-label">TIME</span>
+                <span class="cockpit-value" id="cockpit-time">06:00</span>
+            </div>
+            <div class="cockpit-module">
+                <span class="cockpit-label">POS</span>
+                <span class="cockpit-value" id="cockpit-coords">0&deg;N 0&deg;E</span>
+            </div>
+            <div class="cockpit-module">
+                <span class="cockpit-label">HDG</span>
+                <span class="cockpit-value" id="cockpit-dir">N</span>
+            </div>
+            <div class="cockpit-module">
+                <span class="cockpit-label">ALT</span>
+                <span class="cockpit-value" id="cockpit-alt">2000 FT</span>
+            </div>
+        </div>
+
+        <div id="cockpit-radio-module"
+            style="display: flex; flex-direction: column; align-items: flex-start; gap: 5px; margin-left: 10px; padding-left: 20px; border-left: 1px solid rgba(255,255,255,0.15);">
+            <div style="display: flex; gap: 4px; align-items: center;">
+                <span class="cockpit-label"
+                    style="text-align: right; width: auto; font-size: 9px; line-height: 1; margin-right: 5px;">RADIO</span>
+                <button class="station-btn active" data-station="0" title="Off">OFF</button>
+                <button class="station-btn" data-station="procedural" title="Procedural Music">P</button>
+                <button class="station-btn" data-station="2" title="Lofi Girl">LG</button>
+                <button class="station-btn" data-station="3" title="Bootleg Boy 2">BB</button>
+                <button class="station-btn" data-station="4" title="Nice Guys">NG</button>
+            </div>
+            <span id="station-name"
+                style="font-size: 11px; color: #FFD700; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; min-height: 14px;"></span>
+        </div>
     </div>
 
     <div id="yt-container">
@@ -784,7 +850,7 @@
         window.addEventListener('touchmove', (e) => {
             if (e.touches.length > 0) {
                 // Prevent default scrolling when playing
-                if (!e.target.closest('#radio-ui') && !isPaused) {
+                if (!e.target.closest('#cockpit-ui') && !isPaused) {
                     e.preventDefault();
                 }
                 updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
@@ -842,13 +908,25 @@
         // Shrink radio UI slightly, reposition YT screen if screen is narrow
         if (window.innerWidth <= 768) {
 
-            const radioUI = document.getElementById('radio-ui');
-            radioUI.style.flexWrap = 'nowrap';
-            radioUI.style.maxWidth = '100%';
-            radioUI.style.bottom = '10px';
-            radioUI.style.right = '5px';
-            radioUI.style.padding = '8px';
-            radioUI.style.gap = '5px';
+            const cockpitUI = document.getElementById('cockpit-ui');
+            cockpitUI.style.width = '95%';
+            cockpitUI.style.bottom = '10px';
+            cockpitUI.style.padding = '10px';
+            cockpitUI.style.gap = '5px';
+            cockpitUI.style.flexWrap = 'wrap';
+            cockpitUI.style.justifyContent = 'center';
+
+            const radioModule = document.getElementById('cockpit-radio-module');
+            if (radioModule) {
+                radioModule.style.borderLeft = 'none';
+                radioModule.style.paddingLeft = '0';
+                radioModule.style.marginLeft = '0';
+                radioModule.style.marginTop = '10px';
+                radioModule.style.borderTop = '1px solid rgba(255,255,255,0.15)';
+                radioModule.style.paddingTop = '10px';
+                radioModule.style.justifyContent = 'center';
+                radioModule.style.width = '100%';
+            }
 
             const stationName = document.getElementById('station-name');
             stationName.style.width = '100px';
@@ -858,7 +936,7 @@
             stationName.style.verticalAlign = 'bottom';
 
             const ytContainer = document.getElementById('yt-container');
-            ytContainer.style.bottom = '66px';
+            ytContainer.style.bottom = '120px';
             ytContainer.style.right = '10px';
             ytContainer.style.width = '180px';
             ytContainer.style.height = '101px';
@@ -886,8 +964,12 @@
             const maxRoll = Math.PI / 3;
 
             // Target angles based on mouse
-            targetPitch = mouseY * maxPitch;
-            targetRoll = -mouseX * maxRoll;
+            // Add a 15% deadzone in the center so the plane stays level without perfect mouse placement
+            let effMouseX = Math.abs(mouseX) < 0.15 ? 0 : mouseX;
+            let effMouseY = Math.abs(mouseY) < 0.15 ? 0 : mouseY;
+
+            targetPitch = effMouseY * maxPitch;
+            targetRoll = -effMouseX * maxRoll;
 
             // Smooth interpolation towards targets
             planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetPitch, TURN_SPEED);
@@ -941,28 +1023,48 @@
             timeOfDay += delta * BASE_DAY_SPEED * daySpeedMultiplier;
             if (timeOfDay > Math.PI * 2) timeOfDay -= Math.PI * 2;
 
-            // Update Debug Menu
+            // Update Cockpit & Debug Menu values
+            const hours = (timeOfDay / (Math.PI * 2)) * 24;
+            const hh = Math.floor(hours).toString().padStart(2, '0');
+            const mm = Math.floor((hours % 1) * 60).toString().padStart(2, '0');
+            const timeStr = `${hh}:${mm}`;
+
+            let heading = planeGroup.rotation.y % (Math.PI * 2);
+            if (heading < 0) heading += Math.PI * 2;
+            let deg = heading * (180 / Math.PI);
+            const dirs = ['N', 'NW', 'W', 'SW', 'S', 'SE', 'E', 'NE'];
+            let sector = Math.floor(((deg + 22.5) % 360) / 45);
+            const dirStr = dirs[sector];
+
+            // Divide world coordinates by a very large factor to simulate realistic speed of Lat/Long change
+            const latScale = 5000;
+            const latVal = (-planeGroup.position.z / latScale);
+            const lonVal = (planeGroup.position.x / latScale);
+
+            const latStr = Math.abs(latVal).toFixed(3) + "\u00b0 " + (latVal >= 0 ? "N" : "S");
+            const lonStr = Math.abs(lonVal).toFixed(3) + "\u00b0 " + (lonVal >= 0 ? "E" : "W");
+
+            // Map altitude: The lowest flying height above water without diving is roughly 75, so at 75 it is 0ft.
+            const baseAlt = Math.max(0, planeGroup.position.y - 75);
+            const alt = Math.round(baseAlt * 25);
+            const coordStr = `${latStr} ${lonStr}`;
+            const altStr = `${alt}`;
+
+            const cockpitTime = document.getElementById('cockpit-time');
+            if (cockpitTime) cockpitTime.innerText = timeStr;
+            const cockpitDir = document.getElementById('cockpit-dir');
+            if (cockpitDir) cockpitDir.innerText = dirStr;
+            const cockpitCoords = document.getElementById('cockpit-coords');
+            if (cockpitCoords) cockpitCoords.innerText = coordStr;
+            const cockpitAlt = document.getElementById('cockpit-alt');
+            if (cockpitAlt) cockpitAlt.innerText = altStr;
+
             const debugMenu = document.getElementById('debug-menu');
             if (debugMenu && debugMenu.style.display !== 'none') {
                 const debugTimeEl = document.getElementById('debug-time');
-                if (debugTimeEl) {
-                    const hours = (timeOfDay / (Math.PI * 2)) * 24;
-                    const hh = Math.floor(hours).toString().padStart(2, '0');
-                    const mm = Math.floor((hours % 1) * 60).toString().padStart(2, '0');
-                    debugTimeEl.innerText = `${hh}:${mm}`;
-                }
+                if (debugTimeEl) debugTimeEl.innerText = timeStr;
                 const debugDirEl = document.getElementById('debug-dir');
-                if (debugDirEl) {
-                    // Plane faces -Z initially (North). 
-                    // Positive Y rotation turns left (West)
-                    let heading = planeGroup.rotation.y % (Math.PI * 2);
-                    if (heading < 0) heading += Math.PI * 2;
-                    let deg = heading * (180 / Math.PI);
-
-                    const dirs = ['N', 'NW', 'W', 'SW', 'S', 'SE', 'E', 'NE'];
-                    let sector = Math.floor(((deg + 22.5) % 360) / 45);
-                    debugDirEl.innerText = dirs[sector];
-                }
+                if (debugDirEl) debugDirEl.innerText = dirStr;
             }
 
             // Update celestial positions relative to skyGroup center
@@ -1296,7 +1398,7 @@
 
         function setStation(num) {
             currentStation = num;
-            document.getElementById('station-name').innerText = stationNames[num];
+            document.getElementById('station-name').innerText = num === 0 ? '' : stationNames[num];
 
             document.querySelectorAll('.station-btn').forEach(b => {
                 b.classList.remove('active');
