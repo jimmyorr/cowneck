@@ -519,6 +519,48 @@
         propGroup.add(blade1);
         propGroup.add(blade2);
 
+        // Pontoons
+        const pontoonMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, flatShading: true });
+        const pontoonGeo = new THREE.CylinderGeometry(1.5, 1.5, 18, 8);
+        pontoonGeo.rotateX(Math.PI / 2);
+        const pontoonNoseGeo = new THREE.ConeGeometry(1.5, 4, 8);
+        pontoonNoseGeo.rotateX(Math.PI / 2);
+        const pontoonNoseMeshL = new THREE.Mesh(pontoonNoseGeo, pontoonMat);
+        pontoonNoseMeshL.position.set(0, 0, -11);
+
+        const pontoonL = new THREE.Group();
+        const pontoonBodyL = new THREE.Mesh(pontoonGeo, pontoonMat);
+        pontoonL.add(pontoonBodyL);
+        pontoonL.add(pontoonNoseMeshL);
+        pontoonL.position.set(-5, -4.5, 0);
+        planeGroup.add(pontoonL);
+
+        const pontoonNoseMeshR = pontoonNoseMeshL.clone();
+        const pontoonR = new THREE.Group();
+        const pontoonBodyR = new THREE.Mesh(pontoonGeo, pontoonMat);
+        pontoonR.add(pontoonBodyR);
+        pontoonR.add(pontoonNoseMeshR);
+        pontoonR.position.set(5, -4.5, 0);
+        planeGroup.add(pontoonR);
+
+        // Struts to hold the pontoons
+        const strutGeo = new THREE.CylinderGeometry(0.2, 0.2, 4.5, 4);
+        const strutMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+
+        const strutLF = new THREE.Mesh(strutGeo, strutMat);
+        strutLF.position.set(-5, -2.5, -3);
+        planeGroup.add(strutLF);
+        const strutLB = new THREE.Mesh(strutGeo, strutMat);
+        strutLB.position.set(-5, -2.5, 3);
+        planeGroup.add(strutLB);
+
+        const strutRF = new THREE.Mesh(strutGeo, strutMat);
+        strutRF.position.set(5, -2.5, -3);
+        planeGroup.add(strutRF);
+        const strutRB = new THREE.Mesh(strutGeo, strutMat);
+        strutRB.position.set(5, -2.5, 3);
+        planeGroup.add(strutRB);
+
         // Better rotation order for airplanes (Yaw, then Pitch, then Roll)
         planeGroup.rotation.order = 'YXZ';
 
@@ -971,8 +1013,12 @@
 
             const delta = clock.getDelta();
 
-            // 1. Spin the propeller
-            propGroup.rotation.z += 15 * delta;
+            // 1. Spin the propeller based on speed multiplier
+            if (flightSpeedMultiplier > 0) {
+                // Keep spinning fast when flying, slow spin down to 0 if stopped
+                const spinSpeed = 15 * Math.max(0.2, flightSpeedMultiplier);
+                propGroup.rotation.z += spinSpeed * delta;
+            }
 
             // 2. Control plane rotation
             // Max tilt limits
@@ -984,18 +1030,28 @@
             let effMouseX = Math.abs(mouseX) < 0.15 ? 0 : mouseX;
             let effMouseY = Math.abs(mouseY) < 0.15 ? 0 : mouseY;
 
-            targetPitch = effMouseY * maxPitch;
-            targetRoll = -effMouseX * (maxRoll * 1.25); // Allow slightly sharper banks with mouse
+            // Only allow tilt steering if the plane is moving
+            if (flightSpeedMultiplier > 0) {
+                targetPitch = effMouseY * maxPitch;
+                targetRoll = -effMouseX * (maxRoll * 1.25); // Allow slightly sharper banks with mouse
+            } else {
+                // If stopped on water, ignore mouse input and force level
+                targetPitch = 0;
+                targetRoll = 0;
+            }
 
             // Manual airplane barrel rolling via keyboard (purely rotational, doesn't pull plane off course)
             let isBarrelRolling = false;
             let manualRollSpeed = 4.0; // rad/s
-            if (keys.ArrowLeft) {
-                planeGroup.rotation.z += manualRollSpeed * delta;
-                isBarrelRolling = true;
-            } else if (keys.ArrowRight) {
-                planeGroup.rotation.z -= manualRollSpeed * delta;
-                isBarrelRolling = true;
+            // Only allow barrel rolls when actually flying, not when taxiing or stopped
+            if (flightSpeedMultiplier > 0.5) {
+                if (keys.ArrowLeft) {
+                    planeGroup.rotation.z += manualRollSpeed * delta;
+                    isBarrelRolling = true;
+                } else if (keys.ArrowRight) {
+                    planeGroup.rotation.z -= manualRollSpeed * delta;
+                    isBarrelRolling = true;
+                }
             }
 
             // Smooth interpolation towards targets
@@ -1011,19 +1067,58 @@
 
             // Yaw turns naturally as the plane rolls (banking)
             // If they are barrel rolling playfully, we use the intended targetRoll (mouse steering) instead of the rapidly spinning Z, to keep them flying straight!
-            let turningRoll = isBarrelRolling ? targetRoll : planeGroup.rotation.z;
-            planeGroup.rotation.y += turningRoll * 0.025; // Slightly increased base turn speed for better mouse steering
+            // Only turn if moving
+            if (flightSpeedMultiplier > 0) {
+                let turningRoll = isBarrelRolling ? targetRoll : planeGroup.rotation.z;
+                planeGroup.rotation.y += turningRoll * 0.025; // Slightly increased base turn speed for better mouse steering
+            }
 
             // 3. Move forward locally
             planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
 
-            // 4. Ground Avoidance & Bounds (Chill Mode)
+            // 4. Handle speed controls (continuous acceleration)
+            const controlBaseAlt = Math.max(0, planeGroup.position.y - 45.5);
+            const controlAlt = Math.round(controlBaseAlt * 25);
+
+            // Adjust acceleration rate
+            const accelRate = 0.8 * delta; // units of multiplier per second
+
+            if (keys.ArrowUp) {
+                if (flightSpeedMultiplier === 0) {
+                    flightSpeedMultiplier = 0.5; // Kickstart engine
+                } else {
+                    flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + accelRate);
+                }
+            } else if (keys.ArrowDown) {
+                if (flightSpeedMultiplier > 0.5) {
+                    flightSpeedMultiplier = Math.max(0.5, flightSpeedMultiplier - accelRate);
+                } else if (flightSpeedMultiplier <= 0.5 && controlAlt === 0) {
+                    // Slower braking when taxiing to 0 on water
+                    flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - accelRate);
+                }
+            }
+
+            // 5. Ground Avoidance & Bounds (Chill Mode)
             const terrainHeight = getElevation(planeGroup.position.x, planeGroup.position.z);
-            const minFlightHeight = terrainHeight + 30; // Stay at least 30 units above ground
+            let isWater = terrainHeight <= WATER_LEVEL + 0.1;
+
+            // Rest on water if it's a seaplane, otherwise keep 30 units offset over land
+            const pontoonOffset = 4.5; // Bottom of pontoons is at y = -4.5 minus radius 1.5 = -6, so an offset of 5.5 is touching
+            const minFlightHeight = isWater ? terrainHeight + 5.5 : terrainHeight + 30;
 
             if (planeGroup.position.y < minFlightHeight) {
                 // Gently push the plane up without changing the nose pitch
-                planeGroup.position.y = THREE.MathUtils.lerp(planeGroup.position.y, minFlightHeight + 5, 0.05);
+                planeGroup.position.y = THREE.MathUtils.lerp(planeGroup.position.y, minFlightHeight + (isWater ? 0 : 5), 0.05);
+
+                // Water landing drag and leveling
+                if (isWater && planeGroup.position.y < minFlightHeight + 2) {
+                    if (flightSpeedMultiplier > 0.5) {
+                        flightSpeedMultiplier = THREE.MathUtils.lerp(flightSpeedMultiplier, 0.5, 0.015); // gentle water drag to taxi speed
+                    }
+                    // Help level the plane out when taxiing on water
+                    targetPitch = THREE.MathUtils.lerp(targetPitch, 0, 0.05);
+                    targetRoll = THREE.MathUtils.lerp(targetRoll, 0, 0.05);
+                }
             }
 
             // Ceiling to prevent flying infinitely high
@@ -1090,8 +1185,8 @@
             const latStr = Math.abs(latVal).toFixed(3) + "\u00b0 " + (latVal >= 0 ? "N" : "S");
             const lonStr = Math.abs(lonVal).toFixed(3) + "\u00b0 " + (lonVal >= 0 ? "E" : "W");
 
-            // Map altitude: The lowest flying height above water without diving is roughly 75, so at 75 it is 0ft.
-            const baseAlt = Math.max(0, planeGroup.position.y - 75);
+            // Map altitude: The lowest flying height above water now is 45.5 (40 water + 5.5 offset). So at 45.5 it is 0ft.
+            const baseAlt = Math.max(0, planeGroup.position.y - 45.5);
             const alt = Math.round(baseAlt * 25);
             const coordStr = `${latStr} ${lonStr}`;
             const altStr = `${alt}`;
@@ -1515,11 +1610,13 @@
                 }
             });
         });
-        const keys = { ArrowLeft: false, ArrowRight: false };
+        const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
 
         window.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
             if (e.key === 'ArrowRight') keys.ArrowRight = true;
+            if (e.key === 'ArrowUp') keys.ArrowUp = true;
+            if (e.key === 'ArrowDown') keys.ArrowDown = true;
 
             // Toggle Headlight (softened to not be a solid white circle)
             if (e.key === 'l' || e.key === 'L') {
@@ -1550,18 +1647,14 @@
                 setStation(0);
             } else if (e.key === '2' || e.key === '3') {
                 setStation(parseInt(e.key));
-            } else if (e.key === 'ArrowUp') {
-                // Increase speed
-                flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier * 1.2);
-            } else if (e.key === 'ArrowDown') {
-                // Decrease speed
-                flightSpeedMultiplier = Math.max(0.5, flightSpeedMultiplier / 1.2);
             }
         });
 
         window.addEventListener('keyup', (e) => {
             if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
             if (e.key === 'ArrowRight') keys.ArrowRight = false;
+            if (e.key === 'ArrowUp') keys.ArrowUp = false;
+            if (e.key === 'ArrowDown') keys.ArrowDown = false;
         });
 
         document.querySelectorAll('.speed-btn').forEach(btn => {
