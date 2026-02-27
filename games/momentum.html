@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Momentum Shift</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-6RNVL7JZVJ');
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #020617;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Neon Glow Effects */
+        .text-glow-cyan {
+            text-shadow: 0 0 10px #22d3ee, 0 0 20px #22d3ee;
+        }
+
+        .text-glow-rose {
+            text-shadow: 0 0 10px #f43f5e, 0 0 20px #f43f5e;
+        }
+
+        .text-glow-green {
+            text-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e;
+        }
+
+        .btn {
+            background: transparent;
+            border: 2px solid #22d3ee;
+            color: #22d3ee;
+            padding: 12px 32px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.2) inset, 0 0 10px rgba(34, 211, 238, 0.2);
+        }
+
+        .btn:hover {
+            background: #22d3ee;
+            color: #020617;
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.6) inset, 0 0 20px rgba(34, 211, 238, 0.6);
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Main Menu -->
+    <div id="screen-menu" class="ui-layer bg-slate-900/80 backdrop-blur-sm interactive">
+        <h1 class="text-6xl font-black mb-4 tracking-wider text-glow-cyan">MOMENTUM<span
+                class="text-rose-500 text-glow-rose">SHIFT</span></h1>
+        <p class="text-slate-300 max-w-lg mb-8 text-lg">Master the laws of physics. Each level features a different type
+            of momentum environment. Navigate your core to the green extraction zone.</p>
+        <p class="text-slate-400 mb-8">Controls: ARROW KEYS or W A S D</p>
+        <button id="btn-start" class="btn">Initiate Simulation</button>
+    </div>
+
+    <!-- HUD -->
+    <div id="screen-hud" class="ui-layer hidden !justify-start !items-start p-6">
+        <h2 id="hud-level" class="text-2xl font-bold text-cyan-400 tracking-widest">LEVEL 1</h2>
+        <p id="hud-desc" class="text-slate-300 text-sm max-w-md text-left mt-2 border-l-2 border-cyan-400 pl-3"></p>
+    </div>
+
+    <!-- Death Screen -->
+    <div id="screen-death" class="ui-layer hidden bg-rose-950/80 backdrop-blur-sm interactive">
+        <h2 class="text-5xl font-black mb-4 text-glow-rose text-rose-500 tracking-widest">MOMENTUM LOST</h2>
+        <p class="text-rose-200 mb-8 text-xl">Core structural integrity compromised.</p>
+        <button id="btn-restart"
+            class="btn !border-rose-500 !text-rose-500 hover:!bg-rose-500 hover:!text-rose-950 shadow-[0_0_10px_rgba(244,63,94,0.2)]">Restart
+            Level (Space)</button>
+    </div>
+
+    <!-- Level Complete Screen -->
+    <div id="screen-win" class="ui-layer hidden bg-emerald-950/80 backdrop-blur-sm interactive">
+        <h2 class="text-5xl font-black mb-4 text-glow-green text-emerald-400 tracking-widest">ZONE SECURED</h2>
+        <p class="text-emerald-200 mb-8 text-xl">Momentum parameters updated for next sector.</p>
+        <button id="btn-next"
+            class="btn !border-emerald-400 !text-emerald-400 hover:!bg-emerald-400 hover:!text-emerald-950 shadow-[0_0_10px_rgba(52,211,153,0.2)]">Next
+            Level (Space)</button>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="screen-victory" class="ui-layer hidden bg-cyan-950/90 backdrop-blur-md interactive">
+        <h2 class="text-6xl font-black mb-4 text-glow-cyan text-cyan-400 tracking-widest">SIMULATION COMPLETE</h2>
+        <p class="text-cyan-100 max-w-xl mb-8 text-xl">You have successfully mastered linear, angular, elastic, viscous,
+            and relativistic momentum states.</p>
+        <button id="btn-home" class="btn">Return to Base</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Elements
+        const screens = {
+            menu: document.getElementById('screen-menu'),
+            hud: document.getElementById('screen-hud'),
+            death: document.getElementById('screen-death'),
+            win: document.getElementById('screen-win'),
+            victory: document.getElementById('screen-victory')
+        };
+
+        const hudLevel = document.getElementById('hud-level');
+        const hudDesc = document.getElementById('hud-desc');
+
+        // Logical game space (fixed internal resolution)
+        const LOGICAL_WIDTH = 1000;
+        const LOGICAL_HEIGHT = 1000;
+
+        let scale = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        // Input state
+        const keys = { up: false, down: false, left: false, right: false };
+
+        // Game State
+        let gameState = 'menu'; // menu, playing, dead, win, victory
+        let currentLevelIndex = 0;
+        let shakeTime = 0;
+        let time = 0;
+
+        // Visual Effects
+        let trail = [];
+        let particles = [];
+
+        // Player / Physics Entity
+        const player = {
+            x: 0, y: 0, vx: 0, vy: 0, radius: 15
+        };
+
+        // Current Level Physics Config
+        let physics = {
+            friction: 0.98,
+            thrust: 0.5,
+            mass: 1,
+            bounciness: 0.4
+        };
+
+        // Level Definitions
+        const levels = [
+            {
+                name: "I. DRIFT (Linear)",
+                desc: "Standard linear momentum. Thrust applies force, but you will coast. Avoid red zones.",
+                physics: { friction: 0.98, thrust: 0.7, mass: 1, bounciness: 0.4 },
+                start: { x: 100, y: 500 },
+                goal: { x: 900, y: 500, r: 40 },
+                wells: [],
+                objects: [
+                    { type: 'lethal', x: 400, y: 0, w: 100, h: 400 },
+                    { type: 'lethal', x: 400, y: 600, w: 100, h: 400 }
+                ]
+            },
+            {
+                name: "II. THE VACUUM (Conservation)",
+                desc: "Zero friction. An object in motion stays in motion. You must apply counter-thrust to stop.",
+                physics: { friction: 1.0, thrust: 0.35, mass: 1, bounciness: 0.5 },
+                start: { x: 100, y: 500 },
+                goal: { x: 900, y: 500, r: 40 },
+                wells: [],
+                objects: [
+                    { type: 'lethal', x: 300, y: 200, w: 50, h: 600 },
+                    { type: 'lethal', x: 650, y: 200, w: 50, h: 600 },
+                    { type: 'wall', x: 400, y: 150, w: 200, h: 50 },
+                    { type: 'wall', x: 400, y: 800, w: 200, h: 50 }
+                ]
+            },
+            {
+                name: "III. VISCOSITY (Damping)",
+                desc: "High friction viscous environment. Momentum decays instantly. Keep engines firing to move.",
+                physics: { friction: 0.82, thrust: 3.0, mass: 1, bounciness: 0 },
+                start: { x: 100, y: 900 },
+                goal: { x: 900, y: 100, r: 40 },
+                wells: [],
+                objects: [
+                    { type: 'wall', x: 200, y: 200, w: 800, h: 50 },
+                    { type: 'wall', x: 0, y: 450, w: 800, h: 50 },
+                    { type: 'wall', x: 200, y: 700, w: 800, h: 50 },
+                ]
+            },
+            {
+                name: "IV. PINBALL (Elasticity)",
+                desc: "Perfectly elastic collisions. You lose zero energy on impact. Bounce off gray walls to bypass the barrier.",
+                physics: { friction: 0.995, thrust: 0.4, mass: 1, bounciness: 1.0 },
+                start: { x: 500, y: 900 },
+                goal: { x: 500, y: 100, r: 40 },
+                wells: [],
+                objects: [
+                    { type: 'lethal', x: 0, y: 650, w: 800, h: 40 }, // Gap on right
+                    { type: 'lethal', x: 200, y: 350, w: 800, h: 40 }  // Gap on left
+                ]
+            },
+            {
+                name: "V. ORBITAL (Angular)",
+                desc: "Convert linear velocity to angular momentum. Use the gravity well to slingshot your trajectory.",
+                physics: { friction: 1.0, thrust: 0.3, mass: 1, bounciness: 0.2 },
+                start: { x: 100, y: 800 },
+                goal: { x: 900, y: 200, r: 40 },
+                wells: [{ x: 500, y: 500, mass: 20000, radius: 45 }],
+                objects: [
+                    { type: 'lethal', x: 0, y: 0, w: 350, h: 350 },
+                    { type: 'lethal', x: 650, y: 650, w: 350, h: 350 }
+                ]
+            },
+            {
+                name: "VI. SUPERMASSIVE (Inertia)",
+                desc: "High mass core. Massive resistance to acceleration (p=mv). Once you build momentum, you are very hard to stop.",
+                physics: { friction: 0.99, thrust: 2.0, mass: 12, bounciness: 0.1 },
+                start: { x: 100, y: 500 },
+                goal: { x: 900, y: 500, r: 40 },
+                wells: [],
+                objects: [
+                    { type: 'lethal', x: 300, y: 100, w: 100, h: 300 },
+                    { type: 'lethal', x: 300, y: 600, w: 100, h: 300 },
+                    { type: 'lethal', x: 600, y: 100, w: 100, h: 300 },
+                    { type: 'lethal', x: 600, y: 600, w: 100, h: 300 }
+                ]
+            }
+        ];
+
+        let currentLevel = levels[0];
+
+        // Resize Handling
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // Calculate scale to fit 1000x1000 logical area nicely
+            scale = Math.min(canvas.width / LOGICAL_WIDTH, canvas.height / LOGICAL_HEIGHT) * 0.95;
+
+            // Center the logical space
+            offsetX = (canvas.width - LOGICAL_WIDTH * scale) / 2;
+            offsetY = (canvas.height - LOGICAL_HEIGHT * scale) / 2;
+        }
+        window.addEventListener('resize', resize);
+
+        // Input Handling
+        window.addEventListener('keydown', e => {
+            if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') keys.up = true;
+            if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') keys.down = true;
+            if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') keys.left = true;
+            if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') keys.right = true;
+
+            if (e.code === 'Space') {
+                if (gameState === 'dead') loadLevel(currentLevelIndex);
+                if (gameState === 'win') {
+                    currentLevelIndex++;
+                    if (currentLevelIndex >= levels.length) showScreen('victory');
+                    else loadLevel(currentLevelIndex);
+                }
+            }
+        });
+
+        window.addEventListener('keyup', e => {
+            if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') keys.up = false;
+            if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') keys.down = false;
+            if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') keys.left = false;
+            if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') keys.right = false;
+        });
+
+        // UI Flow
+        function showScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            if (screens[screenName]) screens[screenName].classList.remove('hidden');
+            gameState = screenName;
+        }
+
+        document.getElementById('btn-start').addEventListener('click', () => {
+            currentLevelIndex = 0;
+            loadLevel(currentLevelIndex);
+        });
+
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            loadLevel(currentLevelIndex);
+        });
+
+        document.getElementById('btn-next').addEventListener('click', () => {
+            currentLevelIndex++;
+            if (currentLevelIndex >= levels.length) showScreen('victory');
+            else loadLevel(currentLevelIndex);
+        });
+
+        document.getElementById('btn-home').addEventListener('click', () => {
+            showScreen('menu');
+        });
+
+        // Load Level
+        function loadLevel(index) {
+            currentLevel = levels[index];
+            physics = { ...currentLevel.physics };
+
+            player.x = currentLevel.start.x;
+            player.y = currentLevel.start.y;
+            player.vx = 0;
+            player.vy = 0;
+
+            trail = [];
+            particles = [];
+            shakeTime = 0;
+
+            hudLevel.innerText = currentLevel.name;
+            hudDesc.innerText = currentLevel.desc;
+
+            showScreen('hud');
+            gameState = 'playing';
+        }
+
+        // Physics Engine & Game Logic
+        function update() {
+            time++;
+            if (gameState !== 'playing') return;
+
+            // 1. Calculate Player Thrust
+            let thrustX = 0, thrustY = 0;
+            if (keys.up) thrustY -= 1;
+            if (keys.down) thrustY += 1;
+            if (keys.left) thrustX -= 1;
+            if (keys.right) thrustX += 1;
+
+            if (thrustX !== 0 || thrustY !== 0) {
+                // Normalize intent vector
+                let mag = Math.sqrt(thrustX * thrustX + thrustY * thrustY);
+                thrustX /= mag;
+                thrustY /= mag;
+
+                // Apply force (F = ma => a = F/m)
+                let ax = (thrustX * physics.thrust) / physics.mass;
+                let ay = (thrustY * physics.thrust) / physics.mass;
+
+                player.vx += ax;
+                player.vy += ay;
+
+                // Exhaust Particles
+                if (Math.random() > 0.3) {
+                    particles.push({
+                        x: player.x - thrustX * player.radius,
+                        y: player.y - thrustY * player.radius,
+                        vx: -thrustX * 4 + (Math.random() - 0.5) * 2,
+                        vy: -thrustY * 4 + (Math.random() - 0.5) * 2,
+                        life: 1.0,
+                        color: '#fcd34d'
+                    });
+                }
+            }
+
+            // 2. Apply Gravity Wells (Angular momentum setup)
+            currentLevel.wells.forEach(well => {
+                let dx = well.x - player.x;
+                let dy = well.y - player.y;
+                let distSq = dx * dx + dy * dy;
+                let dist = Math.sqrt(distSq);
+
+                if (dist < well.radius + player.radius) {
+                    die();
+                } else {
+                    // Newton's law of universal gravitation simplified
+                    let force = well.mass / distSq;
+                    player.vx += (dx / dist) * force;
+                    player.vy += (dy / dist) * force;
+                }
+            });
+
+            // 3. Apply Friction (Damping)
+            player.vx *= physics.friction;
+            player.vy *= physics.friction;
+
+            // 4. Update Position
+            player.x += player.vx;
+            player.y += player.vy;
+
+            // 5. Trail Effect
+            if (time % 2 === 0) {
+                trail.push({ x: player.x, y: player.y, alpha: 0.6 });
+            }
+            trail.forEach(t => t.alpha -= 0.02);
+            trail = trail.filter(t => t.alpha > 0);
+
+            // 6. Update Particles
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.05;
+            });
+            particles = particles.filter(p => p.life > 0);
+
+            // 7. Border Collisions
+            if (player.x - player.radius < 0) { player.x = player.radius; player.vx *= -physics.bounciness; }
+            if (player.x + player.radius > LOGICAL_WIDTH) { player.x = LOGICAL_WIDTH - player.radius; player.vx *= -physics.bounciness; }
+            if (player.y - player.radius < 0) { player.y = player.radius; player.vy *= -physics.bounciness; }
+            if (player.y + player.radius > LOGICAL_HEIGHT) { player.y = LOGICAL_HEIGHT - player.radius; player.vy *= -physics.bounciness; }
+
+            // 8. Obstacle Collisions (Circle vs AABB)
+            currentLevel.objects.forEach(rect => {
+                let nearX = Math.max(rect.x, Math.min(player.x, rect.x + rect.w));
+                let nearY = Math.max(rect.y, Math.min(player.y, rect.y + rect.h));
+                let dx = player.x - nearX;
+                let dy = player.y - nearY;
+                let distSq = dx * dx + dy * dy;
+
+                if (distSq < player.radius * player.radius) {
+                    if (rect.type === 'lethal') {
+                        die();
+                    } else if (rect.type === 'wall') {
+                        let dist = Math.sqrt(distSq);
+                        let overlap = player.radius - dist;
+
+                        if (dist > 0) {
+                            let nx = dx / dist;
+                            let ny = dy / dist;
+
+                            // Push out
+                            player.x += nx * overlap;
+                            player.y += ny * overlap;
+
+                            // Reflect velocity
+                            let dot = player.vx * nx + player.vy * ny;
+                            player.vx = (player.vx - 2 * dot * nx) * physics.bounciness;
+                            player.vy = (player.vy - 2 * dot * ny) * physics.bounciness;
+                        }
+                    }
+                }
+            });
+
+            // 9. Goal Collision
+            let gx = currentLevel.goal.x - player.x;
+            let gy = currentLevel.goal.y - player.y;
+            if (Math.sqrt(gx * gx + gy * gy) < currentLevel.goal.r + player.radius) {
+                win();
+            }
+        }
+
+        function die() {
+            gameState = 'dead';
+            shakeTime = 20;
+            // Explosion particles
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: player.x, y: player.y,
+                    vx: (Math.random() - 0.5) * 15, vy: (Math.random() - 0.5) * 15,
+                    life: 1.5, color: '#22d3ee'
+                });
+            }
+            setTimeout(() => showScreen('death'), 800);
+        }
+
+        function win() {
+            gameState = 'win';
+            showScreen('win');
+        }
+
+        // Rendering
+        function drawGrid() {
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 2;
+            for (let i = 0; i <= LOGICAL_WIDTH; i += 50) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, LOGICAL_HEIGHT); ctx.stroke();
+            }
+            for (let i = 0; i <= LOGICAL_HEIGHT; i += 50) {
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(LOGICAL_WIDTH, i); ctx.stroke();
+            }
+        }
+
+        function draw() {
+            // Background clear
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'menu') return;
+
+            ctx.save();
+
+            // Apply screenshake
+            if (shakeTime > 0) {
+                let mag = shakeTime * 0.5;
+                ctx.translate((Math.random() - 0.5) * mag, (Math.random() - 0.5) * mag);
+                shakeTime--;
+            }
+
+            // Apply Coordinate Scaling
+            ctx.translate(offsetX, offsetY);
+            ctx.scale(scale, scale);
+
+            // Draw Boundaries
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+
+            drawGrid();
+
+            if (!currentLevel) { ctx.restore(); return; }
+
+            // Draw Goal
+            ctx.beginPath();
+            ctx.arc(currentLevel.goal.x, currentLevel.goal.y, currentLevel.goal.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(34, 197, 94, ${0.2 + Math.sin(time * 0.1) * 0.1})`;
+            ctx.fill();
+            ctx.strokeStyle = '#22c55e';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#22c55e';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Draw Gravity Wells
+            currentLevel.wells.forEach(well => {
+                ctx.beginPath();
+                ctx.arc(well.x, well.y, well.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#000';
+                ctx.fill();
+
+                // Event horizon glow
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = '#a855f7';
+                ctx.strokeStyle = '#a855f7';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                // Swirling rings
+                let ringSize = well.radius + (time * 2) % 60;
+                ctx.beginPath();
+                ctx.arc(well.x, well.y, ringSize, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(168, 85, 247, ${(60 - (ringSize - well.radius)) / 60})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+            });
+
+            // Draw Obstacles
+            currentLevel.objects.forEach(rect => {
+                if (rect.type === 'lethal') {
+                    ctx.fillStyle = '#4c0519'; // rose-950
+                    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+                    ctx.strokeStyle = '#f43f5e'; // rose-500
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+
+                    // Diagonal hazard stripes
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(rect.x, rect.y, rect.w, rect.h);
+                    ctx.clip();
+                    ctx.strokeStyle = 'rgba(244, 63, 94, 0.2)';
+                    ctx.lineWidth = 4;
+                    for (let i = -rect.h; i < rect.w; i += 20) {
+                        ctx.beginPath();
+                        ctx.moveTo(rect.x + i, rect.y);
+                        ctx.lineTo(rect.x + i + rect.h, rect.y + rect.h);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                } else if (rect.type === 'wall') {
+                    ctx.fillStyle = '#1e293b'; // slate-800
+                    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+                    ctx.strokeStyle = '#94a3b8'; // slate-400
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                }
+            });
+
+            // Draw Trail
+            trail.forEach((t, i) => {
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, player.radius * (t.alpha), 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(34, 211, 238, ${t.alpha * 0.5})`;
+                ctx.fill();
+            });
+
+            // Draw Particles
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3 * p.life, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+
+            // Draw Player
+            if (gameState !== 'dead') {
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#020617';
+                ctx.fill();
+
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#22d3ee';
+                ctx.strokeStyle = '#22d3ee';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Directional indicator based on velocity
+                let speed = Math.sqrt(player.vx * player.vx + player.vy * player.vy);
+                if (speed > 0.5) {
+                    ctx.beginPath();
+                    ctx.moveTo(player.x, player.y);
+                    ctx.lineTo(player.x + (player.vx / speed) * player.radius * 1.5, player.y + (player.vy / speed) * player.radius * 1.5);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                ctx.shadowBlur = 0;
+            }
+
+            ctx.restore();
+        }
+
+        // Game Loop
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        // Init
+        resize();
+        loop();
+
+    </script>
+</body>
+
+</html>
