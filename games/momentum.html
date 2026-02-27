@@ -125,6 +125,16 @@
             Level (Space)</button>
     </div>
 
+    <!-- Transition Screen -->
+    <div id="screen-transition" class="ui-layer hidden bg-amber-950/80 backdrop-blur-sm interactive">
+        <h2 class="text-5xl font-black mb-4 text-glow-cyan text-amber-400 tracking-widest">MASTERY ACHIEVED</h2>
+        <p class="text-amber-100 max-w-xl mb-8 text-xl">Now you have mastered all six types of momentum. Now try them in
+            other situations.</p>
+        <button id="btn-transition-continue"
+            class="btn !border-amber-400 !text-amber-400 hover:!bg-amber-400 hover:!text-amber-950">Continue Simulation
+            (Space)</button>
+    </div>
+
     <!-- Victory Screen -->
     <div id="screen-victory" class="ui-layer hidden bg-cyan-950/90 backdrop-blur-md interactive">
         <h2 class="text-6xl font-black mb-4 text-glow-cyan text-cyan-400 tracking-widest">SIMULATION COMPLETE</h2>
@@ -611,8 +621,9 @@
             if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') keys.right = true;
 
             if (e.code === 'Space') {
-                if (gameState === 'dead') loadLevel(currentLevelIndex);
-                if (gameState === 'win') {
+                e.preventDefault();
+                if (gameState === 'dead' || gameState === 'death') loadLevel(currentLevelIndex);
+                else if (gameState === 'win') {
                     currentLevelIndex++;
                     if (currentLevelIndex === 6) showScreen('transition');
                     else if (currentLevelIndex >= levels.length) showScreen('victory');
@@ -633,7 +644,9 @@
 
         // UI Flow
         function showScreen(screenName) {
-            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            Object.values(screens).forEach(s => {
+                if (s) s.classList.add('hidden');
+            });
             if (screens[screenName]) screens[screenName].classList.remove('hidden');
             gameState = screenName;
         }
@@ -654,9 +667,12 @@
             else loadLevel(currentLevelIndex);
         });
 
-        document.getElementById('btn-transition-continue').addEventListener('click', () => {
-            loadLevel(currentLevelIndex);
-        });
+        const btnTransition = document.getElementById('btn-transition-continue');
+        if (btnTransition) {
+            btnTransition.addEventListener('click', () => {
+                loadLevel(currentLevelIndex);
+            });
+        }
 
         document.getElementById('btn-home').addEventListener('click', () => {
             showScreen('menu');
