@@ -524,6 +524,10 @@
         pontoonGroup.visible = false;
         planeGroup.add(pontoonGroup);
 
+        let pontoonDeploymentProgress = 0; // 0 to 1
+        let isDeployingPontoons = false;
+        let isRetractingPontoons = false;
+
         // Pontoons
         const pontoonMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, flatShading: true });
         const pontoonGeo = new THREE.CylinderGeometry(1.5, 1.5, 18, 8);
@@ -548,23 +552,33 @@
         pontoonR.position.set(5, -4.5, 0);
         pontoonGroup.add(pontoonR);
 
-        // Struts to hold the pontoons
+        // Struts to hold the pontoons. Make them rotate out instead of just appearing
         const strutGeo = new THREE.CylinderGeometry(0.2, 0.2, 4.5, 4);
         const strutMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
 
-        const strutLF = new THREE.Mesh(strutGeo, strutMat);
-        strutLF.position.set(-5, -2.5, -3);
-        pontoonGroup.add(strutLF);
-        const strutLB = new THREE.Mesh(strutGeo, strutMat);
-        strutLB.position.set(-5, -2.5, 3);
-        pontoonGroup.add(strutLB);
+        // Wrap struts in groups at the hinge point (wing level)
+        const hingeLF = new THREE.Group(); hingeLF.position.set(-5, 0, -3); pontoonGroup.add(hingeLF);
+        const strutLF = new THREE.Mesh(strutGeo, strutMat); strutLF.position.set(0, -2.25, 0); hingeLF.add(strutLF);
 
-        const strutRF = new THREE.Mesh(strutGeo, strutMat);
-        strutRF.position.set(5, -2.5, -3);
-        pontoonGroup.add(strutRF);
-        const strutRB = new THREE.Mesh(strutGeo, strutMat);
-        strutRB.position.set(5, -2.5, 3);
-        pontoonGroup.add(strutRB);
+        const hingeLB = new THREE.Group(); hingeLB.position.set(-5, 0, 3); pontoonGroup.add(hingeLB);
+        const strutLB = new THREE.Mesh(strutGeo, strutMat); strutLB.position.set(0, -2.25, 0); hingeLB.add(strutLB);
+
+        const hingeRF = new THREE.Group(); hingeRF.position.set(5, 0, -3); pontoonGroup.add(hingeRF);
+        const strutRF = new THREE.Mesh(strutGeo, strutMat); strutRF.position.set(0, -2.25, 0); hingeRF.add(strutRF);
+
+        const hingeRB = new THREE.Group(); hingeRB.position.set(5, 0, 3); pontoonGroup.add(hingeRB);
+        const strutRB = new THREE.Mesh(strutGeo, strutMat); strutRB.position.set(0, -2.25, 0); hingeRB.add(strutRB);
+
+        // Initial folded state
+        pontoonL.position.set(-5, -0.5, 0);
+        pontoonL.rotation.z = Math.PI / 2; // Flat 
+        pontoonR.position.set(5, -0.5, 0);
+        pontoonR.rotation.z = -Math.PI / 2;
+
+        hingeLF.rotation.z = Math.PI / 2;
+        hingeLB.rotation.z = Math.PI / 2;
+        hingeRF.rotation.z = -Math.PI / 2;
+        hingeRB.rotation.z = -Math.PI / 2;
 
         // Better rotation order for airplanes (Yaw, then Pitch, then Roll)
         planeGroup.rotation.order = 'YXZ';
@@ -1025,6 +1039,55 @@
                 propGroup.rotation.z += spinSpeed * delta;
             }
 
+            // 1.5 Animate pontoons
+            if (isDeployingPontoons && !isRetractingPontoons && pontoonDeploymentProgress < 1) {
+                pontoonDeploymentProgress += delta * 0.5; // much slower (was 1.5)
+                if (pontoonDeploymentProgress > 1) pontoonDeploymentProgress = 1;
+
+                // Swing downwards (backwards cubic ease out)
+                const t = pontoonDeploymentProgress;
+                const easeOut = 1 - Math.pow(1 - t, 3);
+
+                // Rotation from 90deg flat under wing to 0deg flat down
+                const leftRotAngle = (Math.PI / 2) * (1 - easeOut);
+                pontoonL.rotation.z = leftRotAngle;
+                hingeLF.rotation.z = leftRotAngle;
+                hingeLB.rotation.z = leftRotAngle;
+
+                const rightRotAngle = -(Math.PI / 2) * (1 - easeOut);
+                pontoonR.rotation.z = rightRotAngle;
+                hingeRF.rotation.z = rightRotAngle;
+                hingeRB.rotation.z = rightRotAngle;
+
+                // Drop height
+                pontoonL.position.y = -0.5 - (4.0 * easeOut);
+                pontoonR.position.y = -0.5 - (4.0 * easeOut);
+            } else if (isRetractingPontoons && pontoonDeploymentProgress > 0) {
+                pontoonDeploymentProgress -= delta * 0.4; // even slower retraction
+                if (pontoonDeploymentProgress < 0) {
+                    pontoonDeploymentProgress = 0;
+                    isRetractingPontoons = false;
+                    isDeployingPontoons = false;
+                    pontoonGroup.visible = false;
+                }
+
+                const t = pontoonDeploymentProgress;
+                const easeOut = 1 - Math.pow(1 - t, 3);
+
+                const leftRotAngle = (Math.PI / 2) * (1 - easeOut);
+                pontoonL.rotation.z = leftRotAngle;
+                hingeLF.rotation.z = leftRotAngle;
+                hingeLB.rotation.z = leftRotAngle;
+
+                const rightRotAngle = -(Math.PI / 2) * (1 - easeOut);
+                pontoonR.rotation.z = rightRotAngle;
+                hingeRF.rotation.z = rightRotAngle;
+                hingeRB.rotation.z = rightRotAngle;
+
+                pontoonL.position.y = -0.5 - (4.0 * easeOut);
+                pontoonR.position.y = -0.5 - (4.0 * easeOut);
+            }
+
             // 2. Control plane rotation
             // Max tilt limits
             const maxPitch = Math.PI / 4;
@@ -1119,7 +1182,10 @@
                 if (isWater && planeGroup.position.y < minFlightHeight + 2) {
 
                     // Reveal pontoons on first water landing
-                    if (!pontoonGroup.visible) pontoonGroup.visible = true;
+                    if (!pontoonGroup.visible) {
+                        pontoonGroup.visible = true;
+                        isDeployingPontoons = true;
+                    }
 
                     if (flightSpeedMultiplier > 0.5) {
                         flightSpeedMultiplier = THREE.MathUtils.lerp(flightSpeedMultiplier, 0.5, 0.015); // gentle water drag to taxi speed
@@ -1130,9 +1196,17 @@
                 }
             }
 
-            // Ceiling to prevent flying infinitely high
-            if (planeGroup.position.y > 800) {
-                planeGroup.position.y = 800;
+            // Ceiling to prevent flying infinitely high. Give them enough room to reach 10,000 alt.
+            // Alt formula is: alt = (y - 45.5) * 25
+            // So y for 10000 alt requires 10000/25 = 400. 400 + 45.5 = 445.5 y.
+            const maxFlightHeight = 500;
+            if (planeGroup.position.y > maxFlightHeight) {
+                planeGroup.position.y = maxFlightHeight;
+            }
+
+            // High altitude pontoon retraction (10,000 altitude)
+            if (controlAlt >= 10000 && pontoonGroup.visible && !isRetractingPontoons) {
+                isRetractingPontoons = true;
             }
 
             // 5. Camera Follow logic
