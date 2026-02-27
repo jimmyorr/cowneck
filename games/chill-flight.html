@@ -1000,7 +1000,17 @@
 
             // 5. Camera Follow logic
             // We want the camera to lag behind and above the plane
-            const cameraOffset = new THREE.Vector3(0, 15, 45); // X, Y, Z relative to plane
+
+            // Dynamic camera offset and FOV based on speed
+            const speedFactor = (flightSpeedMultiplier - 0.5) / 9.5; // normalized 0 to 1 based on default min/max
+            const zOffset = THREE.MathUtils.lerp(40, 60, speedFactor); // Pull back when fast
+            const yOffset = THREE.MathUtils.lerp(12, 20, speedFactor); // Go higher when fast
+            const targetFov = THREE.MathUtils.lerp(60, 85, speedFactor); // Wider FOV when fast
+
+            camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 0.05);
+            camera.updateProjectionMatrix();
+
+            const cameraOffset = new THREE.Vector3(0, yOffset, zOffset); // X, Y, Z relative to plane
 
             // Calculate where camera should be in world space
             const idealCameraPos = cameraOffset.clone().applyMatrix4(planeGroup.matrixWorld);
@@ -1500,8 +1510,27 @@
                 setStation(0);
             } else if (e.key === '2' || e.key === '3') {
                 setStation(parseInt(e.key));
+            } else if (e.key === 'ArrowUp') {
+                // Increase speed
+                flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier * 1.2);
+                updateSpeedUI();
+            } else if (e.key === 'ArrowDown') {
+                // Decrease speed
+                flightSpeedMultiplier = Math.max(0.5, flightSpeedMultiplier / 1.2);
+                updateSpeedUI();
             }
         });
+
+        function updateSpeedUI() {
+            // Uncheck debug buttons since we map manually now
+            document.querySelectorAll('.plane-speed-btn').forEach(b => b.classList.remove('active'));
+            // Try to find an exact match button to highlight if possible
+            document.querySelectorAll('.plane-speed-btn').forEach(b => {
+                if (parseFloat(b.getAttribute('data-pspeed')) === flightSpeedMultiplier) {
+                    b.classList.add('active');
+                }
+            });
+        }
 
         document.querySelectorAll('.speed-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
