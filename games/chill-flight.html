@@ -305,7 +305,6 @@
                 <button class="station-btn" data-station="procedural" title="Procedural Music">P</button>
                 <button class="station-btn" data-station="2" title="Lofi Girl">LG</button>
                 <button class="station-btn" data-station="3" title="Bootleg Boy 2">BB</button>
-                <button class="station-btn" data-station="4" title="Nice Guys">NG</button>
             </div>
             <span id="station-name"
                 style="font-size: 11px; color: #FFD700; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; min-height: 14px;"></span>
@@ -877,17 +876,17 @@
             if (isPaused) {
                 pauseOverlay.style.display = 'flex';
                 if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
-                if (ytPlayerReady && (currentStation >= 2 && currentStation <= 4)) ytPlayer.pauseVideo();
+                if (ytPlayerReady && (currentStation === 2 || currentStation === 3)) ytPlayer.pauseVideo();
             } else {
                 pauseOverlay.style.display = 'none';
                 clock.getDelta(); // clear accumulated time so plane doesn't skip
 
-                const isProcedural = (currentStation === 1 || (currentStation >= 5 && currentStation <= 7));
+                const isProcedural = (currentStation === 1 || (currentStation >= 4 && currentStation <= 6));
                 if (isProcedural && audioCtx && audioCtx.state === 'suspended') {
                     audioCtx.resume();
                     nextNoteTime = audioCtx.currentTime + 0.1;
                 }
-                if (ytPlayerReady && (currentStation >= 2 && currentStation <= 4)) ytPlayer.playVideo();
+                if (ytPlayerReady && (currentStation === 2 || currentStation === 3)) ytPlayer.playVideo();
             }
         }
 
@@ -1160,8 +1159,8 @@
                 events: {
                     'onReady': () => {
                         ytPlayerReady = true;
-                        if (currentStation === 5) ytPlayer.loadVideoById('jfKfPfyJRdk');
-                        if (currentStation === 6) ytPlayer.loadVideoById('0cvzztYZXYs');
+                        if (currentStation === 4) ytPlayer.loadVideoById('jfKfPfyJRdk');
+                        if (currentStation === 5) ytPlayer.loadVideoById('0cvzztYZXYs');
                     }
                 }
             });
@@ -1175,7 +1174,7 @@
         let beatCount = 0;
         let scheduleTimer;
 
-        const stationNames = ["Off", "Ambient dream", "Lofi Girl", "Bootleg Boy 2", "Nice Guys", "Ethereal chords", "Minimal pulse", "Lofi beats"];
+        const stationNames = ["Off", "Ambient dream", "Lofi Girl", "Bootleg Boy 2", "Ethereal chords", "Minimal pulse", "Lofi beats"];
         // Pentatonic scale for pleasing chill vibes
         const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
 
@@ -1349,7 +1348,7 @@
 
         function scheduleAudio() {
             if (!audioCtx) return;
-            const isProcedural = (currentStation === 1 || (currentStation >= 5 && currentStation <= 7));
+            const isProcedural = (currentStation === 1 || (currentStation >= 4 && currentStation <= 6));
             if (!isProcedural) return;
             // Schedule ahead
             while (nextNoteTime < audioCtx.currentTime + 0.1) {
@@ -1359,7 +1358,7 @@
                         playTone(freq, 'sine', nextNoteTime, 4.0, 0.15);
                     }
                     nextNoteTime += 1.0;
-                } else if (currentStation === 5) { // Lofi chords: slow stacked triangles
+                } else if (currentStation === 4) { // Lofi chords: slow stacked triangles
                     if (beatCount % 4 === 0) {
                         const rootIdx = Math.floor(Math.random() * 5);
                         playTone(scale[rootIdx] / 2, 'triangle', nextNoteTime, 3.0, 0.1);
@@ -1368,11 +1367,11 @@
                     }
                     if (Math.random() > 0.7) playTone(scale[Math.floor(Math.random() * scale.length)], 'sine', nextNoteTime, 0.5, 0.05); // little melody plucks
                     nextNoteTime += 0.5;
-                } else if (currentStation === 6) { // Minimal: steady rhythmic plucks
+                } else if (currentStation === 5) { // Minimal: steady rhythmic plucks
                     playTone(scale[beatCount % scale.length] / 2, 'square', nextNoteTime, 0.3, 0.02);
                     if (beatCount % 4 === 0) playTone(scale[0] / 4, 'sine', nextNoteTime, 1.0, 0.1);
                     nextNoteTime += 0.25;
-                } else if (currentStation === 7) { // True Lofi beats (from pup)
+                } else if (currentStation === 6) { // True Lofi beats (from pup)
                     const swing = (beatCount % 2 === 1) ? 0.05 : 0;
                     const humanize = (Math.random() - 0.5) * 0.02;
                     const triggerTime = nextNoteTime + swing + humanize;
@@ -1404,7 +1403,7 @@
                 b.classList.remove('active');
                 const ds = b.getAttribute('data-station');
                 if (ds === 'procedural') {
-                    if (num === 1 || (num >= 5 && num <= 7)) b.classList.add('active');
+                    if (num === 1 || (num >= 4 && num <= 6)) b.classList.add('active');
                 } else {
                     if (parseInt(ds) === num) b.classList.add('active');
                 }
@@ -1428,16 +1427,13 @@
                     });
                     // Shuffle the remainder of the playlist
                     ytPlayer.setShuffle(true);
-                } else if (num === 4) {
-                    ytContainer.style.display = 'block';
-                    ytPlayer.loadVideoById('0cvzztYZXYs');
                 } else {
                     ytContainer.style.display = 'none';
                     ytPlayer.pauseVideo();
                 }
             }
 
-            const isProcedural = (num === 1 || (num >= 5 && num <= 7));
+            const isProcedural = (num === 1 || (num >= 4 && num <= 6));
 
             if (isProcedural && !audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1463,7 +1459,7 @@
             btn.addEventListener('click', (e) => {
                 const s = e.target.getAttribute('data-station');
                 if (s === 'procedural') {
-                    const procList = [1, 7, 5, 6];
+                    const procList = [1, 6, 4, 5];
                     let idx = procList.indexOf(currentStation);
                     if (idx !== -1) {
                         setStation(procList[(idx + 1) % procList.length]);
@@ -1483,7 +1479,7 @@
             }
             if (e.key === '1') {
                 // 1 cycles procedural stations
-                const procList = [1, 7, 5, 6];
+                const procList = [1, 6, 4, 5];
                 let idx = procList.indexOf(currentStation);
                 if (idx !== -1) {
                     setStation(procList[(idx + 1) % procList.length]);
@@ -1492,7 +1488,7 @@
                 }
             } else if (e.key === '0') {
                 setStation(0);
-            } else if (e.key >= '2' && e.key <= '4') {
+            } else if (e.key === '2' || e.key === '3') {
                 setStation(parseInt(e.key));
             }
         });
