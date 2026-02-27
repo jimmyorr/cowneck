@@ -129,7 +129,7 @@
 
         .cockpit-grid {
             display: grid;
-            grid-template-columns: auto auto;
+            grid-template-columns: auto auto auto;
             grid-template-rows: auto auto;
             column-gap: 25px;
             row-gap: 8px;
@@ -282,7 +282,7 @@
                 <span class="cockpit-label">TIME</span>
                 <span class="cockpit-value" id="cockpit-time">06:00</span>
             </div>
-            <div class="cockpit-module">
+            <div class="cockpit-module" style="grid-column: span 2;">
                 <span class="cockpit-label">POS</span>
                 <span class="cockpit-value" id="cockpit-coords">0&deg;N 0&deg;E</span>
             </div>
@@ -293,6 +293,10 @@
             <div class="cockpit-module">
                 <span class="cockpit-label">ALT</span>
                 <span class="cockpit-value" id="cockpit-alt">2000 FT</span>
+            </div>
+            <div class="cockpit-module">
+                <span class="cockpit-label">SPD</span>
+                <span class="cockpit-value" id="cockpit-spd">150 KTS</span>
             </div>
         </div>
 
@@ -1049,6 +1053,10 @@
             const coordStr = `${latStr} ${lonStr}`;
             const altStr = `${alt}`;
 
+            // Map speed: Base flight speed is 2.5 * multiplier. Multiplier * 60 = 150 Knots base
+            const speedKts = Math.round(BASE_FLIGHT_SPEED * flightSpeedMultiplier * 60);
+            const spdStr = `${speedKts} KTS`;
+
             const cockpitTime = document.getElementById('cockpit-time');
             if (cockpitTime) cockpitTime.innerText = timeStr;
             const cockpitDir = document.getElementById('cockpit-dir');
@@ -1057,6 +1065,8 @@
             if (cockpitCoords) cockpitCoords.innerText = coordStr;
             const cockpitAlt = document.getElementById('cockpit-alt');
             if (cockpitAlt) cockpitAlt.innerText = altStr;
+            const cockpitSpd = document.getElementById('cockpit-spd');
+            if (cockpitSpd) cockpitSpd.innerText = spdStr;
 
             const debugMenu = document.getElementById('debug-menu');
             if (debugMenu && debugMenu.style.display !== 'none') {
