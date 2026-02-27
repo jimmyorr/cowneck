@@ -1194,10 +1194,11 @@
             let isBarrelRolling = false;
             let isLooping = false;
             let manualRollSpeed = 4.0; // rad/s
+            let manualLoopSpeed = 2.5; // rad/s
             // Only allow barrel rolls when actually flying, not when taxiing or stopped
             if (flightSpeedMultiplier > 0.5) {
                 if (keys.ArrowLeft && keys.ArrowRight) {
-                    planeGroup.rotation.x += manualRollSpeed * delta;
+                    planeGroup.rotation.x += manualLoopSpeed * delta;
                     isLooping = true;
                 } else if (keys.ArrowLeft) {
                     planeGroup.rotation.z += manualRollSpeed * delta;
