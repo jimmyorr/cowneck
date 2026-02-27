@@ -321,8 +321,6 @@
 
     <div id="debug-menu">
         <div style="margin-bottom: 10px; font-weight: bold;">Debug controls</div>
-        <div>Time: <span id="debug-time">06:00</span></div>
-        <div>Dir: <span id="debug-dir">N</span></div>
         <div style="margin-top: 10px;">
             <div style="margin-bottom: 5px;">Time speed:</div>
             <button class="speed-btn" data-speed="0.5">0.5x</button>
@@ -330,14 +328,6 @@
             <button class="speed-btn" data-speed="2">2x</button>
             <button class="speed-btn" data-speed="4">4x</button>
             <button class="speed-btn" data-speed="8">8x</button>
-        </div>
-        <div style="margin-top: 10px;">
-            <div style="margin-bottom: 5px;">Plane speed:</div>
-            <button class="plane-speed-btn" data-pspeed="0.5">0.5x</button>
-            <button class="plane-speed-btn active" data-pspeed="1">1x</button>
-            <button class="plane-speed-btn" data-pspeed="2">2x</button>
-            <button class="plane-speed-btn" data-pspeed="4">4x</button>
-            <button class="plane-speed-btn" data-pspeed="10">10x</button>
         </div>
     </div>
 
@@ -1096,15 +1086,6 @@
             if (cockpitAlt) cockpitAlt.innerText = altStr;
             const cockpitSpd = document.getElementById('cockpit-spd');
             if (cockpitSpd) cockpitSpd.innerText = spdStr;
-
-            const debugMenu = document.getElementById('debug-menu');
-            if (debugMenu && debugMenu.style.display !== 'none') {
-                const debugTimeEl = document.getElementById('debug-time');
-                if (debugTimeEl) debugTimeEl.innerText = timeStr;
-                const debugDirEl = document.getElementById('debug-dir');
-                if (debugDirEl) debugDirEl.innerText = dirStr;
-            }
-
             // Update celestial positions relative to skyGroup center
             const orbitRadius = 2000;
             // 0 = midnight (Y=-1), PI/2 = 6am (X=1, East), PI = noon (Y=1), 3PI/2 = 6pm (X=-1, West)
@@ -1536,11 +1517,9 @@
             } else if (e.key === 'ArrowUp') {
                 // Increase speed
                 flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier * 1.2);
-                updateSpeedUI();
             } else if (e.key === 'ArrowDown') {
                 // Decrease speed
                 flightSpeedMultiplier = Math.max(0.5, flightSpeedMultiplier / 1.2);
-                updateSpeedUI();
             }
         });
 
@@ -1549,30 +1528,11 @@
             if (e.key === 'ArrowRight') keys.ArrowRight = false;
         });
 
-        function updateSpeedUI() {
-            // Uncheck debug buttons since we map manually now
-            document.querySelectorAll('.plane-speed-btn').forEach(b => b.classList.remove('active'));
-            // Try to find an exact match button to highlight if possible
-            document.querySelectorAll('.plane-speed-btn').forEach(b => {
-                if (parseFloat(b.getAttribute('data-pspeed')) === flightSpeedMultiplier) {
-                    b.classList.add('active');
-                }
-            });
-        }
-
         document.querySelectorAll('.speed-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 daySpeedMultiplier = parseFloat(e.target.getAttribute('data-speed'));
-            });
-        });
-
-        document.querySelectorAll('.plane-speed-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.plane-speed-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                flightSpeedMultiplier = parseFloat(e.target.getAttribute('data-pspeed'));
             });
         });
 
