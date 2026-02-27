@@ -311,6 +311,16 @@
                 <button class="station-btn" data-station="procedural" title="Procedural Music">P</button>
                 <button class="station-btn" data-station="2" title="Lofi Girl">LG</button>
                 <button class="station-btn" data-station="3" title="Bootleg Boy 2">BB</button>
+
+                <!-- mobile flight controls -->
+                <div id="mobile-controls"
+                    style="display: none; gap: 4px; margin-left: 8px; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 12px;">
+                    <button class="station-btn" id="mobile-hdgt" title="Headlight" style="font-size: 14px;">💡</button>
+                    <button class="station-btn" id="mobile-spd-down" title="Decelerate"
+                        style="font-size: 16px;">-</button>
+                    <button class="station-btn" id="mobile-spd-up" title="Accelerate"
+                        style="font-size: 16px;">+</button>
+                </div>
             </div>
             <span id="station-name"
                 style="font-size: 11px; color: #FFD700; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; min-height: 14px;"></span>
@@ -1005,6 +1015,11 @@
                 radioModule.style.width = '100%';
             }
 
+            const mobileControls = document.getElementById('mobile-controls');
+            if (mobileControls) {
+                mobileControls.style.display = 'flex';
+            }
+
             const stationName = document.getElementById('station-name');
             stationName.style.width = '100px';
             stationName.style.whiteSpace = 'nowrap';
@@ -1695,6 +1710,46 @@
         });
         const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
 
+        const btnUp = document.getElementById('mobile-spd-up');
+        const btnDown = document.getElementById('mobile-spd-down');
+        const btnHdgt = document.getElementById('mobile-hdgt');
+
+        if (btnUp) {
+            const down = (e) => { e.preventDefault(); e.stopPropagation(); keys.ArrowUp = true; };
+            const up = (e) => { e.preventDefault(); e.stopPropagation(); keys.ArrowUp = false; };
+            btnUp.addEventListener('touchstart', down);
+            btnUp.addEventListener('touchend', up);
+            btnUp.addEventListener('mousedown', down);
+            btnUp.addEventListener('mouseup', up);
+            btnUp.addEventListener('mouseleave', up);
+        }
+        if (btnDown) {
+            const down = (e) => { e.preventDefault(); e.stopPropagation(); keys.ArrowDown = true; };
+            const up = (e) => { e.preventDefault(); e.stopPropagation(); keys.ArrowDown = false; };
+            btnDown.addEventListener('touchstart', down);
+            btnDown.addEventListener('touchend', up);
+            btnDown.addEventListener('mousedown', down);
+            btnDown.addEventListener('mouseup', up);
+            btnDown.addEventListener('mouseleave', up);
+        }
+        if (btnHdgt) {
+            const toggleHdgt = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (headlight.intensity === 0) {
+                    headlight.intensity = 2; // Very subtle headlight
+                    headlightGlow.intensity = 0.1; // Very subtle glow
+                    btnHdgt.classList.add('active');
+                } else {
+                    headlight.intensity = 0;
+                    headlightGlow.intensity = 0;
+                    btnHdgt.classList.remove('active');
+                }
+            };
+            btnHdgt.addEventListener('touchstart', toggleHdgt);
+            btnHdgt.addEventListener('mousedown', toggleHdgt);
+        }
+
         window.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
             if (e.key === 'ArrowRight') keys.ArrowRight = true;
@@ -1706,9 +1761,11 @@
                 if (headlight.intensity === 0) {
                     headlight.intensity = 2; // Very subtle headlight
                     headlightGlow.intensity = 0.1; // Very subtle glow
+                    if (btnHdgt) btnHdgt.classList.add('active');
                 } else {
                     headlight.intensity = 0;
                     headlightGlow.intensity = 0;
+                    if (btnHdgt) btnHdgt.classList.remove('active');
                 }
             }
 
