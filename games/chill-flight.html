@@ -1134,10 +1134,14 @@
 
             // Manual airplane barrel rolling via keyboard (purely rotational, doesn't pull plane off course)
             let isBarrelRolling = false;
+            let isLooping = false;
             let manualRollSpeed = 4.0; // rad/s
             // Only allow barrel rolls when actually flying, not when taxiing or stopped
             if (flightSpeedMultiplier > 0.5) {
-                if (keys.ArrowLeft) {
+                if (keys.ArrowLeft && keys.ArrowRight) {
+                    planeGroup.rotation.x += manualRollSpeed * delta;
+                    isLooping = true;
+                } else if (keys.ArrowLeft) {
                     planeGroup.rotation.z += manualRollSpeed * delta;
                     isBarrelRolling = true;
                 } else if (keys.ArrowRight) {
@@ -1147,7 +1151,11 @@
             }
 
             // Smooth interpolation towards targets
-            planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetPitch, TURN_SPEED);
+            if (!isLooping) {
+                while (planeGroup.rotation.x > targetPitch + Math.PI) planeGroup.rotation.x -= 2 * Math.PI;
+                while (planeGroup.rotation.x < targetPitch - Math.PI) planeGroup.rotation.x += 2 * Math.PI;
+                planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetPitch, TURN_SPEED);
+            }
 
             if (!isBarrelRolling) {
                 // Normalize rotation.z to be within PI of targetRoll so we smoothly un-roll without unwinding multiple 360s
@@ -1262,6 +1270,16 @@
             camera.getWorldDirection(currentLookTarget);
             currentLookTarget.add(camera.position); // Make it an absolute world position
             currentLookTarget.lerp(idealLookTarget, 0.1);
+
+            // Allow the camera to follow the plane's roll and pitch completely to naturally do loops
+            // Only strictly follow the plane's 'up' during a loop to avoid nausea during normal banking
+            if (isLooping) {
+                const idealUp = new THREE.Vector3(0, 1, 0).applyQuaternion(planeGroup.quaternion);
+                camera.up.lerp(idealUp, 0.1).normalize();
+            } else {
+                camera.up.lerp(new THREE.Vector3(0, 1, 0), 0.1).normalize();
+            }
+
             camera.lookAt(currentLookTarget);
 
             // 6. Update environment and weather
