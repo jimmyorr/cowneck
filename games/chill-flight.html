@@ -962,23 +962,23 @@
             let effMouseY = Math.abs(mouseY) < 0.15 ? 0 : mouseY;
 
             targetPitch = effMouseY * maxPitch;
-            targetRoll = -effMouseX * maxRoll;
+            targetRoll = -effMouseX * (maxRoll * 1.25); // Allow slightly sharper banks with mouse
 
-            // Manual airplane banking via keyboard (Overrides mouse roll, allows barrel rolls)
-            let isManualBanking = false;
-            let manualRollSpeed = 3.5; // rad/s
+            // Manual airplane barrel rolling via keyboard (purely rotational, doesn't pull plane off course)
+            let isBarrelRolling = false;
+            let manualRollSpeed = 4.0; // rad/s
             if (keys.ArrowLeft) {
                 planeGroup.rotation.z += manualRollSpeed * delta;
-                isManualBanking = true;
+                isBarrelRolling = true;
             } else if (keys.ArrowRight) {
                 planeGroup.rotation.z -= manualRollSpeed * delta;
-                isManualBanking = true;
+                isBarrelRolling = true;
             }
 
             // Smooth interpolation towards targets
             planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetPitch, TURN_SPEED);
 
-            if (!isManualBanking) {
+            if (!isBarrelRolling) {
                 // Normalize rotation.z to be within PI of targetRoll so we smoothly un-roll without unwinding multiple 360s
                 while (planeGroup.rotation.z > targetRoll + Math.PI) planeGroup.rotation.z -= 2 * Math.PI;
                 while (planeGroup.rotation.z < targetRoll - Math.PI) planeGroup.rotation.z += 2 * Math.PI;
@@ -987,8 +987,9 @@
             }
 
             // Yaw turns naturally as the plane rolls (banking)
-            let yawTurnMultiplier = isManualBanking ? 0.045 : 0.02; // Tighter turns when using keyboard
-            planeGroup.rotation.y += planeGroup.rotation.z * yawTurnMultiplier;
+            // If they are barrel rolling playfully, we use the intended targetRoll (mouse steering) instead of the rapidly spinning Z, to keep them flying straight!
+            let turningRoll = isBarrelRolling ? targetRoll : planeGroup.rotation.z;
+            planeGroup.rotation.y += turningRoll * 0.025; // Slightly increased base turn speed for better mouse steering
 
             // 3. Move forward locally
             planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
