@@ -519,6 +519,11 @@
         propGroup.add(blade1);
         propGroup.add(blade2);
 
+        // Pontoons Group (to toggle visibility later)
+        const pontoonGroup = new THREE.Group();
+        pontoonGroup.visible = false;
+        planeGroup.add(pontoonGroup);
+
         // Pontoons
         const pontoonMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, flatShading: true });
         const pontoonGeo = new THREE.CylinderGeometry(1.5, 1.5, 18, 8);
@@ -533,7 +538,7 @@
         pontoonL.add(pontoonBodyL);
         pontoonL.add(pontoonNoseMeshL);
         pontoonL.position.set(-5, -4.5, 0);
-        planeGroup.add(pontoonL);
+        pontoonGroup.add(pontoonL);
 
         const pontoonNoseMeshR = pontoonNoseMeshL.clone();
         const pontoonR = new THREE.Group();
@@ -541,7 +546,7 @@
         pontoonR.add(pontoonBodyR);
         pontoonR.add(pontoonNoseMeshR);
         pontoonR.position.set(5, -4.5, 0);
-        planeGroup.add(pontoonR);
+        pontoonGroup.add(pontoonR);
 
         // Struts to hold the pontoons
         const strutGeo = new THREE.CylinderGeometry(0.2, 0.2, 4.5, 4);
@@ -549,17 +554,17 @@
 
         const strutLF = new THREE.Mesh(strutGeo, strutMat);
         strutLF.position.set(-5, -2.5, -3);
-        planeGroup.add(strutLF);
+        pontoonGroup.add(strutLF);
         const strutLB = new THREE.Mesh(strutGeo, strutMat);
         strutLB.position.set(-5, -2.5, 3);
-        planeGroup.add(strutLB);
+        pontoonGroup.add(strutLB);
 
         const strutRF = new THREE.Mesh(strutGeo, strutMat);
         strutRF.position.set(5, -2.5, -3);
-        planeGroup.add(strutRF);
+        pontoonGroup.add(strutRF);
         const strutRB = new THREE.Mesh(strutGeo, strutMat);
         strutRB.position.set(5, -2.5, 3);
-        planeGroup.add(strutRB);
+        pontoonGroup.add(strutRB);
 
         // Better rotation order for airplanes (Yaw, then Pitch, then Roll)
         planeGroup.rotation.order = 'YXZ';
@@ -1112,6 +1117,10 @@
 
                 // Water landing drag and leveling
                 if (isWater && planeGroup.position.y < minFlightHeight + 2) {
+
+                    // Reveal pontoons on first water landing
+                    if (!pontoonGroup.visible) pontoonGroup.visible = true;
+
                     if (flightSpeedMultiplier > 0.5) {
                         flightSpeedMultiplier = THREE.MathUtils.lerp(flightSpeedMultiplier, 0.5, 0.015); // gentle water drag to taxi speed
                     }
