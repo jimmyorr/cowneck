@@ -690,22 +690,25 @@ if (btnHdgt) {
 }
 
 window.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
-    if (e.key === 'ArrowRight') keys.ArrowRight = true;
-    if (e.key === 'ArrowUp') keys.ArrowUp = true;
-    if (e.key === 'ArrowDown') keys.ArrowDown = true;
+    const key = e.key.toLowerCase();
+    if (e.key === 'ArrowLeft' || key === 'a') keys.ArrowLeft = true;
+    if (e.key === 'ArrowRight' || key === 'd') keys.ArrowRight = true;
+    if (e.key === 'ArrowUp' || key === 'w') keys.ArrowUp = true;
+    if (e.key === 'ArrowDown' || key === 's') keys.ArrowDown = true;
 
     // Double-tap detection (ignore key-repeat events)
-    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.repeat) {
+    if ((e.key === 'ArrowLeft' || key === 'a' || e.key === 'ArrowRight' || key === 'd') && !e.repeat) {
+        const tapKey = (e.key === 'ArrowLeft' || key === 'a') ? 'ArrowLeft' : 'ArrowRight';
         const now = performance.now();
-        if (now - lastArrowTap[e.key] < DOUBLE_TAP_MS) {
-            doubleTap[e.key] = true;
+        if (now - lastArrowTap[tapKey] < DOUBLE_TAP_MS) {
+            doubleTap[tapKey] = true;
         }
-        lastArrowTap[e.key] = now;
+        lastArrowTap[tapKey] = now;
     }
 
-    // Any arrow key press hands control to keyboard; clear mouse until it moves again
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    // Any control key press hands control to keyboard; clear mouse until it moves again
+    const isControlKey = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'w', 'a', 's', 'd'].includes(e.key.toLowerCase());
+    if (isControlKey) {
         if (!e.repeat) {
             mouseControlActive = false;
             mouseX = 0;
@@ -725,7 +728,7 @@ window.addEventListener('keydown', (e) => {
         }
     }
 
-    if (e.key === 'd' || e.key === 'D') {
+    if ((e.key === 'd' || e.key === 'D') && e.shiftKey) {
         const debugMenu = document.getElementById('debug-menu');
         const isOpening = debugMenu.style.display !== 'block';
         debugMenu.style.display = isOpening ? 'block' : 'none';
@@ -783,10 +786,11 @@ window.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('keyup', (e) => {
-    if (e.key === 'ArrowLeft') { keys.ArrowLeft = false; doubleTap.ArrowLeft = false; }
-    if (e.key === 'ArrowRight') { keys.ArrowRight = false; doubleTap.ArrowRight = false; }
-    if (e.key === 'ArrowUp') keys.ArrowUp = false;
-    if (e.key === 'ArrowDown') keys.ArrowDown = false;
+    const key = e.key.toLowerCase();
+    if (e.key === 'ArrowLeft' || key === 'a') { keys.ArrowLeft = false; doubleTap.ArrowLeft = false; }
+    if (e.key === 'ArrowRight' || key === 'd') { keys.ArrowRight = false; doubleTap.ArrowRight = false; }
+    if (e.key === 'ArrowUp' || key === 'w') keys.ArrowUp = false;
+    if (e.key === 'ArrowDown' || key === 's') keys.ArrowDown = false;
 });
 
 window.addEventListener('blur', () => {
