@@ -71,6 +71,7 @@ let explosionParticles = null;
 const crashOverlay = document.getElementById('crash-overlay');
 const chillCheckbox = document.getElementById('chill-checkbox');
 const titleChill = document.getElementById('title-chill');
+let lastY = 250; // track for ascent/descent detection
 
 function updateModeUI() {
     if (isChillMode) {
@@ -336,6 +337,9 @@ function animate() {
             if (pontoonDeploymentProgress > 1) pontoonDeploymentProgress = 1;
             const t = pontoonDeploymentProgress;
             const easeOut = 1 - Math.pow(1 - t, 3);
+
+            pontoonGroup.scale.setScalar(easeOut);
+
             const leftRotAngle = (Math.PI / 2) * (1 - easeOut);
             pontoonL.rotation.z = leftRotAngle;
             hingeLF.rotation.z = leftRotAngle;
@@ -356,6 +360,9 @@ function animate() {
             }
             const t = pontoonDeploymentProgress;
             const easeOut = 1 - Math.pow(1 - t, 3);
+
+            pontoonGroup.scale.setScalar(easeOut);
+
             const leftRotAngle = (Math.PI / 2) * (1 - easeOut);
             pontoonL.rotation.z = leftRotAngle;
             hingeLF.rotation.z = leftRotAngle;
@@ -492,8 +499,17 @@ function animate() {
             planeGroup.position.y = maxFlightHeight;
         }
 
-        if (controlAlt >= 5000 && pontoonGroup.visible && !isRetractingPontoons) {
+        if (controlAlt >= 500 && pontoonGroup.visible && !isRetractingPontoons) {
             isRetractingPontoons = true;
+        }
+
+        const currentY = planeGroup.position.y;
+        const isDescending = currentY < lastY;
+        lastY = currentY;
+
+        if (isWater && controlAlt < 1000 && isDescending && !pontoonGroup.visible) {
+            pontoonGroup.visible = true;
+            isDeployingPontoons = true;
         }
 
         // Camera follow
