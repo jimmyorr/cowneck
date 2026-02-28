@@ -265,7 +265,13 @@ function animate() {
     const manualLoopSpeed = 2.5;
     if (flightSpeedMultiplier > 0.5) {
         if (keys.ArrowLeft && keys.ArrowRight) {
-            planeGroup.rotation.x += manualLoopSpeed * delta;
+            if (doubleTap.ArrowLeft && doubleTap.ArrowRight) {
+                // Double-tap both: pitch nose down
+                planeGroup.rotation.x -= manualLoopSpeed * delta;
+            } else {
+                // Single hold both: loop up
+                planeGroup.rotation.x += manualLoopSpeed * delta;
+            }
             isLooping = true;
         } else if (keys.ArrowLeft) {
             if (doubleTap.ArrowLeft) {
