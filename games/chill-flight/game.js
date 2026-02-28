@@ -11,6 +11,7 @@
 let mouseX = 0;
 let mouseY = 0;
 let mouseControlActive = false; // becomes true once the mouse moves; cleared by arrow-key presses
+let windowJustFocused = false;  // absorbs the first mousemove after returning to the tab
 let targetPitch = 0;
 let targetRoll = 0;
 
@@ -23,7 +24,13 @@ function updateInputPosition(clientX, clientY) {
 window.addEventListener('mousemove', (e) => {
     if (!e.target.closest('#cockpit-ui') && !e.target.closest('#debug-menu') && !e.target.closest('.title')) {
         updateInputPosition(e.clientX, e.clientY);
-        mouseControlActive = true;
+        if (windowJustFocused) {
+            // Silently sync position without steering — swallows the spurious
+            // move event browsers fire when the window regains focus.
+            windowJustFocused = false;
+        } else {
+            mouseControlActive = true;
+        }
     }
 });
 
@@ -681,8 +688,14 @@ window.addEventListener('keyup', (e) => {
 });
 
 window.addEventListener('blur', () => {
+    mouseControlActive = false;
+    windowJustFocused = false;
     for (let k in keys) keys[k] = false;
-    console.log("Window blur: Resetting all keys.");
+    console.log("Window blur: Resetting all keys and mouse control.");
+});
+
+window.addEventListener('focus', () => {
+    windowJustFocused = true;
 });
 
 // Radio button wiring
