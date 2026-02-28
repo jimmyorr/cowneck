@@ -25,6 +25,9 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 
 const ENABLE_MULTIPLAYER_HEADLIGHTS = false;
+// Scope all Firebase paths under the world seed so players on different seeds
+// are completely isolated from each other.
+const worldPrefix = `world/${ChillFlightLogic.WORLD_SEED}`;
 // otherPlayers must be on window so game.js (a plain script) can read it
 // Module-scoped const/let never lands on window, unlike top-level var in plain <script>s
 window.otherPlayers = new Map();
@@ -124,8 +127,8 @@ signInAnonymously(auth)
             if (colorInput) colorInput.value = '#' + planeColor.toString(16).padStart(6, '0').toLowerCase();
         }
 
-        const profileRef = ref(db, 'users/' + playerUid);
-        const sessionRef = ref(db, 'players/' + playerUid);
+        const profileRef = ref(db, `${worldPrefix}/users/` + playerUid);
+        const sessionRef = ref(db, `${worldPrefix}/players/` + playerUid);
 
         const updatePlayerProfile = () => {
             set(profileRef, {
@@ -190,7 +193,7 @@ signInAnonymously(auth)
 
         const initialPos = planeGroup.position;
         const initialRot = planeGroup.rotation;
-        set(ref(db, 'players/' + playerUid + '/position'), {
+        set(ref(db, `${worldPrefix}/players/` + playerUid + '/position'), {
             x: Number(initialPos.x.toFixed(1)),
             y: Number(initialPos.y.toFixed(1)),
             z: Number(initialPos.z.toFixed(1)),
@@ -202,7 +205,7 @@ signInAnonymously(auth)
             updatedAt: new Date().toISOString()
         });
 
-        const playersRef = ref(db, 'players');
+        const playersRef = ref(db, `${worldPrefix}/players`);
         onChildAdded(playersRef, (snapshot) => {
             const snapKey = snapshot.key;
             if (snapKey === playerUid) return;
@@ -331,7 +334,7 @@ signInAnonymously(auth)
                 if (c.type === 'SpotLight' && c.intensity > 0) headlightsOn = true;
             });
 
-            set(ref(db, 'players/' + playerUid + '/position'), {
+            set(ref(db, `${worldPrefix}/players/` + playerUid + '/position'), {
                 x: Number(pos.x.toFixed(1)),
                 y: Number(pos.y.toFixed(1)),
                 z: Number(pos.z.toFixed(1)),

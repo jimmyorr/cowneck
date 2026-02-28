@@ -630,9 +630,10 @@ window.addEventListener('keydown', (e) => {
         debugMenu.style.display = isOpening ? 'block' : 'none';
 
         if (window.firebaseDB && window.currentUserUid) {
+            const _wp = `world/${ChillFlightLogic.WORLD_SEED}`;
             if (isOpening) {
                 import('https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js').then(({ remove, ref, goOffline }) => {
-                    remove(ref(window.firebaseDB, 'players/' + window.currentUserUid)).then(() => {
+                    remove(ref(window.firebaseDB, `${_wp}/players/` + window.currentUserUid)).then(() => {
                         goOffline(window.firebaseDB);
                         if (typeof otherPlayers !== 'undefined') otherPlayers.forEach(p => p.mesh.visible = false);
                         console.log("Debug menu opened: Disconnected from Firebase multiplayer.");
@@ -642,13 +643,13 @@ window.addEventListener('keydown', (e) => {
                 import('https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js').then(({ goOnline, set, ref }) => {
                     goOnline(window.firebaseDB);
                     if (typeof otherPlayers !== 'undefined') otherPlayers.forEach(p => p.mesh.visible = true);
-                    const profileRef = ref(window.firebaseDB, 'users/' + window.currentUserUid);
-                    const sessionRef = ref(window.firebaseDB, 'players/' + window.currentUserUid);
+                    const profileRef = ref(window.firebaseDB, `${_wp}/users/` + window.currentUserUid);
+                    const sessionRef = ref(window.firebaseDB, `${_wp}/players/` + window.currentUserUid);
                     set(profileRef, { name: playerName, color: planeColor, updatedAt: new Date().toISOString() });
                     set(sessionRef, { name: playerName, color: planeColor, lastSeen: new Date().toISOString() });
                     const pos = planeGroup.position;
                     const rot = planeGroup.rotation;
-                    set(ref(window.firebaseDB, 'players/' + window.currentUserUid + '/position'), {
+                    set(ref(window.firebaseDB, `${_wp}/players/` + window.currentUserUid + '/position'), {
                         x: Number(pos.x.toFixed(1)),
                         y: Number(pos.y.toFixed(1)),
                         z: Number(pos.z.toFixed(1)),
