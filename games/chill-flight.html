@@ -108,6 +108,75 @@
             transform: scale(1.05);
         }
 
+        .customization-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 280px;
+            backdrop-filter: blur(10px);
+        }
+
+        .customization-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .customization-label {
+            font-size: 14px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .customization-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 16px;
+            outline: none;
+            width: 100%;
+        }
+
+        .customization-input:focus {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #plane-color-input {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 40px;
+            height: 40px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        #plane-color-input::-webkit-color-swatch {
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        #plane-color-input::-moz-color-swatch {
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
         #cockpit-ui {
             position: absolute;
             bottom: 20px;
@@ -291,6 +360,21 @@
         <p style="margin-bottom: 5px; font-size: 18px; color: #ccc;">Press ESC to resume</p>
         <p style="margin-bottom: 20px; font-size: 12px; color: #888;">Controls: Up/Down (Speed) &bull; Left/Right
             (Barrel roll) &bull; L (Headlight)</p>
+
+        <div class="customization-box">
+            <div class="customization-row">
+                <span class="customization-label">Callsgn</span>
+                <input type="text" id="player-name-input" class="customization-input" placeholder="Enter Name"
+                    maxlength="12" value="Player 1">
+            </div>
+            <div class="customization-row">
+                <span class="customization-label">Livery</span>
+                <div class="color-picker-container">
+                    <input type="color" id="plane-color-input" value="#e74c3c">
+                </div>
+            </div>
+        </div>
+
         <button id="resume-btn" class="btn" style="margin-bottom: 15px;">Resume flight</button>
         <a href="index.html" class="btn">Exit game</a>
     </div>
@@ -390,6 +474,10 @@
         let playerUid = null; // Store local UID once logged in
         let planeMat = null; // Store local plane material for color updates
 
+        // Global player state for customization
+        let playerName = "Player 1";
+        let planeColor = 0xe74c3c;
+
         // Helper to get a deterministic "chill" color for a player
         function getPlaneColor(uid) {
             const colors = [
@@ -413,12 +501,13 @@
             return colors[index];
         }
 
-        function createOtherPlaneMesh(uid) {
+        function createOtherPlaneMesh(uid, forcedColor) {
             const group = new THREE.Group();
             // Reuse materials/geometries from main plane
             // Fuselage
             const bodyGeo = new THREE.BoxGeometry(4, 4, 16);
-            const planeMat = new THREE.MeshStandardMaterial({ color: getPlaneColor(uid), flatShading: true });
+            const color = forcedColor !== undefined ? forcedColor : getPlaneColor(uid);
+            const planeMat = new THREE.MeshStandardMaterial({ color: color, flatShading: true });
             const body = new THREE.Mesh(bodyGeo, planeMat);
             group.add(body);
             const cp = new THREE.Mesh(windowGeo, windowMat);
@@ -505,17 +594,49 @@
 
                 // Update local plane color to be unique
                 if (planeMat) {
-                    planeMat.color.setHex(getPlaneColor(playerUid));
+                    planeColor = getPlaneColor(playerUid);
+                    planeMat.color.setHex(planeColor);
+
+                    // Update UI defaults
+                    const nameInput = document.getElementById('player-name-input');
+                    const colorInput = document.getElementById('plane-color-input');
+                    if (colorInput) colorInput.value = '#' + planeColor.toString(16).padStart(6, '0');
                 }
 
                 // Now you can write to the DB
                 const userRef = ref(db, 'players/' + playerUid);
 
                 // Immediately initialize the player node to ensure onDisconnect works on the whole object
-                set(userRef, {
-                    name: "Player 1",
-                    lastSeen: new Date().toISOString()
-                });
+                const updatePlayerProfile = () => {
+                    set(userRef, {
+                        name: playerName,
+                        color: planeColor,
+                        lastSeen: new Date().toISOString()
+                    });
+                };
+                updatePlayerProfile();
+
+                // Listen for customizations on the pause screen
+                const nameInput = document.getElementById('player-name-input');
+                const colorInput = document.getElementById('plane-color-input');
+
+                if (nameInput) {
+                    nameInput.addEventListener('input', (e) => {
+                        playerName = e.target.value || "Player 1";
+                        updatePlayerProfile();
+                    });
+                }
+
+                if (colorInput) {
+                    colorInput.addEventListener('input', (e) => {
+                        const hexStr = e.target.value.replace('#', '');
+                        planeColor = parseInt(hexStr, 16);
+                        if (planeMat) {
+                            planeMat.color.setHex(planeColor);
+                        }
+                        updatePlayerProfile();
+                    });
+                }
 
                 // 0. Clean up gracefully if the user closes the tab/browser
                 onDisconnect(userRef).remove();
@@ -561,7 +682,7 @@
                         otherPlayers.delete(snapKey);
                     }
 
-                    const mesh = createOtherPlaneMesh(snapKey); // Pass UID here
+                    const mesh = createOtherPlaneMesh(snapKey, data.color); // Pass UID and custom color
 
                     // Set initial headlights
                     if (ENABLE_MULTIPLAYER_HEADLIGHTS && mesh.userData.headlight) {
@@ -611,6 +732,18 @@
                             // But for simplicity, let's just ensure they exist
                             return; // Wait for next sync or just trigger onChildAdded logic? 
                             // Actually, let's just make onChildAdded robust.
+                        }
+
+                        // Update color if it changed
+                        if (data.color !== undefined) {
+                            p.mesh.children.forEach(child => {
+                                if (child.isMesh && child.geometry.type === 'BoxGeometry' && child.geometry.parameters.width === 4) {
+                                    // This is the fuselage, but let's be more robust: find the material
+                                    if (child.material && child.material.color) {
+                                        child.material.color.setHex(data.color);
+                                    }
+                                }
+                            });
                         }
 
                         // 2. Latency Compensation (Dead Reckoning Catch-up)
@@ -2538,8 +2671,8 @@
                             // Re-check-in
                             const userRef = ref(window.firebaseDB, 'players/' + window.currentUserUid);
                             set(userRef, {
-                                name: "Player 1",
-                                score: 0,
+                                name: playerName,
+                                color: planeColor,
                                 lastSeen: new Date().toISOString()
                             });
                             // Immediate position re-sync
