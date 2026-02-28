@@ -370,10 +370,38 @@
         // --- 0.4 MULTIPLAYER DATA ---
         const ENABLE_MULTIPLAYER_HEADLIGHTS = false; // Disable to save performance in crowded servers
         const otherPlayers = new Map(); // Map<uid, {mesh, targetPos, targetRotY}>
+        let playerUid = null; // Store local UID once logged in
+        let planeMat = null; // Store local plane material for color updates
 
-        function createOtherPlaneMesh() {
+        // Helper to get a deterministic "chill" color for a player
+        function getPlaneColor(uid) {
+            const colors = [
+                0xe74c3c, // Sunset Red
+                0x3498db, // Sky Blue
+                0x2ecc71, // Emerald
+                0xf1c40f, // Amber
+                0x9b59b6, // Amethyst
+                0x34495e, // Slate
+                0xe67e22, // Orange
+                0x1abc9c, // Turquoise
+                0xd35400, // Pumpkin
+                0xc0392b  // Dark Red
+            ];
+            if (!uid) return colors[0];
+            let hash = 0;
+            for (let i = 0; i < uid.length; i++) {
+                hash = uid.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const index = Math.abs(hash) % colors.length;
+            return colors[index];
+        }
+
+        function createOtherPlaneMesh(uid) {
             const group = new THREE.Group();
             // Reuse materials/geometries from main plane
+            // Fuselage
+            const bodyGeo = new THREE.BoxGeometry(4, 4, 16);
+            const planeMat = new THREE.MeshStandardMaterial({ color: getPlaneColor(uid), flatShading: true });
             const body = new THREE.Mesh(bodyGeo, planeMat);
             group.add(body);
             const cp = new THREE.Mesh(windowGeo, windowMat);
@@ -454,12 +482,17 @@
         // Simple "Log them in so they can play" logic
         signInAnonymously(auth)
             .then(() => {
-                const uid = auth.currentUser.uid;
-                window.currentUserUid = uid; // Expose for sync interval checking
-                console.log("Logged in anonymously! ID:", uid);
+                playerUid = auth.currentUser.uid;
+                window.currentUserUid = playerUid; // Expose for sync interval checking
+                console.log("Logged in anonymously! ID:", playerUid);
+
+                // Update local plane color to be unique
+                if (planeMat) {
+                    planeMat.color.setHex(getPlaneColor(playerUid));
+                }
 
                 // Now you can write to the DB
-                const userRef = ref(db, 'players/' + uid);
+                const userRef = ref(db, 'players/' + playerUid);
 
                 // 0. Clean up gracefully if the user closes the tab/browser
                 onDisconnect(userRef).remove();
@@ -473,10 +506,10 @@
                 // Listen for other players
                 const playersRef = ref(db, 'players');
                 onChildAdded(playersRef, (snapshot) => {
-                    if (snapshot.key === uid) return;
+                    if (snapshot.key === playerUid) return;
                     const data = snapshot.val();
                     const posData = data.position || {};
-                    const mesh = createOtherPlaneMesh();
+                    const mesh = createOtherPlaneMesh(snapshot.key); // Pass UID here
 
                     // Set initial headlights
                     if (ENABLE_MULTIPLAYER_HEADLIGHTS && mesh.userData.headlight) {
@@ -742,7 +775,7 @@
 
         // Fuselage
         const bodyGeo = new THREE.BoxGeometry(4, 4, 16);
-        const planeMat = new THREE.MeshStandardMaterial({ color: 0xe74c3c, flatShading: true });
+        planeMat = new THREE.MeshStandardMaterial({ color: getPlaneColor(playerUid), flatShading: true });
         const body = new THREE.Mesh(bodyGeo, planeMat);
         planeGroup.add(body);
 
