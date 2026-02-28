@@ -342,7 +342,62 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // --- 0. FIREBASE INITIALIZATION ---
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPeDeN9w52WynaSSasPIeGYZCO7Dq6IRw",
+            authDomain: "chill-flight.firebaseapp.com",
+            databaseURL: "https://chill-flight-default-rtdb.firebaseio.com",
+            projectId: "chill-flight",
+            storageBucket: "chill-flight.firebasestorage.app",
+            messagingSenderId: "164886656663",
+            appId: "1:164886656663:web:249418e3fe76d60a4d1bd2",
+            measurementId: "G-N6RGBLQCZ8"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Simple "Log them in so they can play" logic
+        signInAnonymously(auth)
+            .then(() => {
+                console.log("Logged in anonymously! ID:", auth.currentUser.uid);
+
+                // Now you can write to the DB
+                const userRef = ref(db, 'players/' + auth.currentUser.uid);
+                set(userRef, {
+                    name: "Player 1",
+                    score: 0,
+                    lastSeen: new Date().toISOString()
+                });
+
+                // --- 0.5 PERIODIC LOCATION SYNC ---
+                // Sync player location every 2 seconds to minimize DB bandwidth
+                setInterval(() => {
+                    const pos = planeGroup.position;
+                    // Only sync essential coordinates (X, Y, Z) and timestamp
+                    set(ref(db, 'players/' + auth.currentUser.uid + '/position'), {
+                        x: Math.round(pos.x),
+                        y: Math.round(pos.y),
+                        z: Math.round(pos.z),
+                        updatedAt: new Date().toISOString()
+                    });
+                }, 2000);
+            })
+            .catch((error) => {
+                console.error("Auth failed:", error);
+            });
+
         // --- 1. SIMPLEX NOISE IMPLEMENTATION ---
         // A compact, self-contained 2D simplex noise generator for procedural terrain
         const SimplexNoise = function () {
