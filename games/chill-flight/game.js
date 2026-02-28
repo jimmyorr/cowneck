@@ -259,6 +259,7 @@ function animate() {
     }
 
     let isBarrelRolling = false;
+    let isClampedRoll = false;
     let isLooping = false;
     const manualRollSpeed = 4.0;
     const manualLoopSpeed = 2.5;
@@ -267,10 +268,26 @@ function animate() {
             planeGroup.rotation.x += manualLoopSpeed * delta;
             isLooping = true;
         } else if (keys.ArrowLeft) {
-            planeGroup.rotation.z += manualRollSpeed * delta;
+            if (doubleTap.ArrowLeft) {
+                // Double-tap: full barrel roll
+                planeGroup.rotation.z += manualRollSpeed * delta;
+            } else {
+                // Single-tap: bank to 90° and hold
+                const target = Math.PI / 2;
+                planeGroup.rotation.z = Math.min(target, planeGroup.rotation.z + manualRollSpeed * delta);
+                isClampedRoll = true;
+            }
             isBarrelRolling = true;
         } else if (keys.ArrowRight) {
-            planeGroup.rotation.z -= manualRollSpeed * delta;
+            if (doubleTap.ArrowRight) {
+                // Double-tap: full barrel roll
+                planeGroup.rotation.z -= manualRollSpeed * delta;
+            } else {
+                // Single-tap: bank to -90° and hold
+                const target = -Math.PI / 2;
+                planeGroup.rotation.z = Math.max(target, planeGroup.rotation.z - manualRollSpeed * delta);
+                isClampedRoll = true;
+            }
             isBarrelRolling = true;
         }
     }
@@ -288,7 +305,10 @@ function animate() {
     }
 
     if (flightSpeedMultiplier > 0) {
-        let turningRoll = isBarrelRolling ? targetRoll : planeGroup.rotation.z;
+        // Clamped single-tap: use actual bank angle so the plane carves a hard turn.
+        // Double-tap barrel roll: use targetRoll (mouse) for steering.
+        // Normal flight: use actual rotation.z for gentle banking turns.
+        let turningRoll = (isBarrelRolling && !isClampedRoll) ? targetRoll : planeGroup.rotation.z;
         planeGroup.rotation.y += turningRoll * 0.025;
     }
 
@@ -512,6 +532,11 @@ window.onload = animate;
 // --- KEY STATE ---
 const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
 
+// Double-tap detection for barrel roll
+const lastArrowTap = { ArrowLeft: 0, ArrowRight: 0 };
+const doubleTap = { ArrowLeft: false, ArrowRight: false };
+const DOUBLE_TAP_MS = 300;
+
 // Mobile controls
 const btnUp = document.getElementById('mobile-spd-up');
 const btnDown = document.getElementById('mobile-spd-down');
@@ -563,6 +588,15 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') keys.ArrowRight = true;
     if (e.key === 'ArrowUp') keys.ArrowUp = true;
     if (e.key === 'ArrowDown') keys.ArrowDown = true;
+
+    // Double-tap detection (ignore key-repeat events)
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.repeat) {
+        const now = performance.now();
+        if (now - lastArrowTap[e.key] < DOUBLE_TAP_MS) {
+            doubleTap[e.key] = true;
+        }
+        lastArrowTap[e.key] = now;
+    }
 
     if ((e.key === 'l' || e.key === 'L') && !e.metaKey && !e.ctrlKey && !e.altKey) {
         if (headlight.intensity === 0) {
@@ -633,8 +667,8 @@ window.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('keyup', (e) => {
-    if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
-    if (e.key === 'ArrowRight') keys.ArrowRight = false;
+    if (e.key === 'ArrowLeft') { keys.ArrowLeft = false; doubleTap.ArrowLeft = false; }
+    if (e.key === 'ArrowRight') { keys.ArrowRight = false; doubleTap.ArrowRight = false; }
     if (e.key === 'ArrowUp') keys.ArrowUp = false;
     if (e.key === 'ArrowDown') keys.ArrowDown = false;
 });
