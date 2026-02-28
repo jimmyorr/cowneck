@@ -703,9 +703,26 @@ function animate() {
         hemiLight.intensity = THREE.MathUtils.lerp(0.1, 0.6, dayFactor);
         dirLight.intensity = THREE.MathUtils.lerp(0, 0.8, dayFactor);
 
-        let weatherNoise = (simplex.noise2D((planeGroup.position.x / CHUNK_SIZE) * 0.1 + 500, (planeGroup.position.z / CHUNK_SIZE) * 0.1) + 1) / 2;
-        const weatherThreshold = 0.5;
+        // Dynamic Weather (Drifting Fog & Clouds)
+        const weatherTimeOffset = (now / 100000); // Very slow drift
+        let weatherNoise = (simplex.noise2D((planeGroup.position.x / CHUNK_SIZE) * 0.1 + 500 + weatherTimeOffset, (planeGroup.position.z / CHUNK_SIZE) * 0.1 + weatherTimeOffset) + 1) / 2;
+        const weatherThreshold = 0.7;
         weatherNoise = weatherNoise < weatherThreshold ? 0 : (weatherNoise - weatherThreshold) / (1 - weatherThreshold);
+
+        // Cloud Drifting
+        chunks.forEach(chunk => {
+            if (chunk.userData.clouds) {
+                chunk.userData.clouds.forEach(cloud => {
+                    // Drift 2 units per second (very lazy)
+                    cloud.position.x += delta * 2;
+                    // Wrap clouds within the chunk (2000x2000)
+                    const chunkCenterX = chunk.position.x;
+                    if (cloud.position.x > chunkCenterX + 1000) {
+                        cloud.position.x -= 2000;
+                    }
+                });
+            }
+        });
 
         const cloudyColor = new THREE.Color().setHex(0x0a0c10).lerp(new THREE.Color(0x8899aa), dayFactor);
         const finalSkyColor = uncloudedSkyColor.clone().lerp(cloudyColor, weatherNoise);
@@ -713,7 +730,7 @@ function animate() {
 
         scene.background.lerp(finalSkyColor, 0.05);
         scene.fog.color.lerp(finalFogColor, 0.05);
-        scene.fog.density = THREE.MathUtils.lerp(scene.fog.density, THREE.MathUtils.lerp(0.0003, 0.0018, weatherNoise), 0.01);
+        scene.fog.density = THREE.MathUtils.lerp(scene.fog.density, THREE.MathUtils.lerp(0.00005, 0.0004, weatherNoise), 0.01);
     }
 
     renderer.render(scene, camera);

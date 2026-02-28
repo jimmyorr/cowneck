@@ -302,8 +302,12 @@ function generateChunk(chunkX, chunkZ) {
             cloudGroup.add(mesh);
         }
         cloudGroup.position.set(worldOffsetX + cx, cy, worldOffsetZ + cz);
+        cloudGroup.userData.isCloud = true;
         group.add(cloudGroup);
     }
+
+    // Store clouds for easy access in animate loop
+    group.userData.clouds = group.children.filter(c => c.userData.isCloud);
 
     // 4. Generate Birds
     group.userData.birds = [];

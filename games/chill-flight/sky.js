@@ -3,7 +3,7 @@
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xa0d8ef);
-scene.fog = new THREE.FogExp2(0xa0d8ef, 0.0008);
+scene.fog = new THREE.FogExp2(0xa0d8ef, 0.00005);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
 
