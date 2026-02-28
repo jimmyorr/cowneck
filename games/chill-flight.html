@@ -387,6 +387,30 @@
             const r = new THREE.Mesh(rudderGeo, planeMat);
             r.position.set(0, 2.5, 7);
             group.add(r);
+
+            // Add Headlights (off by default)
+            const headlight = new THREE.SpotLight(0xffd1a3, 0);
+            headlight.position.set(0, 0, -10);
+            const headlightTarget = new THREE.Object3D();
+            headlightTarget.position.set(0, -20, -100);
+            group.add(headlightTarget);
+            headlight.target = headlightTarget;
+            headlight.angle = Math.PI / 4;
+            headlight.penumbra = 1.0;
+            headlight.distance = 1500;
+            headlight.decay = 2.0;
+
+            const headlightGlow = new THREE.PointLight(0xffd1a3, 0, 50);
+            headlightGlow.position.set(0, 5, 0);
+            group.add(headlightGlow);
+            group.add(headlight);
+
+            // Store references to lights so we can toggle them later
+            group.userData = {
+                headlight: headlight,
+                headlightGlow: headlightGlow
+            };
+
             return group;
         }
 
@@ -428,6 +452,12 @@
                     const data = snapshot.val();
                     const posData = data.position || {};
                     const mesh = createOtherPlaneMesh();
+
+                    // Set initial headlights
+                    const isLightsOn = posData.headlightsOn || false;
+                    mesh.userData.headlight.intensity = isLightsOn ? 2 : 0;
+                    mesh.userData.headlightGlow.intensity = isLightsOn ? 0.1 : 0;
+
                     scene.add(mesh);
                     otherPlayers.set(snapshot.key, {
                         mesh,
@@ -447,6 +477,11 @@
                     const p = otherPlayers.get(snapshot.key);
                     if (p && data.position) {
                         p.lastReceivedMs = Date.now(); // Update GC timer
+
+                        // Toggle headlights
+                        const isLightsOn = data.position.headlightsOn || false;
+                        p.mesh.userData.headlight.intensity = isLightsOn ? 2 : 0;
+                        p.mesh.userData.headlightGlow.intensity = isLightsOn ? 0.1 : 0;
 
                         // 1. Get raw snapshot data
                         p.targetPos.set(data.position.x, data.position.y, data.position.z);
@@ -508,7 +543,19 @@
 
                     const pos = planeGroup.position;
                     const rot = planeGroup.rotation;
-                    // Sync essential coordinates, full rotation, speed, and timestamp
+
+                    // determine if our headlight is on
+                    // We need to look up the global 'headlight' object
+                    // In JS it's declared much further down, so we'll check its intensity at runtime
+                    // Actually, "headlight" is a local const in createScene() and not available globally easily.
+                    // Wait, let's grab the actual global headlight reference or just rely on a global headlightsOn var if there is one.
+                    // Another way is to check the first child SpotLight's intensity
+                    let headlightsOn = false;
+                    planeGroup.children.forEach(c => {
+                        if (c.type === 'SpotLight' && c.intensity > 0) headlightsOn = true;
+                    });
+
+                    // Sync essential coordinates, full rotation, speed, headlights, and timestamp
                     set(ref(db, 'players/' + uid + '/position'), {
                         x: Number(pos.x.toFixed(1)),
                         y: Number(pos.y.toFixed(1)),
@@ -517,6 +564,7 @@
                         rotY: Number(rot.y.toFixed(3)),
                         rotZ: Number(rot.z.toFixed(3)),
                         speedMult: Number(flightSpeedMultiplier.toFixed(2)),
+                        headlightsOn: headlightsOn,
                         updatedAt: new Date().toISOString()
                     });
                 }, 2000);
