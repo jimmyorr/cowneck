@@ -4,7 +4,8 @@ const SimplexNoise = function () {
     var F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
     var G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
     var p = new Uint8Array(256);
-    for (var i = 0; i < 256; i++) p[i] = Math.floor(Math.random() * 256);
+    var _noiseRng = ChillFlightLogic.mulberry32(ChillFlightLogic.WORLD_SEED);
+    for (var i = 0; i < 256; i++) p[i] = Math.floor(_noiseRng() * 256);
     var perm = new Uint8Array(512);
     var permMod12 = new Uint8Array(512);
     for (var i = 0; i < 512; i++) {

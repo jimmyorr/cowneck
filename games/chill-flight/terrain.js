@@ -65,6 +65,7 @@ function getElevation(x, z) {
 }
 
 function generateChunk(chunkX, chunkZ) {
+    const rng = ChillFlightLogic.chunkRng(chunkX, chunkZ);
     const group = new THREE.Group();
 
     // 1. Generate Terrain Mesh
@@ -134,7 +135,7 @@ function generateChunk(chunkX, chunkZ) {
                 if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x8BA192), snowFactor);
                 if (desertFactor > 0) colorObj.lerp(new THREE.Color(0xA0522D), desertFactor);
 
-                if (Math.random() < (desertFactor > 0.5 ? 0.05 : 0.15)) {
+                if (rng() < (desertFactor > 0.5 ? 0.05 : 0.15)) {
                     if (snowFactor > 0.4) snowTreePositions.push({ x: localX, y: height, z: localZ });
                     else if (desertFactor < 0.6) treePositions.push({ x: localX, y: height, z: localZ });
                 }
@@ -143,8 +144,8 @@ function generateChunk(chunkX, chunkZ) {
                 if (snowFactor > 0) colorObj.lerp(new THREE.Color(0xFAFAFA), snowFactor);
                 if (desertFactor > 0) colorObj.lerp(colorDesertSand, desertFactor);
 
-                if (Math.random() < (desertFactor > 0.5 ? 0.002 : 0.005)) {
-                    housePositions.push({ x: localX, y: height, z: localZ, rotY: Math.random() * Math.PI * 2 });
+                if (rng() < (desertFactor > 0.5 ? 0.002 : 0.005)) {
+                    housePositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
                 }
             }
         }
@@ -167,10 +168,10 @@ function generateChunk(chunkX, chunkZ) {
         const leavesInst = new THREE.InstancedMesh(treeLeavesGeo, treeLeavesMat, treePositions.length);
 
         treePositions.forEach((pos, index) => {
-            const scale = 0.8 + Math.random() * 0.6;
+            const scale = 0.8 + rng() * 0.6;
             dummy.position.set(pos.x, pos.y, pos.z);
             dummy.scale.set(scale, scale, scale);
-            dummy.rotation.y = Math.random() * Math.PI * 2;
+            dummy.rotation.y = rng() * Math.PI * 2;
             dummy.updateMatrix();
             trunkInst.setMatrixAt(index, dummy.matrix);
             leavesInst.setMatrixAt(index, dummy.matrix);
@@ -187,10 +188,10 @@ function generateChunk(chunkX, chunkZ) {
         const leavesInst = new THREE.InstancedMesh(treeLeavesGeo, snowTreeLeavesMat, snowTreePositions.length);
 
         snowTreePositions.forEach((pos, index) => {
-            const scale = 0.8 + Math.random() * 0.6;
+            const scale = 0.8 + rng() * 0.6;
             dummy.position.set(pos.x, pos.y, pos.z);
             dummy.scale.set(scale, scale, scale);
-            dummy.rotation.y = Math.random() * Math.PI * 2;
+            dummy.rotation.y = rng() * Math.PI * 2;
             dummy.updateMatrix();
             trunkInst.setMatrixAt(index, dummy.matrix);
             leavesInst.setMatrixAt(index, dummy.matrix);
@@ -212,7 +213,7 @@ function generateChunk(chunkX, chunkZ) {
         const houseToPool = [];
 
         housePositions.forEach((pos, idx) => {
-            const poolId = Math.floor(Math.random() * 5);
+            const poolId = Math.floor(rng() * 5);
             houseToPool[idx] = poolId;
             poolCounts[poolId]++;
         });
@@ -280,17 +281,17 @@ function generateChunk(chunkX, chunkZ) {
     });
 
     for (let i = 0; i < numClouds; i++) {
-        const cx = (Math.random() - 0.5) * CHUNK_SIZE;
-        const cz = (Math.random() - 0.5) * CHUNK_SIZE;
-        const cy = 350 + Math.random() * 150;
+        const cx = (rng() - 0.5) * CHUNK_SIZE;
+        const cz = (rng() - 0.5) * CHUNK_SIZE;
+        const cy = 350 + rng() * 150;
 
         const cloudGroup = new THREE.Group();
-        const parts = 3 + Math.floor(Math.random() * 3);
+        const parts = 3 + Math.floor(rng() * 3);
         for (let p = 0; p < parts; p++) {
             const mesh = new THREE.Mesh(cloudGeo, cloudMat);
-            mesh.position.set((Math.random() - 0.5) * 50, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 50);
-            mesh.scale.set(40 + Math.random() * 60, 20 + Math.random() * 30, 40 + Math.random() * 60);
-            mesh.rotation.y = Math.random() * Math.PI;
+            mesh.position.set((rng() - 0.5) * 50, (rng() - 0.5) * 20, (rng() - 0.5) * 50);
+            mesh.scale.set(40 + rng() * 60, 20 + rng() * 30, 40 + rng() * 60);
+            mesh.rotation.y = rng() * Math.PI;
             cloudGroup.add(mesh);
         }
         cloudGroup.position.set(worldOffsetX + cx, cy, worldOffsetZ + cz);
@@ -300,13 +301,13 @@ function generateChunk(chunkX, chunkZ) {
     // 4. Generate Birds
     group.userData.birds = [];
 
-    if (Math.random() < 0.20) {
-        const baseX = worldOffsetX + (Math.random() - 0.5) * CHUNK_SIZE;
-        const baseZ = worldOffsetZ + (Math.random() - 0.5) * CHUNK_SIZE;
-        let baseY = getElevation(baseX, baseZ) + 150 + Math.random() * 200;
+    if (rng() < 0.20) {
+        const baseX = worldOffsetX + (rng() - 0.5) * CHUNK_SIZE;
+        const baseZ = worldOffsetZ + (rng() - 0.5) * CHUNK_SIZE;
+        let baseY = getElevation(baseX, baseZ) + 150 + rng() * 200;
         if (baseY > 400) baseY = 400;
 
-        const baseRotationY = Math.random() * Math.PI * 2;
+        const baseRotationY = rng() * Math.PI * 2;
 
         function assembleBird(mat, scale) {
             const bird = new THREE.Group();
@@ -327,10 +328,10 @@ function generateChunk(chunkX, chunkZ) {
 
         hawk.userData.type = 'hawk';
         hawk.userData.speed = 0.4;
-        hawk.userData.circleSpeed = 0.3 + Math.random() * 0.2;
-        hawk.userData.circleRadius = 150 + Math.random() * 100;
+        hawk.userData.circleSpeed = 0.3 + rng() * 0.2;
+        hawk.userData.circleRadius = 150 + rng() * 100;
         hawk.userData.circleCenter = new THREE.Vector3(baseX, baseY, baseZ);
-        hawk.userData.angle = Math.random() * Math.PI * 2;
+        hawk.userData.angle = rng() * Math.PI * 2;
         hawk.userData.flapPhase = 0;
         hawk.userData.flapSpeed = 2;
 

@@ -46,12 +46,13 @@ skyGroup.add(moonMesh);
 const starsGeo = new THREE.BufferGeometry();
 const starsCount = 2000;
 const starsPos = new Float32Array(starsCount * 3);
+const _starsRng = ChillFlightLogic.mulberry32(ChillFlightLogic.WORLD_SEED + 1);
 for (let i = 0; i < starsCount * 3; i += 3) {
-    const u = Math.random();
-    const v = Math.random();
+    const u = _starsRng();
+    const v = _starsRng();
     const theta = u * 2.0 * Math.PI;
     const phi = Math.acos(2.0 * v - 1.0);
-    const r = 7000 + Math.random() * 2000;
+    const r = 7000 + _starsRng() * 2000;
     starsPos[i] = r * Math.sin(phi) * Math.cos(theta);
     starsPos[i + 1] = r * Math.sin(phi) * Math.sin(theta);
     starsPos[i + 2] = r * Math.cos(phi);

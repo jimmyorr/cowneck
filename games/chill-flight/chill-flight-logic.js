@@ -4,6 +4,31 @@
 
 (function (exports) {
 
+    // --- WORLD SEED ---
+    // Controls all procedural world generation. Change this to produce a different world.
+    // TODO: in a future iteration, allow overriding via ?seed=N URL param or the pause-menu UI.
+    const WORLD_SEED = 42;
+
+    // --- SEEDED PRNG: Mulberry32 ---
+    // Returns a closure that produces deterministic floats in [0, 1).
+    // Usage: const rng = mulberry32(seed); rng(); // next value
+    function mulberry32(seed) {
+        return function () {
+            seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+            var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+            t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+    }
+
+    // Per-chunk seeded PRNG. Derives a unique seed from (WORLD_SEED, chunkX, chunkZ) so
+    // each chunk's detail generation (trees, clouds, birds) is identical regardless of
+    // which order chunks are loaded—critical for multiplayer consistency.
+    function chunkRng(chunkX, chunkZ) {
+        const s = (WORLD_SEED * 1000003) ^ (chunkX * 374761393 + chunkZ * 1234567891);
+        return mulberry32(s);
+    }
+
     // --- PLANE COLOR ---
     // Deterministic color picker based on a hash of the user's UID.
     const PLANE_COLORS = [
@@ -163,6 +188,9 @@
     }
 
     // --- EXPORTS ---
+    exports.WORLD_SEED = WORLD_SEED;
+    exports.mulberry32 = mulberry32;
+    exports.chunkRng = chunkRng;
     exports.PLANE_COLORS = PLANE_COLORS;
     exports.getPlaneColor = getPlaneColor;
     exports.computeTimeOfDay = computeTimeOfDay;
