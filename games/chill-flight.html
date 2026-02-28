@@ -422,12 +422,17 @@
                 onChildAdded(playersRef, (snapshot) => {
                     if (snapshot.key === uid) return;
                     const data = snapshot.val();
+                    const posData = data.position || {};
                     const mesh = createOtherPlaneMesh();
                     scene.add(mesh);
                     otherPlayers.set(snapshot.key, {
                         mesh,
-                        targetPos: new THREE.Vector3(data.position?.x || 0, data.position?.y || 200, data.position?.z || 0),
-                        targetRotY: data.position?.rotY || 0
+                        targetPos: new THREE.Vector3(posData.x || 0, posData.y || 200, posData.z || 0),
+                        targetRotX: posData.rotX || 0,
+                        targetRotY: posData.rotY || 0,
+                        targetRotZ: posData.rotZ || 0,
+                        targetSpeedMult: posData.speedMult !== undefined ? posData.speedMult : 1,
+                        targetQuat: new THREE.Quaternion()
                     });
                 });
 
@@ -436,8 +441,30 @@
                     const data = snapshot.val();
                     const p = otherPlayers.get(snapshot.key);
                     if (p && data.position) {
+                        // 1. Get raw snapshot data
                         p.targetPos.set(data.position.x, data.position.y, data.position.z);
-                        p.targetRotY = data.position.rotY;
+                        p.targetRotX = data.position.rotX || 0;
+                        p.targetRotY = data.position.rotY || 0;
+                        p.targetRotZ = data.position.rotZ || 0;
+                        p.targetSpeedMult = data.position.speedMult !== undefined ? data.position.speedMult : 1;
+
+                        // 2. Latency Compensation (Dead Reckoning Catch-up)
+                        // How old is this data packet? (Using deterministic server time)
+                        if (data.position.updatedAt) {
+                            const packetTime = new Date(data.position.updatedAt).getTime();
+                            const now = Date.now() + (window.serverTimeOffset || 0);
+                            let latencySecs = (now - packetTime) / 1000;
+
+                            // Cap latency to 2 seconds to prevent massive snaps if clocks are weird or lagging hard
+                            if (latencySecs > 0 && latencySecs < 2.0) {
+                                const targetEuler = new THREE.Euler(p.targetRotX, p.targetRotY, p.targetRotZ, 'XYZ');
+                                const forward = new THREE.Vector3(0, 0, -1).applyEuler(targetEuler);
+
+                                // Advance the target position by the exactly amount of time it spent traveling over the internet
+                                // Distance = Speed * Time (where Speed = base * mult * 60fps)
+                                p.targetPos.add(forward.multiplyScalar(BASE_FLIGHT_SPEED * p.targetSpeedMult * 60 * latencySecs));
+                            }
+                        }
                     }
                 });
 
@@ -459,12 +486,15 @@
 
                     const pos = planeGroup.position;
                     const rot = planeGroup.rotation;
-                    // Only sync essential coordinates (X, Y, Z, RotY) and timestamp
+                    // Sync essential coordinates, full rotation, speed, and timestamp
                     set(ref(db, 'players/' + uid + '/position'), {
-                        x: Math.round(pos.x),
-                        y: Math.round(pos.y),
-                        z: Math.round(pos.z),
+                        x: Number(pos.x.toFixed(1)),
+                        y: Number(pos.y.toFixed(1)),
+                        z: Number(pos.z.toFixed(1)),
+                        rotX: Number(rot.x.toFixed(3)),
                         rotY: Number(rot.y.toFixed(3)),
+                        rotZ: Number(rot.z.toFixed(3)),
+                        speedMult: Number(flightSpeedMultiplier.toFixed(2)),
                         updatedAt: new Date().toISOString()
                     });
                 }, 2000);
@@ -1245,11 +1275,38 @@
 
             const delta = clock.getDelta();
 
-            // 0. Update other players (Interpolate)
+            // 0. Update other players (Interpolate and Predict)
             otherPlayers.forEach((p) => {
-                p.mesh.position.lerp(p.targetPos, 0.1);
-                // Simple lerp for rotation (doesn't handle 360 wrap but fine for coarse heading)
-                p.mesh.rotation.y = THREE.MathUtils.lerp(p.mesh.rotation.y, p.targetRotY, 0.1);
+                // Dead Reckoning: Predict where the target is *right now* based on its speed and direction.
+                // We advance the target position forward every frame!
+                // Since the main plane moves BASE_FLIGHT_SPEED *per frame* at ~60fps, we multiply the delta version by 60.
+                const targetEuler = new THREE.Euler(p.targetRotX || 0, p.targetRotY || 0, p.targetRotZ || 0, 'XYZ');
+                const forward = new THREE.Vector3(0, 0, -1).applyEuler(targetEuler);
+                p.targetPos.add(forward.multiplyScalar(BASE_FLIGHT_SPEED * (p.targetSpeedMult || 1) * 60 * delta));
+
+                // Calculate distance from mesh to the *predicted* target location
+                const dist = p.mesh.position.distanceTo(p.targetPos);
+
+                // If they are very far (e.g., initial load or massive lag spike), teleport them
+                if (dist > 500) {
+                    p.mesh.position.copy(p.targetPos);
+                    p.mesh.rotation.set(p.targetRotX || 0, p.targetRotY || 0, p.targetRotZ || 0);
+                } else {
+                    // Smoothly follow the moving target.
+                    // Increased lerp factor to stay tighter to the predicted line
+                    p.mesh.position.lerp(p.targetPos, delta * 6.0);
+
+                    // Smoothly rotate using Quaternions
+                    if (p.targetQuat) {
+                        p.targetQuat.setFromEuler(targetEuler);
+                        p.mesh.quaternion.slerp(p.targetQuat, delta * 6.0);
+                    } else {
+                        // fallback if quat isn't initialized yet
+                        p.mesh.rotation.x = THREE.MathUtils.lerp(p.mesh.rotation.x, p.targetRotX || 0, delta * 6.0);
+                        p.mesh.rotation.y = THREE.MathUtils.lerp(p.mesh.rotation.y, p.targetRotY || 0, delta * 6.0);
+                        p.mesh.rotation.z = THREE.MathUtils.lerp(p.mesh.rotation.z, p.targetRotZ || 0, delta * 6.0);
+                    }
+                }
             });
 
             // 1. Spin the propeller based on speed multiplier
