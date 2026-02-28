@@ -405,10 +405,29 @@
             group.add(headlightGlow);
             group.add(headlight);
 
-            // Store references to lights so we can toggle them later
+            // Propeller
+            const propGroup = new THREE.Group();
+            propGroup.position.set(0, 0, -8.5);
+            group.add(propGroup);
+
+            const propCenterGeo = new THREE.CylinderGeometry(0.8, 0.8, 2, 8);
+            propCenterGeo.rotateX(Math.PI / 2);
+            const propCenter = new THREE.Mesh(propCenterGeo, new THREE.MeshStandardMaterial({ color: 0x333333 }));
+            propGroup.add(propCenter);
+
+            const bladeGeo = new THREE.BoxGeometry(12, 0.4, 0.4);
+            const bladeMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+            const blade1 = new THREE.Mesh(bladeGeo, bladeMat);
+            const blade2 = new THREE.Mesh(bladeGeo, bladeMat);
+            blade2.rotation.z = Math.PI / 2;
+            propGroup.add(blade1);
+            propGroup.add(blade2);
+
+            // Store references to parts so we can animate/toggle them later
             group.userData = {
                 headlight: headlight,
-                headlightGlow: headlightGlow
+                headlightGlow: headlightGlow,
+                propeller: propGroup
             };
 
             return group;
@@ -1376,6 +1395,12 @@
                         p.mesh.rotation.y = THREE.MathUtils.lerp(p.mesh.rotation.y, p.targetRotY || 0, delta * 6.0);
                         p.mesh.rotation.z = THREE.MathUtils.lerp(p.mesh.rotation.z, p.targetRotZ || 0, delta * 6.0);
                     }
+                }
+
+                // Spin their propeller based on their synced speed!
+                if (p.targetSpeedMult > 0 && p.mesh.userData.propeller) {
+                    const spinSpeed = 15 * Math.max(0.2, p.targetSpeedMult);
+                    p.mesh.userData.propeller.rotation.z += spinSpeed * delta;
                 }
             });
 
