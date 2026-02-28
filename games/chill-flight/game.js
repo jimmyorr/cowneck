@@ -564,7 +564,7 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowUp') keys.ArrowUp = true;
     if (e.key === 'ArrowDown') keys.ArrowDown = true;
 
-    if (e.key === 'l' || e.key === 'L') {
+    if ((e.key === 'l' || e.key === 'L') && !e.metaKey && !e.ctrlKey && !e.altKey) {
         if (headlight.intensity === 0) {
             headlight.intensity = 2;
             headlightGlow.intensity = 0.1;
