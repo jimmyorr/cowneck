@@ -64,6 +64,127 @@ window.addEventListener('resize', () => {
     }
 });
 
+// --- CHILL MODE & EXPLOSIONS ---
+let isChillMode = true;
+let isExploded = false;
+let explosionParticles = null;
+const crashOverlay = document.getElementById('crash-overlay');
+const chillCheckbox = document.getElementById('chill-checkbox');
+const titleChill = document.getElementById('title-chill');
+
+function updateModeUI() {
+    if (isChillMode) {
+        titleChill.classList.remove('strike');
+    } else {
+        titleChill.classList.add('strike');
+    }
+}
+
+if (chillCheckbox) {
+    chillCheckbox.addEventListener('change', (e) => {
+        isChillMode = e.target.checked;
+        updateModeUI();
+    });
+}
+
+function createExplosion(pos) {
+    const particleCount = 200;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const velocities = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount; i++) {
+        positions[i * 3] = pos.x;
+        positions[i * 3 + 1] = pos.y;
+        positions[i * 3 + 2] = pos.z;
+
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(Math.random() * 2 - 1);
+        const speed = 2 + Math.random() * 8;
+        velocities[i * 3] = speed * Math.sin(phi) * Math.cos(theta);
+        velocities[i * 3 + 1] = speed * Math.sin(phi) * Math.sin(theta);
+        velocities[i * 3 + 2] = speed * Math.cos(phi);
+
+        const r = 1.0;
+        const g = 0.3 + Math.random() * 0.5;
+        const b = 0.0;
+        colors[i * 3] = r;
+        colors[i * 3 + 1] = g;
+        colors[i * 3 + 2] = b;
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const material = new THREE.PointsMaterial({
+        size: 4,
+        vertexColors: true,
+        transparent: true,
+        opacity: 1.0,
+        blending: THREE.AdditiveBlending
+    });
+
+    const particles = new THREE.Points(geometry, material);
+    scene.add(particles);
+
+    return {
+        mesh: particles,
+        velocities: velocities,
+        startTime: Date.now(),
+        duration: 2000
+    };
+}
+
+function updateExplosionParticles(delta) {
+    if (!explosionParticles) return;
+
+    const elapsed = Date.now() - explosionParticles.startTime;
+    if (elapsed > explosionParticles.duration) {
+        scene.remove(explosionParticles.mesh);
+        explosionParticles.mesh.geometry.dispose();
+        explosionParticles.mesh.material.dispose();
+        explosionParticles.mesh = null;
+        explosionParticles = null;
+        return;
+    }
+
+    const positions = explosionParticles.mesh.geometry.attributes.position.array;
+    const vels = explosionParticles.velocities;
+    for (let i = 0; i < positions.length; i++) {
+        positions[i] += vels[i] * delta * 15;
+        // gravity
+        if (i % 3 === 1) vels[i] -= 9.8 * delta * 2;
+    }
+    explosionParticles.mesh.geometry.attributes.position.needsUpdate = true;
+    explosionParticles.mesh.material.opacity = 1.0 - (elapsed / explosionParticles.duration);
+}
+
+function triggerExplosion() {
+    if (isExploded) return;
+    isExploded = true;
+    explosionParticles = createExplosion(planeGroup.position);
+    planeGroup.visible = false;
+    flightSpeedMultiplier = 0;
+
+    setTimeout(() => {
+        crashOverlay.style.display = 'flex';
+    }, 1500);
+}
+
+const respawnBtn = document.getElementById('respawn-btn');
+if (respawnBtn) {
+    respawnBtn.addEventListener('click', () => {
+        isExploded = false;
+        planeGroup.visible = true;
+        planeGroup.position.set(planeGroup.position.x, 250, planeGroup.position.z);
+        planeGroup.rotation.set(0, planeGroup.rotation.y, 0);
+        flightSpeedMultiplier = 1;
+        crashOverlay.style.display = 'none';
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    });
+}
+
 // --- PAUSE ---
 let isPaused = false;
 const pauseOverlay = document.getElementById('pause-overlay');
@@ -144,390 +265,370 @@ function animate() {
 
     const delta = clock.getDelta();
 
-    // --- DAY/NIGHT CYCLE ---
-    const debugMenu = document.getElementById('debug-menu');
-    const isDebugMode = (debugMenu && debugMenu.style.display === 'block');
-
-    const CYCLE_DURATION_MS = 330000;
-
-    if (isDebugMode && daySpeedMultiplier !== 1) {
-        timeOfDay += delta * (2 * Math.PI / (CYCLE_DURATION_MS / 1000)) * daySpeedMultiplier;
+    if (isExploded) {
+        updateExplosionParticles(delta);
     } else {
-        const now = Date.now() + (window.serverTimeOffset || 0);
-        const secondsInCycle = (now % CYCLE_DURATION_MS) / 1000;
-        const currentWarpedProgress = ChillFlightLogic.computeTimeOfDay(secondsInCycle);
-        timeOfDay = currentWarpedProgress * Math.PI * 2;
-    }
+        // --- DAY/NIGHT CYCLE ---
+        const debugMenu = document.getElementById('debug-menu');
+        const isDebugMode = (debugMenu && debugMenu.style.display === 'block');
 
-    if (timeOfDay > Math.PI * 2) timeOfDay -= Math.PI * 2;
-    if (timeOfDay < 0) timeOfDay += Math.PI * 2;
+        const CYCLE_DURATION_MS = 330000;
 
-    // Window glow
-    houseWindowMats.forEach((mat, i) => {
-        const offset = i * 0.05;
-        const localSunY = -Math.cos(timeOfDay - offset);
-        const nightValue = Math.max(0, (-localSunY + 0.1) * 2);
-        mat.emissiveIntensity = Math.min(2.0, nightValue);
-    });
-
-    // Update other players (interpolate & dead reckoning)
-    if (typeof otherPlayers !== 'undefined') {
-        otherPlayers.forEach((p) => {
-            const targetEuler = new THREE.Euler(p.targetRotX || 0, p.targetRotY || 0, p.targetRotZ || 0, 'XYZ');
-            const forward = new THREE.Vector3(0, 0, -1).applyEuler(targetEuler);
-            p.targetPos.add(forward.multiplyScalar(BASE_FLIGHT_SPEED * (p.targetSpeedMult || 1) * 60 * delta));
-
-            const dist = p.mesh.position.distanceTo(p.targetPos);
-            if (dist > 500) {
-                p.mesh.position.copy(p.targetPos);
-                p.mesh.rotation.set(p.targetRotX || 0, p.targetRotY || 0, p.targetRotZ || 0);
-            } else {
-                p.mesh.position.lerp(p.targetPos, delta * 6.0);
-                if (p.targetQuat) {
-                    p.targetQuat.setFromEuler(targetEuler);
-                    p.mesh.quaternion.slerp(p.targetQuat, delta * 6.0);
-                } else {
-                    p.mesh.rotation.x = THREE.MathUtils.lerp(p.mesh.rotation.x, p.targetRotX || 0, delta * 6.0);
-                    p.mesh.rotation.y = THREE.MathUtils.lerp(p.mesh.rotation.y, p.targetRotY || 0, delta * 6.0);
-                    p.mesh.rotation.z = THREE.MathUtils.lerp(p.mesh.rotation.z, p.targetRotZ || 0, delta * 6.0);
-                }
-            }
-
-            if (p.targetSpeedMult > 0 && p.mesh.userData.propeller) {
-                const spinSpeed = 15 * Math.max(0.2, p.targetSpeedMult);
-                p.mesh.userData.propeller.rotation.z += spinSpeed * delta;
-            }
-        });
-    }
-
-    // Spin the propeller
-    if (flightSpeedMultiplier > 0) {
-        const spinSpeed = 15 * Math.max(0.2, flightSpeedMultiplier);
-        propGroup.rotation.z += spinSpeed * delta;
-    }
-
-    // Animate pontoons
-    if (isDeployingPontoons && !isRetractingPontoons && pontoonDeploymentProgress < 1) {
-        pontoonDeploymentProgress += delta * 0.5;
-        if (pontoonDeploymentProgress > 1) pontoonDeploymentProgress = 1;
-        const t = pontoonDeploymentProgress;
-        const easeOut = 1 - Math.pow(1 - t, 3);
-        const leftRotAngle = (Math.PI / 2) * (1 - easeOut);
-        pontoonL.rotation.z = leftRotAngle;
-        hingeLF.rotation.z = leftRotAngle;
-        hingeLB.rotation.z = leftRotAngle;
-        const rightRotAngle = -(Math.PI / 2) * (1 - easeOut);
-        pontoonR.rotation.z = rightRotAngle;
-        hingeRF.rotation.z = rightRotAngle;
-        hingeRB.rotation.z = rightRotAngle;
-        pontoonL.position.y = -0.5 - (4.0 * easeOut);
-        pontoonR.position.y = -0.5 - (4.0 * easeOut);
-    } else if (isRetractingPontoons && pontoonDeploymentProgress > 0) {
-        pontoonDeploymentProgress -= delta * 0.4;
-        if (pontoonDeploymentProgress < 0) {
-            pontoonDeploymentProgress = 0;
-            isRetractingPontoons = false;
-            isDeployingPontoons = false;
-            pontoonGroup.visible = false;
-        }
-        const t = pontoonDeploymentProgress;
-        const easeOut = 1 - Math.pow(1 - t, 3);
-        const leftRotAngle = (Math.PI / 2) * (1 - easeOut);
-        pontoonL.rotation.z = leftRotAngle;
-        hingeLF.rotation.z = leftRotAngle;
-        hingeLB.rotation.z = leftRotAngle;
-        const rightRotAngle = -(Math.PI / 2) * (1 - easeOut);
-        pontoonR.rotation.z = rightRotAngle;
-        hingeRF.rotation.z = rightRotAngle;
-        hingeRB.rotation.z = rightRotAngle;
-        pontoonL.position.y = -0.5 - (4.0 * easeOut);
-        pontoonR.position.y = -0.5 - (4.0 * easeOut);
-    }
-
-    // Plane rotation control
-    const maxPitch = Math.PI / 4;
-    const maxRoll = Math.PI / 3;
-    let effMouseX = (mouseControlActive && Math.abs(mouseX) >= 0.15) ? mouseX : 0;
-    let effMouseY = (mouseControlActive && Math.abs(mouseY) >= 0.15) ? mouseY : 0;
-
-    if (flightSpeedMultiplier > 0) {
-        targetPitch = effMouseY * maxPitch;
-        targetRoll = -effMouseX * (maxRoll * 1.25);
-    } else {
-        targetPitch = 0;
-        targetRoll = 0;
-    }
-
-    let isBarrelRolling = false;
-    let isClampedRoll = false;
-    let isLooping = false;
-    const manualRollSpeed = 4.0;
-    const manualLoopSpeed = 2.5;
-    if (flightSpeedMultiplier > 0.5) {
-        if (keys.ArrowLeft && keys.ArrowRight) {
-            if (doubleTap.ArrowLeft && doubleTap.ArrowRight) {
-                // Double-tap both: pitch nose down
-                planeGroup.rotation.x -= manualLoopSpeed * delta;
-            } else {
-                // Single hold both: loop up
-                planeGroup.rotation.x += manualLoopSpeed * delta;
-            }
-            isLooping = true;
-        } else if (keys.ArrowLeft) {
-            if (doubleTap.ArrowLeft) {
-                // Double-tap: full barrel roll
-                planeGroup.rotation.z += manualRollSpeed * delta;
-            } else {
-                // Single-tap: bank to 90° and hold
-                const target = Math.PI / 2;
-                planeGroup.rotation.z = Math.min(target, planeGroup.rotation.z + manualRollSpeed * delta);
-                isClampedRoll = true;
-            }
-            isBarrelRolling = true;
-        } else if (keys.ArrowRight) {
-            if (doubleTap.ArrowRight) {
-                // Double-tap: full barrel roll
-                planeGroup.rotation.z -= manualRollSpeed * delta;
-            } else {
-                // Single-tap: bank to -90° and hold
-                const target = -Math.PI / 2;
-                planeGroup.rotation.z = Math.max(target, planeGroup.rotation.z - manualRollSpeed * delta);
-                isClampedRoll = true;
-            }
-            isBarrelRolling = true;
-        }
-    }
-
-    if (!isLooping) {
-        while (planeGroup.rotation.x > targetPitch + Math.PI) planeGroup.rotation.x -= 2 * Math.PI;
-        while (planeGroup.rotation.x < targetPitch - Math.PI) planeGroup.rotation.x += 2 * Math.PI;
-        planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetPitch, TURN_SPEED);
-    }
-
-    if (!isBarrelRolling) {
-        while (planeGroup.rotation.z > targetRoll + Math.PI) planeGroup.rotation.z -= 2 * Math.PI;
-        while (planeGroup.rotation.z < targetRoll - Math.PI) planeGroup.rotation.z += 2 * Math.PI;
-        planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, targetRoll, TURN_SPEED);
-    }
-
-    if (flightSpeedMultiplier > 0) {
-        // Clamped single-tap: use actual bank angle so the plane carves a hard turn.
-        // Double-tap barrel roll: use targetRoll (mouse) for steering.
-        // Normal flight: use actual rotation.z for gentle banking turns.
-        let turningRoll = (isBarrelRolling && !isClampedRoll) ? targetRoll : planeGroup.rotation.z;
-        planeGroup.rotation.y += turningRoll * 0.025;
-    }
-
-    // Move forward
-    planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
-
-    // Speed controls
-    const controlBaseAlt = Math.max(0, planeGroup.position.y - 45.5);
-    const controlAlt = Math.round(controlBaseAlt * 25);
-    const accelRate = 0.8 * delta;
-
-    if (keys.ArrowDown) {
-        keys.ArrowUp = false;
-        if (flightSpeedMultiplier > 0.5) {
-            flightSpeedMultiplier = Math.max(0.5, flightSpeedMultiplier - accelRate);
-        } else if (flightSpeedMultiplier <= 0.5 && controlAlt === 0) {
-            flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - accelRate);
-        }
-    } else if (keys.ArrowUp) {
-        if (flightSpeedMultiplier === 0) {
-            flightSpeedMultiplier = 0.5;
+        if (isDebugMode && daySpeedMultiplier !== 1) {
+            timeOfDay += delta * (2 * Math.PI / (CYCLE_DURATION_MS / 1000)) * daySpeedMultiplier;
         } else {
-            flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + accelRate);
+            const now = Date.now() + (window.serverTimeOffset || 0);
+            const secondsInCycle = (now % CYCLE_DURATION_MS) / 1000;
+            const currentWarpedProgress = ChillFlightLogic.computeTimeOfDay(secondsInCycle);
+            timeOfDay = currentWarpedProgress * Math.PI * 2;
         }
-    }
 
-    // Ground avoidance
-    const terrainHeight = getElevation(planeGroup.position.x, planeGroup.position.z);
-    let isWater = terrainHeight <= WATER_LEVEL + 0.1;
-    const minFlightHeight = isWater ? terrainHeight + 5.5 : terrainHeight + 30;
+        if (timeOfDay > Math.PI * 2) timeOfDay -= Math.PI * 2;
+        if (timeOfDay < 0) timeOfDay += Math.PI * 2;
 
-    if (planeGroup.position.y < minFlightHeight) {
-        planeGroup.position.y = THREE.MathUtils.lerp(planeGroup.position.y, minFlightHeight + (isWater ? 0 : 5), 0.05);
+        // Window glow
+        houseWindowMats.forEach((mat, i) => {
+            const offset = i * 0.05;
+            const localSunY = -Math.cos(timeOfDay - offset);
+            const nightValue = Math.max(0, (-localSunY + 0.1) * 2);
+            mat.emissiveIntensity = Math.min(2.0, nightValue);
+        });
 
-        if (isWater && planeGroup.position.y < minFlightHeight + 2) {
-            if (!pontoonGroup.visible) {
-                pontoonGroup.visible = true;
-                isDeployingPontoons = true;
-            }
-            if (flightSpeedMultiplier > 0.5) {
-                flightSpeedMultiplier = THREE.MathUtils.lerp(flightSpeedMultiplier, 0.5, 0.015);
-            }
-            targetPitch = THREE.MathUtils.lerp(targetPitch, 0, 0.05);
-            targetRoll = THREE.MathUtils.lerp(targetRoll, 0, 0.05);
-        }
-    }
+        // Update other players (interpolate & dead reckoning)
+        if (typeof otherPlayers !== 'undefined') {
+            otherPlayers.forEach((p) => {
+                const targetEuler = new THREE.Euler(p.targetRotX || 0, p.targetRotY || 0, p.targetRotZ || 0, 'XYZ');
+                const forward = new THREE.Vector3(0, 0, -1).applyEuler(targetEuler);
+                p.targetPos.add(forward.multiplyScalar(BASE_FLIGHT_SPEED * (p.targetSpeedMult || 1) * 60 * delta));
 
-    const maxFlightHeight = 750;
-    if (planeGroup.position.y > maxFlightHeight) {
-        planeGroup.position.y = maxFlightHeight;
-    }
-
-    if (controlAlt >= 5000 && pontoonGroup.visible && !isRetractingPontoons) {
-        isRetractingPontoons = true;
-    }
-
-    // Camera follow
-    const speedFactor = (flightSpeedMultiplier - 0.5) / 9.5;
-    const zOffset = THREE.MathUtils.lerp(40, 60, speedFactor);
-    const yOffset = THREE.MathUtils.lerp(12, 20, speedFactor);
-    const targetFov = THREE.MathUtils.lerp(60, 85, speedFactor);
-
-    camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 0.05);
-    camera.updateProjectionMatrix();
-
-    const cameraOffset = new THREE.Vector3(0, yOffset, zOffset);
-    const idealCameraPos = cameraOffset.clone().applyMatrix4(planeGroup.matrixWorld);
-    camera.position.lerp(idealCameraPos, 0.1);
-
-    const lookOffset = new THREE.Vector3(0, 0, -20);
-    const idealLookTarget = lookOffset.applyMatrix4(planeGroup.matrixWorld);
-
-    const currentLookTarget = new THREE.Vector3();
-    camera.getWorldDirection(currentLookTarget);
-    currentLookTarget.add(camera.position);
-    currentLookTarget.lerp(idealLookTarget, 0.1);
-
-    if (isLooping) {
-        const idealUp = new THREE.Vector3(0, 1, 0).applyQuaternion(planeGroup.quaternion);
-        camera.up.lerp(idealUp, 0.1).normalize();
-    } else {
-        camera.up.lerp(new THREE.Vector3(0, 1, 0), 0.1).normalize();
-    }
-
-    camera.lookAt(currentLookTarget);
-
-    // Update terrain chunks
-    updateChunks();
-
-    // Animate Birds
-    const time = clock.elapsedTime;
-    chunks.forEach(chunkGroup => {
-        if (chunkGroup.userData.birds) {
-            chunkGroup.userData.birds.forEach(bird => {
-                const data = bird.userData;
-                const flap = Math.sin(time * data.flapSpeed + data.flapPhase) * 0.5;
-                if (data.wings) {
-                    data.wings[0].rotation.z = flap;
-                    data.wings[1].rotation.z = -flap;
+                const dist = p.mesh.position.distanceTo(p.targetPos);
+                if (dist > 500) {
+                    p.mesh.position.copy(p.targetPos);
+                    p.mesh.rotation.set(p.targetRotX || 0, p.targetRotY || 0, p.targetRotZ || 0);
+                } else {
+                    p.mesh.position.lerp(p.targetPos, delta * 6.0);
+                    if (p.targetQuat) {
+                        p.targetQuat.setFromEuler(targetEuler);
+                        p.mesh.quaternion.slerp(p.targetQuat, delta * 6.0);
+                    } else {
+                        p.mesh.rotation.x = THREE.MathUtils.lerp(p.mesh.rotation.x, p.targetRotX || 0, delta * 6.0);
+                        p.mesh.rotation.y = THREE.MathUtils.lerp(p.mesh.rotation.y, p.targetRotY || 0, delta * 6.0);
+                        p.mesh.rotation.z = THREE.MathUtils.lerp(p.mesh.rotation.z, p.targetRotZ || 0, delta * 6.0);
+                    }
                 }
-                bird.translateZ(-(data.speed * delta * 50));
 
-                if (data.type === 'hawk') {
-                    data.angle += data.circleSpeed * delta;
-                    const targetX = data.circleCenter.x + Math.cos(data.angle) * data.circleRadius;
-                    const targetZ = data.circleCenter.z + Math.sin(data.angle) * data.circleRadius;
-                    bird.rotation.z = 0.3;
-                    bird.lookAt(
-                        data.circleCenter.x + Math.cos(data.angle + 0.1) * data.circleRadius,
-                        bird.position.y,
-                        data.circleCenter.z + Math.sin(data.angle + 0.1) * data.circleRadius
-                    );
-                    bird.position.set(targetX, bird.position.y, targetZ);
+                if (p.targetSpeedMult > 0 && p.mesh.userData.propeller) {
+                    const spinSpeed = 15 * Math.max(0.2, p.targetSpeedMult);
+                    p.mesh.userData.propeller.rotation.z += spinSpeed * delta;
                 }
             });
         }
-    });
 
-    // Update Cockpit HUD
-    const hours = (timeOfDay / (Math.PI * 2)) * 24;
-    const hh = Math.floor(hours).toString().padStart(2, '0');
-    const mm = Math.floor((hours % 1) * 60).toString().padStart(2, '0');
-    const timeStr = `${hh}:${mm}`;
-
-    let heading = planeGroup.rotation.y % (Math.PI * 2);
-    if (heading < 0) heading += Math.PI * 2;
-    let deg = heading * (180 / Math.PI);
-    const dirStr = ChillFlightLogic.computeHeadingDirection(planeGroup.rotation.y);
-    void deg; // kept for potential future use
-
-    const latScale = 5000;
-    const latVal = (-planeGroup.position.z / latScale);
-    const lonVal = (planeGroup.position.x / latScale);
-    const latStr = Math.abs(latVal).toFixed(3) + "\u00b0 " + (latVal >= 0 ? "N" : "S");
-    const lonStr = Math.abs(lonVal).toFixed(3) + "\u00b0 " + (lonVal >= 0 ? "E" : "W");
-
-    const baseAlt = Math.max(0, planeGroup.position.y - 45.5);
-    const alt = Math.round(baseAlt * 25);
-    const coordStr = `${latStr} ${lonStr}`;
-    const altStr = `${alt}`;
-    const speedKts = Math.round(BASE_FLIGHT_SPEED * flightSpeedMultiplier * 60);
-    const spdStr = `${speedKts} KTS`;
-
-    const cockpitTime = document.getElementById('cockpit-time');
-    if (cockpitTime) cockpitTime.innerText = timeStr;
-    const cockpitDir = document.getElementById('cockpit-dir');
-    if (cockpitDir) cockpitDir.innerText = dirStr;
-    const cockpitCoords = document.getElementById('cockpit-coords');
-    if (cockpitCoords) cockpitCoords.innerText = coordStr;
-    const cockpitAlt = document.getElementById('cockpit-alt');
-    if (cockpitAlt) cockpitAlt.innerText = altStr;
-    const cockpitSpd = document.getElementById('cockpit-spd');
-    if (cockpitSpd) cockpitSpd.innerText = spdStr;
-
-    // Celestial positions
-    const orbitRadius = 8000;
-    const sunY = -Math.cos(timeOfDay);
-    const sunX = Math.sin(timeOfDay);
-    const sunZ = Math.cos(timeOfDay) * 0.3;
-    sunMesh.position.set(sunX * orbitRadius, sunY * orbitRadius, sunZ * orbitRadius);
-    moonMesh.position.set(-sunX * orbitRadius, -sunY * orbitRadius, -sunZ * orbitRadius);
-    dirLight.position.copy(sunMesh.position).add(planeGroup.position);
-    skyGroup.position.copy(camera.position);
-
-    // Sky color / fog / weather
-    let dayFactor = Math.max(0, Math.min(1, (sunY + 0.25) * 4));
-    let uncloudedSkyColor = new THREE.Color(0x050510);
-    let uncloudedFogColor = new THREE.Color(0x020208);
-
-    const daySky = new THREE.Color(0x87ceeb);
-    const sunriseSky = new THREE.Color(0xff7b54);
-    const goldenSky = new THREE.Color(0xffb26b);
-    const twilightSky = new THREE.Color(0x2c3e50);
-
-    if (dayFactor > 0.0) {
-        let sunriseFactor = 1.0 - Math.min(1, Math.abs(sunY) * 2.5);
-        sunriseFactor = Math.max(0, Math.pow(sunriseFactor, 1.5));
-
-        uncloudedSkyColor.lerp(twilightSky, dayFactor * 0.4);
-        uncloudedSkyColor.lerp(sunriseSky, sunriseFactor);
-
-        if (sunY > -0.1 && sunY < 0.15) {
-            let goldT = 1.0 - Math.abs(sunY - 0.02) * 10;
-            uncloudedSkyColor.lerp(goldenSky, Math.max(0, goldT) * 0.6);
+        // Spin the propeller
+        if (flightSpeedMultiplier > 0) {
+            const spinSpeed = 15 * Math.max(0.2, flightSpeedMultiplier);
+            propGroup.rotation.z += spinSpeed * delta;
         }
 
-        uncloudedSkyColor.lerp(daySky, dayFactor * (1.0 - sunriseFactor));
-        uncloudedFogColor.copy(uncloudedSkyColor);
+        // Animate pontoons
+        if (isDeployingPontoons && !isRetractingPontoons && pontoonDeploymentProgress < 1) {
+            pontoonDeploymentProgress += delta * 0.5;
+            if (pontoonDeploymentProgress > 1) pontoonDeploymentProgress = 1;
+            const t = pontoonDeploymentProgress;
+            const easeOut = 1 - Math.pow(1 - t, 3);
+            const leftRotAngle = (Math.PI / 2) * (1 - easeOut);
+            pontoonL.rotation.z = leftRotAngle;
+            hingeLF.rotation.z = leftRotAngle;
+            hingeLB.rotation.z = leftRotAngle;
+            const rightRotAngle = -(Math.PI / 2) * (1 - easeOut);
+            pontoonR.rotation.z = rightRotAngle;
+            hingeRF.rotation.z = rightRotAngle;
+            hingeRB.rotation.z = rightRotAngle;
+            pontoonL.position.y = -0.5 - (4.0 * easeOut);
+            pontoonR.position.y = -0.5 - (4.0 * easeOut);
+        } else if (isRetractingPontoons && pontoonDeploymentProgress > 0) {
+            pontoonDeploymentProgress -= delta * 0.4;
+            if (pontoonDeploymentProgress < 0) {
+                pontoonDeploymentProgress = 0;
+                isRetractingPontoons = false;
+                isDeployingPontoons = false;
+                pontoonGroup.visible = false;
+            }
+            const t = pontoonDeploymentProgress;
+            const easeOut = 1 - Math.pow(1 - t, 3);
+            const leftRotAngle = (Math.PI / 2) * (1 - easeOut);
+            pontoonL.rotation.z = leftRotAngle;
+            hingeLF.rotation.z = leftRotAngle;
+            hingeLB.rotation.z = leftRotAngle;
+            const rightRotAngle = -(Math.PI / 2) * (1 - easeOut);
+            pontoonR.rotation.z = rightRotAngle;
+            hingeRF.rotation.z = rightRotAngle;
+            hingeRB.rotation.z = rightRotAngle;
+            pontoonL.position.y = -0.5 - (4.0 * easeOut);
+            pontoonR.position.y = -0.5 - (4.0 * easeOut);
+        }
+
+        // Plane rotation control
+        const maxPitch = Math.PI / 4;
+        const maxRoll = Math.PI / 3;
+        let effMouseX = (mouseControlActive && Math.abs(mouseX) >= 0.15) ? mouseX : 0;
+        let effMouseY = (mouseControlActive && Math.abs(mouseY) >= 0.15) ? mouseY : 0;
+
+        if (flightSpeedMultiplier > 0) {
+            targetPitch = effMouseY * maxPitch;
+            targetRoll = -effMouseX * (maxRoll * 1.25);
+        } else {
+            targetPitch = 0;
+            targetRoll = 0;
+        }
+
+        let isBarrelRolling = false;
+        let isClampedRoll = false;
+        let isLooping = false;
+        const manualRollSpeed = 4.0;
+        const manualLoopSpeed = 2.5;
+        if (flightSpeedMultiplier > 0.5) {
+            if (keys.ArrowLeft && keys.ArrowRight) {
+                if (doubleTap.ArrowLeft && doubleTap.ArrowRight) {
+                    // Double-tap both: pitch nose down
+                    planeGroup.rotation.x -= manualLoopSpeed * delta;
+                } else {
+                    // Single hold both: loop up
+                    planeGroup.rotation.x += manualLoopSpeed * delta;
+                }
+                isLooping = true;
+            } else if (keys.ArrowLeft) {
+                if (doubleTap.ArrowLeft) {
+                    // Double-tap: full barrel roll
+                    planeGroup.rotation.z += manualRollSpeed * delta;
+                } else {
+                    // Single-tap: bank to 90° and hold
+                    const target = Math.PI / 2;
+                    planeGroup.rotation.z = Math.min(target, planeGroup.rotation.z + manualRollSpeed * delta);
+                    isClampedRoll = true;
+                }
+                isBarrelRolling = true;
+            } else if (keys.ArrowRight) {
+                if (doubleTap.ArrowRight) {
+                    // Double-tap: full barrel roll
+                    planeGroup.rotation.z -= manualRollSpeed * delta;
+                } else {
+                    // Single-tap: bank to -90° and hold
+                    const target = -Math.PI / 2;
+                    planeGroup.rotation.z = Math.max(target, planeGroup.rotation.z - manualRollSpeed * delta);
+                    isClampedRoll = true;
+                }
+                isBarrelRolling = true;
+            }
+        }
+
+        if (!isLooping) {
+            while (planeGroup.rotation.x > targetPitch + Math.PI) planeGroup.rotation.x -= 2 * Math.PI;
+            while (planeGroup.rotation.x < targetPitch - Math.PI) planeGroup.rotation.x += 2 * Math.PI;
+            planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetPitch, TURN_SPEED);
+        }
+
+        if (!isBarrelRolling) {
+            while (planeGroup.rotation.z > targetRoll + Math.PI) planeGroup.rotation.z -= 2 * Math.PI;
+            while (planeGroup.rotation.z < targetRoll - Math.PI) planeGroup.rotation.z += 2 * Math.PI;
+            planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, targetRoll, TURN_SPEED);
+        }
+
+        if (flightSpeedMultiplier > 0) {
+            let turningRoll = (isBarrelRolling && !isClampedRoll) ? targetRoll : planeGroup.rotation.z;
+            planeGroup.rotation.y += turningRoll * 0.025;
+        }
+
+        // Move forward
+        planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
+
+        // Speed controls
+        const controlBaseAlt = Math.max(0, planeGroup.position.y - 45.5);
+        const controlAlt = Math.round(controlBaseAlt * 25);
+        const accelRate = 0.8 * delta;
+
+        if (keys.ArrowDown) {
+            keys.ArrowUp = false;
+            if (flightSpeedMultiplier > 0.5) {
+                flightSpeedMultiplier = Math.max(0.5, flightSpeedMultiplier - accelRate);
+            } else if (flightSpeedMultiplier <= 0.5 && controlAlt === 0) {
+                flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - accelRate);
+            }
+        } else if (keys.ArrowUp) {
+            if (flightSpeedMultiplier === 0) {
+                flightSpeedMultiplier = 0.5;
+            } else {
+                flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + accelRate);
+            }
+        }
+
+        // Ground avoidance
+        const terrainHeight = getElevation(planeGroup.position.x, planeGroup.position.z);
+        let isWater = terrainHeight <= WATER_LEVEL + 0.1;
+        const minFlightHeight = isWater ? terrainHeight + 5.5 : terrainHeight + 30;
+
+        if (planeGroup.position.y < minFlightHeight) {
+            if (!isChillMode && !isWater && planeGroup.position.y < terrainHeight + 4) {
+                triggerExplosion();
+            }
+
+            planeGroup.position.y = THREE.MathUtils.lerp(planeGroup.position.y, minFlightHeight + (isWater ? 0 : 5), 0.05);
+
+            if (isWater && planeGroup.position.y < minFlightHeight + 2) {
+                if (!pontoonGroup.visible) {
+                    pontoonGroup.visible = true;
+                    isDeployingPontoons = true;
+                }
+                if (flightSpeedMultiplier > 0.5) {
+                    flightSpeedMultiplier = THREE.MathUtils.lerp(flightSpeedMultiplier, 0.5, 0.015);
+                }
+                targetPitch = THREE.MathUtils.lerp(targetPitch, 0, 0.05);
+                targetRoll = THREE.MathUtils.lerp(targetRoll, 0, 0.05);
+            }
+        }
+
+        const maxFlightHeight = 750;
+        if (planeGroup.position.y > maxFlightHeight) {
+            planeGroup.position.y = maxFlightHeight;
+        }
+
+        if (controlAlt >= 5000 && pontoonGroup.visible && !isRetractingPontoons) {
+            isRetractingPontoons = true;
+        }
+
+        // Camera follow
+        const speedFactor = (flightSpeedMultiplier - 0.5) / 9.5;
+        const zOffset = THREE.MathUtils.lerp(40, 60, speedFactor);
+        const yOffset = THREE.MathUtils.lerp(12, 20, speedFactor);
+        const targetFov = THREE.MathUtils.lerp(60, 85, speedFactor);
+
+        camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 0.05);
+        camera.updateProjectionMatrix();
+
+        const cameraOffset = new THREE.Vector3(0, yOffset, zOffset);
+        const idealCameraPos = cameraOffset.clone().applyMatrix4(planeGroup.matrixWorld);
+        camera.position.lerp(idealCameraPos, 0.1);
+
+        const lookOffset = new THREE.Vector3(0, 0, -20);
+        const idealLookTarget = lookOffset.applyMatrix4(planeGroup.matrixWorld);
+
+        const currentLookTarget = new THREE.Vector3();
+        camera.getWorldDirection(currentLookTarget);
+        currentLookTarget.add(camera.position);
+        currentLookTarget.lerp(idealLookTarget, 0.1);
+
+        if (isLooping) {
+            const idealUp = new THREE.Vector3(0, 1, 0).applyQuaternion(planeGroup.quaternion);
+            camera.up.lerp(idealUp, 0.1).normalize();
+        } else {
+            camera.up.lerp(new THREE.Vector3(0, 1, 0), 0.1).normalize();
+        }
+
+        camera.lookAt(currentLookTarget);
+
+        // Update terrain chunks
+        updateChunks();
+
+        // Animate Birds
+        chunks.forEach(chunkGroup => {
+            if (chunkGroup.userData.birds) {
+                chunkGroup.userData.birds.forEach(bird => {
+                    const data = bird.userData;
+                    const flap = Math.sin(clock.elapsedTime * data.flapSpeed + data.flapPhase) * 0.5;
+                    if (data.wings) {
+                        data.wings[0].rotation.z = flap;
+                        data.wings[1].rotation.z = -flap;
+                    }
+                    bird.translateZ(-(data.speed * delta * 50));
+
+                    if (data.type === 'hawk') {
+                        data.angle += data.circleSpeed * delta;
+                        const targetX = data.circleCenter.x + Math.cos(data.angle) * data.circleRadius;
+                        const targetZ = data.circleCenter.z + Math.sin(data.angle) * data.circleRadius;
+                        bird.rotation.z = 0.3;
+                        bird.lookAt(
+                            data.circleCenter.x + Math.cos(data.angle + 0.1) * data.circleRadius,
+                            bird.position.y,
+                            data.circleCenter.z + Math.sin(data.angle + 0.1) * data.circleRadius
+                        );
+                        bird.position.set(targetX, bird.position.y, targetZ);
+                    }
+                });
+            }
+        });
+
+        // Update Cockpit HUD
+        const hours = (timeOfDay / (Math.PI * 2)) * 24;
+        const hh = Math.floor(hours).toString().padStart(2, '0');
+        const mm = Math.floor((hours % 1) * 60).toString().padStart(2, '0');
+        const timeStr = `${hh}:${mm}`;
+
+        const dirStr = ChillFlightLogic.computeHeadingDirection(planeGroup.rotation.y);
+        const latScale = 5000;
+        const latVal = (-planeGroup.position.z / latScale);
+        const lonVal = (planeGroup.position.x / latScale);
+        const latStr = Math.abs(latVal).toFixed(3) + "\u00b0 " + (latVal >= 0 ? "N" : "S");
+        const lonStr = Math.abs(lonVal).toFixed(3) + "\u00b0 " + (lonVal >= 0 ? "E" : "W");
+        const coordStr = `${latStr} ${lonStr}`;
+        const altStr = `${Math.round(Math.max(0, planeGroup.position.y - 45.5) * 25)}`;
+        const spdStr = `${Math.round(BASE_FLIGHT_SPEED * flightSpeedMultiplier * 60)} KTS`;
+
+        const cTime = document.getElementById('cockpit-time'); if (cTime) cTime.innerText = timeStr;
+        const cDir = document.getElementById('cockpit-dir'); if (cDir) cDir.innerText = dirStr;
+        const cCoords = document.getElementById('cockpit-coords'); if (cCoords) cCoords.innerText = coordStr;
+        const cAlt = document.getElementById('cockpit-alt'); if (cAlt) cAlt.innerText = altStr;
+        const cSpd = document.getElementById('cockpit-spd'); if (cSpd) cSpd.innerText = spdStr;
+
+        // Celestial positions
+        const orbitRadius = 8000;
+        const sunY = -Math.cos(timeOfDay);
+        const sunX = Math.sin(timeOfDay);
+        const sunZ = Math.cos(timeOfDay) * 0.3;
+        sunMesh.position.set(sunX * orbitRadius, sunY * orbitRadius, sunZ * orbitRadius);
+        moonMesh.position.set(-sunX * orbitRadius, -sunY * orbitRadius, -sunZ * orbitRadius);
+        dirLight.position.copy(sunMesh.position).add(planeGroup.position);
+        skyGroup.position.copy(camera.position);
+
+        // Sky color / fog / weather
+        let dayFactor = Math.max(0, Math.min(1, (sunY + 0.25) * 4));
+        let uncloudedSkyColor = new THREE.Color(0x050510);
+        let uncloudedFogColor = new THREE.Color(0x020208);
+
+        const daySky = new THREE.Color(0x87ceeb);
+        const sunriseSky = new THREE.Color(0xff7b54);
+        const goldenSky = new THREE.Color(0xffb26b);
+        const twilightSky = new THREE.Color(0x2c3e50);
+
+        if (dayFactor > 0.0) {
+            let sunriseFactor = 1.0 - Math.min(1, Math.abs(sunY) * 2.5);
+            sunriseFactor = Math.max(0, Math.pow(sunriseFactor, 1.5));
+            uncloudedSkyColor.lerp(twilightSky, dayFactor * 0.4);
+            uncloudedSkyColor.lerp(sunriseSky, sunriseFactor);
+            if (sunY > -0.1 && sunY < 0.15) {
+                let goldT = 1.0 - Math.abs(sunY - 0.02) * 10;
+                uncloudedSkyColor.lerp(goldenSky, Math.max(0, goldT) * 0.6);
+            }
+            uncloudedSkyColor.lerp(daySky, dayFactor * (1.0 - sunriseFactor));
+            uncloudedFogColor.copy(uncloudedSkyColor);
+        }
+
+        starsMat.opacity = 1.0 - dayFactor;
+        hemiLight.intensity = THREE.MathUtils.lerp(0.1, 0.6, dayFactor);
+        dirLight.intensity = THREE.MathUtils.lerp(0, 0.8, dayFactor);
+
+        let weatherNoise = (simplex.noise2D((planeGroup.position.x / CHUNK_SIZE) * 0.1 + 500, (planeGroup.position.z / CHUNK_SIZE) * 0.1) + 1) / 2;
+        const weatherThreshold = 0.5;
+        weatherNoise = weatherNoise < weatherThreshold ? 0 : (weatherNoise - weatherThreshold) / (1 - weatherThreshold);
+
+        const cloudyColor = new THREE.Color().setHex(0x0a0c10).lerp(new THREE.Color(0x8899aa), dayFactor);
+        const finalSkyColor = uncloudedSkyColor.clone().lerp(cloudyColor, weatherNoise);
+        const finalFogColor = uncloudedFogColor.clone().lerp(cloudyColor, weatherNoise);
+
+        scene.background.lerp(finalSkyColor, 0.05);
+        scene.fog.color.lerp(finalFogColor, 0.05);
+        scene.fog.density = THREE.MathUtils.lerp(scene.fog.density, THREE.MathUtils.lerp(0.0003, 0.0018, weatherNoise), 0.01);
     }
 
-    starsMat.opacity = 1.0 - dayFactor;
-    hemiLight.intensity = THREE.MathUtils.lerp(0.1, 0.6, dayFactor);
-    dirLight.intensity = THREE.MathUtils.lerp(0, 0.8, dayFactor);
-
-    let weatherNoise = (simplex.noise2D((planeGroup.position.x / CHUNK_SIZE) * 0.1 + 500, (planeGroup.position.z / CHUNK_SIZE) * 0.1) + 1) / 2;
-    const weatherThreshold = 0.5;
-    if (weatherNoise < weatherThreshold) {
-        weatherNoise = 0;
-    } else {
-        weatherNoise = (weatherNoise - weatherThreshold) / (1 - weatherThreshold);
-    }
-
-    const cloudyColor = new THREE.Color().setHex(0x0a0c10).lerp(new THREE.Color(0x8899aa), dayFactor);
-    const finalSkyColor = uncloudedSkyColor.clone().lerp(cloudyColor, weatherNoise);
-    const finalFogColor = uncloudedFogColor.clone().lerp(cloudyColor, weatherNoise);
-
-    scene.background.lerp(finalSkyColor, 0.05);
-    scene.fog.color.lerp(finalFogColor, 0.05);
-
-    const targetFogDensity = THREE.MathUtils.lerp(0.0003, 0.0018, weatherNoise);
-    scene.fog.density = THREE.MathUtils.lerp(scene.fog.density, targetFogDensity, 0.01);
-
-    // Render
     renderer.render(scene, camera);
 }
 

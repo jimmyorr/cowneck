@@ -24,7 +24,7 @@
 <body>
 
     <div id="ui-layer">
-        <div class="title" id="game-title">Chill Flight</div>
+        <div class="title" id="game-title"><span id="title-chill">Chill</span> Flight</div>
     </div>
     <div id="crosshair"></div>
     <div id="pause-overlay">
@@ -45,10 +45,25 @@
                     <input type="color" id="plane-color-input" value="#e74c3c">
                 </div>
             </div>
+            <div class="customization-row">
+                <span class="customization-label">Mode</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="chill-checkbox" checked
+                        style="cursor: pointer; width: 18px; height: 18px;">
+                    <label for="chill-checkbox"
+                        style="font-size: 14px; color: #fff; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">CHILL</label>
+                </div>
+            </div>
         </div>
 
         <button id="resume-btn" class="btn" style="margin-bottom: 15px;">Resume flight</button>
         <a href="../index.html" class="btn">Exit game</a>
+    </div>
+
+    <div id="crash-overlay">
+        <h1>CRASHED</h1>
+        <p style="margin-bottom: 25px; font-size: 20px; color: #ccc;">Your flight has ended abruptly.</p>
+        <button id="respawn-btn" class="btn">Respawn</button>
     </div>
 
     <div id="cockpit-ui">

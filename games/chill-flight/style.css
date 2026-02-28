@@ -37,6 +37,12 @@ body {
     opacity: 0.8;
 }
 
+.strike {
+    text-decoration: line-through;
+    text-decoration-thickness: 3px;
+    text-decoration-color: rgba(255, 0, 0, 0.7);
+}
+
 #crosshair {
     position: absolute;
     top: 50%;
@@ -318,4 +324,27 @@ body {
         margin-left: 0 !important;
         padding-left: 0 !important;
     }
+}
+
+#crash-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(40, 0, 0, 0.6);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    z-index: 200;
+    backdrop-filter: blur(8px);
+}
+
+#crash-overlay h1 {
+    font-size: 64px;
+    color: #ff4444;
+    margin-bottom: 20px;
+    letter-spacing: 10px;
 }
