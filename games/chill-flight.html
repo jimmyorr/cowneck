@@ -390,12 +390,23 @@
             return group;
         }
 
-        import { onChildAdded, onChildChanged, onChildRemoved } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { onChildAdded, onChildChanged, onChildRemoved, onValue, goOffline, goOnline } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        // Global server offset for deterministic time
+        window.serverTimeOffset = 0;
+        const offsetRef = ref(db, ".info/serverTimeOffset");
+        onValue(offsetRef, (snap) => {
+            window.serverTimeOffset = snap.val() || 0;
+        });
+
+        // Global reference to Firebase DB for debug menu isolation
+        window.firebaseDB = db;
 
         // Simple "Log them in so they can play" logic
         signInAnonymously(auth)
             .then(() => {
                 const uid = auth.currentUser.uid;
+                window.currentUserUid = uid; // Expose for sync interval checking
                 console.log("Logged in anonymously! ID:", uid);
 
                 // Now you can write to the DB
@@ -441,6 +452,11 @@
                 // --- 0.5 PERIODIC LOCATION SYNC ---
                 // Sync player location every 2 seconds to minimize DB bandwidth
                 setInterval(() => {
+                    if (!window.firebaseDB) return; // DB goes null when offline
+                    // Check if document debug menu is visible
+                    const debugMenu = document.getElementById('debug-menu');
+                    if (debugMenu && debugMenu.style.display === 'block') return;
+
                     const pos = planeGroup.position;
                     const rot = planeGroup.rotation;
                     // Only sync essential coordinates (X, Y, Z, RotY) and timestamp
@@ -1507,11 +1523,36 @@
             });
 
             // --- DAY/NIGHT CYCLE LOGIC ---
-            // Slow down time when sun is near horizon (cos(timeOfDay) near 0) for longer sunsets/sunrises
-            const horizonCloseness = 1.0 - Math.min(1, Math.abs(Math.cos(timeOfDay)) * 2);
-            const timeDilator = THREE.MathUtils.lerp(1.0, 0.2, Math.max(0, horizonCloseness));
-            timeOfDay += delta * BASE_DAY_SPEED * daySpeedMultiplier * timeDilator;
+            const debugMenu = document.getElementById('debug-menu');
+            const isDebugMode = (debugMenu && debugMenu.style.display === 'block');
+
+            if (isDebugMode) {
+                // Local time simulation based on debug speed settings
+                const horizonCloseness = 1.0 - Math.min(1, Math.abs(Math.cos(timeOfDay)) * 2);
+                const timeDilator = THREE.MathUtils.lerp(1.0, 0.2, Math.max(0, horizonCloseness));
+                timeOfDay += delta * BASE_DAY_SPEED * daySpeedMultiplier * timeDilator;
+            } else {
+                // Deterministic World Time - 5 minutes (300,000 ms) per cycle
+                const CYCLE_DURATION_MS = 300000;
+                const now = Date.now() + (window.serverTimeOffset || 0);
+
+                // Map the current time into a 0 to 1 progress through the cycle
+                const linearProgress = (now % CYCLE_DURATION_MS) / CYCLE_DURATION_MS;
+
+                // --- TIME WARPING ---
+                // We want time to slow down at sunrise (progress = 0.25) and sunset (progress = 0.75).
+                // Subtracting a sine wave from the linear progress achieves this.
+                // Amplitude 0.07 safely slows down time locally up to ~85% near those peaks,
+                // while accelerating it near midnight (0) and noon (0.5) to maintain the overall 5-minute cycle perfectly.
+                const warpAmplitude = 0.07;
+                const warpedProgress = linearProgress + warpAmplitude * Math.sin(4 * Math.PI * linearProgress);
+
+                // Map warped progress to standard 0 -> 2PI range
+                timeOfDay = warpedProgress * Math.PI * 2;
+            }
+
             if (timeOfDay > Math.PI * 2) timeOfDay -= Math.PI * 2;
+            if (timeOfDay < 0) timeOfDay += Math.PI * 2;
 
             // Update Cockpit & Debug Menu values
             const hours = (timeOfDay / (Math.PI * 2)) * 24;
@@ -2032,7 +2073,35 @@
             // Toggle debug menu
             if (e.key === 'd' || e.key === 'D') {
                 const debugMenu = document.getElementById('debug-menu');
-                debugMenu.style.display = debugMenu.style.display === 'block' ? 'none' : 'block';
+                const isOpening = debugMenu.style.display !== 'block';
+                debugMenu.style.display = isOpening ? 'block' : 'none';
+
+                if (window.firebaseDB && window.currentUserUid) {
+                    if (isOpening) {
+                        // Remove player from DB so they disappear for others
+                        import('https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js').then(({ remove, ref, goOffline }) => {
+                            remove(ref(window.firebaseDB, 'players/' + window.currentUserUid)).then(() => {
+                                goOffline(window.firebaseDB);
+                                // Remove other players from local scene
+                                otherPlayers.forEach(p => scene.remove(p.mesh));
+                                otherPlayers.clear();
+                                console.log("Debug menu opened: Disconnected from Firebase multiplayer.");
+                            });
+                        });
+                    } else {
+                        // Reconnect
+                        import('https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js').then(({ goOnline, set, ref }) => {
+                            goOnline(window.firebaseDB);
+                            // Re-check-in
+                            set(ref(window.firebaseDB, 'players/' + window.currentUserUid), {
+                                name: "Player 1",
+                                score: 0,
+                                lastSeen: new Date().toISOString()
+                            });
+                            console.log("Debug menu closed: Reconnected to Firebase multiplayer.");
+                        });
+                    }
+                }
             }
             if (e.key === '1') {
                 // 1 cycles procedural stations
