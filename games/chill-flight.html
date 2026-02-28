@@ -1986,6 +1986,8 @@
         // --- YOUTUBE API SETUP ---
         let ytPlayer;
         let ytPlayerReady = false;
+        const lofiGirlVideos = ['jfKfPfyJRdk', '4xDzrJKXOOY', '28KRPhVzCus', 'HuFYqnbVbzY', 'S_MOd40zlYU'];
+        let lofiGirlIdx = 0;
 
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -1997,7 +1999,7 @@
             ytPlayer = new YT.Player('youtube-player', {
                 height: '124',
                 width: '220',
-                videoId: 'jfKfPfyJRdk',
+                videoId: lofiGirlVideos[lofiGirlIdx],
                 playerVars: {
                     'playsinline': 1,
                     'controls': 0,
@@ -2007,7 +2009,7 @@
                     'onReady': () => {
                         console.log("YouTube Player Ready.");
                         ytPlayerReady = true;
-                        if (currentStation === 2) ytPlayer.cueVideoById('jfKfPfyJRdk');
+                        if (currentStation === 2) ytPlayer.cueVideoById(lofiGirlVideos[lofiGirlIdx]);
                         if (currentStation === 3) {
                             const randomStartIndex = Math.floor(Math.random() * 30);
                             ytPlayer.cuePlaylist({
@@ -2252,6 +2254,11 @@
         }
 
         function setStation(num) {
+            // Cycle through Lofi Girl videos if clicking the same station
+            if (num === 2 && currentStation === 2) {
+                lofiGirlIdx = (lofiGirlIdx + 1) % lofiGirlVideos.length;
+            }
+
             currentStation = num;
             document.getElementById('station-name').innerText = num === 0 ? '' : stationNames[num];
 
@@ -2270,7 +2277,7 @@
             if (ytPlayerReady) {
                 if (num === 2) {
                     ytContainer.style.display = window.innerWidth <= 768 ? 'none' : 'block';
-                    ytPlayer.loadVideoById('jfKfPfyJRdk');
+                    ytPlayer.loadVideoById(lofiGirlVideos[lofiGirlIdx]);
                     ytPlayer.playVideo();
                 } else if (num === 3) {
                     ytContainer.style.display = window.innerWidth <= 768 ? 'none' : 'block';
