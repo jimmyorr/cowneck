@@ -4,6 +4,7 @@ const CHUNK_SIZE = 1500;
 let SEGMENTS = 40;
 const WATER_LEVEL = 40;
 const MOUNTAIN_LEVEL = 180;
+let RENDER_DISTANCE = 2;
 
 // Flight parameters
 const BASE_FLIGHT_SPEED = 2.5;

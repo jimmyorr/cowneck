@@ -221,7 +221,25 @@ document.getElementById('resume-btn').addEventListener('click', () => {
     togglePause();
 });
 
-// Quality selection
+// Distance selection
+const distanceSelect = document.getElementById('distance-select');
+if (distanceSelect) {
+    distanceSelect.addEventListener('change', (e) => {
+        RENDER_DISTANCE = parseInt(e.target.value);
+        console.log(`Draw distance changed: RENDER_DISTANCE = ${RENDER_DISTANCE}`);
+
+        // Clear all existing chunks to force regeneration
+        chunks.forEach((group, key) => {
+            group.traverse(child => {
+                if (child.isMesh || child.isInstancedMesh) {
+                    child.geometry.dispose();
+                }
+            });
+            scene.remove(group);
+        });
+        chunks.clear();
+    });
+}
 const qualitySelect = document.getElementById('quality-select');
 if (qualitySelect) {
     qualitySelect.addEventListener('change', (e) => {
@@ -282,11 +300,32 @@ const clock = new THREE.Clock();
 // Initial chunk generation
 updateChunks();
 
+let frameCount = 0;
+let lastFpsUpdateTime = performance.now();
+const fpsCounterEl = document.getElementById('debug-fps');
+
 function animate() {
     requestAnimationFrame(animate);
-    if (isPaused) return;
 
+    const now = performance.now();
     const delta = clock.getDelta();
+
+    // FPS Calculation
+    frameCount++;
+    if (now - lastFpsUpdateTime > 500) { // Update twice a second
+        const fps = Math.round((frameCount * 1000) / (now - lastFpsUpdateTime));
+        if (fpsCounterEl) fpsCounterEl.innerText = fps;
+
+        // Color coding for performance
+        if (fps < 30) fpsCounterEl.style.color = '#FF4444';
+        else if (fps < 55) fpsCounterEl.style.color = '#FFD700';
+        else fpsCounterEl.style.color = '#00FF00';
+
+        lastFpsUpdateTime = now;
+        frameCount = 0;
+    }
+
+    if (isPaused) return;
 
     if (isExploded) {
         updateExplosionParticles(delta);
@@ -729,14 +768,14 @@ if (btnHdgt) {
 
 window.addEventListener('keydown', (e) => {
     const key = e.key.toLowerCase();
-    if (e.key === 'ArrowLeft' || key === 'a') keys.ArrowLeft = true;
-    if (e.key === 'ArrowRight' || key === 'd') keys.ArrowRight = true;
-    if (e.key === 'ArrowUp' || key === 'w') keys.ArrowUp = true;
-    if (e.key === 'ArrowDown' || key === 's') keys.ArrowDown = true;
+    if (e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey)) keys.ArrowLeft = true;
+    if (e.key === 'ArrowRight' || (key === 'd' && !e.shiftKey)) keys.ArrowRight = true;
+    if (e.key === 'ArrowUp' || (key === 'w' && !e.shiftKey)) keys.ArrowUp = true;
+    if (e.key === 'ArrowDown' || (key === 's' && !e.shiftKey)) keys.ArrowDown = true;
 
     // Double-tap detection (ignore key-repeat events)
-    if ((e.key === 'ArrowLeft' || key === 'a' || e.key === 'ArrowRight' || key === 'd') && !e.repeat) {
-        const tapKey = (e.key === 'ArrowLeft' || key === 'a') ? 'ArrowLeft' : 'ArrowRight';
+    if ((e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey) || e.key === 'ArrowRight' || (key === 'd' && !e.shiftKey)) && !e.repeat) {
+        const tapKey = (e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey)) ? 'ArrowLeft' : 'ArrowRight';
         const now = performance.now();
         if (now - lastArrowTap[tapKey] < DOUBLE_TAP_MS) {
             doubleTap[tapKey] = true;
@@ -745,7 +784,8 @@ window.addEventListener('keydown', (e) => {
     }
 
     // Any control key press hands control to keyboard; clear mouse until it moves again
-    const isControlKey = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'w', 'a', 's', 'd'].includes(e.key.toLowerCase());
+    const isControlKey = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown'].includes(e.key.toLowerCase()) ||
+        (['w', 'a', 's', 'd'].includes(key) && !e.shiftKey);
     if (isControlKey) {
         if (!e.repeat) {
             mouseControlActive = false;

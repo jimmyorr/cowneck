@@ -56,6 +56,15 @@
                 </select>
             </div>
             <div class="customization-row">
+                <span class="customization-label">View Distance</span>
+                <select id="distance-select" class="customization-input"
+                    style="width: 100px; padding: 4px 8px; font-size: 14px;">
+                    <option value="1">Short (1)</option>
+                    <option value="2" selected>Medium (2)</option>
+                    <option value="3">Long (3)</option>
+                </select>
+            </div>
+            <div class="customization-row">
                 <label for="chill-checkbox" class="customization-label" style="cursor: pointer;">CHILL</label>
                 <div style="width: 40px; display: flex; justify-content: center;">
                     <input type="checkbox" id="chill-checkbox" checked
@@ -135,6 +144,9 @@
             <button class="speed-btn active" data-speed="1">1x</button>
             <button class="speed-btn" data-speed="10">10x</button>
             <button class="speed-btn" data-speed="100">100x</button>
+        </div>
+        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
+            FPS: <span id="debug-fps" style="color: #00FF00;">0</span>
         </div>
     </div>
 

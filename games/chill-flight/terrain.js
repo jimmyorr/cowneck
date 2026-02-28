@@ -353,7 +353,7 @@ function generateChunk(chunkX, chunkZ) {
 function updateChunks() {
     const currentChunkX = Math.round(planeGroup.position.x / CHUNK_SIZE);
     const currentChunkZ = Math.round(planeGroup.position.z / CHUNK_SIZE);
-    const renderDistance = 1;
+    const renderDistance = RENDER_DISTANCE;
 
     for (let x = -renderDistance; x <= renderDistance; x++) {
         for (let z = -renderDistance; z <= renderDistance; z++) {
