@@ -130,12 +130,19 @@ function generateChunk(chunkX, chunkZ) {
             }
         } else {
             const isForest = simplex.noise2D(worldX * 0.005 + 100, worldZ * 0.005) > 0.2;
+
+            // Normalize density so higher SEGMENTS doesn't mean more trees/houses
+            // Base resolution is 40. Probability scales by (40/SEGMENTS)^2 
+            // because segments are in 2 dimensions.
+            const densityFactor = 40 / SEGMENTS;
+            const densityScale = densityFactor * densityFactor;
+
             if (isForest) {
                 colorObj.copy(colorForest);
                 if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x8BA192), snowFactor);
                 if (desertFactor > 0) colorObj.lerp(new THREE.Color(0xA0522D), desertFactor);
 
-                if (rng() < (desertFactor > 0.5 ? 0.05 : 0.15)) {
+                if (rng() < (desertFactor > 0.5 ? 0.05 : 0.15) * densityScale) {
                     if (snowFactor > 0.4) snowTreePositions.push({ x: localX, y: height, z: localZ });
                     else if (desertFactor < 0.6) treePositions.push({ x: localX, y: height, z: localZ });
                 }
@@ -144,7 +151,7 @@ function generateChunk(chunkX, chunkZ) {
                 if (snowFactor > 0) colorObj.lerp(new THREE.Color(0xFAFAFA), snowFactor);
                 if (desertFactor > 0) colorObj.lerp(colorDesertSand, desertFactor);
 
-                if (rng() < (desertFactor > 0.5 ? 0.002 : 0.005)) {
+                if (rng() < (desertFactor > 0.5 ? 0.002 : 0.005) * densityScale) {
                     housePositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
                 }
             }

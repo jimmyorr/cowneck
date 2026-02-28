@@ -1,7 +1,7 @@
 // --- CONSTANTS ---
 // Terrain parameters
 const CHUNK_SIZE = 1500;
-const SEGMENTS = 40;
+let SEGMENTS = 40;
 const WATER_LEVEL = 40;
 const MOUNTAIN_LEVEL = 180;
 

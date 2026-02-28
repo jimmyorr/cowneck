@@ -221,6 +221,28 @@ document.getElementById('resume-btn').addEventListener('click', () => {
     togglePause();
 });
 
+// Quality selection
+const qualitySelect = document.getElementById('quality-select');
+if (qualitySelect) {
+    qualitySelect.addEventListener('change', (e) => {
+        SEGMENTS = parseInt(e.target.value);
+        console.log(`Quality changed: SEGMENTS = ${SEGMENTS}`);
+
+        // Clear all existing chunks to force regeneration
+        chunks.forEach((group, key) => {
+            group.traverse(child => {
+                if (child.isMesh || child.isInstancedMesh) {
+                    child.geometry.dispose();
+                }
+            });
+            scene.remove(group);
+        });
+        chunks.clear();
+
+        // The animate loop will call updateChunks() next frame and rebuild everything
+    });
+}
+
 // --- MOBILE UI ADJUSTMENTS ---
 if (window.innerWidth <= 768) {
     const cockpitUI = document.getElementById('cockpit-ui');
