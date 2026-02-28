@@ -62,14 +62,18 @@
     //   180 – 210 → night   (progress 0.75 – 1.00)  [30s]
     //   210 – 330 → sunrise (progress 0.00 – 0.25) [120s]
     function computeTimeOfDay(secondsInCycle) {
-        if (secondsInCycle < 60) {
-            return 0.25 + (secondsInCycle / 60) * 0.25;
-        } else if (secondsInCycle < 180) {
-            return 0.5 + ((secondsInCycle - 60) / 120) * 0.25;
-        } else if (secondsInCycle < 210) {
-            return 0.75 + ((secondsInCycle - 180) / 30) * 0.25;
+        if (secondsInCycle < 55) {
+            // Night: 00:00 - 04:00 (55s)
+            return (secondsInCycle / 55) * (4 / 24);
+        } else if (secondsInCycle < 165) {
+            // Sunrise: 04:00 - 12:00 (110s)
+            return (4 / 24) + ((secondsInCycle - 55) / 110) * (8 / 24);
+        } else if (secondsInCycle < 220) {
+            // Day: 12:00 - 16:00 (55s)
+            return (12 / 24) + ((secondsInCycle - 165) / 55) * (4 / 24);
         } else {
-            return ((secondsInCycle - 210) / 120) * 0.25;
+            // Sunset: 16:00 - 00:00 (110s)
+            return (16 / 24) + ((secondsInCycle - 220) / 110) * (8 / 24);
         }
     }
 

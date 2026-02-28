@@ -667,7 +667,14 @@ function animate() {
         skyGroup.position.copy(camera.position);
 
         // Sky color / fog / weather
-        let dayFactor = Math.max(0, Math.min(1, (sunY + 0.25) * 4));
+        // Sky color / fog / weather
+        // SunY is -Math.cos(timeOfDay). 
+        // At 00:00 (0), SunY = -1.0
+        // At 04:00 (PI/3), SunY = -0.5. <--- Sunrise start
+        // At 06:00 (PI/2), SunY = 0.0.
+        // At 12:00 (PI), SunY = 1.0.
+
+        let dayFactor = Math.max(0, Math.min(1, (sunY + 0.5) * 2)); // 0.0 at SunY=-0.5 (4 AM), 1.0 at SunY=0 (6 AM)
         let uncloudedSkyColor = new THREE.Color(0x050510);
         let uncloudedFogColor = new THREE.Color(0x020208);
 
@@ -689,7 +696,10 @@ function animate() {
             uncloudedFogColor.copy(uncloudedSkyColor);
         }
 
-        starsMat.opacity = 1.0 - dayFactor;
+        // Stars fade starting at 4 AM (-0.5) and disappear by roughly 5:15 AM (-0.2)
+        let starFactor = Math.max(0, Math.min(1, (sunY + 0.2) / -0.3));
+        starsMat.opacity = starFactor;
+
         hemiLight.intensity = THREE.MathUtils.lerp(0.1, 0.6, dayFactor);
         dirLight.intensity = THREE.MathUtils.lerp(0, 0.8, dayFactor);
 
