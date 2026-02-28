@@ -110,46 +110,45 @@ test('getPlaneColor: different uids can produce different colors', () => {
 // =============================================================================
 
 test('computeTimeOfDay: segment boundaries map to correct progress values', () => {
-    // Segment starts
     assert.strictEqual(computeTimeOfDay(0), 0.25, 'Start of day segment (t=0)');
     assert.strictEqual(computeTimeOfDay(60), 0.50, 'Start of sunset segment (t=60)');
-    assert.strictEqual(computeTimeOfDay(120), 0.75, 'Start of night segment (t=120)');
-    assert.strictEqual(computeTimeOfDay(180), 0.00, 'Start of sunrise segment (t=180)');
+    assert.strictEqual(computeTimeOfDay(180), 0.75, 'Start of night segment (t=180)');
+    assert.strictEqual(computeTimeOfDay(210), 0.00, 'Start of sunrise segment (t=210)');
 });
 
 test('computeTimeOfDay: output is always in [0, 1)', () => {
-    for (let s = 0; s < 210; s++) {
+    for (let s = 0; s < 330; s++) {
         const p = computeTimeOfDay(s);
         assert.ok(p >= 0 && p < 1, `Progress ${p} out of [0,1) for secondsInCycle=${s}`);
     }
 });
 
 test('computeTimeOfDay: interpolates linearly within each segment', () => {
-    // Midpoint of day segment (s=30) → 0.25 + 0.5*0.25 = 0.375
+    // Mid-day (s=30, half of 60s) → 0.25 + 0.5*0.25 = 0.375
     assert.strictEqual(computeTimeOfDay(30), 0.375, 'Mid-day at 30s');
-    // Midpoint of sunset (s=90) → 0.50 + 0.5*0.25 = 0.625
-    assert.strictEqual(computeTimeOfDay(90), 0.625, 'Mid-sunset at 90s');
-    // Midpoint of night (s=150) → 0.75 + 0.5*0.25 = 0.875
-    assert.strictEqual(computeTimeOfDay(150), 0.875, 'Mid-night at 150s');
-    // Midpoint of sunrise (s=195) → (15/30)*0.25 = 0.125
-    assert.strictEqual(computeTimeOfDay(195), 0.125, 'Mid-sunrise at 195s');
+    // Mid-sunset (s=120, 60s into the 120s segment) → 0.50 + 0.5*0.25 = 0.625
+    assert.strictEqual(computeTimeOfDay(120), 0.625, 'Mid-sunset at 120s');
+    // Mid-night (s=195, 15s into the 30s segment) → 0.75 + 0.5*0.25 = 0.875
+    assert.strictEqual(computeTimeOfDay(195), 0.875, 'Mid-night at 195s');
+    // Mid-sunrise (s=270, 60s into the 120s segment) → 0.5*0.25 = 0.125
+    assert.strictEqual(computeTimeOfDay(270), 0.125, 'Mid-sunrise at 270s');
 });
 
 test('computeTimeOfDay: is continuous within each segment (not at the cycle wrap)', () => {
     const eps = 0.001;
-    // t=180 is intentionally a discontinuity: the cycle wraps from ~1.0 back to 0.0.
-    // Only check continuity at interior segment boundaries (t=60 and t=120).
-    const interiorBoundaries = [60, 120];
+    // t=210 is intentionally a discontinuity: the cycle wraps from ~1.0 back to 0.0.
+    // Only check continuity at interior segment boundaries (t=60 and t=180).
+    const interiorBoundaries = [60, 180];
     for (const b of interiorBoundaries) {
         const before = computeTimeOfDay(b - eps);
         const at = computeTimeOfDay(b);
         assert.ok(Math.abs(before - at) < 0.01, `Discontinuity near t=${b}: before=${before}, at=${at}`);
     }
-    // Verify the cycle wrap at t=180 actually does jump (expected behavior)
-    const beforeWrap = computeTimeOfDay(180 - eps);
-    const atWrap = computeTimeOfDay(180);
+    // Verify the cycle wrap at t=210 actually does jump (expected behavior)
+    const beforeWrap = computeTimeOfDay(210 - eps);
+    const atWrap = computeTimeOfDay(210);
     assert.ok(beforeWrap > 0.9, `Value just before wrap (${beforeWrap}) should be near 1.0`);
-    assert.strictEqual(atWrap, 0, 'Value at cycle wrap (t=180) should reset to 0');
+    assert.strictEqual(atWrap, 0, 'Value at cycle wrap (t=210) should reset to 0');
 });
 
 // =============================================================================

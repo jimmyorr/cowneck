@@ -148,7 +148,7 @@ function animate() {
     const debugMenu = document.getElementById('debug-menu');
     const isDebugMode = (debugMenu && debugMenu.style.display === 'block');
 
-    const CYCLE_DURATION_MS = 210000;
+    const CYCLE_DURATION_MS = 330000;
 
     if (isDebugMode && daySpeedMultiplier !== 1) {
         timeOfDay += delta * (2 * Math.PI / (CYCLE_DURATION_MS / 1000)) * daySpeedMultiplier;

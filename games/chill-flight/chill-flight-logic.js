@@ -55,21 +55,21 @@
     }
 
     // --- DAY / NIGHT WARP ---
-    // Maps a position within a 210-second cycle to a normalized progress value [0, 1).
+    // Maps a position within a 330-second cycle to a normalized progress value [0, 1).
     // Segments (in seconds):
-    //   0   – 60  → day    (progress 0.25 – 0.50)
-    //   60  – 120 → sunset (progress 0.50 – 0.75)
-    //   120 – 180 → night  (progress 0.75 – 1.00)
-    //   180 – 210 → sunrise(progress 0.00 – 0.25)
+    //   0   –  60 → day     (progress 0.25 – 0.50)  [60s]
+    //   60  – 180 → sunset  (progress 0.50 – 0.75) [120s]
+    //   180 – 210 → night   (progress 0.75 – 1.00)  [30s]
+    //   210 – 330 → sunrise (progress 0.00 – 0.25) [120s]
     function computeTimeOfDay(secondsInCycle) {
         if (secondsInCycle < 60) {
             return 0.25 + (secondsInCycle / 60) * 0.25;
-        } else if (secondsInCycle < 120) {
-            return 0.5 + ((secondsInCycle - 60) / 60) * 0.25;
         } else if (secondsInCycle < 180) {
-            return 0.75 + ((secondsInCycle - 120) / 60) * 0.25;
+            return 0.5 + ((secondsInCycle - 60) / 120) * 0.25;
+        } else if (secondsInCycle < 210) {
+            return 0.75 + ((secondsInCycle - 180) / 30) * 0.25;
         } else {
-            return ((secondsInCycle - 180) / 30) * 0.25;
+            return ((secondsInCycle - 210) / 120) * 0.25;
         }
     }
 
