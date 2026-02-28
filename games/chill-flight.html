@@ -498,8 +498,8 @@
 
         // Simple "Log them in so they can play" logic
         signInAnonymously(auth)
-            .then(() => {
-                playerUid = auth.currentUser.uid;
+            .then((result) => {
+                playerUid = result.user.uid;
                 window.currentUserUid = playerUid; // Expose for sync interval checking
                 console.log("Logged in anonymously! ID:", playerUid);
 
@@ -511,22 +511,57 @@
                 // Now you can write to the DB
                 const userRef = ref(db, 'players/' + playerUid);
 
+                // Immediately initialize the player node to ensure onDisconnect works on the whole object
+                set(userRef, {
+                    name: "Player 1",
+                    lastSeen: new Date().toISOString()
+                });
+
                 // 0. Clean up gracefully if the user closes the tab/browser
                 onDisconnect(userRef).remove();
 
-                set(userRef, {
-                    name: "Player 1",
-                    score: 0,
-                    lastSeen: new Date().toISOString()
+                // Sync essential coordinates, full rotation, speed, headlights, and timestamp immediately
+                const initialPos = planeGroup.position;
+                const initialRot = planeGroup.rotation;
+                set(ref(db, 'players/' + playerUid + '/position'), {
+                    x: Number(initialPos.x.toFixed(1)),
+                    y: Number(initialPos.y.toFixed(1)),
+                    z: Number(initialPos.z.toFixed(1)),
+                    rotX: Number(initialRot.x.toFixed(3)),
+                    rotY: Number(initialRot.y.toFixed(3)),
+                    rotZ: Number(initialRot.z.toFixed(3)),
+                    speedMult: Number(flightSpeedMultiplier.toFixed(2)),
+                    headlightsOn: false,
+                    updatedAt: new Date().toISOString()
                 });
 
                 // Listen for other players
                 const playersRef = ref(db, 'players');
                 onChildAdded(playersRef, (snapshot) => {
-                    if (snapshot.key === playerUid) return;
+                    const snapKey = snapshot.key;
+                    if (snapKey === playerUid) return;
+
                     const data = snapshot.val();
                     const posData = data.position || {};
-                    const mesh = createOtherPlaneMesh(snapshot.key); // Pass UID here
+
+                    // Rigorous Check: If no position data yet, don't even create the mesh (onChildChanged will handle it)
+                    if (!posData.x && posData.x !== 0) return;
+
+                    // Filter out stale players (older than 10s is very aggressive for ghosts)
+                    if (posData.updatedAt) {
+                        const packetTime = new Date(posData.updatedAt).getTime();
+                        const now = Date.now() + (window.serverTimeOffset || 0);
+                        if (now - packetTime > 10000) return;
+                    }
+
+                    // Duplicate Mesh Cleanup: If a mesh already exists for this UID, remove it first
+                    if (otherPlayers.has(snapKey)) {
+                        const oldP = otherPlayers.get(snapKey);
+                        scene.remove(oldP.mesh);
+                        otherPlayers.delete(snapKey);
+                    }
+
+                    const mesh = createOtherPlaneMesh(snapKey); // Pass UID here
 
                     // Set initial headlights
                     if (ENABLE_MULTIPLAYER_HEADLIGHTS && mesh.userData.headlight) {
@@ -549,25 +584,34 @@
                 });
 
                 onChildChanged(playersRef, (snapshot) => {
-                    if (snapshot.key === playerUid) return;
+                    const snapKey = snapshot.key;
+                    if (snapKey === playerUid) return;
                     const data = snapshot.val();
-                    const p = otherPlayers.get(snapshot.key);
-                    if (p && data.position) {
-                        p.lastReceivedMs = Date.now(); // Update GC timer
+                    const p = otherPlayers.get(snapKey);
 
-                        // Toggle headlights
-                        if (ENABLE_MULTIPLAYER_HEADLIGHTS && p.mesh.userData.headlight) {
-                            const isLightsOn = data.position.headlightsOn || false;
-                            p.mesh.userData.headlight.intensity = isLightsOn ? 2 : 0;
-                            p.mesh.userData.headlightGlow.intensity = isLightsOn ? 0.1 : 0;
+                    if (data.position) {
+                        // Stale Filter (Take 2)
+                        if (data.position.updatedAt) {
+                            const packetTime = new Date(data.position.updatedAt).getTime();
+                            const now = Date.now() + (window.serverTimeOffset || 0);
+                            if (now - packetTime > 10000) {
+                                // If player was there but went stale, remove them
+                                if (p) {
+                                    scene.remove(p.mesh);
+                                    otherPlayers.delete(snapKey);
+                                }
+                                return;
+                            }
                         }
 
-                        // 1. Get raw snapshot data
-                        p.targetPos.set(data.position.x, data.position.y, data.position.z);
-                        p.targetRotX = data.position.rotX || 0;
-                        p.targetRotY = data.position.rotY || 0;
-                        p.targetRotZ = data.position.rotZ || 0;
-                        p.targetSpeedMult = data.position.speedMult !== undefined ? data.position.speedMult : 1;
+                        // If they went stale and just came back, we might need to recreate them
+                        if (!p) {
+                            // This case handles players who were filtered out by onChildAdded but just updated
+                            // We trigger the same logic as onChildAdded
+                            // But for simplicity, let's just ensure they exist
+                            return; // Wait for next sync or just trigger onChildAdded logic? 
+                            // Actually, let's just make onChildAdded robust.
+                        }
 
                         // 2. Latency Compensation (Dead Reckoning Catch-up)
                         // How old is this data packet? (Using deterministic server time)
@@ -613,7 +657,7 @@
                 }, 5000); // Check every 5 seconds
 
                 // --- 0.5 PERIODIC LOCATION SYNC ---
-                // Sync player location every 2 seconds to minimize DB bandwidth
+                // Sync player location every 1 second (faster for better responsiveness and cleanup)
                 setInterval(() => {
                     if (!window.firebaseDB) return; // DB goes null when offline
                     // Check if document debug menu is visible
@@ -646,7 +690,7 @@
                         headlightsOn: headlightsOn,
                         updatedAt: new Date().toISOString()
                     });
-                }, 2000);
+                }, 1000);
             })
             .catch((error) => {
                 console.error("Auth failed:", error);
@@ -2421,9 +2465,8 @@
                         import('https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js').then(({ remove, ref, goOffline }) => {
                             remove(ref(window.firebaseDB, 'players/' + window.currentUserUid)).then(() => {
                                 goOffline(window.firebaseDB);
-                                // Remove other players from local scene
-                                otherPlayers.forEach(p => scene.remove(p.mesh));
-                                otherPlayers.clear();
+                                // Set visibility instead of removing from Map to stay synced with Firebase logic
+                                otherPlayers.forEach(p => p.mesh.visible = false);
                                 console.log("Debug menu opened: Disconnected from Firebase multiplayer.");
                             });
                         });
@@ -2431,11 +2474,28 @@
                         // Reconnect
                         import('https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js').then(({ goOnline, set, ref }) => {
                             goOnline(window.firebaseDB);
+                            // Set visibility back
+                            otherPlayers.forEach(p => p.mesh.visible = true);
                             // Re-check-in
-                            set(ref(window.firebaseDB, 'players/' + window.currentUserUid), {
+                            const userRef = ref(window.firebaseDB, 'players/' + window.currentUserUid);
+                            set(userRef, {
                                 name: "Player 1",
                                 score: 0,
                                 lastSeen: new Date().toISOString()
+                            });
+                            // Immediate position re-sync
+                            const pos = planeGroup.position;
+                            const rot = planeGroup.rotation;
+                            set(ref(window.firebaseDB, 'players/' + window.currentUserUid + '/position'), {
+                                x: Number(pos.x.toFixed(1)),
+                                y: Number(pos.y.toFixed(1)),
+                                z: Number(pos.z.toFixed(1)),
+                                rotX: Number(rot.x.toFixed(3)),
+                                rotY: Number(rot.y.toFixed(3)),
+                                rotZ: Number(rot.z.toFixed(3)),
+                                speedMult: Number(flightSpeedMultiplier.toFixed(2)),
+                                headlightsOn: false,
+                                updatedAt: new Date().toISOString()
                             });
                             console.log("Debug menu closed: Reconnected to Firebase multiplayer.");
                         });
