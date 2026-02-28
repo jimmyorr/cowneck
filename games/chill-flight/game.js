@@ -10,6 +10,7 @@
 // --- INPUT ---
 let mouseX = 0;
 let mouseY = 0;
+let mouseControlActive = false; // becomes true once the mouse moves; cleared by arrow-key presses
 let targetPitch = 0;
 let targetRoll = 0;
 
@@ -21,6 +22,7 @@ function updateInputPosition(clientX, clientY) {
 window.addEventListener('mousemove', (e) => {
     if (!e.target.closest('#cockpit-ui') && !e.target.closest('#debug-menu') && !e.target.closest('.title')) {
         updateInputPosition(e.clientX, e.clientY);
+        mouseControlActive = true;
     }
 });
 
@@ -247,8 +249,8 @@ function animate() {
     // Plane rotation control
     const maxPitch = Math.PI / 4;
     const maxRoll = Math.PI / 3;
-    let effMouseX = Math.abs(mouseX) < 0.15 ? 0 : mouseX;
-    let effMouseY = Math.abs(mouseY) < 0.15 ? 0 : mouseY;
+    let effMouseX = (mouseControlActive && Math.abs(mouseX) >= 0.15) ? mouseX : 0;
+    let effMouseY = (mouseControlActive && Math.abs(mouseY) >= 0.15) ? mouseY : 0;
 
     if (flightSpeedMultiplier > 0) {
         targetPitch = effMouseY * maxPitch;
@@ -602,6 +604,15 @@ window.addEventListener('keydown', (e) => {
             doubleTap[e.key] = true;
         }
         lastArrowTap[e.key] = now;
+    }
+
+    // Any arrow key press hands control to keyboard; clear mouse until it moves again
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        if (!e.repeat) {
+            mouseControlActive = false;
+            mouseX = 0;
+            mouseY = 0;
+        }
     }
 
     if ((e.key === 'l' || e.key === 'L') && !e.metaKey && !e.ctrlKey && !e.altKey) {
