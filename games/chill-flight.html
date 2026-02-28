@@ -474,9 +474,10 @@
         let playerUid = null; // Store local UID once logged in
         let planeMat = null; // Store local plane material for color updates
 
-        // Global player state for customization
-        let playerName = "Player 1";
-        let planeColor = 0xe74c3c;
+        // Global player state for customization (Load from localStorage if available)
+        let playerName = localStorage.getItem('chill_flight_name') || "Player 1";
+        let planeColor = parseInt(localStorage.getItem('chill_flight_color')) || 0xe74c3c;
+        let hasSavedColor = localStorage.getItem('chill_flight_color') !== null;
 
         // Helper to get a deterministic "chill" color for a player
         function getPlaneColor(uid) {
@@ -573,7 +574,7 @@
             return group;
         }
 
-        import { onChildAdded, onChildChanged, onChildRemoved, onValue, goOffline, goOnline, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { onChildAdded, onChildChanged, onChildRemoved, onValue, goOffline, goOnline, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
         // Global server offset for deterministic time
         window.serverTimeOffset = 0;
@@ -592,29 +593,69 @@
                 window.currentUserUid = playerUid; // Expose for sync interval checking
                 console.log("Logged in anonymously! ID:", playerUid);
 
-                // Update local plane color to be unique
+                // Update local plane color
                 if (planeMat) {
-                    planeColor = getPlaneColor(playerUid);
+                    // Use saved color if it exists, otherwise use deterministic default
+                    if (!hasSavedColor) {
+                        planeColor = getPlaneColor(playerUid);
+                    }
                     planeMat.color.setHex(planeColor);
 
                     // Update UI defaults
                     const nameInput = document.getElementById('player-name-input');
                     const colorInput = document.getElementById('plane-color-input');
-                    if (colorInput) colorInput.value = '#' + planeColor.toString(16).padStart(6, '0');
+                    if (nameInput) nameInput.value = playerName;
+                    if (colorInput) colorInput.value = '#' + planeColor.toString(16).padStart(6, '0').toLowerCase();
                 }
 
-                // Now you can write to the DB
-                const userRef = ref(db, 'players/' + playerUid);
+                // Now we handle the dual-layer persistence (Firebase + Session)
+                const profileRef = ref(db, 'users/' + playerUid);
+                const sessionRef = ref(db, 'players/' + playerUid);
 
-                // Immediately initialize the player node to ensure onDisconnect works on the whole object
                 const updatePlayerProfile = () => {
-                    set(userRef, {
+                    // 1. Update persistent profile (Never deleted)
+                    set(profileRef, {
+                        name: playerName,
+                        color: planeColor,
+                        updatedAt: new Date().toISOString()
+                    });
+
+                    // 2. Update active session (Removed on disconnect)
+                    // We duplicate profile info here so other players only need one listener
+                    set(sessionRef, {
                         name: playerName,
                         color: planeColor,
                         lastSeen: new Date().toISOString()
                     });
                 };
-                updatePlayerProfile();
+
+                // Fetch existing profile from Firebase first
+                get(profileRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const profile = snapshot.val();
+                        playerName = profile.name || playerName;
+                        planeColor = profile.color !== undefined ? profile.color : planeColor;
+                        console.log("Profile restored from Firebase:", playerName);
+
+                        // Sync back to localStorage as fallback
+                        localStorage.setItem('chill_flight_name', playerName);
+                        localStorage.setItem('chill_flight_color', planeColor.toString());
+                    } else {
+                        console.log("No Firebase profile found, using local defaults.");
+                    }
+
+                    // Refresh UI and local material
+                    if (planeMat) {
+                        planeMat.color.setHex(planeColor);
+                        const nameInput = document.getElementById('player-name-input');
+                        const colorInput = document.getElementById('plane-color-input');
+                        if (nameInput) nameInput.value = playerName;
+                        if (colorInput) colorInput.value = '#' + planeColor.toString(16).padStart(6, '0').toLowerCase();
+                    }
+
+                    // Now initialize the session
+                    updatePlayerProfile();
+                });
 
                 // Listen for customizations on the pause screen
                 const nameInput = document.getElementById('player-name-input');
@@ -623,6 +664,7 @@
                 if (nameInput) {
                     nameInput.addEventListener('input', (e) => {
                         playerName = e.target.value || "Player 1";
+                        localStorage.setItem('chill_flight_name', playerName);
                         updatePlayerProfile();
                     });
                 }
@@ -631,6 +673,7 @@
                     colorInput.addEventListener('input', (e) => {
                         const hexStr = e.target.value.replace('#', '');
                         planeColor = parseInt(hexStr, 16);
+                        localStorage.setItem('chill_flight_color', planeColor.toString());
                         if (planeMat) {
                             planeMat.color.setHex(planeColor);
                         }
@@ -638,8 +681,9 @@
                     });
                 }
 
-                // 0. Clean up gracefully if the user closes the tab/browser
-                onDisconnect(userRef).remove();
+                // 0. Clean up session gracefully if the user closes the tab/browser
+                // Note: We ONLY remove the session node, keeping the profile node intact
+                onDisconnect(sessionRef).remove();
 
                 // Sync essential coordinates, full rotation, speed, headlights, and timestamp immediately
                 const initialPos = planeGroup.position;
@@ -2669,12 +2713,21 @@
                             // Set visibility back
                             otherPlayers.forEach(p => p.mesh.visible = true);
                             // Re-check-in
-                            const userRef = ref(window.firebaseDB, 'players/' + window.currentUserUid);
-                            set(userRef, {
-                                name: playerName,
-                                color: planeColor,
-                                lastSeen: new Date().toISOString()
-                            });
+                            const profileRef = ref(window.firebaseDB, 'users/' + window.currentUserUid);
+                            const sessionRef = ref(window.firebaseDB, 'players/' + window.currentUserUid);
+                            const updateProfile = () => {
+                                set(profileRef, {
+                                    name: playerName,
+                                    color: planeColor,
+                                    updatedAt: new Date().toISOString()
+                                });
+                                set(sessionRef, {
+                                    name: playerName,
+                                    color: planeColor,
+                                    lastSeen: new Date().toISOString()
+                                });
+                            };
+                            updateProfile();
                             // Immediate position re-sync
                             const pos = planeGroup.position;
                             const rot = planeGroup.rotation;
