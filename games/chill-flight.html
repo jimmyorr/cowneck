@@ -368,6 +368,7 @@
         const db = getDatabase(app);
 
         // --- 0.4 MULTIPLAYER DATA ---
+        const ENABLE_MULTIPLAYER_HEADLIGHTS = false; // Disable to save performance in crowded servers
         const otherPlayers = new Map(); // Map<uid, {mesh, targetPos, targetRotY}>
 
         function createOtherPlaneMesh() {
@@ -388,22 +389,27 @@
             r.position.set(0, 2.5, 7);
             group.add(r);
 
-            // Add Headlights (off by default)
-            const headlight = new THREE.SpotLight(0xffd1a3, 0);
-            headlight.position.set(0, 0, -10);
-            const headlightTarget = new THREE.Object3D();
-            headlightTarget.position.set(0, -20, -100);
-            group.add(headlightTarget);
-            headlight.target = headlightTarget;
-            headlight.angle = Math.PI / 4;
-            headlight.penumbra = 1.0;
-            headlight.distance = 1500;
-            headlight.decay = 2.0;
+            // Add Headlights (off by default or completely disabled if flag is false)
+            let headlight = null;
+            let headlightGlow = null;
 
-            const headlightGlow = new THREE.PointLight(0xffd1a3, 0, 50);
-            headlightGlow.position.set(0, 5, 0);
-            group.add(headlightGlow);
-            group.add(headlight);
+            if (ENABLE_MULTIPLAYER_HEADLIGHTS) {
+                headlight = new THREE.SpotLight(0xffd1a3, 0);
+                headlight.position.set(0, 0, -10);
+                const headlightTarget = new THREE.Object3D();
+                headlightTarget.position.set(0, -20, -100);
+                group.add(headlightTarget);
+                headlight.target = headlightTarget;
+                headlight.angle = Math.PI / 4;
+                headlight.penumbra = 1.0;
+                headlight.distance = 1500;
+                headlight.decay = 2.0;
+
+                headlightGlow = new THREE.PointLight(0xffd1a3, 0, 50);
+                headlightGlow.position.set(0, 5, 0);
+                group.add(headlightGlow);
+                group.add(headlight);
+            }
 
             // Propeller
             const propGroup = new THREE.Group();
@@ -473,9 +479,11 @@
                     const mesh = createOtherPlaneMesh();
 
                     // Set initial headlights
-                    const isLightsOn = posData.headlightsOn || false;
-                    mesh.userData.headlight.intensity = isLightsOn ? 2 : 0;
-                    mesh.userData.headlightGlow.intensity = isLightsOn ? 0.1 : 0;
+                    if (ENABLE_MULTIPLAYER_HEADLIGHTS && mesh.userData.headlight) {
+                        const isLightsOn = posData.headlightsOn || false;
+                        mesh.userData.headlight.intensity = isLightsOn ? 2 : 0;
+                        mesh.userData.headlightGlow.intensity = isLightsOn ? 0.1 : 0;
+                    }
 
                     scene.add(mesh);
                     otherPlayers.set(snapshot.key, {
@@ -498,9 +506,11 @@
                         p.lastReceivedMs = Date.now(); // Update GC timer
 
                         // Toggle headlights
-                        const isLightsOn = data.position.headlightsOn || false;
-                        p.mesh.userData.headlight.intensity = isLightsOn ? 2 : 0;
-                        p.mesh.userData.headlightGlow.intensity = isLightsOn ? 0.1 : 0;
+                        if (ENABLE_MULTIPLAYER_HEADLIGHTS && p.mesh.userData.headlight) {
+                            const isLightsOn = data.position.headlightsOn || false;
+                            p.mesh.userData.headlight.intensity = isLightsOn ? 2 : 0;
+                            p.mesh.userData.headlightGlow.intensity = isLightsOn ? 0.1 : 0;
+                        }
 
                         // 1. Get raw snapshot data
                         p.targetPos.set(data.position.x, data.position.y, data.position.z);
