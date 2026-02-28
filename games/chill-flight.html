@@ -362,34 +362,93 @@
             measurementId: "G-N6RGBLQCZ8"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const auth = getAuth(app);
         const db = getDatabase(app);
 
+        // --- 0.4 MULTIPLAYER DATA ---
+        const otherPlayers = new Map(); // Map<uid, {mesh, targetPos, targetRotY}>
+
+        function createOtherPlaneMesh() {
+            const group = new THREE.Group();
+            // Reuse materials/geometries from main plane
+            const body = new THREE.Mesh(bodyGeo, planeMat);
+            group.add(body);
+            const cp = new THREE.Mesh(windowGeo, windowMat);
+            cp.position.set(0, 2.5, -2);
+            group.add(cp);
+            const w = new THREE.Mesh(wingGeo, wingMat);
+            w.position.set(0, 0, -1);
+            group.add(w);
+            const t = new THREE.Mesh(tailGeo, wingMat);
+            t.position.set(0, 0, 7);
+            group.add(t);
+            const r = new THREE.Mesh(rudderGeo, planeMat);
+            r.position.set(0, 2.5, 7);
+            group.add(r);
+            return group;
+        }
+
+        import { onChildAdded, onChildChanged, onChildRemoved } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
         // Simple "Log them in so they can play" logic
         signInAnonymously(auth)
             .then(() => {
-                console.log("Logged in anonymously! ID:", auth.currentUser.uid);
+                const uid = auth.currentUser.uid;
+                console.log("Logged in anonymously! ID:", uid);
 
                 // Now you can write to the DB
-                const userRef = ref(db, 'players/' + auth.currentUser.uid);
+                const userRef = ref(db, 'players/' + uid);
                 set(userRef, {
                     name: "Player 1",
                     score: 0,
                     lastSeen: new Date().toISOString()
                 });
 
+                // Listen for other players
+                const playersRef = ref(db, 'players');
+                onChildAdded(playersRef, (snapshot) => {
+                    if (snapshot.key === uid) return;
+                    const data = snapshot.val();
+                    const mesh = createOtherPlaneMesh();
+                    scene.add(mesh);
+                    otherPlayers.set(snapshot.key, {
+                        mesh,
+                        targetPos: new THREE.Vector3(data.position?.x || 0, data.position?.y || 200, data.position?.z || 0),
+                        targetRotY: data.position?.rotY || 0
+                    });
+                });
+
+                onChildChanged(playersRef, (snapshot) => {
+                    if (snapshot.key === uid) return;
+                    const data = snapshot.val();
+                    const p = otherPlayers.get(snapshot.key);
+                    if (p && data.position) {
+                        p.targetPos.set(data.position.x, data.position.y, data.position.z);
+                        p.targetRotY = data.position.rotY;
+                    }
+                });
+
+                onChildRemoved(playersRef, (snapshot) => {
+                    const p = otherPlayers.get(snapshot.key);
+                    if (p) {
+                        scene.remove(p.mesh);
+                        otherPlayers.delete(snapshot.key);
+                    }
+                });
+
                 // --- 0.5 PERIODIC LOCATION SYNC ---
                 // Sync player location every 2 seconds to minimize DB bandwidth
                 setInterval(() => {
                     const pos = planeGroup.position;
-                    // Only sync essential coordinates (X, Y, Z) and timestamp
-                    set(ref(db, 'players/' + auth.currentUser.uid + '/position'), {
+                    const rot = planeGroup.rotation;
+                    // Only sync essential coordinates (X, Y, Z, RotY) and timestamp
+                    set(ref(db, 'players/' + uid + '/position'), {
                         x: Math.round(pos.x),
                         y: Math.round(pos.y),
                         z: Math.round(pos.z),
+                        rotY: Number(rot.y.toFixed(3)),
                         updatedAt: new Date().toISOString()
                     });
                 }, 2000);
@@ -1169,6 +1228,13 @@
             if (isPaused) return;
 
             const delta = clock.getDelta();
+
+            // 0. Update other players (Interpolate)
+            otherPlayers.forEach((p) => {
+                p.mesh.position.lerp(p.targetPos, 0.1);
+                // Simple lerp for rotation (doesn't handle 360 wrap but fine for coarse heading)
+                p.mesh.rotation.y = THREE.MathUtils.lerp(p.mesh.rotation.y, p.targetRotY, 0.1);
+            });
 
             // 1. Spin the propeller based on speed multiplier
             if (flightSpeedMultiplier > 0) {
