@@ -1031,10 +1031,10 @@
             // Base low frequency noise
             let noise = simplex.noise2D(x * 0.00005 + 1000, z * 0.00005 + 1000) * 0.5;
 
-            // Directional influences over a 10000 unit distance
+            // Directional influences
             // East (+X) = Water (Biome < -0.2)
-            // West (-X) = Plains (Biome ~ 0)
             // South (+Z) = Mountains (Biome > 0.2)
+            // West (-X) should dampen the mountains
 
             const mapScale = 10000;
             let biomeBase = 0;
@@ -1042,8 +1042,16 @@
             // East influence pulls biome negative
             if (x > 0) biomeBase -= Math.min(1, x / mapScale);
 
-            // South influence pulls biome positive
-            if (z > 0) biomeBase += Math.min(1, z / mapScale);
+            // South influence pulls biome positive (Mountains)
+            // Dampen mountains as we head West (-X)
+            if (z > 0) {
+                let mtnInf = Math.min(1, z / mapScale);
+                if (x < 0) {
+                    const westDamp = Math.max(0, Math.min(1, 1 + x / 5000));
+                    mtnInf *= westDamp;
+                }
+                biomeBase += mtnInf;
+            }
 
             return Math.max(-1, Math.min(1, biomeBase + noise));
         }
@@ -1056,6 +1064,9 @@
             let offset = 60;
             let roughness = 50;
             let rockiness = 10;
+
+            // West Influence (-X) - Reach full plains at 4500 units West
+            const westFactor = Math.max(0, Math.min(1, -x / 4500));
 
             if (biome < -0.2) {
                 // Ocean / Archipelagos biome
@@ -1072,6 +1083,14 @@
                 rockiness = THREE.MathUtils.lerp(10, 30, t);
             }
 
+            // Apply West Flattening
+            if (x < 0) {
+                heightScale *= (1 - westFactor * 0.8); // Flatten significantly
+                offset = THREE.MathUtils.lerp(offset, 65, westFactor); // Keep it above water level (40)
+                roughness *= (1 - westFactor * 0.7);
+                rockiness *= (1 - westFactor * 0.9);
+            }
+
             let n = simplex.noise2D(x * 0.001, z * 0.001) * heightScale;
 
             // Add sharp mountain ridges for high biomes
@@ -1079,7 +1098,7 @@
                 const t = Math.min(1, (biome - 0.2) * 3);
                 // Ridged fractal (valleys are wide, peaks are sharp)
                 let ridge = 1.0 - Math.abs(simplex.noise2D(x * 0.0008, z * 0.0008));
-                n += (ridge * 220 - 100) * t;
+                n += (ridge * 220 - 100) * t * (1 - westFactor); // Also dampen ridges in West
             }
 
             n += simplex.noise2D(x * 0.003, z * 0.003) * roughness;
@@ -1103,8 +1122,12 @@
 
             // River/Lake plains
             if (n < WATER_LEVEL) {
-                // Flatten out the bottom to make water
-                n = WATER_LEVEL;
+                // Dampen the depth in the West so rivers/lakes are shallower or even disappear
+                if (x < 0 && westFactor > 0.5) {
+                    n = THREE.MathUtils.lerp(n, WATER_LEVEL + 5, (westFactor - 0.5) * 2);
+                } else {
+                    n = WATER_LEVEL;
+                }
             }
             return n;
         }
@@ -1136,39 +1159,75 @@
                 const height = getElevation(worldX, worldZ);
                 positions[i + 1] = height; // Set Y
 
-                // Determine base temperature for snowy biomes
-                // North (-Z) pushes temperature much lower
-                const northInfluence = Math.max(0, Math.min(1, -worldZ / 10000));
-                const temperature = simplex.noise2D(worldX * 0.0001 + 5000, worldZ * 0.0001 + 5000) - (northInfluence * 1.5);
-                const isSnowBiome = temperature < -0.3;
+                // Determine Biome Factors
+                // 30 seconds of flight at BASE_FLIGHT_SPEED (2.5) * 60fps * 30s = 4500 units.
+                // We want the transition to be "less gradual" (sharper) and hit full biome at the 30s mark.
 
-                // Colorize based on height
+                // North (-Z) pushes temperature lower (Snow)
+                const northInfluence = Math.max(0, -worldZ / 4500);
+                const tempNoise = simplex.noise2D(worldX * 0.0001, worldZ * 0.0001);
+                // Transition starts at ~0.8 (3600 units / 24s) and ends at 1.0 (4500 units / 30s)
+                const snowFactor = Math.max(0, Math.min(1, (northInfluence + tempNoise * 0.05 - 0.8) * 5));
+
+                // South (+Z) pushes towards Desert
+                const southInfluence = Math.max(0, worldZ / 4500);
+                // Transition starts at ~0.8 (3600 units / 24s) and ends at 1.0 (4500 units / 30s)
+                const desertFactor = Math.max(0, Math.min(1, (southInfluence + tempNoise * 0.05 - 0.8) * 5));
+
+                // Base Colors
+                const colorPlains = new THREE.Color(0x7CB342);
+                const colorForest = new THREE.Color(0x388E3C);
+                const colorSnow = new THREE.Color(0xFFFFFF);
+                const colorDesert = new THREE.Color(0xE2725B); // Terra Cotta
+                const colorSand = new THREE.Color(0xE0E0A8);
+                const colorDesertSand = new THREE.Color(0xF4A460); // Sandy Brown
+                const colorWater = new THREE.Color(0x40C4FF);
+                const colorIcyWater = new THREE.Color(0x88CCFF);
+                const colorDesertWater = new THREE.Color(0x00CED1); // Dark Turquoise (Oasis)
+
+                // Determine base temperature for snowy biomes (legacy check for tree logic)
+                const temperature = tempNoise - (northInfluence * 1.5);
+                const isSnowBiome = snowFactor > 0.5;
+
+                // Colorize based on height and factors
                 if (height <= WATER_LEVEL + 2) {
                     // Water / Sand transition
                     if (height <= WATER_LEVEL) {
-                        colorObj.setHex(isSnowBiome ? 0x88CCFF : 0x40C4FF); // Icy river or Blue river
+                        colorObj.copy(colorWater);
+                        if (snowFactor > 0) colorObj.lerp(colorIcyWater, snowFactor);
+                        if (desertFactor > 0) colorObj.lerp(colorDesertWater, desertFactor);
                     } else {
-                        colorObj.setHex(isSnowBiome ? 0xDDDDDD : 0xE0E0A8); // Snow covered bank vs Sandy bank
+                        colorObj.copy(colorSand);
+                        if (snowFactor > 0) colorObj.lerp(new THREE.Color(0xDDDDDD), snowFactor);
+                        if (desertFactor > 0) colorObj.lerp(new THREE.Color(0xF4A460), desertFactor);
                     }
-                } else if (height > MOUNTAIN_LEVEL || (isSnowBiome && height > MOUNTAIN_LEVEL - 50)) {
+                } else if (height > MOUNTAIN_LEVEL || (snowFactor > 0.5 && height > MOUNTAIN_LEVEL - 50)) {
                     // Snow/Rock
-                    if (height > MOUNTAIN_LEVEL + 40 || isSnowBiome) colorObj.setHex(0xFFFFFF); // Snow
-                    else colorObj.setHex(0x7F8C8D); // Grey rock
+                    if (height > MOUNTAIN_LEVEL + 40 || snowFactor > 0.8) {
+                        colorObj.copy(colorSnow);
+                    } else {
+                        colorObj.setHex(desertFactor > 0.5 ? 0xCD853F : 0x7F8C8D); // Peru red rock vs Grey rock
+                    }
                 } else {
-                    // Forest / Grass
+                    // Forest / Grass / Desert
                     const isForest = simplex.noise2D(worldX * 0.005 + 100, worldZ * 0.005) > 0.2;
                     if (isForest) {
-                        colorObj.setHex(isSnowBiome ? 0x8BA192 : 0x388E3C); // Snowy forest green vs normal
-                        // Random chance to spawn a tree in forest area
-                        if (Math.random() < 0.15) {
-                            if (isSnowBiome) snowTreePositions.push({ x: localX, y: height, z: localZ });
-                            else treePositions.push({ x: localX, y: height, z: localZ });
+                        colorObj.copy(colorForest);
+                        if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x8BA192), snowFactor);
+                        if (desertFactor > 0) colorObj.lerp(new THREE.Color(0xA0522D), desertFactor); // Sienna for desert scrub/rock
+
+                        // Tree spawning
+                        if (Math.random() < (desertFactor > 0.5 ? 0.05 : 0.15)) {
+                            if (snowFactor > 0.4) snowTreePositions.push({ x: localX, y: height, z: localZ });
+                            else if (desertFactor < 0.6) treePositions.push({ x: localX, y: height, z: localZ });
                         }
                     } else {
-                        colorObj.setHex(isSnowBiome ? 0xFAFAFA : 0x7CB342); // Snow plains or Lighter grass
+                        colorObj.copy(colorPlains);
+                        if (snowFactor > 0) colorObj.lerp(new THREE.Color(0xFAFAFA), snowFactor);
+                        if (desertFactor > 0) colorObj.lerp(colorDesertSand, desertFactor);
 
-                        // Chance to spawn a house in plains or snowy plains
-                        if (Math.random() < 0.005) {
+                        // Houses in plains/snow/desert
+                        if (Math.random() < (desertFactor > 0.5 ? 0.002 : 0.005)) {
                             housePositions.push({ x: localX, y: height, z: localZ, rotY: Math.random() * Math.PI * 2 });
                         }
                     }
