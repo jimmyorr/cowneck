@@ -1,0 +1,23 @@
+/* Custom animation for newly revealed cards */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #022c22;
+    /* Fallback for green-950 */
+}
