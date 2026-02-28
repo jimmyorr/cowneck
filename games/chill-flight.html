@@ -390,7 +390,7 @@
             return group;
         }
 
-        import { onChildAdded, onChildChanged, onChildRemoved, onValue, goOffline, goOnline } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+        import { onChildAdded, onChildChanged, onChildRemoved, onValue, goOffline, goOnline, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
         // Global server offset for deterministic time
         window.serverTimeOffset = 0;
@@ -411,6 +411,10 @@
 
                 // Now you can write to the DB
                 const userRef = ref(db, 'players/' + uid);
+
+                // 0. Clean up gracefully if the user closes the tab/browser
+                onDisconnect(userRef).remove();
+
                 set(userRef, {
                     name: "Player 1",
                     score: 0,
@@ -432,7 +436,8 @@
                         targetRotY: posData.rotY || 0,
                         targetRotZ: posData.rotZ || 0,
                         targetSpeedMult: posData.speedMult !== undefined ? posData.speedMult : 1,
-                        targetQuat: new THREE.Quaternion()
+                        targetQuat: new THREE.Quaternion(),
+                        lastReceivedMs: Date.now() // Track for local GC
                     });
                 });
 
@@ -441,6 +446,8 @@
                     const data = snapshot.val();
                     const p = otherPlayers.get(snapshot.key);
                     if (p && data.position) {
+                        p.lastReceivedMs = Date.now(); // Update GC timer
+
                         // 1. Get raw snapshot data
                         p.targetPos.set(data.position.x, data.position.y, data.position.z);
                         p.targetRotX = data.position.rotX || 0;
@@ -475,6 +482,21 @@
                         otherPlayers.delete(snapshot.key);
                     }
                 });
+
+                // --- 0.25 LOCAL GARBAGE COLLECTION ---
+                // If a player loses connection without sending an onDisconnect, remove them locally after 10 seconds of silence.
+                setInterval(() => {
+                    const now = Date.now();
+                    const expirationTime = 10000; // 10 seconds
+
+                    otherPlayers.forEach((p, key) => {
+                        if (now - p.lastReceivedMs > expirationTime) {
+                            console.log("Removing inactive player locally:", key);
+                            scene.remove(p.mesh);
+                            otherPlayers.delete(key);
+                        }
+                    });
+                }, 5000); // Check every 5 seconds
 
                 // --- 0.5 PERIODIC LOCATION SYNC ---
                 // Sync player location every 2 seconds to minimize DB bandwidth
