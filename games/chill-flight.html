@@ -1975,7 +1975,8 @@
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        function onYouTubeIframeAPIReady() {
+        window.onYouTubeIframeAPIReady = function () {
+            console.log("YouTube API Ready.");
             ytPlayer = new YT.Player('youtube-player', {
                 height: '124',
                 width: '220',
@@ -1987,10 +1988,19 @@
                 },
                 events: {
                     'onReady': () => {
+                        console.log("YouTube Player Ready.");
                         ytPlayerReady = true;
-                        if (currentStation === 4) ytPlayer.loadVideoById('jfKfPfyJRdk');
-                        if (currentStation === 5) ytPlayer.loadVideoById('0cvzztYZXYs');
-                    }
+                        if (currentStation === 2) ytPlayer.cueVideoById('jfKfPfyJRdk');
+                        if (currentStation === 3) {
+                            const randomStartIndex = Math.floor(Math.random() * 30);
+                            ytPlayer.cuePlaylist({
+                                listType: 'playlist',
+                                list: 'PLF3eNE6vR-4UAcd0VduNzdgyPjee60-Sl',
+                                index: randomStartIndex
+                            });
+                        }
+                    },
+                    'onError': (e) => console.error("YouTube Error:", e.data)
                 }
             });
         }
@@ -2244,6 +2254,7 @@
                 if (num === 2) {
                     ytContainer.style.display = window.innerWidth <= 768 ? 'none' : 'block';
                     ytPlayer.loadVideoById('jfKfPfyJRdk');
+                    ytPlayer.playVideo();
                 } else if (num === 3) {
                     ytContainer.style.display = window.innerWidth <= 768 ? 'none' : 'block';
                     // The YouTube API's setShuffle only randomizes the *next* videos in the queue. 
@@ -2256,6 +2267,7 @@
                     });
                     // Shuffle the remainder of the playlist
                     ytPlayer.setShuffle(true);
+                    ytPlayer.playVideo();
                 } else {
                     ytContainer.style.display = 'none';
                     ytPlayer.pauseVideo();
