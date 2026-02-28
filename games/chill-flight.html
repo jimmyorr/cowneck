@@ -1794,28 +1794,40 @@
 
         function animate() {
             requestAnimationFrame(animate);
-
             if (isPaused) return;
 
             const delta = clock.getDelta();
 
-            // --- 0. DAY/NIGHT CYCLE LOGIC (Moved to top so all visuals can react) ---
+            // --- 0. DAY/NIGHT CYCLE LOGIC ---
             const debugMenu = document.getElementById('debug-menu');
             const isDebugMode = (debugMenu && debugMenu.style.display === 'block');
-            let currentWarpedProgress = 0;
 
-            if (isDebugMode) {
-                const horizonCloseness = 1.0 - Math.min(1, Math.abs(Math.cos(timeOfDay)) * 2);
-                const timeDilator = THREE.MathUtils.lerp(1.0, 0.2, Math.max(0, horizonCloseness));
-                timeOfDay += delta * BASE_DAY_SPEED * daySpeedMultiplier * timeDilator;
-                // For debug mode, we can estimate "progress" based on timeOfDay [0, 2PI]
-                currentWarpedProgress = timeOfDay / (Math.PI * 2);
+            // Piecewise Linear Timing: 60s Sunrise, 60s Day, 60s Sunset, 30s Night = 210s Total
+            const CYCLE_DURATION_MS = 210000;
+
+            if (isDebugMode && daySpeedMultiplier !== 1) {
+                // Manual/Debug rate-based time (for 0x, 10x, 100x)
+                // We use a simplified constant rate for debug jumping
+                timeOfDay += delta * (2 * Math.PI / (CYCLE_DURATION_MS / 1000)) * daySpeedMultiplier;
             } else {
-                const CYCLE_DURATION_MS = 300000;
+                // Synced time (Standard 3.5m cycle)
                 const now = Date.now() + (window.serverTimeOffset || 0);
-                const linearProgress = (now % CYCLE_DURATION_MS) / CYCLE_DURATION_MS;
-                const warpAmplitude = 0.07;
-                currentWarpedProgress = linearProgress + warpAmplitude * Math.sin(4 * Math.PI * linearProgress);
+                const secondsInCycle = (now % CYCLE_DURATION_MS) / 1000;
+
+                let currentWarpedProgress;
+                if (secondsInCycle < 60) {
+                    // Phase 1: Sunrise (60s) -> 0.25 to 0.5 progress (6am to Noon)
+                    currentWarpedProgress = 0.25 + (secondsInCycle / 60) * 0.25;
+                } else if (secondsInCycle < 120) {
+                    // Phase 2: Day (60s) -> 0.5 to 0.75 progress (Noon to 6pm)
+                    currentWarpedProgress = 0.5 + ((secondsInCycle - 60) / 60) * 0.25;
+                } else if (secondsInCycle < 180) {
+                    // Phase 3: Sunset (60s) -> 0.75 to 1.0 progress (6pm to Midnight)
+                    currentWarpedProgress = 0.75 + ((secondsInCycle - 120) / 60) * 0.25;
+                } else {
+                    // Phase 4: Night (30s) -> 0.0 to 0.25 progress (Midnight to 6am)
+                    currentWarpedProgress = ((secondsInCycle - 180) / 30) * 0.25;
+                }
                 timeOfDay = currentWarpedProgress * Math.PI * 2;
             }
 
