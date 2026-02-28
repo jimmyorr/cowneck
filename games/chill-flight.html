@@ -999,7 +999,7 @@
             if (biome < -0.2) {
                 // Ocean / Archipelagos biome
                 const t = Math.min(1, (-0.2 - biome) * 3); // 0 to 1
-                offset = THREE.MathUtils.lerp(60, -70, t);
+                offset = THREE.MathUtils.lerp(60, -55, t); // Shallower ocean allows islands to peak through
                 heightScale = THREE.MathUtils.lerp(150, 100, t);
                 roughness = THREE.MathUtils.lerp(50, 20, t);
             } else if (biome > 0.2) {
@@ -1023,6 +1023,19 @@
 
             n += simplex.noise2D(x * 0.003, z * 0.003) * roughness;
             n += simplex.noise2D(x * 0.01, z * 0.01) * rockiness;
+
+            // Add Procedural Islands in deep ocean
+            if (biome < -0.4) {
+                // Large scale noise to define island "clusters"
+                const clusterChance = simplex.noise2D(x * 0.0002, z * 0.0002);
+                if (clusterChance > 0.4) {
+                    // Small scale high-frequency noise for the actual island shapes
+                    const islandNoise = simplex.noise2D(x * 0.005, z * 0.005);
+                    if (islandNoise > 0) {
+                        n += islandNoise * 80 * (clusterChance - 0.4) * 2;
+                    }
+                }
+            }
 
             // Add base offset last
             n += offset;
