@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chill Flight</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-6RNVL7JZVJ');
+    </script>
+    <link rel="icon" type="image/svg+xml" href="../favicon-plane.svg">
+    <link rel="stylesheet" href="style.css">
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- YouTube iframe API (async — sets up global YT before game starts) -->
+    <script src="https://www.youtube.com/iframe_api" async></script>
+</head>
+
+<body>
+
+    <div id="ui-layer">
+        <div class="title" id="game-title">Chill Flight</div>
+    </div>
+    <div id="crosshair"></div>
+    <div id="pause-overlay">
+        <h1>Paused</h1>
+        <p style="margin-bottom: 5px; font-size: 18px; color: #ccc;">Press ESC to resume</p>
+        <p style="margin-bottom: 20px; font-size: 12px; color: #888;">Controls: Up/Down (Speed) &bull; Left/Right
+            (Barrel roll) &bull; L (Headlight)</p>
+
+        <div class="customization-box">
+            <div class="customization-row">
+                <span class="customization-label">Callsign</span>
+                <input type="text" id="player-name-input" class="customization-input" placeholder="Enter Name"
+                    maxlength="12" value="Player 1">
+            </div>
+            <div class="customization-row">
+                <span class="customization-label">Livery</span>
+                <div class="color-picker-container">
+                    <input type="color" id="plane-color-input" value="#e74c3c">
+                </div>
+            </div>
+        </div>
+
+        <button id="resume-btn" class="btn" style="margin-bottom: 15px;">Resume flight</button>
+        <a href="../index.html" class="btn">Exit game</a>
+    </div>
+
+    <div id="cockpit-ui">
+        <div class="cockpit-grid">
+            <div class="cockpit-module">
+                <span class="cockpit-label">TIME</span>
+                <span class="cockpit-value" id="cockpit-time">06:00</span>
+            </div>
+            <div class="cockpit-module" style="grid-column: span 2;">
+                <span class="cockpit-label">POS</span>
+                <span class="cockpit-value" id="cockpit-coords">0&deg;N 0&deg;E</span>
+            </div>
+            <div class="cockpit-module">
+                <span class="cockpit-label">HDG</span>
+                <span class="cockpit-value" id="cockpit-dir">N</span>
+            </div>
+            <div class="cockpit-module">
+                <span class="cockpit-label">ALT</span>
+                <span class="cockpit-value" id="cockpit-alt">2000 FT</span>
+            </div>
+            <div class="cockpit-module">
+                <span class="cockpit-label">SPD</span>
+                <span class="cockpit-value" id="cockpit-spd">150 KTS</span>
+            </div>
+        </div>
+
+        <div id="cockpit-radio-module"
+            style="display: flex; flex-direction: column; align-items: flex-start; gap: 5px; margin-left: 10px; padding-left: 20px; border-left: 1px solid rgba(255,255,255,0.15);">
+            <div style="display: flex; gap: 4px; align-items: center;">
+                <span class="cockpit-label desktop-only"
+                    style="text-align: right; width: auto; font-size: 9px; line-height: 1; margin-right: 5px;">RADIO</span>
+                <button class="station-btn active desktop-only" data-station="0" title="Off">OFF</button>
+                <button class="station-btn desktop-only" data-station="procedural" title="Procedural Music">P</button>
+                <button class="station-btn desktop-only" data-station="2" title="Lofi Girl">LG</button>
+                <button class="station-btn desktop-only" data-station="3" title="Bootleg Boy 2">BB</button>
+
+                <!-- mobile flight controls -->
+                <div id="mobile-controls"
+                    style="display: none; gap: 4px; margin-left: 8px; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 12px;">
+                    <button class="station-btn" id="mobile-hdgt" title="Headlight" style="font-size: 14px;">💡</button>
+                    <button class="station-btn" id="mobile-spd-down" title="Decelerate"
+                        style="font-size: 16px;">-</button>
+                    <button class="station-btn" id="mobile-spd-up" title="Accelerate"
+                        style="font-size: 16px;">+</button>
+                </div>
+            </div>
+            <span id="station-name" class="desktop-only"
+                style="font-size: 11px; color: #FFD700; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; min-height: 14px;"></span>
+        </div>
+    </div>
+
+    <div id="yt-container">
+        <div id="youtube-player"></div>
+    </div>
+
+    <div id="debug-menu">
+        <div style="margin-bottom: 10px; font-weight: bold;">Debug controls</div>
+        <div style="margin-top: 10px;">
+            <div style="margin-bottom: 5px;">Time speed:</div>
+            <button class="speed-btn" data-speed="0">0x</button>
+            <button class="speed-btn active" data-speed="1">1x</button>
+            <button class="speed-btn" data-speed="10">10x</button>
+            <button class="speed-btn" data-speed="100">100x</button>
+        </div>
+    </div>
+
+    <!-- Game files: plain globals, loaded sequentially -->
+    <script src="noise.js"></script>
+    <script src="constants.js"></script>
+    <script src="sky.js"></script>
+    <script src="airplane.js"></script>
+    <script src="terrain.js"></script>
+    <script src="audio.js"></script>
+    <script src="game.js"></script>
+
+    <!-- Firebase multiplayer: must be last (ES module, deferred by default) -->
+    <script type="module" src="multiplayer.js"></script>
+
+</body>
+
+</html>
