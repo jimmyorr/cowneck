@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cowneck games - Oliver</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-6RNVL7JZVJ');
+    </script>
+    <style>
+        /* --- RESET & BASE --- */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            /* Deep dark background */
+            background-image: radial-gradient(circle at 50% 0%, #2a2a2a 0%, #121212 70%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        /* --- HEADER --- */
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 0px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        p.subtitle {
+            margin-top: 10px;
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        /* --- GRID CONTAINER --- */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .games-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            padding-bottom: 60px;
+        }
+
+        /* --- GAME CARD --- */
+        .game-card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Hover Effect: Pop up and glow */
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            border-color: #555;
+        }
+
+        .game-card h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #fff;
+            font-size: 1.5rem;
+        }
+
+        .game-card p {
+            color: #aaa;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            flex-grow: 1;
+            /* Pushes the button to the bottom */
+            margin-bottom: 20px;
+        }
+
+        /* --- BUTTONS --- */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: filter 0.2s, transform 0.1s;
+            border: none;
+        }
+
+        .btn:hover {
+            filter: brightness(1.2);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* --- BACK LINK --- */
+        .back-link {
+            display: inline-block;
+            text-align: center;
+            margin: 40px auto;
+            color: #888;
+            text-decoration: none;
+            padding: 15px 25px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: #fff;
+        }
+
+        /* --- SECTION HEADER --- */
+        .section-header {
+            width: 100%;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+            color: #4facfe;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* --- MOBILE TWEAKS --- */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .games-container {
+                gap: 20px;
+            }
+
+            .section-header {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="/"
+        style="position: absolute; top: 20px; left: 20px; color: #555; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;">←
+        cowneck</a>
+    <header>
+        <h1>cowneck games</h1>
+        <p class="subtitle">Games by Oliver</p>
+    </header>
+
+    <main>
+        <h2 class="section-header">Oliver</h2>
+        <div class="games-container">
+
+            <div class="game-card">
+                <h2>🌀 Hypnotizer</h2>
+                <p>Escape the hypnotic rings and break them all to unlock new levels. Use arrow keys to navigate and
+                    break the rings.</p>
+                <a href="hypnotizer.html" class="btn">PLAY NOW</a>
+            </div>
+
+            <div class="game-card">
+                <h2>⚡ Click Speed Test</h2>
+                <p>Test your clicking speed with this simple game. Click as many times as you can in the given time.</p>
+                <a href="click-speed-test.html" class="btn">PLAY NOW</a>
+            </div>
+
+             <div class="game-card">
+                <h2>Violet Velocity ⬆</h2>
+                <p>3D arcade game with retro aesthetics. Navigate through obstacles and collect yellow orbs.</p>
+                <a href="violet-velocity.html" class="btn">PLAY NOW</a>
+            </div>
+
+            <div class="game-card">
+                <h2>Chained Teleporters ⛓️</h2>
+                <p>Two orbs are chained together. One is active, one is anchored. Switch between them to navigate the teleporters.</p>
+                <a href="chained-teleporters.html" class="btn">PLAY NOW</a>
+            </div>
+        </div>
+
+        <div style="text-align: center; width: 100%;">
+            <a href="index.html" class="back-link">← Back to all games</a>
+        </div>
+    </main>
+</body>
+
+</html>
