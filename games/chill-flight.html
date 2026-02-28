@@ -192,6 +192,11 @@
             color: white;
         }
 
+        .station-btn {
+            touch-action: none;
+            /* Prevent browser gestures like zoom/scroll on these buttons */
+        }
+
         .station-btn.active {
             background: #FFD700;
             color: #000;
@@ -1720,18 +1725,20 @@
             // Adjust acceleration rate
             const accelRate = 0.8 * delta; // units of multiplier per second
 
-            if (keys.ArrowUp) {
-                if (flightSpeedMultiplier === 0) {
-                    flightSpeedMultiplier = 0.5; // Kickstart engine
-                } else {
-                    flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + accelRate);
-                }
-            } else if (keys.ArrowDown) {
+            // Robust mutual exclusion: If deceleration is active, force kill any acceleration state
+            if (keys.ArrowDown) {
+                keys.ArrowUp = false;
                 if (flightSpeedMultiplier > 0.5) {
                     flightSpeedMultiplier = Math.max(0.5, flightSpeedMultiplier - accelRate);
                 } else if (flightSpeedMultiplier <= 0.5 && controlAlt === 0) {
                     // Slower braking when taxiing to 0 on water
                     flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - accelRate);
+                }
+            } else if (keys.ArrowUp) {
+                if (flightSpeedMultiplier === 0) {
+                    flightSpeedMultiplier = 0.5; // Kickstart engine
+                } else {
+                    flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + accelRate);
                 }
             }
 
@@ -2345,20 +2352,25 @@
         if (btnUp) {
             const down = (e) => { e.preventDefault(); e.stopPropagation(); keys.ArrowUp = true; };
             const up = (e) => { e.preventDefault(); e.stopPropagation(); keys.ArrowUp = false; };
-            btnUp.addEventListener('touchstart', down);
-            btnUp.addEventListener('touchend', up);
-            btnUp.addEventListener('mousedown', down);
-            btnUp.addEventListener('mouseup', up);
-            btnUp.addEventListener('mouseleave', up);
+            btnUp.addEventListener('pointerdown', down);
+            btnUp.addEventListener('pointerup', up);
+            btnUp.addEventListener('pointercancel', up);
+            btnUp.addEventListener('pointerleave', up);
+            btnUp.addEventListener('contextmenu', (e) => e.preventDefault());
         }
         if (btnDown) {
-            const down = (e) => { e.preventDefault(); e.stopPropagation(); keys.ArrowDown = true; };
+            const down = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                keys.ArrowDown = true;
+                keys.ArrowUp = false; // Force clear any stuck acceleration immediately
+            };
             const up = (e) => { e.preventDefault(); e.stopPropagation(); keys.ArrowDown = false; };
-            btnDown.addEventListener('touchstart', down);
-            btnDown.addEventListener('touchend', up);
-            btnDown.addEventListener('mousedown', down);
-            btnDown.addEventListener('mouseup', up);
-            btnDown.addEventListener('mouseleave', up);
+            btnDown.addEventListener('pointerdown', down);
+            btnDown.addEventListener('pointerup', up);
+            btnDown.addEventListener('pointercancel', up);
+            btnDown.addEventListener('pointerleave', up);
+            btnDown.addEventListener('contextmenu', (e) => e.preventDefault());
         }
         if (btnHdgt) {
             const toggleHdgt = (e) => {
@@ -2451,6 +2463,12 @@
             if (e.key === 'ArrowRight') keys.ArrowRight = false;
             if (e.key === 'ArrowUp') keys.ArrowUp = false;
             if (e.key === 'ArrowDown') keys.ArrowDown = false;
+        });
+
+        window.addEventListener('blur', () => {
+            // Reset all keys when window loses focus to prevent stuck keys
+            for (let k in keys) keys[k] = false;
+            console.log("Window blur: Resetting all keys.");
         });
 
         document.querySelectorAll('.speed-btn').forEach(btn => {
