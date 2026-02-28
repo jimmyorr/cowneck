@@ -258,6 +258,18 @@
             box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9);
             border-radius: 4px;
         }
+
+        @media (max-width: 768px) {
+            .desktop-only {
+                display: none !important;
+            }
+
+            #mobile-controls {
+                border-left: none !important;
+                margin-left: 0 !important;
+                padding-left: 0 !important;
+            }
+        }
     </style>
     <!-- Load Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -305,12 +317,12 @@
         <div id="cockpit-radio-module"
             style="display: flex; flex-direction: column; align-items: flex-start; gap: 5px; margin-left: 10px; padding-left: 20px; border-left: 1px solid rgba(255,255,255,0.15);">
             <div style="display: flex; gap: 4px; align-items: center;">
-                <span class="cockpit-label"
+                <span class="cockpit-label desktop-only"
                     style="text-align: right; width: auto; font-size: 9px; line-height: 1; margin-right: 5px;">RADIO</span>
-                <button class="station-btn active" data-station="0" title="Off">OFF</button>
-                <button class="station-btn" data-station="procedural" title="Procedural Music">P</button>
-                <button class="station-btn" data-station="2" title="Lofi Girl">LG</button>
-                <button class="station-btn" data-station="3" title="Bootleg Boy 2">BB</button>
+                <button class="station-btn active desktop-only" data-station="0" title="Off">OFF</button>
+                <button class="station-btn desktop-only" data-station="procedural" title="Procedural Music">P</button>
+                <button class="station-btn desktop-only" data-station="2" title="Lofi Girl">LG</button>
+                <button class="station-btn desktop-only" data-station="3" title="Bootleg Boy 2">BB</button>
 
                 <!-- mobile flight controls -->
                 <div id="mobile-controls"
@@ -322,7 +334,7 @@
                         style="font-size: 16px;">+</button>
                 </div>
             </div>
-            <span id="station-name"
+            <span id="station-name" class="desktop-only"
                 style="font-size: 11px; color: #FFD700; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; min-height: 14px;"></span>
         </div>
     </div>
@@ -1471,24 +1483,16 @@
                 radioModule.style.borderLeft = 'none';
                 radioModule.style.paddingLeft = '0';
                 radioModule.style.marginLeft = '0';
-                radioModule.style.marginTop = '10px';
-                radioModule.style.borderTop = '1px solid rgba(255,255,255,0.15)';
-                radioModule.style.paddingTop = '10px';
+                radioModule.style.marginTop = '0';
+                radioModule.style.borderTop = 'none';
+                radioModule.style.paddingTop = '0';
                 radioModule.style.justifyContent = 'center';
-                radioModule.style.width = '100%';
             }
 
             const mobileControls = document.getElementById('mobile-controls');
             if (mobileControls) {
                 mobileControls.style.display = 'flex';
             }
-
-            const stationName = document.getElementById('station-name');
-            stationName.style.width = '100px';
-            stationName.style.whiteSpace = 'nowrap';
-            stationName.style.overflow = 'hidden';
-            stationName.style.textOverflow = 'ellipsis';
-            stationName.style.verticalAlign = 'bottom';
 
             const ytContainer = document.getElementById('yt-container');
             ytContainer.style.bottom = '120px';
