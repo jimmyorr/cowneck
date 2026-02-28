@@ -532,7 +532,7 @@
                 });
 
                 onChildChanged(playersRef, (snapshot) => {
-                    if (snapshot.key === uid) return;
+                    if (snapshot.key === playerUid) return;
                     const data = snapshot.val();
                     const p = otherPlayers.get(snapshot.key);
                     if (p && data.position) {
@@ -618,7 +618,7 @@
                     });
 
                     // Sync essential coordinates, full rotation, speed, headlights, and timestamp
-                    set(ref(db, 'players/' + uid + '/position'), {
+                    set(ref(db, 'players/' + playerUid + '/position'), {
                         x: Number(pos.x.toFixed(1)),
                         y: Number(pos.y.toFixed(1)),
                         z: Number(pos.z.toFixed(1)),
