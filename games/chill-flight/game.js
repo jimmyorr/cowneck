@@ -15,8 +15,9 @@ let targetPitch = 0;
 let targetRoll = 0;
 
 function updateInputPosition(clientX, clientY) {
-    mouseX = (clientX / window.innerWidth) * 2 - 1;
-    mouseY = -(clientY / window.innerHeight) * 2 + 1;
+    const pos = ChillFlightLogic.computeInputPosition(clientX, clientY, window.innerWidth, window.innerHeight);
+    mouseX = pos.x;
+    mouseY = pos.y;
 }
 
 window.addEventListener('mousemove', (e) => {
@@ -147,17 +148,7 @@ function animate() {
     } else {
         const now = Date.now() + (window.serverTimeOffset || 0);
         const secondsInCycle = (now % CYCLE_DURATION_MS) / 1000;
-
-        let currentWarpedProgress;
-        if (secondsInCycle < 60) {
-            currentWarpedProgress = 0.25 + (secondsInCycle / 60) * 0.25;
-        } else if (secondsInCycle < 120) {
-            currentWarpedProgress = 0.5 + ((secondsInCycle - 60) / 60) * 0.25;
-        } else if (secondsInCycle < 180) {
-            currentWarpedProgress = 0.75 + ((secondsInCycle - 120) / 60) * 0.25;
-        } else {
-            currentWarpedProgress = ((secondsInCycle - 180) / 30) * 0.25;
-        }
+        const currentWarpedProgress = ChillFlightLogic.computeTimeOfDay(secondsInCycle);
         timeOfDay = currentWarpedProgress * Math.PI * 2;
     }
 
@@ -444,9 +435,8 @@ function animate() {
     let heading = planeGroup.rotation.y % (Math.PI * 2);
     if (heading < 0) heading += Math.PI * 2;
     let deg = heading * (180 / Math.PI);
-    const dirs = ['N', 'NW', 'W', 'SW', 'S', 'SE', 'E', 'NE'];
-    let sector = Math.floor(((deg + 22.5) % 360) / 45);
-    const dirStr = dirs[sector];
+    const dirStr = ChillFlightLogic.computeHeadingDirection(planeGroup.rotation.y);
+    void deg; // kept for potential future use
 
     const latScale = 5000;
     const latVal = (-planeGroup.position.z / latScale);

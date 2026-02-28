@@ -11,25 +11,7 @@ var hasSavedColor = localStorage.getItem('chill_flight_color') !== null;
 
 // Helper to get a deterministic "chill" color for a player
 function getPlaneColor(uid) {
-    const colors = [
-        0xe74c3c, // Sunset Red
-        0x3498db, // Sky Blue
-        0x2ecc71, // Emerald
-        0xf1c40f, // Amber
-        0x9b59b6, // Amethyst
-        0x34495e, // Slate
-        0xe67e22, // Orange
-        0x1abc9c, // Turquoise
-        0xd35400, // Pumpkin
-        0xc0392b  // Dark Red
-    ];
-    if (!uid) return colors[0];
-    let hash = 0;
-    for (let i = 0; i < uid.length; i++) {
-        hash = uid.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const index = Math.abs(hash) % colors.length;
-    return colors[index];
+    return ChillFlightLogic.getPlaneColor(uid);
 }
 
 const planeGroup = new THREE.Group();

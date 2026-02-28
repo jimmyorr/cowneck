@@ -53,85 +53,15 @@ birdHeadGeo.translate(0, 0, -2);
 const hawkMat = new THREE.MeshStandardMaterial({ color: 0x442200, flatShading: true });
 
 function getBiome(x, z) {
-    let noise = simplex.noise2D(x * 0.00005 + 1000, z * 0.00005 + 1000) * 0.5;
-    const mapScale = 10000;
-    let biomeBase = 0;
-
-    if (x > 0) biomeBase -= Math.min(1, x / mapScale);
-
-    if (z > 0) {
-        let mtnInf = Math.min(1, z / mapScale);
-        if (x < 0) {
-            const westDamp = Math.max(0, Math.min(1, 1 + x / 5000));
-            mtnInf *= westDamp;
-        }
-        biomeBase += mtnInf;
-    }
-
-    return Math.max(-1, Math.min(1, biomeBase + noise));
+    return ChillFlightLogic.getBiome(x, z, simplex);
 }
 
 function getElevation(x, z) {
-    const biome = getBiome(x, z);
-
-    let heightScale = 150;
-    let offset = 60;
-    let roughness = 50;
-    let rockiness = 10;
-
-    const westFactor = Math.max(0, Math.min(1, -x / 4500));
-
-    if (biome < -0.2) {
-        const t = Math.min(1, (-0.2 - biome) * 3);
-        offset = THREE.MathUtils.lerp(60, -55, t);
-        heightScale = THREE.MathUtils.lerp(150, 100, t);
-        roughness = THREE.MathUtils.lerp(50, 20, t);
-    } else if (biome > 0.2) {
-        const t = Math.min(1, (biome - 0.2) * 3);
-        offset = THREE.MathUtils.lerp(60, 20, t);
-        heightScale = THREE.MathUtils.lerp(150, 250, t);
-        roughness = THREE.MathUtils.lerp(50, 100, t);
-        rockiness = THREE.MathUtils.lerp(10, 30, t);
-    }
-
-    if (x < 0) {
-        heightScale *= (1 - westFactor * 0.8);
-        offset = THREE.MathUtils.lerp(offset, 65, westFactor);
-        roughness *= (1 - westFactor * 0.7);
-        rockiness *= (1 - westFactor * 0.9);
-    }
-
-    let n = simplex.noise2D(x * 0.001, z * 0.001) * heightScale;
-
-    if (biome > 0.2) {
-        const t = Math.min(1, (biome - 0.2) * 3);
-        let ridge = 1.0 - Math.abs(simplex.noise2D(x * 0.0008, z * 0.0008));
-        n += (ridge * 220 - 100) * t * (1 - westFactor);
-    }
-
-    n += simplex.noise2D(x * 0.003, z * 0.003) * roughness;
-    n += simplex.noise2D(x * 0.01, z * 0.01) * rockiness;
-
-    if (biome < -0.4) {
-        const clusterChance = simplex.noise2D(x * 0.0002, z * 0.0002);
-        if (clusterChance > 0.4) {
-            const islandNoise = simplex.noise2D(x * 0.005, z * 0.005);
-            if (islandNoise > 0) {
-                n += islandNoise * 80 * (clusterChance - 0.4) * 2;
-            }
-        }
-    }
-
-    n += offset;
-
-    if (n < WATER_LEVEL) {
-        if (x < 0 && westFactor > 0.5) {
-            n = THREE.MathUtils.lerp(n, WATER_LEVEL + 5, (westFactor - 0.5) * 2);
-        } else {
-            n = WATER_LEVEL;
-        }
-    }
-    return n;
+    return ChillFlightLogic.getElevation(
+        x, z, simplex,
+        { WATER_LEVEL, MOUNTAIN_LEVEL },
+        THREE.MathUtils.lerp
+    );
 }
 
 function generateChunk(chunkX, chunkZ) {
