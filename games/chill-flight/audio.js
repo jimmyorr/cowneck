@@ -371,59 +371,50 @@ function ensureYTPlayerInitialized(callback) {
     updateLoadingProgress(40, "Handshaking radio...");
 
     const ytContainer = document.getElementById('yt-container');
-    const origin = window.location.origin;
+    const origin = window.location.origin || window.location.protocol + '//' + window.location.host;
     const videoId = lofiGirlVideos[lofiGirlIdx];
 
     ytContainer.style.display = 'block';
     ytContainer.style.opacity = '0';
     ytContainer.style.pointerEvents = 'none';
 
-    const iframe = document.createElement('iframe');
-    iframe.id = 'youtube-player-v15';
-    iframe.width = '220';
-    iframe.height = '124';
-    iframe.setAttribute('allow', 'autoplay; encrypted-media');
-    iframe.style.border = 'none';
-    iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${encodeURIComponent(origin)}&widget_referrer=${encodeURIComponent(origin)}&rel=0&iv_load_policy=3&playsinline=1&controls=0&disablekb=1`;
+    updateLoadingProgress(60, "Binding player...");
 
-    iframe.onload = () => {
-        updateLoadingProgress(60, "Stabilizing origin...");
-        // Shorter buffer (300ms) for v15 speed
-        setTimeout(() => {
-            updateLoadingProgress(80, "Binding player...");
-            ytPlayer = new YT.Player(iframe, {
-                videoId: videoId,
-                playerVars: {
-                    'playsinline': 1, 'controls': 0, 'disablekb': 1, 'enablejsapi': 1, 'origin': origin, 'rel': 0, 'iv_load_policy': 3
-                },
-                events: {
-                    'onReady': () => {
-                        console.log("YouTube Radio Active.");
-                        ytPlayerReady = true;
-                        ytInitializing = false;
-                        ytContainer.style.pointerEvents = 'auto';
+    ytPlayer = new YT.Player('youtube-player', {
+        width: '220',
+        height: '124',
+        videoId: videoId,
+        playerVars: {
+            'playsinline': 1,
+            'controls': 0,
+            'disablekb': 1,
+            'enablejsapi': 1,
+            'origin': origin,
+            'rel': 0,
+            'iv_load_policy': 3,
+            'widget_referrer': origin
+        },
+        events: {
+            'onReady': () => {
+                console.log("YouTube Radio Active.");
+                ytPlayerReady = true;
+                ytInitializing = false;
+                ytContainer.style.pointerEvents = 'auto';
 
-                        // Handle station queuing
-                        if (ytQueuedStation) {
-                            setStation(ytQueuedStation);
-                            ytQueuedStation = null;
-                        }
-
-                        finishCalibration();
-                        if (callback) callback();
-                    },
-                    'onError': (e) => {
-                        console.error("YouTube Error (v15):", e.data);
-                        ytInitializing = false;
-                        finishCalibration();
-                    }
+                // Handle station queuing
+                if (ytQueuedStation) {
+                    setStation(ytQueuedStation);
+                    ytQueuedStation = null;
                 }
-            });
-        }, 300);
-    };
 
-    const placeholder = document.getElementById('youtube-player');
-    if (placeholder) {
-        placeholder.parentNode.replaceChild(iframe, placeholder);
-    }
+                finishCalibration();
+                if (callback) callback();
+            },
+            'onError': (e) => {
+                console.error("YouTube Error:", e.data);
+                ytInitializing = false;
+                finishCalibration();
+            }
+        }
+    });
 }
