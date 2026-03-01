@@ -637,7 +637,34 @@ function animate() {
                     }
                 });
             }
+
+            // Animate Windmills
+            if (chunkGroup.userData.windmillBlades && chunkGroup.userData.windmillPositions) {
+                const bladesInst = chunkGroup.userData.windmillBlades;
+                const windmillPositions = chunkGroup.userData.windmillPositions;
+                const windmillRotation = performance.now() * 0.001 * 1.5;
+                const dummy = new THREE.Object3D();
+
+                windmillPositions.forEach((pos, index) => {
+                    for (let b = 0; b < 4; b++) {
+                        const bladeIdx = index * 4 + b;
+                        dummy.position.set(pos.x, pos.y + 45, pos.z);
+                        const hubOffset = new THREE.Vector3(0, 0, 8.5).applyAxisAngle(new THREE.Vector3(0, 1, 0), pos.rotY);
+                        dummy.position.add(hubOffset);
+                        dummy.rotation.set(0, pos.rotY, (b * Math.PI / 2) + windmillRotation);
+                        dummy.updateMatrix();
+                        bladesInst.setMatrixAt(bladeIdx, dummy.matrix);
+                    }
+                });
+                bladesInst.instanceMatrix.needsUpdate = true;
+            }
         });
+
+        // Celestial positions
+        const orbitRadius = 8000;
+        const sunY = -Math.cos(timeOfDay);
+        const sunX = Math.sin(timeOfDay);
+        const sunZ = Math.cos(timeOfDay) * 0.3;
 
         // Update Cockpit HUD
         const hours = (timeOfDay / (Math.PI * 2)) * 24;
@@ -661,11 +688,6 @@ function animate() {
         const cAlt = document.getElementById('cockpit-alt'); if (cAlt) cAlt.innerText = altStr;
         const cSpd = document.getElementById('cockpit-spd'); if (cSpd) cSpd.innerText = spdStr;
 
-        // Celestial positions
-        const orbitRadius = 8000;
-        const sunY = -Math.cos(timeOfDay);
-        const sunX = Math.sin(timeOfDay);
-        const sunZ = Math.cos(timeOfDay) * 0.3;
         sunMesh.position.set(sunX * orbitRadius, sunY * orbitRadius, sunZ * orbitRadius);
         moonMesh.position.set(-sunX * orbitRadius, -sunY * orbitRadius, -sunZ * orbitRadius);
         dirLight.position.copy(sunMesh.position).add(planeGroup.position);
@@ -702,7 +724,7 @@ function animate() {
         }
 
         // Stars fade starting at 4 AM (-0.5) and disappear by roughly 5:15 AM (-0.2)
-        let starFactor = Math.max(0, Math.min(1, (sunY + 0.2) / -0.3));
+        starFactor = Math.max(0, Math.min(1, (sunY + 0.2) / -0.3));
         starsMat.opacity = starFactor;
 
         hemiLight.intensity = THREE.MathUtils.lerp(0.1, 0.6, dayFactor);

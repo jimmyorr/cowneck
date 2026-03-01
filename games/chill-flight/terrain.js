@@ -21,6 +21,12 @@ const treeLeavesMat = new THREE.MeshStandardMaterial({ color: 0x2E7D32, flatShad
 const snowTreeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x4E342E, flatShading: true });
 const snowTreeLeavesMat = new THREE.MeshStandardMaterial({ color: 0xE0F7FA, flatShading: true });
 
+// Autumn & Cherry Blossom materials
+const autumnLeavesMat1 = new THREE.MeshStandardMaterial({ color: 0xD35400, flatShading: true }); // Burnt Orange
+const autumnLeavesMat2 = new THREE.MeshStandardMaterial({ color: 0xF39C12, flatShading: true }); // Orange
+const autumnLeavesMat3 = new THREE.MeshStandardMaterial({ color: 0xC0392B, flatShading: true }); // Strong Red
+const cherryBlossomMat = new THREE.MeshStandardMaterial({ color: 0xF8BBD0, flatShading: true }); // Pink
+
 // Reusable house geometries
 const houseBodyGeo = new THREE.BoxGeometry(10, 8, 10);
 houseBodyGeo.translate(0, 4, 0);
@@ -52,6 +58,25 @@ birdHeadGeo.rotateX(-Math.PI / 2);
 birdHeadGeo.translate(0, 0, -2);
 const hawkMat = new THREE.MeshStandardMaterial({ color: 0x442200, flatShading: true });
 
+// Windmill geometries
+const windmillBaseGeo = new THREE.CylinderGeometry(5, 8, 30, 6);
+windmillBaseGeo.translate(0, 15, 0);
+const windmillBladesGeo = new THREE.BoxGeometry(2, 30, 0.5);
+windmillBladesGeo.translate(0, 15, 0); // Rotate around bottom center
+const windmillBaseMat = new THREE.MeshStandardMaterial({ color: 0x8D6E63, flatShading: true });
+const windmillBladesMat = new THREE.MeshStandardMaterial({ color: 0xEEEEEE, flatShading: true });
+
+// Lighthouse geometries
+const lighthousePieceGeo = new THREE.CylinderGeometry(8, 8, 20, 8);
+const lighthouseTopGeo = new THREE.SphereGeometry(10, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+lighthouseTopGeo.translate(0, 60, 0);
+const lighthouseLampGeo = new THREE.BoxGeometry(4, 4, 15);
+lighthouseLampGeo.translate(0, 65, 8);
+
+const lighthouseRedMat = new THREE.MeshStandardMaterial({ color: 0xC62828, flatShading: true });
+const lighthouseWhiteMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, flatShading: true });
+const lighthouseLampMat = new THREE.MeshStandardMaterial({ color: 0xFFFF00, emissive: 0xFFFF00, emissiveIntensity: 5.0 });
+
 function getBiome(x, z) {
     return ChillFlightLogic.getBiome(x, z, simplex);
 }
@@ -81,7 +106,13 @@ function generateChunk(chunkX, chunkZ) {
 
     const treePositions = [];
     const snowTreePositions = [];
+    const autumnTree1Positions = [];
+    const autumnTree2Positions = [];
+    const autumnTree3Positions = [];
+    const cherryTreePositions = [];
     const housePositions = [];
+    const windmillPositions = [];
+    let lighthousePos = null;
 
     for (let i = 0; i < positions.length; i += 3) {
         const localX = positions[i];
@@ -130,10 +161,10 @@ function generateChunk(chunkX, chunkZ) {
             }
         } else {
             const isForest = simplex.noise2D(worldX * 0.005 + 100, worldZ * 0.005) > 0.2;
+            const autumnNoise = simplex.noise2D(worldX * 0.0003 + 500, worldZ * 0.0003 + 500);
+            const cherryNoise = simplex.noise2D(worldX * 0.0005 + 1000, worldZ * 0.0005 + 1000);
 
             // Normalize density so higher SEGMENTS doesn't mean more trees/houses
-            // Base resolution is 40. Probability scales by (40/SEGMENTS)^2 
-            // because segments are in 2 dimensions.
             const densityFactor = 40 / SEGMENTS;
             const densityScale = densityFactor * densityFactor;
 
@@ -142,9 +173,28 @@ function generateChunk(chunkX, chunkZ) {
                 if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x8BA192), snowFactor);
                 if (desertFactor > 0) colorObj.lerp(new THREE.Color(0xA0522D), desertFactor);
 
+                // Color the terrain slightly based on trees
+                if (autumnNoise > 0.4 && snowFactor < 0.2) {
+                    colorObj.lerp(new THREE.Color(0x6D4C41), 0.3); // Brownish ground for autumn
+                } else if (cherryNoise > 0.6 && snowFactor < 0.2) {
+                    colorObj.lerp(new THREE.Color(0xF8BBD0), 0.2); // Pinkish ground for blossoms
+                }
+
                 if (rng() < (desertFactor > 0.5 ? 0.05 : 0.15) * densityScale) {
-                    if (snowFactor > 0.4) snowTreePositions.push({ x: localX, y: height, z: localZ });
-                    else if (desertFactor < 0.6) treePositions.push({ x: localX, y: height, z: localZ });
+                    if (snowFactor > 0.4) {
+                        snowTreePositions.push({ x: localX, y: height, z: localZ });
+                    } else if (desertFactor < 0.6) {
+                        if (cherryNoise > 0.65) {
+                            cherryTreePositions.push({ x: localX, y: height, z: localZ });
+                        } else if (autumnNoise > 0.45) {
+                            const variety = rng();
+                            if (variety < 0.33) autumnTree1Positions.push({ x: localX, y: height, z: localZ });
+                            else if (variety < 0.66) autumnTree2Positions.push({ x: localX, y: height, z: localZ });
+                            else autumnTree3Positions.push({ x: localX, y: height, z: localZ });
+                        } else {
+                            treePositions.push({ x: localX, y: height, z: localZ });
+                        }
+                    }
                 }
             } else {
                 colorObj.copy(colorPlains);
@@ -153,6 +203,12 @@ function generateChunk(chunkX, chunkZ) {
 
                 if (rng() < (desertFactor > 0.5 ? 0.002 : 0.005) * densityScale) {
                     housePositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
+                } else if (rng() < 0.001 * densityScale && height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 100 && desertFactor < 0.3 && snowFactor < 0.3) {
+                    // Windmills in temperate plains
+                    windmillPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
+                } else if (!lighthousePos && rng() < 0.005 * densityScale && worldX > 3000 && height > WATER_LEVEL && height < WATER_LEVEL + 10) {
+                    // Lighthouses on Eastern islands - Max 1 per chunk
+                    lighthousePos = { x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 };
                 }
             }
         }
@@ -190,25 +246,35 @@ function generateChunk(chunkX, chunkZ) {
         group.add(leavesInst);
     }
 
-    if (snowTreePositions.length > 0) {
-        const trunkInst = new THREE.InstancedMesh(treeTrunkGeo, snowTreeTrunkMat, snowTreePositions.length);
-        const leavesInst = new THREE.InstancedMesh(treeLeavesGeo, snowTreeLeavesMat, snowTreePositions.length);
+    // --- NEW TREE VARIATIONS ---
+    const treeVariations = [
+        { pos: autumnTree1Positions, mat: autumnLeavesMat1 },
+        { pos: autumnTree2Positions, mat: autumnLeavesMat2 },
+        { pos: autumnTree3Positions, mat: autumnLeavesMat3 },
+        { pos: cherryTreePositions, mat: cherryBlossomMat }
+    ];
 
-        snowTreePositions.forEach((pos, index) => {
-            const scale = 0.8 + rng() * 0.6;
-            dummy.position.set(pos.x, pos.y, pos.z);
-            dummy.scale.set(scale, scale, scale);
-            dummy.rotation.y = rng() * Math.PI * 2;
-            dummy.updateMatrix();
-            trunkInst.setMatrixAt(index, dummy.matrix);
-            leavesInst.setMatrixAt(index, dummy.matrix);
-        });
+    treeVariations.forEach(variation => {
+        if (variation.pos.length > 0) {
+            const trunkInst = new THREE.InstancedMesh(treeTrunkGeo, treeTrunkMat, variation.pos.length);
+            const leavesInst = new THREE.InstancedMesh(treeLeavesGeo, variation.mat, variation.pos.length);
 
-        trunkInst.position.set(worldOffsetX, 0, worldOffsetZ);
-        leavesInst.position.set(worldOffsetX, 0, worldOffsetZ);
-        group.add(trunkInst);
-        group.add(leavesInst);
-    }
+            variation.pos.forEach((pos, index) => {
+                const scale = 0.8 + rng() * 0.6;
+                dummy.position.set(pos.x, pos.y, pos.z);
+                dummy.scale.set(scale, scale, scale);
+                dummy.rotation.y = rng() * Math.PI * 2;
+                dummy.updateMatrix();
+                trunkInst.setMatrixAt(index, dummy.matrix);
+                leavesInst.setMatrixAt(index, dummy.matrix);
+            });
+
+            trunkInst.position.set(worldOffsetX, 0, worldOffsetZ);
+            leavesInst.position.set(worldOffsetX, 0, worldOffsetZ);
+            group.add(trunkInst);
+            group.add(leavesInst);
+        }
+    });
 
     // 2.5 Generate Houses
     if (housePositions.length > 0) {
@@ -265,6 +331,77 @@ function generateChunk(chunkX, chunkZ) {
         roofInst.position.set(worldOffsetX, 0, worldOffsetZ);
         group.add(bodyInst);
         group.add(roofInst);
+    }
+
+    // 2.7 Generate Windmills
+    if (windmillPositions.length > 0) {
+        const baseInst = new THREE.InstancedMesh(windmillBaseGeo, windmillBaseMat, windmillPositions.length);
+        const bladesInst = new THREE.InstancedMesh(windmillBladesGeo, windmillBladesMat, windmillPositions.length * 4);
+
+        windmillPositions.forEach((pos, index) => {
+            // Base
+            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.rotation.set(0, pos.rotY, 0);
+            dummy.scale.set(1.5, 1.5, 1.5);
+            dummy.updateMatrix();
+            baseInst.setMatrixAt(index, dummy.matrix);
+
+            // Blades (initial state, will be updated in animate)
+            for (let b = 0; b < 4; b++) {
+                const bladeIdx = index * 4 + b;
+                dummy.position.set(pos.x, pos.y + 45, pos.z);
+                const hubOffset = new THREE.Vector3(0, 0, 8.5).applyAxisAngle(new THREE.Vector3(0, 1, 0), pos.rotY);
+                dummy.position.add(hubOffset);
+                dummy.rotation.set(0, pos.rotY, (b * Math.PI / 2));
+                dummy.updateMatrix();
+                bladesInst.setMatrixAt(bladeIdx, dummy.matrix);
+            }
+        });
+
+        baseInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        bladesInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(baseInst);
+        group.add(bladesInst);
+
+        // Store blade info for animation
+        group.userData.windmillBlades = bladesInst;
+        group.userData.windmillPositions = windmillPositions;
+    }
+
+    // 2.9 Generate Lighthouses
+    if (lighthousePos) {
+        const piece1Inst = new THREE.InstancedMesh(lighthousePieceGeo, lighthouseRedMat, 1);
+        const piece2Inst = new THREE.InstancedMesh(lighthousePieceGeo, lighthouseWhiteMat, 1);
+        const piece3Inst = new THREE.InstancedMesh(lighthousePieceGeo, lighthouseRedMat, 1);
+        const topInst = new THREE.InstancedMesh(lighthouseTopGeo, lighthouseWhiteMat, 1);
+        const lampInst = new THREE.InstancedMesh(lighthouseLampGeo, lighthouseLampMat, 1);
+
+        const pos = lighthousePos;
+        dummy.position.set(pos.x, pos.y + 10, pos.z);
+        dummy.rotation.set(0, 0, 0);
+        dummy.updateMatrix();
+        piece1Inst.setMatrixAt(0, dummy.matrix);
+
+        dummy.position.set(pos.x, pos.y + 30, pos.z);
+        dummy.updateMatrix();
+        piece2Inst.setMatrixAt(0, dummy.matrix);
+
+        dummy.position.set(pos.x, pos.y + 50, pos.z);
+        dummy.updateMatrix();
+        piece3Inst.setMatrixAt(0, dummy.matrix);
+
+        dummy.position.set(pos.x, pos.y, pos.z);
+        dummy.rotation.set(0, pos.rotY, 0);
+        dummy.updateMatrix();
+        topInst.setMatrixAt(0, dummy.matrix);
+
+        lampInst.setMatrixAt(0, dummy.matrix);
+
+        const pieces = [piece1Inst, piece2Inst, piece3Inst, topInst, lampInst];
+        pieces.forEach(p => {
+            p.position.set(worldOffsetX, 0, worldOffsetZ);
+            group.add(p);
+        });
     }
 
     // 3. Generate Clouds

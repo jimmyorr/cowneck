@@ -131,6 +131,14 @@
 
         const westFactor = Math.max(0, Math.min(1, -x / 4500));
 
+        // Noise damping for Ocean Biomes (biome < -0.2)
+        // This makes the water perfectly flat by reducing the amplitude of terrain noise.
+        let oceanDamping = 1.0;
+        if (biome < -0.1) {
+            oceanDamping = Math.max(0, 1.0 - ((-0.1 - biome) * 4));
+            oceanDamping = Math.pow(oceanDamping, 2); // Sharper transition
+        }
+
         if (biome < -0.2) {
             const t = Math.min(1, (-0.2 - biome) * 3);
             offset = _lerp(60, -55, t);
@@ -151,7 +159,7 @@
             rockiness *= (1 - westFactor * 0.9);
         }
 
-        let n = simplex.noise2D(x * 0.001, z * 0.001) * heightScale;
+        let n = simplex.noise2D(x * 0.001, z * 0.001) * heightScale * oceanDamping;
 
         if (biome > 0.2) {
             const t = Math.min(1, (biome - 0.2) * 3);
@@ -159,27 +167,24 @@
             n += (ridge * 220 - 100) * t * (1 - westFactor);
         }
 
-        n += simplex.noise2D(x * 0.003, z * 0.003) * roughness;
-        n += simplex.noise2D(x * 0.01, z * 0.01) * rockiness;
+        n += simplex.noise2D(x * 0.003, z * 0.003) * roughness * oceanDamping;
+        n += simplex.noise2D(x * 0.01, z * 0.01) * rockiness * oceanDamping;
 
         if (biome < -0.4) {
             const clusterChance = simplex.noise2D(x * 0.0002, z * 0.0002);
             if (clusterChance > 0.4) {
                 const islandNoise = simplex.noise2D(x * 0.005, z * 0.005);
                 if (islandNoise > 0) {
-                    n += islandNoise * 80 * (clusterChance - 0.4) * 2;
+                    n += islandNoise * 80 * (clusterChance - 0.4) * 2 * oceanDamping;
                 }
             }
         }
 
         n += offset;
 
+        // Strict water level clamping
         if (n < WATER_LEVEL) {
-            if (x < 0 && westFactor > 0.5) {
-                n = _lerp(n, WATER_LEVEL + 5, (westFactor - 0.5) * 2);
-            } else {
-                n = WATER_LEVEL;
-            }
+            n = WATER_LEVEL;
         }
         return n;
     }
