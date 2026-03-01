@@ -84,6 +84,7 @@ function updateModeUI() {
 if (chillCheckbox) {
     chillCheckbox.addEventListener('change', (e) => {
         isChillMode = e.target.checked;
+        localStorage.setItem('chill_flight_mode_chill', isChillMode);
         updateModeUI();
     });
 }
@@ -226,6 +227,7 @@ const distanceSelect = document.getElementById('distance-select');
 if (distanceSelect) {
     distanceSelect.addEventListener('change', (e) => {
         RENDER_DISTANCE = parseInt(e.target.value);
+        localStorage.setItem('chill_flight_distance', RENDER_DISTANCE);
         console.log(`Draw distance changed: RENDER_DISTANCE = ${RENDER_DISTANCE}`);
 
         // Clear all existing chunks to force regeneration
@@ -244,6 +246,7 @@ const qualitySelect = document.getElementById('quality-select');
 if (qualitySelect) {
     qualitySelect.addEventListener('change', (e) => {
         SEGMENTS = parseInt(e.target.value);
+        localStorage.setItem('chill_flight_quality', SEGMENTS);
         console.log(`Quality changed: SEGMENTS = ${SEGMENTS}`);
 
         // Clear all existing chunks to force regeneration
@@ -296,6 +299,24 @@ if (window.innerWidth <= 768) {
 
 // --- MAIN GAME LOOP ---
 const clock = new THREE.Clock();
+
+// --- PERSISTENCE ---
+const savedQuality = localStorage.getItem('chill_flight_quality');
+if (savedQuality) {
+    SEGMENTS = parseInt(savedQuality);
+    if (qualitySelect) qualitySelect.value = savedQuality;
+}
+const savedDistance = localStorage.getItem('chill_flight_distance');
+if (savedDistance) {
+    RENDER_DISTANCE = parseInt(savedDistance);
+    if (distanceSelect) distanceSelect.value = savedDistance;
+}
+const savedChill = localStorage.getItem('chill_flight_mode_chill');
+if (savedChill !== null) {
+    isChillMode = (savedChill === 'true');
+    if (chillCheckbox) chillCheckbox.checked = isChillMode;
+    updateModeUI();
+}
 
 // Initial chunk generation
 updateChunks();
