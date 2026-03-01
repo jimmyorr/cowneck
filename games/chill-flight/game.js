@@ -391,14 +391,14 @@ function animate() {
                     p.mesh.position.copy(p.targetPos);
                     p.mesh.rotation.set(p.targetRotX || 0, p.targetRotY || 0, p.targetRotZ || 0);
                 } else {
-                    p.mesh.position.lerp(p.targetPos, delta * 6.0);
+                    p.mesh.position.lerp(p.targetPos, delta * 12.0);
                     if (p.targetQuat) {
                         p.targetQuat.setFromEuler(targetEuler);
-                        p.mesh.quaternion.slerp(p.targetQuat, delta * 6.0);
+                        p.mesh.quaternion.slerp(p.targetQuat, delta * 12.0);
                     } else {
-                        p.mesh.rotation.x = THREE.MathUtils.lerp(p.mesh.rotation.x, p.targetRotX || 0, delta * 6.0);
-                        p.mesh.rotation.y = THREE.MathUtils.lerp(p.mesh.rotation.y, p.targetRotY || 0, delta * 6.0);
-                        p.mesh.rotation.z = THREE.MathUtils.lerp(p.mesh.rotation.z, p.targetRotZ || 0, delta * 6.0);
+                        p.mesh.rotation.x = THREE.MathUtils.lerp(p.mesh.rotation.x, p.targetRotX || 0, delta * 12.0);
+                        p.mesh.rotation.y = THREE.MathUtils.lerp(p.mesh.rotation.y, p.targetRotY || 0, delta * 12.0);
+                        p.mesh.rotation.z = THREE.MathUtils.lerp(p.mesh.rotation.z, p.targetRotZ || 0, delta * 12.0);
                     }
                 }
 

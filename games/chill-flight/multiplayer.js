@@ -294,24 +294,30 @@ signInAnonymously(auth)
                     });
                 }
 
-                if (data.position.updatedAt) {
-                    const packetTime = new Date(data.position.updatedAt).getTime();
-                    const now = Date.now() + (window.serverTimeOffset || 0);
-                    let latencySecs = (now - packetTime) / 1000;
-                    if (latencySecs > 0 && latencySecs < 2.0) {
-                        const targetEuler = new THREE.Euler(p.targetRotX, p.targetRotY, p.targetRotZ, 'XYZ');
-                        const forward = new THREE.Vector3(0, 0, -1).applyEuler(targetEuler);
-                        p.targetPos.add(forward.multiplyScalar(BASE_FLIGHT_SPEED * p.targetSpeedMult * 60 * latencySecs));
-                    }
-                }
-
-                p.targetPos.set(data.position.x || 0, data.position.y || 200, data.position.z || 0);
+                // Update targets
                 p.targetRotX = data.position.rotX || 0;
                 p.targetRotY = data.position.rotY || 0;
                 p.targetRotZ = data.position.rotZ || 0;
                 p.targetSpeedMult = data.position.speedMult !== undefined ? data.position.speedMult : 1;
                 p.lastReceivedMs = Date.now();
                 if (data.name) p.name = data.name;
+
+                // Set target position with latency compensation (Extrapolation)
+                p.targetPos.set(data.position.x || 0, data.position.y || 200, data.position.z || 0);
+
+                if (data.position.updatedAt) {
+                    const packetTime = new Date(data.position.updatedAt).getTime();
+                    const now = Date.now() + (window.serverTimeOffset || 0);
+                    let latencySecs = (now - packetTime) / 1000;
+
+                    // Only compensate for reasonable latency (up to 2 seconds)
+                    if (latencySecs > 0 && latencySecs < 2.0) {
+                        const targetEuler = new THREE.Euler(p.targetRotX, p.targetRotY, p.targetRotZ, 'XYZ');
+                        const forward = new THREE.Vector3(0, 0, -1).applyEuler(targetEuler);
+                        // Extrapolate: move the target position forward by how much time has passed since it was sent
+                        p.targetPos.add(forward.multiplyScalar(BASE_FLIGHT_SPEED * p.targetSpeedMult * 60 * latencySecs));
+                    }
+                }
             }
         });
 
@@ -361,7 +367,7 @@ signInAnonymously(auth)
                 headlightsOn: headlightsOn,
                 updatedAt: new Date().toISOString()
             });
-        }, 1000);
+        }, 200);
     })
     .catch((error) => {
         console.error("Auth failed:", error);
