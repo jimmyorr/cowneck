@@ -122,9 +122,7 @@ signInAnonymously(auth)
             planeMat.color.setHex(planeColor);
 
             const nameInput = document.getElementById('player-name-input');
-            const colorInput = document.getElementById('plane-color-input');
             if (nameInput) nameInput.value = playerName;
-            if (colorInput) colorInput.value = '#' + planeColor.toString(16).padStart(6, '0').toLowerCase();
         }
 
         const profileRef = ref(db, `${worldPrefix}/users/` + playerUid);
@@ -158,16 +156,30 @@ signInAnonymously(auth)
             if (planeMat) {
                 planeMat.color.setHex(planeColor);
                 const nameInput = document.getElementById('player-name-input');
-                const colorInput = document.getElementById('plane-color-input');
                 if (nameInput) nameInput.value = playerName;
-                if (colorInput) colorInput.value = '#' + planeColor.toString(16).padStart(6, '0').toLowerCase();
             }
 
+            updateActiveSwatch();
             updatePlayerProfile();
         });
 
         const nameInput = document.getElementById('player-name-input');
-        const colorInput = document.getElementById('plane-color-input');
+        const colorOptions = document.getElementById('plane-color-options');
+
+        const updateActiveSwatch = () => {
+            if (!colorOptions) return;
+            colorOptions.querySelectorAll('.color-swatch').forEach(sw => {
+                const swColor = parseInt(sw.getAttribute('data-color'));
+                if (swColor === planeColor) {
+                    sw.classList.add('active');
+                } else {
+                    sw.classList.remove('active');
+                }
+            });
+        };
+
+        // Initial UI sync
+        updateActiveSwatch();
 
         if (nameInput) {
             nameInput.addEventListener('input', (e) => {
@@ -177,15 +189,17 @@ signInAnonymously(auth)
             });
         }
 
-        if (colorInput) {
-            colorInput.addEventListener('input', (e) => {
-                const hexStr = e.target.value.replace('#', '');
-                planeColor = parseInt(hexStr, 16);
-                localStorage.setItem('chill_flight_color', planeColor.toString());
-                if (planeMat) {
-                    planeMat.color.setHex(planeColor);
+        if (colorOptions) {
+            colorOptions.addEventListener('click', (e) => {
+                if (e.target.classList.contains('color-swatch')) {
+                    planeColor = parseInt(e.target.getAttribute('data-color'));
+                    localStorage.setItem('chill_flight_color', planeColor.toString());
+                    if (planeMat) {
+                        planeMat.color.setHex(planeColor);
+                    }
+                    updateActiveSwatch();
+                    updatePlayerProfile();
                 }
-                updatePlayerProfile();
             });
         }
 

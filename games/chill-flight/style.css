@@ -140,29 +140,30 @@ body {
 
 .color-picker-container {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    max-width: 140px;
 }
 
-#plane-color-input {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    width: 40px;
-    height: 40px;
-    background-color: transparent;
-    border: none;
+.color-swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-#plane-color-input::-webkit-color-swatch {
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.5);
+.color-swatch:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.8);
 }
 
-#plane-color-input::-moz-color-swatch {
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.5);
+.color-swatch.active {
+    border-color: #fff;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    transform: scale(1.15);
 }
 
 #cockpit-ui {
