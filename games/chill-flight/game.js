@@ -776,22 +776,28 @@ function updatePlayerList() {
 
     // Others
     if (typeof otherPlayers !== 'undefined') {
+        const playerHeading = planeGroup.rotation.y;
+
         otherPlayers.forEach((p, uid) => {
+            // In Three.js, North is -Z, South is +Z, East is +X, West is -X
             const deltaX = p.mesh.position.x - planeGroup.position.x;
             const deltaZ = p.mesh.position.z - planeGroup.position.z;
             const dist = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ) * 0.3048; // convert to meters roughly
 
-            // Calculate direction to other player
-            // In Three.js, North is -Z, South is +Z, East is +X, West is -X
+            // Absolute angle from North (-Z), CCW positive
+            let absoluteAngle = Math.atan2(-deltaX, -deltaZ);
 
-            // Calculate angle from North (-Z)
-            // atan2(-x, -z) maps -Z to 0, -X to PI/2 (West), +Z to PI (South), +X to -PI/2 (East)
-            let angleToOther = Math.atan2(-deltaX, -deltaZ);
-            if (angleToOther < 0) angleToOther += Math.PI * 2;
+            // Calculate relative angle (clockwise) for the arrow mapping
+            let relativeAngle = playerHeading - absoluteAngle;
 
-            // Map angle to 8 directions (45 deg each)
-            const arrows = ['↑', '↖', '←', '↙', '↓', '↘', '→', '↗'];
-            const arrowIdx = Math.floor(((angleToOther * (180 / Math.PI) + 22.5) % 360) / 45);
+            // Normalize to [0, 2PI]
+            while (relativeAngle < 0) relativeAngle += Math.PI * 2;
+            while (relativeAngle >= Math.PI * 2) relativeAngle -= Math.PI * 2;
+
+            // Map angle to 8 directions (45 deg each) 
+            // Arrows are ordered clockwise: Up, Up-Right, Right, etc.
+            const arrows = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
+            const arrowIdx = Math.floor(((relativeAngle * (180 / Math.PI) + 22.5) % 360) / 45);
             const dirEmoji = arrows[arrowIdx];
 
             players.push({
