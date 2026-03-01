@@ -183,7 +183,7 @@ signInAnonymously(auth)
 
         if (nameInput) {
             nameInput.addEventListener('input', (e) => {
-                playerName = e.target.value || "Player 1";
+                playerName = e.target.value || window.defaultCallsign;
                 localStorage.setItem('chill_flight_name', playerName);
                 updatePlayerProfile();
             });

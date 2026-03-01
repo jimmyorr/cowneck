@@ -4,8 +4,15 @@
 // planeMat is declared as a global var so multiplayer.js can update it after Firebase auth
 var planeMat = null;
 
+const CALLSIGNS = [
+    'Maverick', 'Goose', 'Iceman', 'Slider', 'Hollywood',
+    'Wolfman', 'Cougar', 'Merlin', 'Viper', 'Jester',
+    'Chipper', 'Sundown', 'Stinger'
+];
+window.defaultCallsign = CALLSIGNS[Math.floor(Math.random() * CALLSIGNS.length)];
+
 // Global player state for customization (Load from localStorage if available)
-var playerName = localStorage.getItem('chill_flight_name') || "Player 1";
+var playerName = localStorage.getItem('chill_flight_name') || window.defaultCallsign;
 var planeColor = parseInt(localStorage.getItem('chill_flight_color')) || 0xe74c3c;
 var hasSavedColor = localStorage.getItem('chill_flight_color') !== null;
 
