@@ -564,7 +564,7 @@ function animate() {
             }
         }
 
-        const maxFlightHeight = 750;
+        const maxFlightHeight = 1046;
         if (planeGroup.position.y > maxFlightHeight) {
             planeGroup.position.y = maxFlightHeight;
         }
