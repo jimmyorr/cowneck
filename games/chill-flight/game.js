@@ -476,7 +476,7 @@ function animate() {
         let isLooping = false;
         const manualRollSpeed = 4.0;
         const manualLoopSpeed = 2.5;
-        if (flightSpeedMultiplier > 0.5) {
+        if (flightSpeedMultiplier > 0) {
             if (keys.ArrowLeft && keys.ArrowRight) {
                 if (doubleTap.ArrowLeft && doubleTap.ArrowRight) {
                     // Double-tap both: pitch nose down
