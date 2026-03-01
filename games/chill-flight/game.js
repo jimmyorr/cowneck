@@ -211,7 +211,9 @@ function togglePause() {
 }
 
 window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') togglePause();
+    if (e.key === 'Escape' || (isPaused && e.key === 'Enter')) {
+        togglePause();
+    }
 });
 
 document.getElementById('game-title').addEventListener('click', () => {
