@@ -213,7 +213,8 @@ function generateChunk(chunkX, chunkZ) {
                     colorObj.lerp(new THREE.Color(0xF8BBD0), 0.2); // Pinkish ground for blossoms
                 }
 
-                if (rng() < (desertFactor > 0.5 ? 0.05 : 0.15) * densityScale) {
+                const treeRoll = rng();
+                if (treeRoll < (desertFactor > 0.5 ? 0.05 : 0.15) * densityScale) {
                     if (snowFactor > 0.4) {
                         snowTreePositions.push({ x: localX, y: height, z: localZ });
                     } else if (desertFactor < 0.6) {
@@ -228,11 +229,12 @@ function generateChunk(chunkX, chunkZ) {
                             treePositions.push({ x: localX, y: height, z: localZ });
                         }
                     }
-
-                    // Campfires in forest or near houses community
-                    if (rng() < 0.1 * densityScale) { // Increased from 0.02 community
-                        campfirePositions.push({ x: localX, y: height, z: localZ });
-                    }
+                } else if (treeRoll < (desertFactor > 0.5 ? 0.051 : 0.165) * densityScale) {
+                    // Campfires in forest community - mutually exclusive with trees
+                    const offX = (rng() - 0.5) * 15;
+                    const offZ = (rng() - 0.5) * 15;
+                    const h = getElevation(worldX + offX, worldZ + offZ);
+                    campfirePositions.push({ x: localX + offX, y: h, z: localZ + offZ });
                 }
             } else {
                 colorObj.copy(colorPlains);
