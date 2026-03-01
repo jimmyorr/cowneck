@@ -323,30 +323,12 @@ if (savedChill !== null) {
 // Initial chunk generation
 updateChunks();
 
-let frameCount = 0;
-let lastFpsUpdateTime = performance.now();
 const fpsCounterEl = document.getElementById('debug-fps');
 
 function animate() {
     requestAnimationFrame(animate);
-
     const now = performance.now();
     const delta = clock.getDelta();
-
-    // FPS Calculation
-    frameCount++;
-    if (now - lastFpsUpdateTime > 500) { // Update twice a second
-        const fps = Math.round((frameCount * 1000) / (now - lastFpsUpdateTime));
-        if (fpsCounterEl) fpsCounterEl.innerText = fps;
-
-        // Color coding for performance
-        if (fps < 30) fpsCounterEl.style.color = '#FF4444';
-        else if (fps < 55) fpsCounterEl.style.color = '#FFD700';
-        else fpsCounterEl.style.color = '#00FF00';
-
-        lastFpsUpdateTime = now;
-        frameCount = 0;
-    }
 
     if (isPaused) return;
 
