@@ -466,8 +466,9 @@ function animate() {
         if (flightSpeedMultiplier > 0) {
             if (keys.ArrowLeft && keys.ArrowRight) {
                 if (doubleTap.ArrowLeft && doubleTap.ArrowRight) {
-                    // Double-tap both: pitch nose down
-                    planeGroup.rotation.x -= manualLoopSpeed * delta;
+                    // Double-tap both: dive straight down
+                    const target = -Math.PI / 2;
+                    planeGroup.rotation.x = Math.max(target, planeGroup.rotation.x - manualLoopSpeed * delta);
                 } else {
                     // Single hold both: loop up
                     planeGroup.rotation.x += manualLoopSpeed * delta;
