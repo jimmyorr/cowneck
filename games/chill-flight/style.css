@@ -348,3 +348,69 @@ body {
     margin-bottom: 20px;
     letter-spacing: 10px;
 }
+
+#online-players {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    width: 180px;
+    pointer-events: auto;
+}
+
+#online-title {
+    font-size: 10px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 4px;
+}
+
+.player-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    margin-bottom: 4px;
+    color: #eee;
+}
+
+.player-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 110px;
+}
+
+.player-info {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.player-dist {
+    font-family: monospace;
+    font-size: 11px;
+    color: #FFD700;
+    min-width: 45px;
+    text-align: right;
+}
+
+.player-dir {
+    font-family: monospace;
+    font-size: 11px;
+    color: #aaa;
+    min-width: 25px;
+    text-align: right;
+}
+
+.player-self {
+    color: #fff;
+    font-weight: bold;
+}

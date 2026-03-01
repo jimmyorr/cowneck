@@ -238,6 +238,7 @@ signInAnonymously(auth)
             scene.add(mesh);
             otherPlayers.set(snapshot.key, {
                 mesh,
+                name: data.name || "Player",
                 targetPos: new THREE.Vector3(posData.x || 0, posData.y || 200, posData.z || 0),
                 targetRotX: posData.rotX || 0,
                 targetRotY: posData.rotY || 0,
@@ -296,6 +297,7 @@ signInAnonymously(auth)
                 p.targetRotZ = data.position.rotZ || 0;
                 p.targetSpeedMult = data.position.speedMult !== undefined ? data.position.speedMult : 1;
                 p.lastReceivedMs = Date.now();
+                if (data.name) p.name = data.name;
             }
         });
 

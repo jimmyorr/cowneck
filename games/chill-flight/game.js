@@ -755,6 +755,70 @@ function animate() {
     }
 
     renderer.render(scene, camera);
+
+    // Update Online Players List (Desktop only)
+    if (window.innerWidth > 768) {
+        updatePlayerList();
+    }
+}
+
+function updatePlayerList() {
+    const listEl = document.getElementById('player-list');
+    if (!listEl) return;
+
+    const players = [];
+    // Self
+    players.push({
+        name: playerName + " (You)",
+        dist: 0,
+        isSelf: true
+    });
+
+    // Others
+    if (typeof otherPlayers !== 'undefined') {
+        otherPlayers.forEach((p, uid) => {
+            const deltaX = p.mesh.position.x - planeGroup.position.x;
+            const deltaZ = p.mesh.position.z - planeGroup.position.z;
+            const dist = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ) * 0.3048; // convert to meters roughly
+
+            // Calculate direction to other player
+            // In Three.js, North is -Z, South is +Z, East is +X, West is -X
+
+            // Calculate angle from North (-Z)
+            // atan2(-x, -z) maps -Z to 0, -X to PI/2 (West), +Z to PI (South), +X to -PI/2 (East)
+            let angleToOther = Math.atan2(-deltaX, -deltaZ);
+            if (angleToOther < 0) angleToOther += Math.PI * 2;
+
+            // Map angle to 8 directions (45 deg each)
+            const arrows = ['↑', '↖', '←', '↙', '↓', '↘', '→', '↗'];
+            const arrowIdx = Math.floor(((angleToOther * (180 / Math.PI) + 22.5) % 360) / 45);
+            const dirEmoji = arrows[arrowIdx];
+
+            players.push({
+                name: p.name || "Player",
+                dist: dist,
+                dir: dirEmoji,
+                isSelf: false
+            });
+        });
+    }
+
+    // Sort by distance
+    players.sort((a, b) => a.dist - b.dist);
+
+    // Take top 5
+    const top5 = players.slice(0, 5);
+
+    // Render
+    listEl.innerHTML = top5.map(p => `
+        <div class="player-entry ${p.isSelf ? 'player-self' : ''}">
+            <span class="player-name">${p.name}</span>
+            <div class="player-info">
+                <span class="player-dist">${p.isSelf ? '-' : Math.round(p.dist) + 'm'}</span>
+                <span class="player-dir">${p.isSelf ? '-' : p.dir}</span>
+            </div>
+        </div>
+    `).join('');
 }
 
 // Start loop
