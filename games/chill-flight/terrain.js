@@ -86,6 +86,15 @@ fireLogGeo.rotateZ(Math.PI / 2);
 const fireCoreGeo = new THREE.SphereGeometry(2, 8, 8);
 const fireMat = new THREE.MeshStandardMaterial({ color: 0xFF4500, emissive: 0xFF4500, emissiveIntensity: 2.0 });
 
+// Smoke geometry and material community
+const smokeGeo = new THREE.BoxGeometry(2, 2, 2);
+const smokeMat = new THREE.MeshStandardMaterial({
+    color: 0x888888,
+    transparent: true,
+    opacity: 0.4,
+    flatShading: true
+});
+
 // Lighthouse Beam geometry - narrow (2) at lighthouse, wide (20) at tip community
 const lighthouseBeamGeo = new THREE.CylinderGeometry(20, 2, 300, 16, 1, true);
 lighthouseBeamGeo.rotateX(Math.PI / 2);
@@ -220,8 +229,8 @@ function generateChunk(chunkX, chunkZ) {
                         }
                     }
 
-                    // Campfires in forest or near houses
-                    if (rng() < 0.003 * densityScale) {
+                    // Campfires in forest or near houses community
+                    if (rng() < 0.1 * densityScale) { // Increased from 0.02 community
                         campfirePositions.push({ x: localX, y: height, z: localZ });
                     }
                 }
@@ -232,6 +241,10 @@ function generateChunk(chunkX, chunkZ) {
 
                 if (rng() < (desertFactor > 0.5 ? 0.002 : 0.005) * densityScale) {
                     housePositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
+                    // Campfires near houses community
+                    if (rng() < 0.2) { // Increased from 0.1 community
+                        campfirePositions.push({ x: localX + 10, y: height, z: localZ + 10 });
+                    }
                 } else if (rng() < 0.001 * densityScale && height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 100 && desertFactor < 0.3 && snowFactor < 0.3) {
                     // Windmills in temperate plains
                     windmillPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
@@ -240,12 +253,21 @@ function generateChunk(chunkX, chunkZ) {
                     lighthousePos = { x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 };
                 }
 
-                // Piers near shore
-                if (height > WATER_LEVEL + 0.5 && height < WATER_LEVEL + 3 && rng() < 0.01 * densityScale) {
-                    // Check if nearby is water (simple neighbor check isn't easy here, so we use noise/elevation check)
-                    const neighborHeight = getElevation(worldX + 20, worldZ + 20);
-                    if (neighborHeight <= WATER_LEVEL) {
-                        const angleToWater = Math.atan2(20, 20); // Very rough
+                // Piers near shore community
+                if (height > WATER_LEVEL + 0.5 && height < WATER_LEVEL + 3 && rng() < 0.15 * densityScale) { // Increased from 0.05 community
+                    // Check neighbors to align with water community
+                    const hN = getElevation(worldX, worldZ - 20);
+                    const hS = getElevation(worldX, worldZ + 20);
+                    const hE = getElevation(worldX + 20, worldZ);
+                    const hW = getElevation(worldX - 20, worldZ);
+
+                    let angleToWater = -1;
+                    if (hN <= WATER_LEVEL) angleToWater = Math.PI;
+                    else if (hS <= WATER_LEVEL) angleToWater = 0;
+                    else if (hE <= WATER_LEVEL) angleToWater = -Math.PI / 2;
+                    else if (hW <= WATER_LEVEL) angleToWater = Math.PI / 2;
+
+                    if (angleToWater !== -1) {
                         pierPositions.push({ x: localX, y: height, z: localZ, rotY: angleToWater });
                     }
                 }
@@ -494,6 +516,7 @@ function generateChunk(chunkX, chunkZ) {
     if (campfirePositions.length > 0) {
         const logInst = new THREE.InstancedMesh(fireLogGeo, woodMat, campfirePositions.length * 3);
         const coreInst = new THREE.InstancedMesh(fireCoreGeo, fireMat, campfirePositions.length);
+        const smokeInst = new THREE.InstancedMesh(smokeGeo, smokeMat, campfirePositions.length * 5); // 5 particles per fire community
 
         campfirePositions.forEach((pos, index) => {
             // Logs in a tripod/teepee shape
@@ -508,14 +531,25 @@ function generateChunk(chunkX, chunkZ) {
             dummy.rotation.set(0, 0, 0);
             dummy.updateMatrix();
             coreInst.setMatrixAt(index, dummy.matrix);
+
+            // Smoke community
+            for (let i = 0; i < 5; i++) {
+                dummy.position.set(pos.x, pos.y + 5 + i * 5, pos.z);
+                dummy.scale.set(1 + i * 0.5, 1 + i * 0.5, 1 + i * 0.5);
+                dummy.updateMatrix();
+                smokeInst.setMatrixAt(index * 5 + i, dummy.matrix);
+            }
         });
 
         logInst.position.set(worldOffsetX, 0, worldOffsetZ);
         coreInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        smokeInst.position.set(worldOffsetX, 0, worldOffsetZ);
         group.add(logInst);
         group.add(coreInst);
+        group.add(smokeInst);
 
         group.userData.campfires = coreInst;
+        group.userData.campfireSmoke = smokeInst;
         group.userData.campfirePositions = campfirePositions;
     }
 

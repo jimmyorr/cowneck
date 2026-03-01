@@ -691,21 +691,45 @@ function animate() {
             // Animate Campfires
             if (chunkGroup.userData.campfires && chunkGroup.userData.campfirePositions) {
                 const cores = chunkGroup.userData.campfires;
+                const smoke = chunkGroup.userData.campfireSmoke;
                 const positions = chunkGroup.userData.campfirePositions;
                 const time = performance.now() * 0.01;
                 const dummy = new THREE.Object3D();
 
                 positions.forEach((pos, index) => {
+                    // Animate Core community
                     const scale = 1.0 + Math.sin(time + index) * 0.2;
                     dummy.position.set(pos.x, pos.y + 2, pos.z);
                     dummy.scale.set(scale, scale, scale);
                     dummy.updateMatrix();
                     cores.setMatrixAt(index, dummy.matrix);
+
+                    // Animate Smoke community
+                    if (smoke) {
+                        for (let i = 0; i < 5; i++) {
+                            const smokeIdx = index * 5 + i;
+                            const offsetTime = (performance.now() * 0.001 + i * 0.4) % 2.0; // 2 second cycle community
+                            const rise = offsetTime * 40;
+                            const drift = Math.sin(performance.now() * 0.002 + i) * 5;
+                            const smokeScale = (1.0 + i * 0.5) * (1.0 + offsetTime * 0.5);
+
+                            dummy.position.set(pos.x + drift, pos.y + 5 + rise, pos.z);
+                            dummy.scale.set(smokeScale, smokeScale, smokeScale);
+                            dummy.rotation.set(offsetTime, offsetTime, offsetTime);
+                            dummy.updateMatrix();
+                            smoke.setMatrixAt(smokeIdx, dummy.matrix);
+                        }
+                    }
                 });
                 cores.instanceMatrix.needsUpdate = true;
-                // Fade out campfires during day
+                if (smoke) smoke.instanceMatrix.needsUpdate = true;
+
+                // Fade out campfires/smoke during day community
                 if (cores.material) {
                     cores.material.emissiveIntensity = 2.0 * (1.0 - dayFactor * 0.8);
+                }
+                if (smoke && smoke.material) {
+                    smoke.material.opacity = 0.4 * (1.0 - dayFactor * 0.5);
                 }
             }
         });
