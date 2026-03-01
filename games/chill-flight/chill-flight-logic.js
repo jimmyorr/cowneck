@@ -62,19 +62,12 @@
     //   180 – 210 → night   (progress 0.75 – 1.00)  [30s]
     //   210 – 330 → sunrise (progress 0.00 – 0.25) [120s]
     function computeTimeOfDay(secondsInCycle) {
-        if (secondsInCycle < 55) {
-            // Night: 00:00 - 04:00 (55s)
-            return (secondsInCycle / 55) * (4 / 24);
-        } else if (secondsInCycle < 165) {
-            // Sunrise: 04:00 - 12:00 (110s)
-            return (4 / 24) + ((secondsInCycle - 55) / 110) * (8 / 24);
-        } else if (secondsInCycle < 220) {
-            // Day: 12:00 - 16:00 (55s)
-            return (12 / 24) + ((secondsInCycle - 165) / 55) * (4 / 24);
-        } else {
-            // Sunset: 16:00 - 00:00 (110s)
-            return (16 / 24) + ((secondsInCycle - 220) / 110) * (8 / 24);
-        }
+        const CYCLE_DURATION_S = 300;
+        const linearProgress = (secondsInCycle % CYCLE_DURATION_S) / CYCLE_DURATION_S;
+        const warpAmplitude = 0.07;
+        // Progress 0.0 = Midnight (6 hours before Sunrise at 0.25)
+        const currentWarpedProgress = linearProgress + warpAmplitude * Math.sin(4 * Math.PI * linearProgress);
+        return currentWarpedProgress;
     }
 
     // --- INPUT NORMALIZATION ---

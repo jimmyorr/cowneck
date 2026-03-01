@@ -110,45 +110,47 @@ test('getPlaneColor: different uids can produce different colors', () => {
 // =============================================================================
 
 test('computeTimeOfDay: segment boundaries map to correct progress values', () => {
-    assert.strictEqual(computeTimeOfDay(0), 0.25, 'Start of day segment (t=0)');
-    assert.strictEqual(computeTimeOfDay(60), 0.50, 'Start of sunset segment (t=60)');
-    assert.strictEqual(computeTimeOfDay(180), 0.75, 'Start of night segment (t=180)');
-    assert.strictEqual(computeTimeOfDay(210), 0.00, 'Start of sunrise segment (t=210)');
+    // 300s cycle.
+    // Progress starts at 0.0 (Midnight)
+    // 75s (1/4 cycle) -> 6am (0.25) + warp
+    // 150s (1/2 cycle) -> Noon (0.50) + warp
+    // 225s (3/4 cycle) -> 6pm (0.75) + warp
+
+    // Sin(4*PI*0) = 0
+    assert.strictEqual(computeTimeOfDay(0), 0, 'Start of cycle (Midnight) should be 0');
+
+    // 150s is mid-cycle. Sin(4*PI*0.5) = Sin(2PI) = 0
+    assert.strictEqual(computeTimeOfDay(150), 0.5, 'Mid-point of cycle (Noon) should be 0.5');
+
+    // 300s is end of cycle. Sin(4*PI*1) = Sin(4PI) = 0
+    assert.strictEqual(computeTimeOfDay(300), 0, 'End of cycle (Midnight) should wrap to 0');
 });
 
 test('computeTimeOfDay: output is always in [0, 1)', () => {
-    for (let s = 0; s < 330; s++) {
+    for (let s = 0; s < 300; s++) {
         const p = computeTimeOfDay(s);
         assert.ok(p >= 0 && p < 1, `Progress ${p} out of [0,1) for secondsInCycle=${s}`);
     }
 });
 
-test('computeTimeOfDay: interpolates linearly within each segment', () => {
-    // Mid-day (s=30, half of 60s) → 0.25 + 0.5*0.25 = 0.375
-    assert.strictEqual(computeTimeOfDay(30), 0.375, 'Mid-day at 30s');
-    // Mid-sunset (s=120, 60s into the 120s segment) → 0.50 + 0.5*0.25 = 0.625
-    assert.strictEqual(computeTimeOfDay(120), 0.625, 'Mid-sunset at 120s');
-    // Mid-night (s=195, 15s into the 30s segment) → 0.75 + 0.5*0.25 = 0.875
-    assert.strictEqual(computeTimeOfDay(195), 0.875, 'Mid-night at 195s');
-    // Mid-sunrise (s=270, 60s into the 120s segment) → 0.5*0.25 = 0.125
-    assert.strictEqual(computeTimeOfDay(270), 0.125, 'Mid-sunrise at 270s');
+test('computeTimeOfDay: applies sine-based warping', () => {
+    // At t=37.5s (1/8 of 300s cycle), progress is 0.125
+    // Warp = 0.07 * sin(4 * PI * 0.125) = 0.07 * sin(PI/2) = 0.07
+    // Final = 0.125 + 0.07 = 0.195
+    assert.ok(Math.abs(computeTimeOfDay(37.5) - 0.195) < 0.001, 'Mid-way to sunrise (warp positive)');
+
+    // At t=112.5s (3/8 of 300s cycle), progress is 0.375
+    // Warp = 0.07 * sin(4 * PI * 0.375) = 0.07 * sin(3PI/2) = -0.07
+    // Final = 0.375 - 0.07 = 0.305
+    assert.ok(Math.abs(computeTimeOfDay(112.5) - 0.305) < 0.001, 'Mid-way sunrise to noon (warp negative)');
 });
 
-test('computeTimeOfDay: is continuous within each segment (not at the cycle wrap)', () => {
-    const eps = 0.001;
-    // t=210 is intentionally a discontinuity: the cycle wraps from ~1.0 back to 0.0.
-    // Only check continuity at interior segment boundaries (t=60 and t=180).
-    const interiorBoundaries = [60, 180];
-    for (const b of interiorBoundaries) {
-        const before = computeTimeOfDay(b - eps);
-        const at = computeTimeOfDay(b);
-        assert.ok(Math.abs(before - at) < 0.01, `Discontinuity near t=${b}: before=${before}, at=${at}`);
-    }
-    // Verify the cycle wrap at t=210 actually does jump (expected behavior)
-    const beforeWrap = computeTimeOfDay(210 - eps);
-    const atWrap = computeTimeOfDay(210);
-    assert.ok(beforeWrap > 0.9, `Value just before wrap (${beforeWrap}) should be near 1.0`);
-    assert.strictEqual(atWrap, 0, 'Value at cycle wrap (t=210) should reset to 0');
+test('computeTimeOfDay: is continuous across the cycle wrap', () => {
+    const eps = 0.0001;
+    const before = computeTimeOfDay(300 - eps);
+    const at = computeTimeOfDay(0); // equivalent to 300
+    assert.ok(Math.abs(before - 1.0) < 0.01, `Value just before wrap (${before}) should be near 1.0`);
+    assert.strictEqual(at, 0, 'Value at 0 should be 0');
 });
 
 // =============================================================================
