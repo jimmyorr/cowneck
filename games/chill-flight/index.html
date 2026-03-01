@@ -11,14 +11,12 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-        gtag('config', 'G-6RNVL7JZVJ');
+        gtag('config', 'G-6RNVL7JZVJ', { 'youtube_tracking': false });
     </script>
     <link rel="icon" type="image/svg+xml" href="../favicon-plane.svg">
     <link rel="stylesheet" href="style.css">
     <!-- Three.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- YouTube iframe API (async — sets up global YT before game starts) -->
-    <script src="https://www.youtube.com/iframe_api" async></script>
 </head>
 
 <body>
@@ -94,6 +92,16 @@
         <button id="respawn-btn" class="btn">Respawn</button>
     </div>
 
+    <div id="loading-overlay">
+        <div class="loading-content">
+            <h1 style="margin-bottom: 5px; letter-spacing: 2px;">CALIBRATING SYSTEMS</h1>
+            <div class="loading-bar-container">
+                <div id="loading-bar"></div>
+            </div>
+            <p id="loading-status">Warming up engines...</p>
+        </div>
+    </div>
+
     <div id="cockpit-ui">
         <div class="cockpit-grid">
             <div class="cockpit-module">
@@ -166,6 +174,7 @@
     <script src="airplane.js"></script>
     <script src="terrain.js"></script>
     <script src="audio.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script src="game.js"></script>
 
     <!-- Firebase multiplayer: must be last (ES module, deferred by default) -->

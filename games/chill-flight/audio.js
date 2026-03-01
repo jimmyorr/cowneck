@@ -232,7 +232,19 @@ function setStation(num) {
     }
 
     currentStation = num;
-    document.getElementById('station-name').innerText = num === 0 ? '' : stationNames[num];
+    const nameDisplay = document.getElementById('station-name');
+
+    if (num === 0) {
+        nameDisplay.innerText = '';
+    } else {
+        const isYT = (num === 2 || num === 3);
+        if (isYT && !ytPlayerReady) {
+            nameDisplay.innerText = stationNames[num] + " [SYNCING...]";
+            ytQueuedStation = num;
+        } else {
+            nameDisplay.innerText = stationNames[num];
+        }
+    }
 
     document.querySelectorAll('.station-btn').forEach(b => {
         b.classList.remove('active');
@@ -244,26 +256,10 @@ function setStation(num) {
         }
     });
 
-    const ytContainer = document.getElementById('yt-container');
     if (ytPlayerReady) {
-        if (num === 2) {
-            ytContainer.style.display = window.innerWidth <= 768 ? 'none' : 'block';
-            ytPlayer.loadVideoById(lofiGirlVideos[lofiGirlIdx]);
-            ytPlayer.playVideo();
-        } else if (num === 3) {
-            ytContainer.style.display = window.innerWidth <= 768 ? 'none' : 'block';
-            const randomStartIndex = Math.floor(Math.random() * 30);
-            ytPlayer.loadPlaylist({
-                listType: 'playlist',
-                list: 'PLF3eNE6vR-4UAcd0VduNzdgyPjee60-Sl',
-                index: randomStartIndex
-            });
-            ytPlayer.setShuffle(true);
-            ytPlayer.playVideo();
-        } else {
-            ytContainer.style.display = 'none';
-            ytPlayer.pauseVideo();
-        }
+        updateYTPlayer(num);
+    } else if (num === 2 || num === 3) {
+        ensureYTPlayerInitialized();
     }
 
     const isProcedural = (num === 1 || (num >= 4 && num <= 6));
@@ -287,38 +283,147 @@ function setStation(num) {
     }
 }
 
-// --- YOUTUBE API SETUP ---
+function updateYTPlayer(num) {
+    if (!ytPlayerReady) return;
+    const ytContainer = document.getElementById('yt-container');
+    if (num === 2) {
+        const isVisible = window.innerWidth > 768;
+        ytContainer.style.display = isVisible ? 'block' : 'none';
+        ytContainer.style.opacity = isVisible ? '1' : '0';
+        ytPlayer.loadVideoById(lofiGirlVideos[lofiGirlIdx]);
+        setTimeout(() => ytPlayer.playVideo(), 100);
+    } else if (num === 3) {
+        const isVisible = window.innerWidth > 768;
+        ytContainer.style.display = isVisible ? 'block' : 'none';
+        ytContainer.style.opacity = isVisible ? '1' : '0';
+        const randomStartIndex = Math.floor(Math.random() * 30);
+        ytPlayer.loadPlaylist({
+            listType: 'playlist',
+            list: 'PLF3eNE6vR-4UAcd0VduNzdgyPjee60-Sl',
+            index: randomStartIndex
+        });
+        ytPlayer.setShuffle(true);
+        setTimeout(() => ytPlayer.playVideo(), 100);
+    } else {
+        ytContainer.style.display = 'none';
+        ytContainer.style.opacity = '0';
+        ytPlayer.pauseVideo();
+    }
+}
+
+// --- YOUTUBE API RESILIENT HANDSHAKE (v15) ---
 let ytPlayer;
 let ytPlayerReady = false;
+let ytApiLoaded = false;
+let ytInitializing = false;
+let calibrationFinished = false;
+let ytQueuedStation = null;
 const lofiGirlVideos = ['jfKfPfyJRdk', '4xDzrJKXOOY', '28KRPhVzCus', 'HuFYqnbVbzY', 'S_MOd40zlYU'];
 let lofiGirlIdx = 0;
 
+// FAIL-SAFE: Always finish calibration after 10 seconds (upped from 5s)
+setTimeout(() => {
+    if (!calibrationFinished) {
+        console.log("Radio calibration taking longer than usual. Cockpit ready.");
+        finishCalibration();
+    }
+}, 10000);
+
 window.onYouTubeIframeAPIReady = function () {
-    console.log("YouTube API Ready.");
-    ytPlayer = new YT.Player('youtube-player', {
-        height: '124',
-        width: '220',
-        videoId: lofiGirlVideos[lofiGirlIdx],
-        playerVars: {
-            'playsinline': 1,
-            'controls': 0,
-            'disablekb': 1
-        },
-        events: {
-            'onReady': () => {
-                console.log("YouTube Player Ready.");
-                ytPlayerReady = true;
-                if (currentStation === 2) ytPlayer.cueVideoById(lofiGirlVideos[lofiGirlIdx]);
-                if (currentStation === 3) {
-                    const randomStartIndex = Math.floor(Math.random() * 30);
-                    ytPlayer.cuePlaylist({
-                        listType: 'playlist',
-                        list: 'PLF3eNE6vR-4UAcd0VduNzdgyPjee60-Sl',
-                        index: randomStartIndex
-                    });
-                }
-            },
-            'onError': (e) => console.error("YouTube Error:", e.data)
-        }
-    });
+    console.log("YouTube API Loaded.");
+    ytApiLoaded = true;
+    updateLoadingProgress(20, "Syncing origins...");
+
+    // Short buffer to allow GA configs to settle
+    setTimeout(() => {
+        ensureYTPlayerInitialized();
+    }, 300);
 };
+
+function updateLoadingProgress(percent, status) {
+    const bar = document.getElementById('loading-bar');
+    const text = document.getElementById('loading-status');
+    if (bar) bar.style.width = percent + '%';
+    if (text) text.innerText = status;
+}
+
+function finishCalibration() {
+    if (calibrationFinished) return;
+    calibrationFinished = true;
+
+    updateLoadingProgress(100, "All systems go.");
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.style.transition = 'opacity 1s ease';
+        overlay.style.opacity = '0';
+        overlay.style.pointerEvents = 'none';
+        setTimeout(() => overlay.style.visibility = 'hidden', 1000);
+    }
+
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+function ensureYTPlayerInitialized(callback) {
+    if (ytInitializing || ytPlayerReady) return;
+    ytInitializing = true;
+    updateLoadingProgress(40, "Handshaking radio...");
+
+    const ytContainer = document.getElementById('yt-container');
+    const origin = window.location.origin;
+    const videoId = lofiGirlVideos[lofiGirlIdx];
+
+    ytContainer.style.display = 'block';
+    ytContainer.style.opacity = '0';
+    ytContainer.style.pointerEvents = 'none';
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'youtube-player-v15';
+    iframe.width = '220';
+    iframe.height = '124';
+    iframe.setAttribute('allow', 'autoplay; encrypted-media');
+    iframe.style.border = 'none';
+    iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${encodeURIComponent(origin)}&widget_referrer=${encodeURIComponent(origin)}&rel=0&iv_load_policy=3&playsinline=1&controls=0&disablekb=1`;
+
+    iframe.onload = () => {
+        updateLoadingProgress(60, "Stabilizing origin...");
+        // Shorter buffer (300ms) for v15 speed
+        setTimeout(() => {
+            updateLoadingProgress(80, "Binding player...");
+            ytPlayer = new YT.Player(iframe, {
+                videoId: videoId,
+                playerVars: {
+                    'playsinline': 1, 'controls': 0, 'disablekb': 1, 'enablejsapi': 1, 'origin': origin, 'rel': 0, 'iv_load_policy': 3
+                },
+                events: {
+                    'onReady': () => {
+                        console.log("YouTube Radio Active.");
+                        ytPlayerReady = true;
+                        ytInitializing = false;
+                        ytContainer.style.pointerEvents = 'auto';
+
+                        // Handle station queuing
+                        if (ytQueuedStation) {
+                            setStation(ytQueuedStation);
+                            ytQueuedStation = null;
+                        }
+
+                        finishCalibration();
+                        if (callback) callback();
+                    },
+                    'onError': (e) => {
+                        console.error("YouTube Error (v15):", e.data);
+                        ytInitializing = false;
+                        finishCalibration();
+                    }
+                }
+            });
+        }, 300);
+    };
+
+    const placeholder = document.getElementById('youtube-player');
+    if (placeholder) {
+        placeholder.parentNode.replaceChild(iframe, placeholder);
+    }
+}
