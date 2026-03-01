@@ -37,6 +37,8 @@ window.addEventListener('mousemove', (e) => {
 window.addEventListener('touchstart', (e) => {
     if (e.touches.length > 0 && !e.target.closest('#cockpit-ui') && !e.target.closest('#debug-menu') && !e.target.closest('.title')) {
         updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
+        mouseControlActive = true;
+        windowJustFocused = false; // Touch starts should always count as immediate interaction
     }
 }, { passive: false });
 
@@ -47,6 +49,7 @@ window.addEventListener('touchmove', (e) => {
         }
         if (!e.target.closest('#cockpit-ui') && !e.target.closest('#debug-menu') && !e.target.closest('.title')) {
             updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
+            mouseControlActive = true;
         }
     }
 }, { passive: false });
