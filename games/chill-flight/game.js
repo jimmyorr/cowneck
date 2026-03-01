@@ -764,12 +764,13 @@ function animate() {
 
 function updatePlayerList() {
     const listEl = document.getElementById('player-list');
-    if (!listEl) return;
+    const containerEl = document.getElementById('online-players');
+    if (!listEl || !containerEl) return;
 
     const players = [];
     // Self
     players.push({
-        name: playerName + " (You)",
+        name: playerName,
         dist: 0,
         isSelf: true
     });
@@ -807,6 +808,13 @@ function updatePlayerList() {
                 isSelf: false
             });
         });
+    }
+
+    // Only show if there's more than one player (Self + at least one other)
+    if (players.length > 1) {
+        containerEl.classList.add('visible');
+    } else {
+        containerEl.classList.remove('visible');
     }
 
     // Sort by distance

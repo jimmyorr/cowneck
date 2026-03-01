@@ -359,6 +359,15 @@ body {
     border-radius: 8px;
     padding: 12px;
     width: 180px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+#online-players.visible {
+    opacity: 1;
+    transform: translateY(0);
     pointer-events: auto;
 }
 
