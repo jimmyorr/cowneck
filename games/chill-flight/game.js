@@ -874,6 +874,7 @@ function updatePlayerList() {
             const dirEmoji = arrows[arrowIdx];
 
             players.push({
+                uid: uid,
                 name: p.name || "Player",
                 dist: dist,
                 dir: dirEmoji,
@@ -897,7 +898,7 @@ function updatePlayerList() {
 
     // Render
     listEl.innerHTML = top5.map(p => `
-        <div class="player-entry ${p.isSelf ? 'player-self' : ''}">
+        <div class="player-entry ${p.isSelf ? 'player-self' : ''}" ${p.uid ? `data-uid="${p.uid}" style="cursor: pointer;"` : ''}>
             <span class="player-name">${p.name}</span>
             <div class="player-info">
                 <span class="player-dist">${p.isSelf ? '-' : Math.round(p.dist) + 'm'}</span>
@@ -905,6 +906,33 @@ function updatePlayerList() {
             </div>
         </div>
     `).join('');
+}
+
+// Warp to player on click
+const playerListEl = document.getElementById('player-list');
+if (playerListEl) {
+    playerListEl.addEventListener('click', (e) => {
+        const entry = e.target.closest('.player-entry');
+        if (entry && entry.dataset.uid) {
+            const uid = entry.dataset.uid;
+            if (typeof otherPlayers !== 'undefined') {
+                const p = otherPlayers.get(uid);
+                if (p && p.mesh && planeGroup) {
+                    // Warp local plane to target player
+                    planeGroup.position.copy(p.mesh.position);
+                    planeGroup.position.y += 10; // offset slightly above
+                    planeGroup.rotation.copy(p.mesh.rotation);
+                    flightSpeedMultiplier = Math.max(0.5, p.targetSpeedMult || 0.5);
+
+                    // Reset inputs
+                    targetPitch = 0;
+                    targetRoll = 0;
+
+                    console.log(`Warped to player ${p.name}`);
+                }
+            }
+        }
+    });
 }
 
 // Start loop
