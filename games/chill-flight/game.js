@@ -344,8 +344,8 @@ function animate() {
         if (isDebugMode) {
             timeOfDay += delta * (2 * Math.PI / (CYCLE_DURATION_MS / 1000)) * daySpeedMultiplier;
         } else {
-            const now = Date.now() + (window.serverTimeOffset || 0);
-            const secondsInCycle = (now % CYCLE_DURATION_MS) / 1000;
+            const serverNow = Date.now() + (window.serverTimeOffset || 0);
+            const secondsInCycle = (serverNow % CYCLE_DURATION_MS) / 1000;
             const currentWarpedProgress = ChillFlightLogic.computeTimeOfDay(secondsInCycle);
             timeOfDay = currentWarpedProgress * Math.PI * 2;
         }
@@ -611,6 +611,13 @@ function animate() {
         // Update terrain chunks
         updateChunks();
 
+        // Celestial positions
+        const orbitRadius = 8000;
+        const sunY = -Math.cos(timeOfDay);
+        const sunX = Math.sin(timeOfDay);
+        const sunZ = Math.cos(timeOfDay) * 0.3;
+        const dayFactor = Math.max(0, Math.min(1, (sunY + 0.5) * 2)); // 0.0 at SunY=-0.5 (4 AM), 1.0 at SunY=0 (6 AM)
+
         // Animate Birds
         chunks.forEach(chunkGroup => {
             if (chunkGroup.userData.birds) {
@@ -658,13 +665,50 @@ function animate() {
                 });
                 bladesInst.instanceMatrix.needsUpdate = true;
             }
-        });
 
-        // Celestial positions
-        const orbitRadius = 8000;
-        const sunY = -Math.cos(timeOfDay);
-        const sunX = Math.sin(timeOfDay);
-        const sunZ = Math.cos(timeOfDay) * 0.3;
+            // Animate Lighthouse Beam
+            if (chunkGroup.userData.lighthouseBeam) {
+                const beam = chunkGroup.userData.lighthouseBeam;
+                beam.rotation.y += delta * 0.1; // Slow, relaxing beacon community
+                // Pulse opacity slightly
+                beam.material.opacity = 0.2 + Math.sin(performance.now() * 0.005) * 0.1;
+
+                // Rotate functional light target
+                if (chunkGroup.userData.lighthouseTarget && chunkGroup.userData.lighthouseLight) {
+                    const target = chunkGroup.userData.lighthouseTarget;
+                    const light = chunkGroup.userData.lighthouseLight;
+                    const angle = beam.rotation.y;
+                    target.position.set(
+                        light.position.x + Math.sin(angle) * 100,
+                        light.position.y - 15, // Aim lower community
+                        light.position.z + Math.cos(angle) * 100
+                    );
+                    // Fade out lighthouse light during day
+                    light.intensity = 50 * (1.0 - dayFactor * 0.95);
+                }
+            }
+
+            // Animate Campfires
+            if (chunkGroup.userData.campfires && chunkGroup.userData.campfirePositions) {
+                const cores = chunkGroup.userData.campfires;
+                const positions = chunkGroup.userData.campfirePositions;
+                const time = performance.now() * 0.01;
+                const dummy = new THREE.Object3D();
+
+                positions.forEach((pos, index) => {
+                    const scale = 1.0 + Math.sin(time + index) * 0.2;
+                    dummy.position.set(pos.x, pos.y + 2, pos.z);
+                    dummy.scale.set(scale, scale, scale);
+                    dummy.updateMatrix();
+                    cores.setMatrixAt(index, dummy.matrix);
+                });
+                cores.instanceMatrix.needsUpdate = true;
+                // Fade out campfires during day
+                if (cores.material) {
+                    cores.material.emissiveIntensity = 2.0 * (1.0 - dayFactor * 0.8);
+                }
+            }
+        });
 
         // Update Cockpit HUD
         const hours = (timeOfDay / (Math.PI * 2)) * 24;
@@ -694,14 +738,8 @@ function animate() {
         skyGroup.position.copy(camera.position);
 
         // Sky color / fog / weather
-        // Sky color / fog / weather
-        // SunY is -Math.cos(timeOfDay). 
-        // At 00:00 (0), SunY = -1.0
-        // At 04:00 (PI/3), SunY = -0.5. <--- Sunrise start
-        // At 06:00 (PI/2), SunY = 0.0.
         // At 12:00 (PI), SunY = 1.0.
 
-        let dayFactor = Math.max(0, Math.min(1, (sunY + 0.5) * 2)); // 0.0 at SunY=-0.5 (4 AM), 1.0 at SunY=0 (6 AM)
         let uncloudedSkyColor = new THREE.Color(0x050510);
         let uncloudedFogColor = new THREE.Color(0x020208);
 
@@ -724,7 +762,7 @@ function animate() {
         }
 
         // Stars fade starting at 4 AM (-0.5) and disappear by roughly 5:15 AM (-0.2)
-        starFactor = Math.max(0, Math.min(1, (sunY + 0.2) / -0.3));
+        let starFactor = Math.max(0, Math.min(1, (sunY + 0.2) / -0.3));
         starsMat.opacity = starFactor;
 
         hemiLight.intensity = THREE.MathUtils.lerp(0.1, 0.6, dayFactor);

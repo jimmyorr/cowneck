@@ -70,12 +70,34 @@ const windmillBladesMat = new THREE.MeshStandardMaterial({ color: 0xEEEEEE, flat
 const lighthousePieceGeo = new THREE.CylinderGeometry(8, 8, 20, 8);
 const lighthouseTopGeo = new THREE.SphereGeometry(10, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2);
 lighthouseTopGeo.translate(0, 60, 0);
-const lighthouseLampGeo = new THREE.BoxGeometry(4, 4, 15);
-lighthouseLampGeo.translate(0, 65, 8);
 
 const lighthouseRedMat = new THREE.MeshStandardMaterial({ color: 0xC62828, flatShading: true });
 const lighthouseWhiteMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, flatShading: true });
-const lighthouseLampMat = new THREE.MeshStandardMaterial({ color: 0xFFFF00, emissive: 0xFFFF00, emissiveIntensity: 5.0 });
+
+// Pier geometries
+const pierDeckGeo = new THREE.BoxGeometry(15, 2, 30);
+pierDeckGeo.translate(0, 1, 15); // Extend from shore
+const pierPostGeo = new THREE.CylinderGeometry(1, 1, 10, 6);
+const woodMat = new THREE.MeshStandardMaterial({ color: 0x5D4037, flatShading: true });
+
+// Campfire geometries
+const fireLogGeo = new THREE.CylinderGeometry(0.8, 0.8, 6, 6);
+fireLogGeo.rotateZ(Math.PI / 2);
+const fireCoreGeo = new THREE.SphereGeometry(2, 8, 8);
+const fireMat = new THREE.MeshStandardMaterial({ color: 0xFF4500, emissive: 0xFF4500, emissiveIntensity: 2.0 });
+
+// Lighthouse Beam geometry - narrow (2) at lighthouse, wide (20) at tip community
+const lighthouseBeamGeo = new THREE.CylinderGeometry(20, 2, 300, 16, 1, true);
+lighthouseBeamGeo.rotateX(Math.PI / 2);
+lighthouseBeamGeo.translate(0, 0, 150);
+const lighthouseBeamMat = new THREE.MeshBasicMaterial({
+    color: 0xFFFF99,
+    transparent: true,
+    opacity: 0.3,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+    depthWrite: false
+});
 
 function getBiome(x, z) {
     return ChillFlightLogic.getBiome(x, z, simplex);
@@ -113,6 +135,8 @@ function generateChunk(chunkX, chunkZ) {
     const housePositions = [];
     const windmillPositions = [];
     let lighthousePos = null;
+    const pierPositions = [];
+    const campfirePositions = [];
 
     for (let i = 0; i < positions.length; i += 3) {
         const localX = positions[i];
@@ -195,6 +219,11 @@ function generateChunk(chunkX, chunkZ) {
                             treePositions.push({ x: localX, y: height, z: localZ });
                         }
                     }
+
+                    // Campfires in forest or near houses
+                    if (rng() < 0.003 * densityScale) {
+                        campfirePositions.push({ x: localX, y: height, z: localZ });
+                    }
                 }
             } else {
                 colorObj.copy(colorPlains);
@@ -206,9 +235,19 @@ function generateChunk(chunkX, chunkZ) {
                 } else if (rng() < 0.001 * densityScale && height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 100 && desertFactor < 0.3 && snowFactor < 0.3) {
                     // Windmills in temperate plains
                     windmillPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
-                } else if (!lighthousePos && rng() < 0.005 * densityScale && worldX > 3000 && height > WATER_LEVEL && height < WATER_LEVEL + 10) {
-                    // Lighthouses on Eastern islands - Max 1 per chunk
+                } else if (!lighthousePos && rng() < 0.002 * densityScale && worldX > 3000 && height > WATER_LEVEL && height < WATER_LEVEL + 10) {
+                    // Lighthouses on Eastern islands - Max 1 per chunk community
                     lighthousePos = { x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 };
+                }
+
+                // Piers near shore
+                if (height > WATER_LEVEL + 0.5 && height < WATER_LEVEL + 3 && rng() < 0.01 * densityScale) {
+                    // Check if nearby is water (simple neighbor check isn't easy here, so we use noise/elevation check)
+                    const neighborHeight = getElevation(worldX + 20, worldZ + 20);
+                    if (neighborHeight <= WATER_LEVEL) {
+                        const angleToWater = Math.atan2(20, 20); // Very rough
+                        pierPositions.push({ x: localX, y: height, z: localZ, rotY: angleToWater });
+                    }
                 }
             }
         }
@@ -374,7 +413,6 @@ function generateChunk(chunkX, chunkZ) {
         const piece2Inst = new THREE.InstancedMesh(lighthousePieceGeo, lighthouseWhiteMat, 1);
         const piece3Inst = new THREE.InstancedMesh(lighthousePieceGeo, lighthouseRedMat, 1);
         const topInst = new THREE.InstancedMesh(lighthouseTopGeo, lighthouseWhiteMat, 1);
-        const lampInst = new THREE.InstancedMesh(lighthouseLampGeo, lighthouseLampMat, 1);
 
         const pos = lighthousePos;
         dummy.position.set(pos.x, pos.y + 10, pos.z);
@@ -395,13 +433,90 @@ function generateChunk(chunkX, chunkZ) {
         dummy.updateMatrix();
         topInst.setMatrixAt(0, dummy.matrix);
 
-        lampInst.setMatrixAt(0, dummy.matrix);
-
-        const pieces = [piece1Inst, piece2Inst, piece3Inst, topInst, lampInst];
+        const pieces = [piece1Inst, piece2Inst, piece3Inst, topInst];
         pieces.forEach(p => {
             p.position.set(worldOffsetX, 0, worldOffsetZ);
             group.add(p);
         });
+
+        // Beam
+        const beam = new THREE.Mesh(lighthouseBeamGeo, lighthouseBeamMat);
+        beam.position.set(pos.x + worldOffsetX, pos.y + 65, pos.z + worldOffsetZ);
+        beam.rotation.y = pos.rotY;
+        beam.rotation.x = 0.15; // Tilt slightly downward community
+        group.add(beam);
+        group.userData.lighthouseBeam = beam;
+
+        // Functional Light (SpotLight)
+        const spotLight = new THREE.SpotLight(0xFFFF99, 50, 600, Math.PI / 8, 0.5, 1);
+        spotLight.position.set(pos.x + worldOffsetX, pos.y + 65, pos.z + worldOffsetZ);
+        // Initial target position matching beam rotation and tilted down community
+        spotLight.target.position.set(
+            pos.x + worldOffsetX + Math.sin(pos.rotY) * 100,
+            pos.y + 65 - 15, // Aim lower community
+            pos.z + worldOffsetZ + Math.cos(pos.rotY) * 100
+        );
+        group.add(spotLight);
+        group.add(spotLight.target);
+        group.userData.lighthouseLight = spotLight;
+        group.userData.lighthouseTarget = spotLight.target;
+    }
+
+    // 2.95 Generate Piers
+    if (pierPositions.length > 0) {
+        const deckInst = new THREE.InstancedMesh(pierDeckGeo, woodMat, pierPositions.length);
+        const postInst = new THREE.InstancedMesh(pierPostGeo, woodMat, pierPositions.length * 4);
+
+        pierPositions.forEach((pos, index) => {
+            dummy.position.set(pos.x, pos.y - 1, pos.z);
+            dummy.rotation.set(0, pos.rotY, 0);
+            dummy.updateMatrix();
+            deckInst.setMatrixAt(index, dummy.matrix);
+
+            // Posts
+            const offsets = [[-6, 10], [6, 10], [-6, 25], [6, 25]];
+            offsets.forEach((off, i) => {
+                const p = new THREE.Vector3(off[0], -5, off[1]).applyAxisAngle(new THREE.Vector3(0, 1, 0), pos.rotY);
+                dummy.position.set(pos.x + p.x, pos.y + p.y, pos.z + p.z);
+                dummy.rotation.set(0, 0, 0);
+                dummy.updateMatrix();
+                postInst.setMatrixAt(index * 4 + i, dummy.matrix);
+            });
+        });
+
+        deckInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        postInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(deckInst);
+        group.add(postInst);
+    }
+
+    // 2.96 Generate Campfires
+    if (campfirePositions.length > 0) {
+        const logInst = new THREE.InstancedMesh(fireLogGeo, woodMat, campfirePositions.length * 3);
+        const coreInst = new THREE.InstancedMesh(fireCoreGeo, fireMat, campfirePositions.length);
+
+        campfirePositions.forEach((pos, index) => {
+            // Logs in a tripod/teepee shape
+            for (let i = 0; i < 3; i++) {
+                dummy.position.set(pos.x, pos.y + 1, pos.z);
+                dummy.rotation.set(0.5, (i * Math.PI * 2 / 3), 0);
+                dummy.updateMatrix();
+                logInst.setMatrixAt(index * 3 + i, dummy.matrix);
+            }
+            // Fire core
+            dummy.position.set(pos.x, pos.y + 2, pos.z);
+            dummy.rotation.set(0, 0, 0);
+            dummy.updateMatrix();
+            coreInst.setMatrixAt(index, dummy.matrix);
+        });
+
+        logInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        coreInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(logInst);
+        group.add(coreInst);
+
+        group.userData.campfires = coreInst;
+        group.userData.campfirePositions = campfirePositions;
     }
 
     // 3. Generate Clouds
