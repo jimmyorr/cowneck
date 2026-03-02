@@ -228,9 +228,7 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
-document.getElementById('game-title').addEventListener('click', () => {
-    togglePause();
-});
+
 
 document.getElementById('resume-btn').addEventListener('click', () => {
     togglePause();
