@@ -346,32 +346,6 @@ body {
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
 }
 
-@media (max-width: 768px) {
-    .desktop-only {
-        display: none !important;
-    }
-
-    #mobile-controls {
-        display: flex;
-    }
-
-    #yt-container {
-        display: none !important;
-    }
-
-
-
-    #cockpit-ui {
-        top: 0px;
-        bottom: auto;
-        width: 100%;
-        border-radius: 0;
-        border-top: none;
-        border-left: none;
-        border-right: none;
-        justify-content: center;
-    }
-}
 
 
 
@@ -531,5 +505,38 @@ body {
     100% {
         transform: scale(1);
         box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    #mobile-controls {
+        display: flex;
+    }
+
+    #yt-container {
+        display: none !important;
+    }
+
+    #cockpit-ui {
+        top: 0px;
+        bottom: auto;
+        width: 100%;
+        border-radius: 0;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        justify-content: center;
+    }
+
+    .loading-content {
+        padding: 40px 20px;
+    }
+
+    .loading-title {
+        font-size: 24px;
+        letter-spacing: 6px;
     }
 }
