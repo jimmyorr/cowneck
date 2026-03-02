@@ -257,8 +257,8 @@ body {
 
 #yt-container {
     position: absolute;
-    bottom: 100px;
-    right: 30px;
+    bottom: 20px;
+    right: 20px;
     width: 220px;
     height: 124px;
     background: #111;
@@ -318,7 +318,7 @@ body {
 /* Mobile Controls Redesign */
 #mobile-controls {
     position: absolute;
-    bottom: 110px;
+    bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
@@ -369,6 +369,25 @@ body {
 
     #mobile-controls {
         display: flex;
+    }
+
+    #yt-container {
+        display: none !important;
+    }
+
+    #game-title {
+        display: none !important;
+    }
+
+    #cockpit-ui {
+        top: 0px;
+        bottom: auto;
+        width: 100%;
+        border-radius: 0;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        justify-content: center;
     }
 }
 

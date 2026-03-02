@@ -235,7 +235,7 @@ function setStation(num) {
     const nameDisplay = document.getElementById('station-name');
 
     if (num === 0) {
-        nameDisplay.innerText = '';
+        nameDisplay.innerText = 'C H I L L - F L I G H T';
     } else {
         const isYT = (num === 2 || num === 3);
         if (isYT && !ytPlayerReady) {

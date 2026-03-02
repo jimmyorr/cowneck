@@ -291,12 +291,6 @@ if (window.innerWidth <= 768) {
         radioModule.style.paddingLeft = '0';
         radioModule.style.marginLeft = '0';
     }
-
-    const ytContainer = document.getElementById('yt-container');
-    ytContainer.style.bottom = '120px';
-    ytContainer.style.right = '10px';
-    ytContainer.style.width = '180px';
-    ytContainer.style.height = '101px';
 }
 
 // --- MAIN GAME LOOP ---
