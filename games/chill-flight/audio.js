@@ -318,7 +318,7 @@ let ytApiLoaded = false;
 let ytInitializing = false;
 let calibrationFinished = false;
 let ytQueuedStation = null;
-const lofiGirlVideos = ['jfKfPfyJRdk', '4xDzrJKXOOY', '28KRPhVzCus', 'HuFYqnbVbzY', 'S_MOd40zlYU'];
+const lofiGirlVideos = ['jfKfPfyJRdk', '28KRPhVzCus', 'HuFYqnbVbzY', 'S_MOd40zlYU'];
 let lofiGirlIdx = 0;
 
 // FAIL-SAFE: Always finish calibration after 10 seconds (upped from 5s)
