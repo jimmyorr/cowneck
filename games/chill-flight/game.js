@@ -516,27 +516,29 @@ function animate() {
             planeGroup.rotation.y += turningRoll * 0.025;
         }
 
-        // Move forward
-        planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
-
-        // Speed controls
+        // Altitude and Speed constants
         const controlBaseAlt = Math.max(0, planeGroup.position.y - 45.5);
         const controlAlt = Math.round(controlBaseAlt * 25);
         const accelRate = 0.8 * delta;
 
+        // Move forward
+        if (flightSpeedMultiplier > 0) {
+            planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
+        } else if (controlAlt > 5) {
+            // Freefall tumble & sink - Chaotic!
+            planeGroup.rotation.x += (Math.sin(now * 0.002) + Math.cos(now * 0.0011)) * 0.8 * delta;
+            planeGroup.rotation.z += (Math.cos(now * 0.0025) + Math.sin(now * 0.0017)) * 0.8 * delta;
+            planeGroup.rotation.y += (Math.sin(now * 0.0015) + Math.cos(now * 0.0009)) * 0.5 * delta;
+            planeGroup.position.y -= 25 * delta; // Faster sink
+        }
+
+        // Speed controls
+
         if (keys.ArrowDown) {
             keys.ArrowUp = false;
-            if (flightSpeedMultiplier > 0.5) {
-                flightSpeedMultiplier = Math.max(0.5, flightSpeedMultiplier - accelRate);
-            } else if (flightSpeedMultiplier <= 0.5 && controlAlt === 0) {
-                flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - accelRate);
-            }
+            flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - accelRate);
         } else if (keys.ArrowUp) {
-            if (flightSpeedMultiplier === 0) {
-                flightSpeedMultiplier = 0.5;
-            } else {
-                flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + accelRate);
-            }
+            flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + accelRate);
         }
 
         // Ground avoidance
