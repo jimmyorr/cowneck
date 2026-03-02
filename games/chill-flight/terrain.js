@@ -155,6 +155,7 @@ function generateChunk(chunkX, chunkZ) {
     let lighthousePos = null;
     const pierPositions = [];
     const campfirePositions = [];
+    const chimneySmokePositions = [];
     let hasWater = false;
 
     for (let i = 0; i < positions.length; i += 3) {
@@ -245,7 +246,7 @@ function generateChunk(chunkX, chunkZ) {
                             treePositions.push({ x: localX, y: height, z: localZ });
                         }
                     }
-                } else if (treeRoll < (desertFactor > 0.5 ? 0.051 : 0.165) * densityScale) {
+                } else if (treeRoll < (desertFactor > 0.5 ? 0.051 : 0.155) * densityScale) {
                     // Campfires in forest community - mutually exclusive with trees
                     const offX = (rng() - 0.5) * 15;
                     const offZ = (rng() - 0.5) * 15;
@@ -259,9 +260,9 @@ function generateChunk(chunkX, chunkZ) {
 
                 if (rng() < (desertFactor > 0.5 ? 0.002 : 0.005) * densityScale) {
                     housePositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
-                    // Campfires near houses community
-                    if (rng() < 0.2) { // Increased from 0.1 community
-                        campfirePositions.push({ x: localX + 10, y: height, z: localZ + 10 });
+                    // Chimney smoke for houses in snowy areas
+                    if (snowFactor > 0.3) {
+                        chimneySmokePositions.push({ x: localX, y: height + 10, z: localZ });
                     }
                 } else if (rng() < 0.001 * densityScale && height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 100 && desertFactor < 0.3 && snowFactor < 0.3) {
                     // Windmills in temperate plains
@@ -601,6 +602,32 @@ function generateChunk(chunkX, chunkZ) {
         group.userData.campfires = coreInst;
         group.userData.campfireSmoke = smokeInst;
         group.userData.campfirePositions = campfirePositions;
+    }
+
+    // 2.97 Generate Chimney Smoke
+    if (chimneySmokePositions.length > 0) {
+        const whiteSmokeMat = new THREE.MeshStandardMaterial({
+            color: 0xDDDDDD,
+            transparent: true,
+            opacity: 0.6,
+            flatShading: true
+        });
+        const chimneySmokeInst = new THREE.InstancedMesh(smokeGeo, whiteSmokeMat, chimneySmokePositions.length * 4);
+
+        chimneySmokePositions.forEach((pos, index) => {
+            for (let i = 0; i < 4; i++) {
+                dummy.position.set(pos.x, pos.y + i * 4, pos.z);
+                dummy.scale.set(0.8 + i * 0.3, 0.8 + i * 0.3, 0.8 + i * 0.3);
+                dummy.updateMatrix();
+                chimneySmokeInst.setMatrixAt(index * 4 + i, dummy.matrix);
+            }
+        });
+
+        chimneySmokeInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(chimneySmokeInst);
+
+        group.userData.chimneySmoke = chimneySmokeInst;
+        group.userData.chimneySmokePositions = chimneySmokePositions;
     }
 
     // 3. Generate Clouds

@@ -753,6 +753,37 @@ function animate() {
                     smoke.material.opacity = 0.4 * (1.0 - dayFactor * 0.5);
                 }
             }
+
+            // Animate Chimney Smoke
+            if (chunkGroup.userData.chimneySmoke && chunkGroup.userData.chimneySmokePositions) {
+                const smoke = chunkGroup.userData.chimneySmoke;
+                const positions = chunkGroup.userData.chimneySmokePositions;
+                const dummy = new THREE.Object3D();
+
+                positions.forEach((pos, index) => {
+                    for (let i = 0; i < 4; i++) {
+                        const smokeIdx = index * 4 + i;
+                        const offsetTime = (performance.now() * 0.001 + i * 0.6) % 2.4; // 2.4s cycle
+                        const rise = offsetTime * 30; // Slower rise than campfires
+                        const driftX = Math.sin(performance.now() * 0.001 + i) * 6;
+                        const driftZ = Math.cos(performance.now() * 0.0012 + i) * 4;
+                        const smokeScale = (0.8 + i * 0.3) * (1.0 + offsetTime * 0.6); // Expands more
+
+                        dummy.position.set(pos.x + driftX, pos.y + rise, pos.z + driftZ);
+                        dummy.scale.set(smokeScale, smokeScale, smokeScale);
+                        dummy.rotation.set(offsetTime * 0.5, offsetTime * 0.5, offsetTime * 0.5);
+                        dummy.updateMatrix();
+                        smoke.setMatrixAt(smokeIdx, dummy.matrix);
+                    }
+                });
+
+                smoke.instanceMatrix.needsUpdate = true;
+
+                // Chimney smoke gets slightly more transparent during the day but doesn't vanish completely
+                if (smoke.material) {
+                    smoke.material.opacity = 0.6 - (dayFactor * 0.3);
+                }
+            }
         });
 
         // Update Cockpit HUD
