@@ -14,6 +14,8 @@ let mouseControlActive = false; // becomes true once the mouse moves; cleared by
 let windowJustFocused = false;  // absorbs the first mousemove after returning to the tab
 let targetPitch = 0;
 let targetRoll = 0;
+let manualPitch = 0;
+let keyPressStartTime = { ArrowLeft: 0, ArrowRight: 0 };
 
 function updateInputPosition(clientX, clientY) {
     const pos = ChillFlightLogic.computeInputPosition(clientX, clientY, window.innerWidth, window.innerHeight);
@@ -469,11 +471,18 @@ function animate() {
                     // Double-tap both: dive straight down
                     const target = -Math.PI / 2;
                     planeGroup.rotation.x = Math.max(target, planeGroup.rotation.x - manualLoopSpeed * delta);
+                    isLooping = true;
                 } else {
-                    // Single hold both: loop up
-                    planeGroup.rotation.x += manualLoopSpeed * delta;
+                    // Single hold both: increment persistent pitch (looping)
+                    const increment = manualLoopSpeed * delta;
+                    manualPitch += increment;
+                    planeGroup.rotation.x += increment;
+
+                    // Normalize manualPitch within [-PI, PI]
+                    while (manualPitch > Math.PI) manualPitch -= 2 * Math.PI;
+                    while (manualPitch < -Math.PI) manualPitch += 2 * Math.PI;
+                    isLooping = true;
                 }
-                isLooping = true;
             } else if (keys.ArrowLeft) {
                 if (doubleTap.ArrowLeft) {
                     // Double-tap: full barrel roll
@@ -500,9 +509,10 @@ function animate() {
         }
 
         if (!isLooping) {
-            while (planeGroup.rotation.x > targetPitch + Math.PI) planeGroup.rotation.x -= 2 * Math.PI;
-            while (planeGroup.rotation.x < targetPitch - Math.PI) planeGroup.rotation.x += 2 * Math.PI;
-            planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetPitch, TURN_SPEED);
+            const finalTargetPitch = targetPitch + manualPitch;
+            while (planeGroup.rotation.x > finalTargetPitch + Math.PI) planeGroup.rotation.x -= 2 * Math.PI;
+            while (planeGroup.rotation.x < finalTargetPitch - Math.PI) planeGroup.rotation.x += 2 * Math.PI;
+            planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, finalTargetPitch, TURN_SPEED);
         }
 
         if (!isBarrelRolling) {
@@ -1049,6 +1059,11 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowUp' || (key === 'w' && !e.shiftKey)) keys.ArrowUp = true;
     if (e.key === 'ArrowDown' || (key === 's' && !e.shiftKey)) keys.ArrowDown = true;
 
+    if (!e.repeat) {
+        if (e.key === 'ArrowLeft' || key === 'a') keyPressStartTime.ArrowLeft = performance.now();
+        if (e.key === 'ArrowRight' || key === 'd') keyPressStartTime.ArrowRight = performance.now();
+    }
+
     // Double-tap detection (ignore key-repeat events)
     if ((e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey) || e.key === 'ArrowRight' || (key === 'd' && !e.shiftKey)) && !e.repeat) {
         const tapKey = (e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey)) ? 'ArrowLeft' : 'ArrowRight';
@@ -1141,8 +1156,21 @@ window.addEventListener('keydown', (e) => {
 
 window.addEventListener('keyup', (e) => {
     const key = e.key.toLowerCase();
-    if (e.key === 'ArrowLeft' || key === 'a') { keys.ArrowLeft = false; doubleTap.ArrowLeft = false; }
-    if (e.key === 'ArrowRight' || key === 'd') { keys.ArrowRight = false; doubleTap.ArrowRight = false; }
+    const now = performance.now();
+    const TAP_THRESHOLD = 200;
+
+    if (e.key === 'ArrowLeft' || key === 'a') {
+        const heldTime = now - keyPressStartTime.ArrowLeft;
+        if (heldTime < TAP_THRESHOLD) manualPitch = 0;
+        keys.ArrowLeft = false;
+        doubleTap.ArrowLeft = false;
+    }
+    if (e.key === 'ArrowRight' || key === 'd') {
+        const heldTime = now - keyPressStartTime.ArrowRight;
+        if (heldTime < TAP_THRESHOLD) manualPitch = 0;
+        keys.ArrowRight = false;
+        doubleTap.ArrowRight = false;
+    }
     if (e.key === 'ArrowUp' || key === 'w') keys.ArrowUp = false;
     if (e.key === 'ArrowDown' || key === 's') keys.ArrowDown = false;
 });
