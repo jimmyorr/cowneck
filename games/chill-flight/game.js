@@ -622,8 +622,25 @@ function animate() {
         const sunZ = Math.cos(timeOfDay) * 0.3;
         const dayFactor = Math.max(0, Math.min(1, (sunY + 0.5) * 2)); // 0.0 at SunY=-0.5 (4 AM), 1.0 at SunY=0 (6 AM)
 
-        // Animate Birds
+        // Animate Water and Birds
         chunks.forEach(chunkGroup => {
+            // Animate Water
+            if (chunkGroup.userData.water) {
+                const waterMesh = chunkGroup.userData.water;
+                const waterTime = now * 0.0015;
+                const wPositions = waterMesh.geometry.attributes.position.array;
+                const wx = waterMesh.position.x;
+                const wz = waterMesh.position.z;
+                for (let i = 0; i < wPositions.length; i += 3) {
+                    const worldX = wx + wPositions[i];
+                    const worldZ = wz + wPositions[i + 2];
+                    // Gentle wave math using world coordinates so chunks tile seamlessly
+                    wPositions[i + 1] = WATER_LEVEL + Math.sin(waterTime + worldX * 0.02) * 0.8 + Math.cos(waterTime * 0.8 + worldZ * 0.015) * 0.8;
+                }
+                waterMesh.geometry.attributes.position.needsUpdate = true;
+                waterMesh.geometry.computeVertexNormals();
+            }
+
             if (chunkGroup.userData.birds) {
                 chunkGroup.userData.birds.forEach(bird => {
                     const data = bird.userData;

@@ -10,6 +10,15 @@ const terrainMaterial = new THREE.MeshStandardMaterial({
     roughness: 0.8
 });
 
+const waterMaterial = new THREE.MeshStandardMaterial({
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.6,
+    metalness: 0.1,
+    roughness: 0.05,
+    flatShading: true
+});
+
 // Reusable tree geometries for forest instances
 const treeTrunkGeo = new THREE.CylinderGeometry(2, 2, 10, 5);
 treeTrunkGeo.translate(0, 5, 0);
@@ -146,6 +155,7 @@ function generateChunk(chunkX, chunkZ) {
     let lighthousePos = null;
     const pierPositions = [];
     const campfirePositions = [];
+    let hasWater = false;
 
     for (let i = 0; i < positions.length; i += 3) {
         const localX = positions[i];
@@ -172,15 +182,21 @@ function generateChunk(chunkX, chunkZ) {
         const colorWater = new THREE.Color(0x40C4FF);
         const colorIcyWater = new THREE.Color(0x88CCFF);
         const colorDesertWater = new THREE.Color(0x00CED1);
+        const colorFoam = new THREE.Color(0xEEEEEE);
 
         const temperature = tempNoise - (northInfluence * 1.5);
         const isSnowBiome = snowFactor > 0.5;
 
         if (height <= WATER_LEVEL + 2) {
             if (height <= WATER_LEVEL) {
-                colorObj.copy(colorWater);
-                if (snowFactor > 0) colorObj.lerp(colorIcyWater, snowFactor);
-                if (desertFactor > 0) colorObj.lerp(colorDesertWater, desertFactor);
+                hasWater = true;
+                positions[i + 1] = height - 5; // Drop seafloor so moving water waves don't clip into it
+                colorObj.copy(colorSand);
+                if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x999999), snowFactor);
+                if (desertFactor > 0) colorObj.lerp(colorDesertSand, desertFactor);
+            } else if (height <= WATER_LEVEL + 0.5) {
+                colorObj.copy(colorFoam);
+                if (snowFactor > 0) colorObj.lerp(colorSnow, snowFactor);
             } else {
                 colorObj.copy(colorSand);
                 if (snowFactor > 0) colorObj.lerp(new THREE.Color(0xDDDDDD), snowFactor);
@@ -285,6 +301,38 @@ function generateChunk(chunkX, chunkZ) {
     const mesh = new THREE.Mesh(geometry, terrainMaterial);
     mesh.position.set(worldOffsetX, 0, worldOffsetZ);
     group.add(mesh);
+
+    // 1.5 Generate Water Plane
+    if (hasWater) {
+        const wSegments = Math.max(1, Math.floor(SEGMENTS / 4));
+        const waterGeo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, wSegments, wSegments);
+        waterGeo.rotateX(-Math.PI / 2);
+        const wPositions = waterGeo.attributes.position.array;
+        const wColors = [];
+        for (let i = 0; i < wPositions.length; i += 3) {
+            const worldX = worldOffsetX + wPositions[i];
+            const worldZ = worldOffsetZ + wPositions[i + 2];
+
+            wPositions[i + 1] = WATER_LEVEL;
+
+            const tempNoise = simplex.noise2D(worldX * 0.0001, worldZ * 0.0001);
+            const northInfluence = Math.max(0, -worldZ / 4500);
+            const southInfluence = Math.max(0, worldZ / 4500);
+            const snowFactor = Math.max(0, Math.min(1, (northInfluence + tempNoise * 0.05 - 0.8) * 5));
+            const desertFactor = Math.max(0, Math.min(1, (southInfluence + tempNoise * 0.05 - 0.8) * 5));
+
+            const colorObj = new THREE.Color(0x40C4FF);
+            if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x88CCFF), snowFactor);
+            if (desertFactor > 0) colorObj.lerp(new THREE.Color(0x00CED1), desertFactor);
+
+            wColors.push(colorObj.r, colorObj.g, colorObj.b);
+        }
+        waterGeo.setAttribute('color', new THREE.Float32BufferAttribute(wColors, 3));
+        const waterMesh = new THREE.Mesh(waterGeo, waterMaterial);
+        waterMesh.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(waterMesh);
+        group.userData.water = waterMesh; // accessible for animation!
+    }
 
     // 2. Generate Trees
     const dummy = new THREE.Object3D();
