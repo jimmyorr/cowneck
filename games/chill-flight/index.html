@@ -126,29 +126,30 @@
             </div>
         </div>
 
-        <div id="cockpit-radio-module"
-            style="display: flex; flex-direction: column; align-items: flex-start; gap: 5px; margin-left: 10px; padding-left: 20px; border-left: 1px solid rgba(255,255,255,0.15);">
-            <div style="display: flex; gap: 4px; align-items: center;">
-                <span class="cockpit-label desktop-only"
-                    style="text-align: right; width: auto; font-size: 9px; line-height: 1; margin-right: 5px;">RADIO</span>
-                <button class="station-btn active desktop-only" data-station="0" title="Off">OFF</button>
-                <button class="station-btn desktop-only" data-station="procedural" title="Procedural Music">P</button>
-                <button class="station-btn desktop-only" data-station="2" title="Lofi Girl">LG</button>
-                <button class="station-btn desktop-only" data-station="3" title="Bootleg Boy 2">BB</button>
+    </div>
+    <span id="station-name" class="desktop-only"
+        style="font-size: 11px; color: #FFD700; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; min-height: 14px;"></span>
+    </div>
+    </div>
 
-                <!-- mobile flight controls -->
-                <div id="mobile-controls"
-                    style="display: none; gap: 4px; margin-left: 8px; border-left: 1px solid rgba(255,255,255,0.15); padding-left: 12px;">
-                    <button class="station-btn" id="mobile-hdgt" title="Headlight" style="font-size: 14px;">💡</button>
-                    <button class="station-btn" id="mobile-spd-down" title="Decelerate"
-                        style="font-size: 16px;">-</button>
-                    <button class="station-btn" id="mobile-spd-up" title="Accelerate"
-                        style="font-size: 16px;">+</button>
-                </div>
-            </div>
-            <span id="station-name" class="desktop-only"
-                style="font-size: 11px; color: #FFD700; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; min-height: 14px;"></span>
-        </div>
+    <!-- mobile flight controls -->
+    <div id="mobile-controls">
+        <button class="mobile-btn" id="mobile-hdgt" title="Headlight">
+            <svg viewBox="0 0 24 24">
+                <path
+                    d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7zM9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1z" />
+            </svg>
+        </button>
+        <button class="mobile-btn" id="mobile-spd-down" title="Decelerate">
+            <svg viewBox="0 0 24 24">
+                <path d="M19 13H5v-2h14v2z" />
+            </svg>
+        </button>
+        <button class="mobile-btn" id="mobile-spd-up" title="Accelerate">
+            <svg viewBox="0 0 24 24">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+            </svg>
+        </button>
     </div>
 
     <div id="yt-container">

@@ -24,32 +24,39 @@ function updateInputPosition(clientX, clientY) {
 }
 
 window.addEventListener('mousemove', (e) => {
-    if (!e.target.closest('#cockpit-ui') && !e.target.closest('#debug-menu') && !e.target.closest('.title')) {
+    if (!e.target.closest('#cockpit-ui') && !e.target.closest('#debug-menu') && !e.target.closest('.title') && !e.target.closest('#mobile-controls')) {
         updateInputPosition(e.clientX, e.clientY);
         if (windowJustFocused) {
             // Silently sync position without steering — swallows the spurious
             // move event browsers fire when the window regains focus.
             windowJustFocused = false;
-        } else {
-            mouseControlActive = true;
+            return;
         }
+        mouseControlActive = true;
     }
 });
 
 window.addEventListener('touchstart', (e) => {
-    if (e.touches.length > 0 && !e.target.closest('#cockpit-ui') && !e.target.closest('#debug-menu') && !e.target.closest('.title')) {
-        updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
-        mouseControlActive = true;
-        windowJustFocused = false; // Touch starts should always count as immediate interaction
+    if (e.touches.length > 0) {
+        const isUI = e.target.closest('#cockpit-ui') || e.target.closest('#debug-menu') || e.target.closest('.title') || e.target.closest('#mobile-controls') || e.target.closest('#player-list');
+        if (!isUI) {
+            updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
+            mouseControlActive = true;
+        } else {
+            mouseControlActive = false; // Stop steering if touching UI
+        }
     }
+    windowJustFocused = false;
 }, { passive: false });
 
 window.addEventListener('touchmove', (e) => {
     if (e.touches.length > 0) {
-        if (!e.target.closest('#cockpit-ui') && !isPaused) {
+        const isCockpit = e.target.closest('#cockpit-ui');
+        if (!isCockpit && !isPaused) {
             e.preventDefault();
         }
-        if (!e.target.closest('#cockpit-ui') && !e.target.closest('#debug-menu') && !e.target.closest('.title')) {
+        const isUI = isCockpit || e.target.closest('#debug-menu') || e.target.closest('.title') || e.target.closest('#mobile-controls') || e.target.closest('#player-list');
+        if (!isUI) {
             updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
             mouseControlActive = true;
         }
@@ -274,27 +281,15 @@ if (qualitySelect) {
 // --- MOBILE UI ADJUSTMENTS ---
 if (window.innerWidth <= 768) {
     const cockpitUI = document.getElementById('cockpit-ui');
-    cockpitUI.style.width = '95%';
-    cockpitUI.style.bottom = '10px';
-    cockpitUI.style.padding = '10px';
-    cockpitUI.style.gap = '5px';
-    cockpitUI.style.flexWrap = 'wrap';
-    cockpitUI.style.justifyContent = 'center';
+    if (cockpitUI) {
+        cockpitUI.style.justifyContent = 'center';
+    }
 
     const radioModule = document.getElementById('cockpit-radio-module');
     if (radioModule) {
         radioModule.style.borderLeft = 'none';
         radioModule.style.paddingLeft = '0';
         radioModule.style.marginLeft = '0';
-        radioModule.style.marginTop = '0';
-        radioModule.style.borderTop = 'none';
-        radioModule.style.paddingTop = '0';
-        radioModule.style.justifyContent = 'center';
-    }
-
-    const mobileControls = document.getElementById('mobile-controls');
-    if (mobileControls) {
-        mobileControls.style.display = 'flex';
     }
 
     const ytContainer = document.getElementById('yt-container');
