@@ -117,6 +117,13 @@ document.getElementById('resume-btn').addEventListener('click', () => {
     togglePause();
 });
 
+const radioPanel = document.getElementById('radio-panel');
+if (radioPanel) {
+    radioPanel.addEventListener('click', () => {
+        togglePause();
+    });
+}
+
 // Distance selection
 const distanceSelect = document.getElementById('distance-select');
 if (distanceSelect) {
