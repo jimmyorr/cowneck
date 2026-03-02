@@ -318,7 +318,7 @@ body {
 /* Mobile Controls Redesign */
 #mobile-controls {
     position: absolute;
-    bottom: 90px;
+    bottom: 110px;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
