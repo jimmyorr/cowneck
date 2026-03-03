@@ -122,6 +122,17 @@ body {
     border-color: rgba(255, 255, 255, 0.5);
 }
 
+/* Android TV UI Focus */
+.tv-focused {
+    outline: 3px solid #FFD700 !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8) !important;
+}
+
+.color-swatch.tv-focused, .station-btn.tv-focused, .btn.tv-focused {
+    transform: scale(1.15) !important;
+}
+
 .color-picker-container {
     display: flex;
     flex-wrap: wrap;

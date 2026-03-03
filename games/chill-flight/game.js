@@ -105,9 +105,103 @@ function togglePause() {
     }
 }
 
+let tvFocusRow = 5; // Default to resume btn
+let tvFocusCol = 0;
+
+function getMenuGrid() {
+    return [
+        [document.getElementById('player-name-input')],
+        Array.from(document.querySelectorAll('.color-swatch')),
+        Array.from(document.querySelectorAll('.station-btn')),
+        [document.getElementById('quality-select')],
+        [document.getElementById('distance-select')],
+        [document.getElementById('resume-btn')]
+    ];
+}
+
+function updateTVFocus() {
+    document.querySelectorAll('.tv-focused').forEach(el => el.classList.remove('tv-focused'));
+    const grid = getMenuGrid();
+    if (!grid[tvFocusRow] || !grid[tvFocusRow][tvFocusCol]) return;
+    const el = grid[tvFocusRow][tvFocusCol];
+    el.classList.add('tv-focused');
+    el.focus();
+}
+
 window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' || (isPaused && e.key === 'Enter')) {
+    // 1. Toggle Pause: Escape = PC, Backspace = TV Back, MediaPlayPause = TV Play/Pause
+    const isToggleKey = e.key === 'Escape' || e.code === 'MediaPlayPause' ||
+        (e.key === 'Backspace' && (!document.activeElement || document.activeElement.tagName !== 'INPUT'));
+
+    if (isToggleKey) {
         togglePause();
+        if (isPaused) {
+            tvFocusRow = 5;
+            tvFocusCol = 0;
+            updateTVFocus();
+        }
+        return;
+    }
+
+    // 2. Navigation in pause menu
+    if (isPaused) {
+        const grid = getMenuGrid();
+        let handled = false;
+
+        if (e.key === 'ArrowDown') {
+            tvFocusRow = Math.min(tvFocusRow + 1, grid.length - 1);
+            tvFocusCol = Math.min(tvFocusCol, grid[tvFocusRow].length - 1);
+            handled = true;
+        } else if (e.key === 'ArrowUp') {
+            tvFocusRow = Math.max(tvFocusRow - 1, 0);
+            tvFocusCol = Math.min(tvFocusCol, grid[tvFocusRow].length - 1);
+            handled = true;
+        } else if (e.key === 'ArrowLeft') {
+            if (document.activeElement && document.activeElement.tagName === 'SELECT') {
+                const sel = document.activeElement;
+                if (sel.selectedIndex > 0) {
+                    sel.selectedIndex--;
+                    sel.dispatchEvent(new Event('change'));
+                }
+            } else if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+                return; // Let native cursor move
+            } else {
+                tvFocusCol = Math.max(tvFocusCol - 1, 0);
+            }
+            handled = true;
+        } else if (e.key === 'ArrowRight') {
+            if (document.activeElement && document.activeElement.tagName === 'SELECT') {
+                const sel = document.activeElement;
+                if (sel.selectedIndex < sel.options.length - 1) {
+                    sel.selectedIndex++;
+                    sel.dispatchEvent(new Event('change'));
+                }
+            } else if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+                return; // Let native cursor move
+            } else {
+                tvFocusCol = Math.min(tvFocusCol + 1, grid[tvFocusRow].length - 1);
+            }
+            handled = true;
+        } else if (e.key === 'Enter') {
+            const el = grid[tvFocusRow][tvFocusCol];
+            if (el) {
+                if (el.tagName === 'INPUT') {
+                    el.blur();
+                    tvFocusRow = 1;
+                    tvFocusCol = 0;
+                } else if (el.id === 'resume-btn') {
+                    togglePause();
+                } else {
+                    el.click();
+                }
+            }
+            handled = true;
+        }
+
+        if (handled) {
+            e.preventDefault();
+            updateTVFocus();
+        }
     }
 });
 
