@@ -190,7 +190,12 @@ function generateChunk(chunkX, chunkZ) {
         const temperature = tempNoise - (northInfluence * 1.5);
         const isSnowBiome = snowFactor > 0.5;
 
-        if (height <= WATER_LEVEL + 2) {
+        // East coast beachfront: sand extends higher up the terrain
+        const eastCoastFactor = Math.max(0, Math.min(1, worldX / 3000));
+        // Base sand height is +2, but on the east coast it extends up to +10
+        const sandMaxHeight = WATER_LEVEL + 2 + (eastCoastFactor * 8);
+
+        if (height <= sandMaxHeight) {
             if (height <= WATER_LEVEL) {
                 hasWater = true;
                 positions[i + 1] = height - 5; // Drop seafloor so moving water waves don't clip into it

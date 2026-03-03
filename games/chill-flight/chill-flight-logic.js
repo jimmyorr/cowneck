@@ -131,12 +131,25 @@
 
         const westFactor = Math.max(0, Math.min(1, -x / 4500));
 
-        // Noise damping for Ocean Biomes (biome < -0.2)
+        // Noise damping for Ocean Biomes (biome < -0.1)
         // This makes the water perfectly flat by reducing the amplitude of terrain noise.
         let oceanDamping = 1.0;
         if (biome < -0.1) {
             oceanDamping = Math.max(0, 1.0 - ((-0.1 - biome) * 4));
             oceanDamping = Math.pow(oceanDamping, 2); // Sharper transition
+        }
+
+        // East coast beach flattening
+        const eastCoastFactor = Math.max(0, Math.min(1, x / 3000));
+        if (eastCoastFactor > 0) {
+            if (biome < 0.1 && biome > -0.3) {
+                // Peek flattening around biome = -0.1 (the shoreline)
+                const shoreDist = 1.0 - Math.abs(biome + 0.1) / 0.2;
+                const beachDamping = 1.0 - (shoreDist * 0.8 * eastCoastFactor);
+                heightScale *= beachDamping;
+                roughness *= beachDamping;
+                rockiness *= beachDamping;
+            }
         }
 
         if (biome < -0.2) {
