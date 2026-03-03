@@ -230,13 +230,6 @@ function generateChunk(chunkX, chunkZ) {
                 if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x8BA192), snowFactor);
                 if (desertFactor > 0) colorObj.lerp(new THREE.Color(0xA0522D), desertFactor);
 
-                // Color the terrain slightly based on trees
-                if (autumnNoise > 0.4 && snowFactor < 0.2) {
-                    colorObj.lerp(new THREE.Color(0x6D4C41), 0.3); // Brownish ground for autumn
-                } else if (cherryNoise > 0.6 && snowFactor < 0.2) {
-                    colorObj.lerp(new THREE.Color(0xF8BBD0), 0.2); // Pinkish ground for blossoms
-                }
-
                 const treeRoll = rng();
                 if (treeRoll < (desertFactor > 0.5 ? 0.05 : 0.15) * densityScale) {
                     if (snowFactor > 0.4) {
@@ -296,6 +289,23 @@ function generateChunk(chunkX, chunkZ) {
                     if (angleToWater !== -1) {
                         pierPositions.push({ x: localX, y: height, z: localZ, rotY: angleToWater });
                     }
+                }
+            }
+
+            // Apply special biome ground colors dynamically for both forest and plains
+            if (snowFactor < 0.2) {
+                if (autumnNoise > 0.35) {
+                    // Smooth transition from 0.35 to 0.45
+                    const factor = Math.min(1, (autumnNoise - 0.35) / 0.1);
+                    // Turn to earth/amber for autumn
+                    const tint = isForest ? new THREE.Color(0x5D4037) : new THREE.Color(0x8D6E63);
+                    colorObj.lerp(tint, factor * (isForest ? 0.65 : 0.45));
+                } else if (cherryNoise > 0.55) {
+                    // Smooth transition from 0.55 to 0.65
+                    const factor = Math.min(1, (cherryNoise - 0.55) / 0.1);
+                    // Turn to pinkish for blossoms
+                    const tint = isForest ? new THREE.Color(0xF8BBD0) : new THREE.Color(0xFCE4EC);
+                    colorObj.lerp(tint, factor * (isForest ? 0.45 : 0.3));
                 }
             }
         }
