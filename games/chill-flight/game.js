@@ -333,11 +333,11 @@ function animate() {
 
         if (keys.ArrowUp) {
             if (nowTime - keyPressStartTime.ArrowUp > STEER_HOLD_THRESHOLD && !doubleTap.ArrowUp) {
-                targetPitch = maxPitch;
+                targetPitch = Math.PI / 6; // 30 degrees
             }
         } else if (keys.ArrowDown) {
             if (nowTime - keyPressStartTime.ArrowDown > STEER_HOLD_THRESHOLD) {
-                targetPitch = -maxPitch;
+                targetPitch = -Math.PI / 12; // 15 degrees
             }
         }
     } else {
@@ -357,7 +357,7 @@ function animate() {
             isLooping = true;
         } else if (keys.ArrowDown && doubleTap.ArrowDown && (nowTime - keyPressStartTime.ArrowDown > STEER_HOLD_THRESHOLD)) {
             // Double-tap down and hold: straight down dive
-            const targetDive = -Math.PI / 2;
+            const targetDive = -(Math.PI * 75) / 180; // 75 degrees
             planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetDive, 0.1);
             isLooping = true;
         } else if (keys.ArrowLeft) {
