@@ -15,7 +15,7 @@ let windowJustFocused = false;  // absorbs the first mousemove after returning t
 let targetPitch = 0;
 let targetRoll = 0;
 let manualPitch = 0;
-let keyPressStartTime = { ArrowLeft: 0, ArrowRight: 0 };
+let keyPressStartTime = { ArrowLeft: 0, ArrowRight: 0, ArrowUp: 0, ArrowDown: 0 };
 
 function updateInputPosition(clientX, clientY) {
     const pos = ChillFlightLogic.computeInputPosition(clientX, clientY, window.innerWidth, window.innerHeight);
@@ -321,9 +321,25 @@ function animate() {
     let effMouseX = (mouseControlActive && Math.abs(mouseX) >= 0.15) ? mouseX : 0;
     let effMouseY = (mouseControlActive && Math.abs(mouseY) >= 0.15) ? mouseY : 0;
 
+    const nowTime = performance.now();
+
     if (flightSpeedMultiplier > 0) {
         targetPitch = effMouseY * maxPitch;
         targetRoll = -effMouseX * (maxRoll * 1.25);
+
+        // Clamping manualPitch to 0 if we aren't using the old persistent trim logic
+        // This ensures hold-to-climb returns to center.
+        manualPitch = THREE.MathUtils.lerp(manualPitch, 0, 0.1);
+
+        if (keys.ArrowUp) {
+            if (nowTime - keyPressStartTime.ArrowUp > STEER_HOLD_THRESHOLD && !doubleTap.ArrowUp) {
+                targetPitch = maxPitch;
+            }
+        } else if (keys.ArrowDown) {
+            if (nowTime - keyPressStartTime.ArrowDown > STEER_HOLD_THRESHOLD) {
+                targetPitch = -maxPitch;
+            }
+        }
     } else {
         targetPitch = 0;
         targetRoll = 0;
@@ -335,23 +351,15 @@ function animate() {
     const manualRollSpeed = 4.0;
     const manualLoopSpeed = 2.5;
     if (flightSpeedMultiplier > 0) {
-        if (keys.ArrowLeft && keys.ArrowRight) {
-            if (doubleTap.ArrowLeft && doubleTap.ArrowRight) {
-                // Double-tap both: dive straight down
-                const target = -Math.PI / 2;
-                planeGroup.rotation.x = Math.max(target, planeGroup.rotation.x - manualLoopSpeed * delta);
-                isLooping = true;
-            } else {
-                // Single hold both: increment persistent pitch (looping)
-                const increment = manualLoopSpeed * delta;
-                manualPitch += increment;
-                planeGroup.rotation.x += increment;
-
-                // Normalize manualPitch within [-PI, PI]
-                while (manualPitch > Math.PI) manualPitch -= 2 * Math.PI;
-                while (manualPitch < -Math.PI) manualPitch += 2 * Math.PI;
-                isLooping = true;
-            }
+        if (keys.ArrowUp && doubleTap.ArrowUp && (nowTime - keyPressStartTime.ArrowUp > STEER_HOLD_THRESHOLD)) {
+            // Double-tap up and hold: loop (Direct rotation, no trim pollution)
+            planeGroup.rotation.x += manualLoopSpeed * delta;
+            isLooping = true;
+        } else if (keys.ArrowDown && doubleTap.ArrowDown && (nowTime - keyPressStartTime.ArrowDown > STEER_HOLD_THRESHOLD)) {
+            // Double-tap down and hold: straight down dive
+            const targetDive = -Math.PI / 2;
+            planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetDive, 0.1);
+            isLooping = true;
         } else if (keys.ArrowLeft) {
             if (doubleTap.ArrowLeft) {
                 // Double-tap: full barrel roll
@@ -415,9 +423,6 @@ function animate() {
 
     if (keys.ArrowDown) {
         keys.ArrowUp = false;
-        flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - accelRate);
-    } else if (keys.ArrowUp) {
-        flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + accelRate);
     }
 
     // Ground avoidance
@@ -866,10 +871,11 @@ window.onload = animate;
 // --- KEY STATE ---
 const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
 
-// Double-tap detection for barrel roll
-const lastArrowTap = { ArrowLeft: 0, ArrowRight: 0 };
-const doubleTap = { ArrowLeft: false, ArrowRight: false };
+// Double-tap detection for barrel roll and loops
+const lastArrowTap = { ArrowLeft: 0, ArrowRight: 0, ArrowUp: 0, ArrowDown: 0 };
+const doubleTap = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
 const DOUBLE_TAP_MS = 300;
+const STEER_HOLD_THRESHOLD = 100; // ms to wait before a tap becomes a hold for pitch/looping
 
 // Mobile controls
 const btnUp = document.getElementById('mobile-spd-up');
@@ -877,8 +883,22 @@ const btnDown = document.getElementById('mobile-spd-down');
 const btnHdgt = document.getElementById('mobile-hdgt');
 
 if (btnUp) {
-    const down = (e) => { e.preventDefault(); e.stopPropagation(); keys.ArrowUp = true; };
-    const up = (e) => { e.preventDefault(); e.stopPropagation(); keys.ArrowUp = false; };
+    const down = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        keys.ArrowUp = true;
+        keyPressStartTime.ArrowUp = performance.now();
+    };
+    const up = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const nowTime = performance.now();
+        if (nowTime - keyPressStartTime.ArrowUp < STEER_HOLD_THRESHOLD) {
+            flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + 0.1);
+        }
+        keys.ArrowUp = false;
+        doubleTap.ArrowUp = false;
+    };
     btnUp.addEventListener('pointerdown', down);
     btnUp.addEventListener('pointerup', up);
     btnUp.addEventListener('pointercancel', up);
@@ -891,8 +911,18 @@ if (btnDown) {
         e.stopPropagation();
         keys.ArrowDown = true;
         keys.ArrowUp = false;
+        keyPressStartTime.ArrowDown = performance.now();
     };
-    const up = (e) => { e.preventDefault(); e.stopPropagation(); keys.ArrowDown = false; };
+    const up = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const nowTime = performance.now();
+        if (nowTime - keyPressStartTime.ArrowDown < 250) {
+            flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - 0.1);
+        }
+        keys.ArrowDown = false;
+        doubleTap.ArrowDown = false;
+    };
     btnDown.addEventListener('pointerdown', down);
     btnDown.addEventListener('pointerup', up);
     btnDown.addEventListener('pointercancel', up);
@@ -927,16 +957,30 @@ window.addEventListener('keydown', (e) => {
     if (!e.repeat) {
         if (e.key === 'ArrowLeft' || key === 'a') keyPressStartTime.ArrowLeft = performance.now();
         if (e.key === 'ArrowRight' || key === 'd') keyPressStartTime.ArrowRight = performance.now();
+        if (e.key === 'ArrowUp' || key === 'w') keyPressStartTime.ArrowUp = performance.now();
+        if (e.key === 'ArrowDown' || key === 's') keyPressStartTime.ArrowDown = performance.now();
     }
 
     // Double-tap detection (ignore key-repeat events)
-    if ((e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey) || e.key === 'ArrowRight' || (key === 'd' && !e.shiftKey)) && !e.repeat) {
-        const tapKey = (e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey)) ? 'ArrowLeft' : 'ArrowRight';
-        const now = performance.now();
-        if (now - lastArrowTap[tapKey] < DOUBLE_TAP_MS) {
-            doubleTap[tapKey] = true;
+    const isArrowKey = e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey) ||
+        e.key === 'ArrowRight' || (key === 'd' && !e.shiftKey) ||
+        e.key === 'ArrowUp' || (key === 'w' && !e.shiftKey) ||
+        e.key === 'ArrowDown' || (key === 's' && !e.shiftKey);
+
+    if (isArrowKey && !e.repeat) {
+        let tapKey = '';
+        if (e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey)) tapKey = 'ArrowLeft';
+        else if (e.key === 'ArrowRight' || (key === 'd' && !e.shiftKey)) tapKey = 'ArrowRight';
+        else if (e.key === 'ArrowUp' || (key === 'w' && !e.shiftKey)) tapKey = 'ArrowUp';
+        else if (e.key === 'ArrowDown' || (key === 's' && !e.shiftKey)) tapKey = 'ArrowDown';
+
+        if (tapKey) {
+            const now = performance.now();
+            if (now - lastArrowTap[tapKey] < DOUBLE_TAP_MS) {
+                doubleTap[tapKey] = true;
+            }
+            lastArrowTap[tapKey] = now;
         }
-        lastArrowTap[tapKey] = now;
     }
 
     // Any control key press hands control to keyboard; clear mouse until it moves again
@@ -1036,8 +1080,22 @@ window.addEventListener('keyup', (e) => {
         keys.ArrowRight = false;
         doubleTap.ArrowRight = false;
     }
-    if (e.key === 'ArrowUp' || key === 'w') keys.ArrowUp = false;
-    if (e.key === 'ArrowDown' || key === 's') keys.ArrowDown = false;
+    if (e.key === 'ArrowUp' || key === 'w') {
+        const heldTime = now - keyPressStartTime.ArrowUp;
+        if (heldTime < STEER_HOLD_THRESHOLD) {
+            flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + 0.1);
+        }
+        keys.ArrowUp = false;
+        doubleTap.ArrowUp = false;
+    }
+    if (e.key === 'ArrowDown' || key === 's') {
+        const heldTime = now - keyPressStartTime.ArrowDown;
+        if (heldTime < STEER_HOLD_THRESHOLD) {
+            flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - 0.1);
+        }
+        keys.ArrowDown = false;
+        doubleTap.ArrowDown = false;
+    }
 });
 
 window.addEventListener('blur', () => {
