@@ -169,10 +169,12 @@ function generateChunk(chunkX, chunkZ) {
 
         const northInfluence = Math.max(0, -worldZ / 4500);
         const tempNoise = simplex.noise2D(worldX * 0.0001, worldZ * 0.0001);
-        const snowFactor = Math.max(0, Math.min(1, (northInfluence + tempNoise * 0.05 - 0.8) * 5));
+        const snowRaw = Math.max(0, Math.min(1, (northInfluence + tempNoise * 0.05 - 0.7) * 1.5));
+        const snowFactor = snowRaw * snowRaw * (3 - 2 * snowRaw);
 
         const southInfluence = Math.max(0, worldZ / 4500);
-        const desertFactor = Math.max(0, Math.min(1, (southInfluence + tempNoise * 0.05 - 0.8) * 5));
+        const desertRaw = Math.max(0, Math.min(1, (southInfluence + tempNoise * 0.05 - 0.7) * 1.5));
+        const desertFactor = desertRaw * desertRaw * (3 - 2 * desertRaw);
 
         const colorPlains = new THREE.Color(0x7CB342);
         const colorForest = new THREE.Color(0x388E3C);
@@ -319,8 +321,10 @@ function generateChunk(chunkX, chunkZ) {
             const tempNoise = simplex.noise2D(worldX * 0.0001, worldZ * 0.0001);
             const northInfluence = Math.max(0, -worldZ / 4500);
             const southInfluence = Math.max(0, worldZ / 4500);
-            const snowFactor = Math.max(0, Math.min(1, (northInfluence + tempNoise * 0.05 - 0.8) * 5));
-            const desertFactor = Math.max(0, Math.min(1, (southInfluence + tempNoise * 0.05 - 0.8) * 5));
+            const snowRaw = Math.max(0, Math.min(1, (northInfluence + tempNoise * 0.05 - 0.7) * 1.5));
+            const snowFactor = snowRaw * snowRaw * (3 - 2 * snowRaw);
+            const desertRaw = Math.max(0, Math.min(1, (southInfluence + tempNoise * 0.05 - 0.7) * 1.5));
+            const desertFactor = desertRaw * desertRaw * (3 - 2 * desertRaw);
 
             const colorObj = new THREE.Color(0x40C4FF);
             if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x88CCFF), snowFactor);
