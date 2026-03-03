@@ -20,6 +20,9 @@ scene.add(hemiLight);
 const dirLight = new THREE.DirectionalLight(0xfff0dd, 0.8);
 scene.add(dirLight);
 
+const moonLight = new THREE.DirectionalLight(0xbad2ff, 0.3); // Cool moonlight
+scene.add(moonLight);
+
 // --- DAY / NIGHT CYCLE SETUP ---
 // timeOfDay goes from 0 to 2PI (0 = midnight, PI/2 = 6am, PI = noon, 3PI/2 = 6pm)
 let timeOfDay = Math.PI * (5.5 / 12); // Start at 05:30 to catch the heart of the sunrise transition

@@ -694,13 +694,14 @@ function animate() {
     sunMesh.position.set(sunX * orbitRadius, sunY * orbitRadius, sunZ * orbitRadius);
     moonMesh.position.set(-sunX * orbitRadius, -sunY * orbitRadius, -sunZ * orbitRadius);
     dirLight.position.copy(sunMesh.position).add(planeGroup.position);
+    moonLight.position.copy(moonMesh.position).add(planeGroup.position);
     skyGroup.position.copy(camera.position);
 
     // Sky color / fog / weather
     // At 12:00 (PI), SunY = 1.0.
 
-    let uncloudedSkyColor = new THREE.Color(0x050510);
-    let uncloudedFogColor = new THREE.Color(0x020208);
+    let uncloudedSkyColor = new THREE.Color(0x0a0c20); // Brighter night sky for a chill view
+    let uncloudedFogColor = new THREE.Color(0x060815);
 
     const daySky = new THREE.Color(0x87ceeb);
     const sunriseSky = new THREE.Color(0xff7b54);
@@ -724,8 +725,9 @@ function animate() {
     let starFactor = Math.max(0, Math.min(1, (sunY + 0.2) / -0.3));
     starsMat.opacity = starFactor;
 
-    hemiLight.intensity = THREE.MathUtils.lerp(0.1, 0.6, dayFactor);
+    hemiLight.intensity = THREE.MathUtils.lerp(0.3, 0.6, dayFactor); // Less contrast at night
     dirLight.intensity = THREE.MathUtils.lerp(0, 0.8, dayFactor);
+    moonLight.intensity = THREE.MathUtils.lerp(0.4, 0, dayFactor); // Moon takes over during the night
 
     // Dynamic Weather (Drifting Fog & Clouds)
     const weatherTimeOffset = (now / 100000); // Very slow drift
