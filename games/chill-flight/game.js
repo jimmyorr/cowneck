@@ -408,15 +408,33 @@ function animate() {
     const controlAlt = Math.round(controlBaseAlt * 25);
     const accelRate = 0.8 * delta;
 
+    // Ground avoidance heights
+    const terrainHeight = getElevation(planeGroup.position.x, planeGroup.position.z);
+    let isWater = terrainHeight <= WATER_LEVEL + 0.1;
+    const minFlightHeight = isWater ? terrainHeight + 5.5 : terrainHeight + 30;
+    const restingHeight = minFlightHeight + (isWater ? 0 : 5);
+
     // Move forward
     if (flightSpeedMultiplier > 0) {
         planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
-    } else if (controlAlt > 5) {
+    } else if (planeGroup.position.y > restingHeight + 2) {
         // Freefall tumble & sink - Chaotic!
         planeGroup.rotation.x += (Math.sin(now * 0.002) + Math.cos(now * 0.0011)) * 0.8 * delta;
         planeGroup.rotation.z += (Math.cos(now * 0.0025) + Math.sin(now * 0.0017)) * 0.8 * delta;
         planeGroup.rotation.y += (Math.sin(now * 0.0015) + Math.cos(now * 0.0009)) * 0.5 * delta;
         planeGroup.position.y -= 25 * delta; // Faster sink
+    } else {
+        // Grounded at 0 speed - Rest flat peacefully
+        targetPitch = 0;
+        targetRoll = 0;
+        // Normalize rotations to [-PI, PI] to allow clean lerping to 0
+        while (planeGroup.rotation.x > Math.PI) planeGroup.rotation.x -= 2 * Math.PI;
+        while (planeGroup.rotation.x < -Math.PI) planeGroup.rotation.x += 2 * Math.PI;
+        while (planeGroup.rotation.z > Math.PI) planeGroup.rotation.z -= 2 * Math.PI;
+        while (planeGroup.rotation.z < -Math.PI) planeGroup.rotation.z += 2 * Math.PI;
+
+        planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, 0, 0.05);
+        planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, 0, 0.05);
     }
 
     // Speed controls
@@ -425,14 +443,10 @@ function animate() {
         keys.ArrowUp = false;
     }
 
-    // Ground avoidance
-    const terrainHeight = getElevation(planeGroup.position.x, planeGroup.position.z);
-    let isWater = terrainHeight <= WATER_LEVEL + 0.1;
-    const minFlightHeight = isWater ? terrainHeight + 5.5 : terrainHeight + 30;
-
+    // Apply Ground avoidance push
     if (planeGroup.position.y < minFlightHeight) {
 
-        planeGroup.position.y = THREE.MathUtils.lerp(planeGroup.position.y, minFlightHeight + (isWater ? 0 : 5), 0.05);
+        planeGroup.position.y = THREE.MathUtils.lerp(planeGroup.position.y, restingHeight, 0.05);
 
         if (isWater && planeGroup.position.y < minFlightHeight + 2) {
             if (!pontoonGroup.visible) {
