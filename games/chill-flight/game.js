@@ -544,6 +544,8 @@ function animate() {
 
         if (isWater && planeGroup.position.y < minFlightHeight + 2) {
             if (!pontoonGroup.visible) {
+                pontoonGroup.scale.setScalar(0);
+                pontoonDeploymentProgress = 0;
                 pontoonGroup.visible = true;
                 isDeployingPontoons = true;
             }
@@ -560,7 +562,7 @@ function animate() {
         planeGroup.position.y = maxFlightHeight;
     }
 
-    if (controlAlt >= 500 && pontoonGroup.visible && !isRetractingPontoons) {
+    if (controlAlt >= 2000 && pontoonGroup.visible && !isRetractingPontoons) {
         isRetractingPontoons = true;
     }
 
@@ -568,7 +570,9 @@ function animate() {
     const isDescending = currentY < lastY;
     lastY = currentY;
 
-    if (isWater && controlAlt < 1000 && isDescending && !pontoonGroup.visible) {
+    if (isWater && controlAlt < 1500 && isDescending && !pontoonGroup.visible) {
+        pontoonGroup.scale.setScalar(0);
+        pontoonDeploymentProgress = 0;
         pontoonGroup.visible = true;
         isDeployingPontoons = true;
     }
