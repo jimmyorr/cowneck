@@ -252,8 +252,9 @@ function generateChunk(chunkX, chunkZ) {
                             treePositions.push({ x: localX, y: height, z: localZ });
                         }
                     }
-                } else if (treeRoll < (desertFactor > 0.5 ? 0.051 : 0.155) * densityScale) {
+                } else if (treeRoll < (desertFactor > 0.5 ? 0.0505 : 0.151) * densityScale) {
                     // Campfires in forest community - mutually exclusive with trees
+                    // Spawns with 0.1% chance instead of old 0.5% chance
                     const offX = (rng() - 0.5) * 15;
                     const offZ = (rng() - 0.5) * 15;
                     const h = getElevation(worldX + offX, worldZ + offZ);

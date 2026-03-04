@@ -720,9 +720,9 @@ function animate() {
                 if (smoke) {
                     for (let i = 0; i < 5; i++) {
                         const smokeIdx = index * 5 + i;
-                        const offsetTime = (performance.now() * 0.001 + i * 0.4) % 2.0; // 2 second cycle community
-                        const rise = offsetTime * 40;
-                        const drift = Math.sin(performance.now() * 0.002 + i) * 5;
+                        const offsetTime = (performance.now() * 0.0005 + i * 0.4) % 2.0; // 4 second cycle community
+                        const rise = offsetTime * 60; // Slower rise, goes higher
+                        const drift = Math.sin(performance.now() * 0.001 + i) * 8;
                         const smokeScale = (1.0 + i * 0.5) * (1.0 + offsetTime * 0.5);
 
                         dummy.position.set(pos.x + drift, pos.y + 5 + rise, pos.z);
@@ -754,10 +754,10 @@ function animate() {
             positions.forEach((pos, index) => {
                 for (let i = 0; i < 4; i++) {
                     const smokeIdx = index * 4 + i;
-                    const offsetTime = (performance.now() * 0.001 + i * 0.6) % 2.4; // 2.4s cycle
-                    const rise = offsetTime * 30; // Slower rise than campfires
-                    const driftX = Math.sin(performance.now() * 0.001 + i) * 6;
-                    const driftZ = Math.cos(performance.now() * 0.0012 + i) * 4;
+                    const offsetTime = (performance.now() * 0.0005 + i * 0.6) % 2.4; // 4.8s cycle
+                    const rise = offsetTime * 45; // Slower rise, goes higher
+                    const driftX = Math.sin(performance.now() * 0.0005 + i) * 8;
+                    const driftZ = Math.cos(performance.now() * 0.0006 + i) * 6;
                     const smokeScale = (0.8 + i * 0.3) * (1.0 + offsetTime * 0.6); // Expands more
 
                     dummy.position.set(pos.x + driftX, pos.y + rise, pos.z + driftZ);
