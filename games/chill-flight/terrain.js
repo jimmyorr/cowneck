@@ -110,6 +110,22 @@ const smokeMat = new THREE.MeshStandardMaterial({
     flatShading: true
 });
 
+// Sailboat geometries
+const boatHullGeo = new THREE.BoxGeometry(4, 2, 10);
+boatHullGeo.translate(0, 0.5, 0); // slight lift
+const boatMastGeo = new THREE.CylinderGeometry(0.2, 0.2, 12, 4);
+boatMastGeo.translate(0, 6, -1);
+const boatSailGeo = new THREE.BufferGeometry();
+const sailVertices = new Float32Array([
+    0, 2, -1,
+    0, 12, -1,
+    0, 2, -8
+]);
+boatSailGeo.setAttribute('position', new THREE.BufferAttribute(sailVertices, 3));
+boatSailGeo.computeVertexNormals();
+const boatHullMat = new THREE.MeshStandardMaterial({ color: 0x8B4513, flatShading: true });
+const boatSailMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, flatShading: true, side: THREE.DoubleSide });
+
 // Lighthouse Beam geometry - narrow (2) at lighthouse, wide (20) at tip community
 const lighthouseBeamGeo = new THREE.CylinderGeometry(20, 2, 300, 16, 1, true);
 lighthouseBeamGeo.rotateX(Math.PI / 2);
@@ -162,7 +178,12 @@ function generateChunk(chunkX, chunkZ) {
     const pierPositions = [];
     const campfirePositions = [];
     const chimneySmokePositions = [];
+    const sailboatPositions = [];
     let hasWater = false;
+
+    // Normalize density so higher SEGMENTS doesn't mean more trees/houses/etc
+    const densityFactor = 40 / SEGMENTS;
+    const densityScale = densityFactor * densityFactor;
 
     for (let i = 0; i < positions.length; i += 3) {
         const localX = positions[i];
@@ -204,6 +225,9 @@ function generateChunk(chunkX, chunkZ) {
         if (height <= sandMaxHeight) {
             if (height <= WATER_LEVEL) {
                 hasWater = true;
+                if (rng() < 0.0005 * densityScale) { // Very rare sailboat
+                    sailboatPositions.push({ x: localX, y: WATER_LEVEL, z: localZ, rotY: rng() * Math.PI * 2 });
+                }
                 positions[i + 1] = height - 5; // Drop seafloor so moving water waves don't clip into it
                 colorObj.copy(colorSand);
                 if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x999999), snowFactor);
@@ -226,10 +250,6 @@ function generateChunk(chunkX, chunkZ) {
             const isForest = simplex.noise2D(worldX * 0.005 + 100, worldZ * 0.005) > 0.2;
             const autumnNoise = simplex.noise2D(worldX * 0.0003 + 500, worldZ * 0.0003 + 500);
             const cherryNoise = simplex.noise2D(worldX * 0.0005 + 1000, worldZ * 0.0005 + 1000);
-
-            // Normalize density so higher SEGMENTS doesn't mean more trees/houses
-            const densityFactor = 40 / SEGMENTS;
-            const densityScale = densityFactor * densityFactor;
 
             if (isForest) {
                 colorObj.copy(colorForest);
@@ -670,6 +690,30 @@ function generateChunk(chunkX, chunkZ) {
 
         group.userData.chimneySmoke = chimneySmokeInst;
         group.userData.chimneySmokePositions = chimneySmokePositions;
+    }
+
+    // 2.98 Generate Sailboats
+    if (sailboatPositions.length > 0) {
+        const hullInst = new THREE.InstancedMesh(boatHullGeo, boatHullMat, sailboatPositions.length);
+        const mastInst = new THREE.InstancedMesh(boatMastGeo, woodMat, sailboatPositions.length);
+        const sailInst = new THREE.InstancedMesh(boatSailGeo, boatSailMat, sailboatPositions.length);
+
+        sailboatPositions.forEach((pos, index) => {
+            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.rotation.set(0, pos.rotY, 0);
+            dummy.scale.set(1, 1, 1);
+            dummy.updateMatrix();
+            hullInst.setMatrixAt(index, dummy.matrix);
+            mastInst.setMatrixAt(index, dummy.matrix);
+            sailInst.setMatrixAt(index, dummy.matrix);
+        });
+
+        hullInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        mastInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        sailInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(hullInst);
+        group.add(mastInst);
+        group.add(sailInst);
     }
 
     // 3. Generate Clouds
