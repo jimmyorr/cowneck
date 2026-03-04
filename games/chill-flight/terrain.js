@@ -89,6 +89,12 @@ pierDeckGeo.translate(0, 1, 15); // Extend from shore
 const pierPostGeo = new THREE.CylinderGeometry(1, 1, 10, 6);
 const woodMat = new THREE.MeshStandardMaterial({ color: 0x5D4037, flatShading: true });
 
+// Tent geometries
+const tentGeo = new THREE.ConeGeometry(8, 12, 4);
+tentGeo.rotateY(Math.PI / 4);
+tentGeo.translate(0, 6, 0);
+const tentMat = new THREE.MeshStandardMaterial({ color: 0xD2B48C, flatShading: true }); // Tan color
+
 // Campfire geometries
 const fireLogGeo = new THREE.CylinderGeometry(0.8, 0.8, 6, 6);
 fireLogGeo.rotateZ(Math.PI / 2);
@@ -587,6 +593,7 @@ function generateChunk(chunkX, chunkZ) {
         const logInst = new THREE.InstancedMesh(fireLogGeo, woodMat, campfirePositions.length * 3);
         const coreInst = new THREE.InstancedMesh(fireCoreGeo, fireMat, campfirePositions.length);
         const smokeInst = new THREE.InstancedMesh(smokeGeo, smokeMat, campfirePositions.length * 5); // 5 particles per fire community
+        const tentInst = new THREE.InstancedMesh(tentGeo, tentMat, campfirePositions.length);
 
         campfirePositions.forEach((pos, index) => {
             // Logs in a tripod/teepee shape
@@ -609,14 +616,29 @@ function generateChunk(chunkX, chunkZ) {
                 dummy.updateMatrix();
                 smokeInst.setMatrixAt(index * 5 + i, dummy.matrix);
             }
+
+            // Tent community
+            const angle = rng() * Math.PI * 2;
+            const dist = 12 + rng() * 4;
+            const tentX = pos.x + Math.cos(angle) * dist;
+            const tentZ = pos.z + Math.sin(angle) * dist;
+            const tentY = getElevation(worldOffsetX + tentX, worldOffsetZ + tentZ);
+
+            dummy.position.set(tentX, tentY, tentZ);
+            dummy.rotation.set(0, angle, 0);
+            dummy.scale.set(1, 1, 1);
+            dummy.updateMatrix();
+            tentInst.setMatrixAt(index, dummy.matrix);
         });
 
         logInst.position.set(worldOffsetX, 0, worldOffsetZ);
         coreInst.position.set(worldOffsetX, 0, worldOffsetZ);
         smokeInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        tentInst.position.set(worldOffsetX, 0, worldOffsetZ);
         group.add(logInst);
         group.add(coreInst);
         group.add(smokeInst);
+        group.add(tentInst);
 
         group.userData.campfires = coreInst;
         group.userData.campfireSmoke = smokeInst;
