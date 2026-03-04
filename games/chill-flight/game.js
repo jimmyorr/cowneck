@@ -509,16 +509,31 @@ function animate() {
     const restingHeight = minFlightHeight + (isWater ? 0 : 5);
 
     // Move forward
-    if (flightSpeedMultiplier > 0) {
+    const currentKTS = BASE_FLIGHT_SPEED * flightSpeedMultiplier * 60;
+    const isFreefalling = (currentKTS < 50 && planeGroup.position.y > restingHeight + 2);
+
+    if (flightSpeedMultiplier > 0 && !isFreefalling) {
         planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
-    } else if (planeGroup.position.y > restingHeight + 2) {
+
+        // Low speed stall/sink mechanics
+        if (currentKTS < 100 && planeGroup.position.y > minFlightHeight) {
+            // Calculate how much we are stalling (0.0 at 100 KTS, 1.0 at <50 KTS)
+            const stallFactor = Math.max(0, (100 - Math.max(50, currentKTS)) / 50);
+            planeGroup.position.y -= 15 * stallFactor * delta;
+        }
+    } else if (isFreefalling) {
         // Freefall tumble & sink - Chaotic!
         planeGroup.rotation.x += (Math.sin(now * 0.002) + Math.cos(now * 0.0011)) * 0.8 * delta;
         planeGroup.rotation.z += (Math.cos(now * 0.0025) + Math.sin(now * 0.0017)) * 0.8 * delta;
         planeGroup.rotation.y += (Math.sin(now * 0.0015) + Math.cos(now * 0.0009)) * 0.5 * delta;
         planeGroup.position.y -= 25 * delta; // Faster sink
+
+        // Keep moving slightly forward while tumbling if there is some speed left
+        if (flightSpeedMultiplier > 0) {
+            planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
+        }
     } else {
-        // Grounded at 0 speed - Rest flat peacefully
+        // Grounded at <50 KTS (or 0 speed) - Rest flat peacefully
         targetPitch = 0;
         targetRoll = 0;
         // Normalize rotations to [-PI, PI] to allow clean lerping to 0
@@ -529,6 +544,11 @@ function animate() {
 
         planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, 0, 0.05);
         planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, 0, 0.05);
+
+        // Allow slow taxiing on the ground if speed > 0
+        if (flightSpeedMultiplier > 0) {
+            planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
+        }
     }
 
     // Speed controls
