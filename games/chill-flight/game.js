@@ -91,17 +91,17 @@ function togglePause() {
     if (isPaused) {
         pauseOverlay.style.display = 'flex';
         if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
-        if (ytPlayerReady && (currentStation === 2 || currentStation === 3)) ytPlayer.pauseVideo();
+        if (ytPlayerReady && (currentStation >= 5 && currentStation <= 7)) ytPlayer.pauseVideo();
     } else {
         pauseOverlay.style.display = 'none';
         clock.getDelta(); // clear accumulated time so plane doesn't skip
 
-        const isProcedural = (currentStation === 1 || (currentStation >= 4 && currentStation <= 6));
+        const isProcedural = (currentStation >= 1 && currentStation <= 4);
         if (isProcedural && audioCtx && audioCtx.state === 'suspended') {
             audioCtx.resume();
             nextNoteTime = audioCtx.currentTime + 0.1;
         }
-        if (ytPlayerReady && (currentStation === 2 || currentStation === 3)) ytPlayer.playVideo();
+        if (ytPlayerReady && (currentStation >= 5 && currentStation <= 7)) ytPlayer.playVideo();
     }
 }
 
@@ -1132,7 +1132,7 @@ window.addEventListener('keydown', (e) => {
     }
 
     if (e.key === '1') {
-        const procList = [1, 6, 4, 5];
+        const procList = [1, 2, 3, 4];
         let idx = procList.indexOf(currentStation);
         if (idx !== -1) {
             setStation(procList[(idx + 1) % procList.length]);
@@ -1141,8 +1141,9 @@ window.addEventListener('keydown', (e) => {
         }
     } else if (e.key === '0') {
         setStation(0);
-    } else if (e.key === '2' || e.key === '3') {
-        setStation(parseInt(e.key));
+    } else if (e.key === '2' || e.key === '3' || e.key === '4') {
+        const stationMap = { '2': 5, '3': 6, '4': 7 };
+        setStation(stationMap[e.key]);
     }
 });
 
@@ -1197,7 +1198,7 @@ document.querySelectorAll('.station-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
         const s = e.target.getAttribute('data-station');
         if (s === 'procedural') {
-            const procList = [1, 6, 4, 5];
+            const procList = [1, 2, 3, 4];
             let idx = procList.indexOf(currentStation);
             if (idx !== -1) {
                 setStation(procList[(idx + 1) % procList.length]);
