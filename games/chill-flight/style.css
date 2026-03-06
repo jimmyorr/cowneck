@@ -129,7 +129,9 @@ body {
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.8) !important;
 }
 
-.color-swatch.tv-focused, .station-btn.tv-focused, .btn.tv-focused {
+.color-swatch.tv-focused,
+.station-btn.tv-focused,
+.btn.tv-focused {
     transform: scale(1.15) !important;
 }
 

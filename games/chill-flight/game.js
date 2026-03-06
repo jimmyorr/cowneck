@@ -105,7 +105,7 @@ function togglePause() {
     }
 }
 
-let tvFocusRow = 5; // Default to resume btn
+let tvFocusRow = 6; // Default to resume btn
 let tvFocusCol = 0;
 
 function getMenuGrid() {
@@ -115,6 +115,7 @@ function getMenuGrid() {
         Array.from(document.querySelectorAll('.station-btn')),
         [document.getElementById('quality-select')],
         [document.getElementById('distance-select')],
+        [document.getElementById('theme-select')],
         [document.getElementById('resume-btn')]
     ];
 }
@@ -136,7 +137,7 @@ window.addEventListener('keydown', (e) => {
     if (isToggleKey) {
         togglePause();
         if (isPaused) {
-            tvFocusRow = 5;
+            tvFocusRow = 6;
             tvFocusCol = 0;
             updateTVFocus();
         }
@@ -257,6 +258,26 @@ if (qualitySelect) {
         chunks.clear();
 
         // The animate loop will call updateChunks() next frame and rebuild everything
+    });
+}
+
+// Theme selection
+const themeSelect = document.getElementById('theme-select');
+if (themeSelect) {
+    const currentTheme = new URLSearchParams(window.location.search).get('theme') || 'standard';
+    themeSelect.value = currentTheme;
+    themeSelect.addEventListener('change', (e) => {
+        const newTheme = e.target.value;
+        const confirmReload = window.confirm("Applying a new theme requires a page reload.\n\nReload now?");
+
+        if (confirmReload) {
+            const url = new URL(window.location);
+            url.searchParams.set('theme', newTheme);
+            window.location.assign(url.toString());
+        } else {
+            // Revert the dropdown selection if they cancel
+            themeSelect.value = currentTheme;
+        }
     });
 }
 

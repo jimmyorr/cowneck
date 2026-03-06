@@ -27,20 +27,20 @@ scene.add(planeGroup);
 
 // Fuselage
 const bodyGeo = new THREE.BoxGeometry(4, 4, 16);
-planeMat = new THREE.MeshStandardMaterial({ color: planeColor, flatShading: true });
+planeMat = createMaterial({ color: planeColor, flatShading: true });
 const body = new THREE.Mesh(bodyGeo, planeMat);
 planeGroup.add(body);
 
 // Cockpit window
 const windowGeo = new THREE.BoxGeometry(3, 2, 4);
-const windowMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 });
+const windowMat = createMaterial({ color: 0x111111, roughness: 0.1 });
 const cockpit = new THREE.Mesh(windowGeo, windowMat);
 cockpit.position.set(0, 2.5, -2);
 planeGroup.add(cockpit);
 
 // Wings
 const wingGeo = new THREE.BoxGeometry(30, 0.5, 4);
-const wingMat = new THREE.MeshStandardMaterial({ color: 0xecf0f1, flatShading: true });
+const wingMat = createMaterial({ color: 0xecf0f1, flatShading: true });
 const wings = new THREE.Mesh(wingGeo, wingMat);
 wings.position.set(0, 0, -1);
 planeGroup.add(wings);
@@ -63,11 +63,11 @@ planeGroup.add(propGroup);
 
 const propCenterGeo = new THREE.CylinderGeometry(0.8, 0.8, 2, 8);
 propCenterGeo.rotateX(Math.PI / 2);
-const propCenter = new THREE.Mesh(propCenterGeo, new THREE.MeshStandardMaterial({ color: 0x333333 }));
+const propCenter = new THREE.Mesh(propCenterGeo, createMaterial({ color: 0x333333 }));
 propGroup.add(propCenter);
 
 const bladeGeo = new THREE.BoxGeometry(12, 0.4, 0.4);
-const bladeMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+const bladeMat = createMaterial({ color: 0x222222 });
 const blade1 = new THREE.Mesh(bladeGeo, bladeMat);
 const blade2 = new THREE.Mesh(bladeGeo, bladeMat);
 blade2.rotation.z = Math.PI / 2;
@@ -83,7 +83,7 @@ let pontoonDeploymentProgress = 0;
 let isDeployingPontoons = false;
 let isRetractingPontoons = false;
 
-const pontoonMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, flatShading: true });
+const pontoonMat = createMaterial({ color: 0xcccccc, flatShading: true });
 const pontoonGeo = new THREE.CylinderGeometry(1.5, 1.5, 18, 8);
 pontoonGeo.rotateX(Math.PI / 2);
 const pontoonNoseGeo = new THREE.ConeGeometry(1.5, 4, 8);
@@ -107,7 +107,7 @@ pontoonR.position.set(5, -4.5, 0);
 pontoonGroup.add(pontoonR);
 
 const strutGeo = new THREE.CylinderGeometry(0.2, 0.2, 4.5, 4);
-const strutMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+const strutMat = createMaterial({ color: 0x333333 });
 
 const hingeLF = new THREE.Group(); hingeLF.position.set(-5, 0, -3); pontoonGroup.add(hingeLF);
 const strutLF = new THREE.Mesh(strutGeo, strutMat); strutLF.position.set(0, -2.25, 0); hingeLF.add(strutLF);

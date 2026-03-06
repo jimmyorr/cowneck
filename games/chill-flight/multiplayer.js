@@ -47,7 +47,7 @@ function createOtherPlaneMesh(uid, forcedColor) {
     const group = new THREE.Group();
     const bodyGeo = new THREE.BoxGeometry(4, 4, 16);
     const color = forcedColor !== undefined ? forcedColor : getPlaneColor(uid);
-    const mat = new THREE.MeshStandardMaterial({ color: color, flatShading: true });
+    const mat = createMaterial({ color: color, flatShading: true });
     const body = new THREE.Mesh(bodyGeo, mat);
     group.add(body);
     const cp = new THREE.Mesh(windowGeo, windowMat);
@@ -89,11 +89,11 @@ function createOtherPlaneMesh(uid, forcedColor) {
 
     const propCenterGeo = new THREE.CylinderGeometry(0.8, 0.8, 2, 8);
     propCenterGeo.rotateX(Math.PI / 2);
-    const propCenter = new THREE.Mesh(propCenterGeo, new THREE.MeshStandardMaterial({ color: 0x333333 }));
+    const propCenter = new THREE.Mesh(propCenterGeo, createMaterial({ color: 0x333333 }));
     propGroup.add(propCenter);
 
     const bladeGeo = new THREE.BoxGeometry(12, 0.4, 0.4);
-    const bladeMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+    const bladeMat = createMaterial({ color: 0x222222 });
     const blade1 = new THREE.Mesh(bladeGeo, bladeMat);
     const blade2 = new THREE.Mesh(bladeGeo, bladeMat);
     blade2.rotation.z = Math.PI / 2;

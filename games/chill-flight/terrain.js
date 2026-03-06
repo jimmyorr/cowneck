@@ -4,13 +4,13 @@
 const chunks = new Map();
 
 // Materials for terrain
-const terrainMaterial = new THREE.MeshStandardMaterial({
+const terrainMaterial = createMaterial({
     vertexColors: true,
     flatShading: true,
     roughness: 0.8
 });
 
-const waterMaterial = new THREE.MeshStandardMaterial({
+const waterMaterial = createMaterial({
     vertexColors: true,
     transparent: true,
     opacity: 0.6,
@@ -25,16 +25,16 @@ treeTrunkGeo.translate(0, 5, 0);
 const treeLeavesGeo = new THREE.ConeGeometry(8, 20, 5);
 treeLeavesGeo.translate(0, 15, 0);
 
-const treeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x5D4037, flatShading: true });
-const treeLeavesMat = new THREE.MeshStandardMaterial({ color: 0x2E7D32, flatShading: true });
-const snowTreeTrunkMat = new THREE.MeshStandardMaterial({ color: 0x4E342E, flatShading: true });
-const snowTreeLeavesMat = new THREE.MeshStandardMaterial({ color: 0xE0F7FA, flatShading: true });
+const treeTrunkMat = createMaterial({ color: 0x5D4037, flatShading: true });
+const treeLeavesMat = createMaterial({ color: 0x2E7D32, flatShading: true });
+const snowTreeTrunkMat = createMaterial({ color: 0x4E342E, flatShading: true });
+const snowTreeLeavesMat = createMaterial({ color: 0xE0F7FA, flatShading: true });
 
 // Autumn & Cherry Blossom materials
-const autumnLeavesMat1 = new THREE.MeshStandardMaterial({ color: 0xD35400, flatShading: true }); // Burnt Orange
-const autumnLeavesMat2 = new THREE.MeshStandardMaterial({ color: 0xF39C12, flatShading: true }); // Orange
-const autumnLeavesMat3 = new THREE.MeshStandardMaterial({ color: 0xC0392B, flatShading: true }); // Strong Red
-const cherryBlossomMat = new THREE.MeshStandardMaterial({ color: 0xF8BBD0, flatShading: true }); // Pink
+const autumnLeavesMat1 = createMaterial({ color: 0xD35400, flatShading: true }); // Burnt Orange
+const autumnLeavesMat2 = createMaterial({ color: 0xF39C12, flatShading: true }); // Orange
+const autumnLeavesMat3 = createMaterial({ color: 0xC0392B, flatShading: true }); // Strong Red
+const cherryBlossomMat = createMaterial({ color: 0xF8BBD0, flatShading: true }); // Pink
 
 // Reusable house geometries
 const houseBodyGeo = new THREE.BoxGeometry(10, 8, 10);
@@ -44,13 +44,13 @@ houseRoofGeo.rotateY(Math.PI / 4);
 houseRoofGeo.translate(0, 11, 0);
 const houseWindowGeo = new THREE.BoxGeometry(2.5, 3.5, 0.5);
 
-const houseBodyMat = new THREE.MeshStandardMaterial({ color: 0x8D6E63, flatShading: true });
-const houseRoofMat = new THREE.MeshStandardMaterial({ color: 0x5D4037, flatShading: true });
+const houseBodyMat = createMaterial({ color: 0x8D6E63, flatShading: true });
+const houseRoofMat = createMaterial({ color: 0x5D4037, flatShading: true });
 
 // Window Materials (5 variations for staggered lighting)
 const houseWindowMats = [];
 for (let i = 0; i < 5; i++) {
-    houseWindowMats.push(new THREE.MeshStandardMaterial({
+    houseWindowMats.push(createMaterial({
         color: 0x111111,
         emissive: 0xFFD54F,
         emissiveIntensity: 0.0,
@@ -65,45 +65,45 @@ birdWingGeo.translate(3, 0, 0);
 const birdHeadGeo = new THREE.ConeGeometry(0.5, 1.5, 4);
 birdHeadGeo.rotateX(-Math.PI / 2);
 birdHeadGeo.translate(0, 0, -2);
-const hawkMat = new THREE.MeshStandardMaterial({ color: 0x442200, flatShading: true });
+const hawkMat = createMaterial({ color: 0x442200, flatShading: true });
 
 // Windmill geometries
 const windmillBaseGeo = new THREE.CylinderGeometry(5, 8, 30, 6);
 windmillBaseGeo.translate(0, 15, 0);
 const windmillBladesGeo = new THREE.BoxGeometry(2, 30, 0.5);
 windmillBladesGeo.translate(0, 15, 0); // Rotate around bottom center
-const windmillBaseMat = new THREE.MeshStandardMaterial({ color: 0x8D6E63, flatShading: true });
-const windmillBladesMat = new THREE.MeshStandardMaterial({ color: 0xEEEEEE, flatShading: true });
+const windmillBaseMat = createMaterial({ color: 0x8D6E63, flatShading: true });
+const windmillBladesMat = createMaterial({ color: 0xEEEEEE, flatShading: true });
 
 // Lighthouse geometries
 const lighthousePieceGeo = new THREE.CylinderGeometry(8, 8, 20, 8);
 const lighthouseTopGeo = new THREE.SphereGeometry(10, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2);
 lighthouseTopGeo.translate(0, 60, 0);
 
-const lighthouseRedMat = new THREE.MeshStandardMaterial({ color: 0xC62828, flatShading: true });
-const lighthouseWhiteMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, flatShading: true });
+const lighthouseRedMat = createMaterial({ color: 0xC62828, flatShading: true });
+const lighthouseWhiteMat = createMaterial({ color: 0xFFFFFF, flatShading: true });
 
 // Pier geometries
 const pierDeckGeo = new THREE.BoxGeometry(15, 2, 30);
 pierDeckGeo.translate(0, 1, 15); // Extend from shore
 const pierPostGeo = new THREE.CylinderGeometry(1, 1, 10, 6);
-const woodMat = new THREE.MeshStandardMaterial({ color: 0x5D4037, flatShading: true });
+const woodMat = createMaterial({ color: 0x5D4037, flatShading: true });
 
 // Tent geometries
 const tentGeo = new THREE.ConeGeometry(8, 12, 4);
 tentGeo.rotateY(Math.PI / 4);
 tentGeo.translate(0, 6, 0);
-const tentMat = new THREE.MeshStandardMaterial({ color: 0xD2B48C, flatShading: true }); // Tan color
+const tentMat = createMaterial({ color: 0xD2B48C, flatShading: true }); // Tan color
 
 // Campfire geometries
 const fireLogGeo = new THREE.CylinderGeometry(0.8, 0.8, 6, 6);
 fireLogGeo.rotateZ(Math.PI / 2);
 const fireCoreGeo = new THREE.SphereGeometry(2, 8, 8);
-const fireMat = new THREE.MeshStandardMaterial({ color: 0xFF4500, emissive: 0xFF4500, emissiveIntensity: 2.0 });
+const fireMat = createMaterial({ color: 0xFF4500, emissive: 0xFF4500, emissiveIntensity: 2.0 });
 
 // Smoke geometry and material community
 const smokeGeo = new THREE.BoxGeometry(2, 2, 2);
-const smokeMat = new THREE.MeshStandardMaterial({
+const smokeMat = createMaterial({
     color: 0x888888,
     transparent: true,
     opacity: 0.4,
@@ -123,8 +123,8 @@ const sailVertices = new Float32Array([
 ]);
 boatSailGeo.setAttribute('position', new THREE.BufferAttribute(sailVertices, 3));
 boatSailGeo.computeVertexNormals();
-const boatHullMat = new THREE.MeshStandardMaterial({ color: 0x8B4513, flatShading: true });
-const boatSailMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, flatShading: true, side: THREE.DoubleSide });
+const boatHullMat = createMaterial({ color: 0x8B4513, flatShading: true });
+const boatSailMat = createMaterial({ color: 0xFFFFFF, flatShading: true, side: THREE.DoubleSide });
 
 // Lighthouse Beam geometry - narrow (2) at lighthouse, wide (20) at tip community
 const lighthouseBeamGeo = new THREE.CylinderGeometry(20, 2, 300, 16, 1, true);
@@ -668,7 +668,7 @@ function generateChunk(chunkX, chunkZ) {
 
     // 2.97 Generate Chimney Smoke
     if (chimneySmokePositions.length > 0) {
-        const whiteSmokeMat = new THREE.MeshStandardMaterial({
+        const whiteSmokeMat = createMaterial({
             color: 0xDDDDDD,
             transparent: true,
             opacity: 0.6,
@@ -728,7 +728,7 @@ function generateChunk(chunkX, chunkZ) {
     const numClouds = Math.floor(cloudiness * 40);
 
     const cloudGeo = new THREE.BoxGeometry(1, 1, 1);
-    const cloudMat = new THREE.MeshStandardMaterial({
+    const cloudMat = createMaterial({
         color: 0xffffff,
         transparent: true,
         opacity: 0.85,
