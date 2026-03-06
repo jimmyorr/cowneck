@@ -122,6 +122,18 @@ body {
     border-color: rgba(255, 255, 255, 0.5);
 }
 
+/* Hide number input spinners */
+input[type=number].customization-input::-webkit-inner-spin-button,
+input[type=number].customization-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number].customization-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
 /* Android TV UI Focus */
 .tv-focused {
     outline: 3px solid #FFD700 !important;

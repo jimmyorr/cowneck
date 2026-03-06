@@ -105,7 +105,7 @@ function togglePause() {
     }
 }
 
-let tvFocusRow = 6; // Default to resume btn
+let tvFocusRow = 7; // Default to resume btn
 let tvFocusCol = 0;
 
 function getMenuGrid() {
@@ -116,6 +116,7 @@ function getMenuGrid() {
         [document.getElementById('quality-select')],
         [document.getElementById('distance-select')],
         [document.getElementById('theme-select')],
+        [document.getElementById('seed-input')],
         [document.getElementById('resume-btn')]
     ];
 }
@@ -137,7 +138,7 @@ window.addEventListener('keydown', (e) => {
     if (isToggleKey) {
         togglePause();
         if (isPaused) {
-            tvFocusRow = 6;
+            tvFocusRow = 7;
             tvFocusCol = 0;
             updateTVFocus();
         }
@@ -277,6 +278,27 @@ if (themeSelect) {
         } else {
             // Revert the dropdown selection if they cancel
             themeSelect.value = currentTheme;
+        }
+    });
+}
+
+// Seed selection
+const seedInput = document.getElementById('seed-input');
+if (seedInput) {
+    seedInput.value = ChillFlightLogic.WORLD_SEED;
+    seedInput.addEventListener('change', (e) => {
+        const newSeed = e.target.value;
+        if (!newSeed) return;
+        if (parseInt(newSeed, 10) === ChillFlightLogic.WORLD_SEED) return;
+        const confirmReload = window.confirm("Applying a new seed requires a page reload.\n\nReload now?");
+
+        if (confirmReload) {
+            const url = new URL(window.location);
+            url.searchParams.set('seed', newSeed);
+            window.location.assign(url.toString());
+        } else {
+            // Revert to original
+            seedInput.value = ChillFlightLogic.WORLD_SEED;
         }
     });
 }
@@ -1176,19 +1198,21 @@ window.addEventListener('keydown', (e) => {
         }
     }
 
-    if (e.key === '1') {
-        const procList = [1, 2, 3, 4];
-        let idx = procList.indexOf(currentStation);
-        if (idx !== -1) {
-            setStation(procList[(idx + 1) % procList.length]);
-        } else {
-            setStation(1);
+    if (document.activeElement && document.activeElement.tagName !== 'INPUT') {
+        if (e.key === '1') {
+            const procList = [1, 2, 3, 4];
+            let idx = procList.indexOf(currentStation);
+            if (idx !== -1) {
+                setStation(procList[(idx + 1) % procList.length]);
+            } else {
+                setStation(1);
+            }
+        } else if (e.key === '0') {
+            setStation(0);
+        } else if (e.key === '2' || e.key === '3' || e.key === '4' || e.key === '5' || e.key === '6' || e.key === '7') {
+            const stationMap = { '2': 5, '3': 6, '4': 7, '5': 5, '6': 6, '7': 7 };
+            setStation(stationMap[e.key]);
         }
-    } else if (e.key === '0') {
-        setStation(0);
-    } else if (e.key === '2' || e.key === '3' || e.key === '4') {
-        const stationMap = { '2': 5, '3': 6, '4': 7 };
-        setStation(stationMap[e.key]);
     }
 });
 

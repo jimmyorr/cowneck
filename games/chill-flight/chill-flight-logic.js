@@ -5,9 +5,19 @@
 (function (exports) {
 
     // --- WORLD SEED ---
-    // Controls all procedural world generation. Change this to produce a different world.
-    // TODO: in a future iteration, allow overriding via ?seed=N URL param or the pause-menu UI.
-    const WORLD_SEED = 42;
+    // Controls all procedural world generation. Can be overridden via ?seed=N URL param.
+    // Defaults to current date in YYYYMMDD format.
+    const getTodaySeed = () => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return parseInt(year + month + day, 10);
+    };
+
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const seedParam = urlParams ? urlParams.get('seed') : null;
+    const WORLD_SEED = seedParam ? parseInt(seedParam, 10) : getTodaySeed();
 
     // --- SEEDED PRNG: Mulberry32 ---
     // Returns a closure that produces deterministic floats in [0, 1).
