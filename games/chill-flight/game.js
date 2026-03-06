@@ -116,6 +116,7 @@ function getMenuGrid() {
         [document.getElementById('quality-select')],
         [document.getElementById('distance-select')],
         [document.getElementById('theme-select')],
+        [document.getElementById('invert-y-input')],
         [document.getElementById('seed-input')],
         [document.getElementById('resume-btn')]
     ];
@@ -322,6 +323,20 @@ if (window.innerWidth <= 768) {
 const clock = new THREE.Clock();
 
 // --- PERSISTENCE ---
+let invertYAxis = false;
+const savedInvertY = localStorage.getItem('chill_flight_invert_y');
+if (savedInvertY !== null) {
+    invertYAxis = savedInvertY === 'true';
+}
+const invertYInput = document.getElementById('invert-y-input');
+if (invertYInput) {
+    invertYInput.checked = invertYAxis;
+    invertYInput.addEventListener('change', (e) => {
+        invertYAxis = e.target.checked;
+        localStorage.setItem('chill_flight_invert_y', invertYAxis);
+    });
+}
+
 const savedQuality = localStorage.getItem('chill_flight_quality');
 if (savedQuality) {
     SEGMENTS = parseInt(savedQuality);
@@ -461,20 +476,27 @@ function animate() {
     const nowTime = performance.now();
 
     if (flightSpeedMultiplier > 0) {
-        targetPitch = effMouseY * maxPitch;
+        let yMultiplier = invertYAxis ? -1 : 1;
+        targetPitch = effMouseY * maxPitch * yMultiplier;
         targetRoll = -effMouseX * (maxRoll * 1.25);
 
         // Clamping manualPitch to 0 if we aren't using the old persistent trim logic
         // This ensures hold-to-climb returns to center.
         manualPitch = THREE.MathUtils.lerp(manualPitch, 0, 0.1);
 
-        if (keys.ArrowUp) {
-            if (nowTime - keyPressStartTime.ArrowUp > STEER_HOLD_THRESHOLD && !doubleTap.ArrowUp) {
-                targetPitch = Math.PI / 6; // 30 degrees
+        let isUpLog = invertYAxis ? keys.ArrowDown : keys.ArrowUp;
+        let isDownLog = invertYAxis ? keys.ArrowUp : keys.ArrowDown;
+        let dtUpLog = invertYAxis ? doubleTap.ArrowDown : doubleTap.ArrowUp;
+        let startUpLog = invertYAxis ? keyPressStartTime.ArrowDown : keyPressStartTime.ArrowUp;
+        let startDownLog = invertYAxis ? keyPressStartTime.ArrowUp : keyPressStartTime.ArrowDown;
+
+        if (isUpLog) {
+            if (nowTime - startUpLog > STEER_HOLD_THRESHOLD && !dtUpLog) {
+                targetPitch = (Math.PI / 6); // 30 degrees
             }
-        } else if (keys.ArrowDown) {
-            if (nowTime - keyPressStartTime.ArrowDown > STEER_HOLD_THRESHOLD) {
-                targetPitch = -Math.PI / 12; // 15 degrees
+        } else if (isDownLog) {
+            if (nowTime - startDownLog > STEER_HOLD_THRESHOLD) {
+                targetPitch = (-Math.PI / 12); // 15 degrees
             }
         }
     } else {
@@ -488,11 +510,18 @@ function animate() {
     const manualRollSpeed = 4.0;
     const manualLoopSpeed = 2.5;
     if (flightSpeedMultiplier > 0) {
-        if (keys.ArrowUp && doubleTap.ArrowUp && (nowTime - keyPressStartTime.ArrowUp > STEER_HOLD_THRESHOLD)) {
+        let isUpLog = invertYAxis ? keys.ArrowDown : keys.ArrowUp;
+        let isDownLog = invertYAxis ? keys.ArrowUp : keys.ArrowDown;
+        let dtUpLog = invertYAxis ? doubleTap.ArrowDown : doubleTap.ArrowUp;
+        let dtDownLog = invertYAxis ? doubleTap.ArrowUp : doubleTap.ArrowDown;
+        let startUpLog = invertYAxis ? keyPressStartTime.ArrowDown : keyPressStartTime.ArrowUp;
+        let startDownLog = invertYAxis ? keyPressStartTime.ArrowUp : keyPressStartTime.ArrowDown;
+
+        if (isUpLog && dtUpLog && (nowTime - startUpLog > STEER_HOLD_THRESHOLD)) {
             // Double-tap up and hold: loop (Direct rotation, no trim pollution)
             planeGroup.rotation.x += manualLoopSpeed * delta;
             isLooping = true;
-        } else if (keys.ArrowDown && doubleTap.ArrowDown && (nowTime - keyPressStartTime.ArrowDown > STEER_HOLD_THRESHOLD)) {
+        } else if (isDownLog && dtDownLog && (nowTime - startDownLog > STEER_HOLD_THRESHOLD)) {
             // Double-tap down and hold: straight down dive
             const targetDive = -(Math.PI * 75) / 180; // 75 degrees
             planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetDive, 0.1);
