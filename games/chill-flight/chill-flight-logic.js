@@ -205,6 +205,40 @@
 
         n += offset;
 
+        // --- LARGE ISLANDS LOGIC (East) ---
+        if (x > 3000 && biome < -0.1) {
+            const islandRegion = simplex.noise2D(x * 0.0001 + 500, z * 0.0001 + 500);
+            if (islandRegion > 0.2) {
+                const islandShape = simplex.noise2D(x * 0.0003 + 1000, z * 0.0003 + 1000);
+                if (islandShape > -0.1) {
+                    const eastIntensity = Math.min(1, (x - 3000) / 7000);
+                    const shapeFactor = Math.max(0, islandShape + 0.1);
+                    const heightFactor = shapeFactor * (islandRegion - 0.2) * eastIntensity;
+                    if (heightFactor > 0) {
+                        let islandHeight = heightFactor * 800;
+                        islandHeight += simplex.noise2D(x * 0.002, z * 0.002) * 80 * heightFactor;
+                        n += islandHeight;
+                    }
+                }
+            }
+        }
+
+        // --- LARGE LAKES LOGIC (West) ---
+        if (x < -3000) {
+            const lakeRegion = simplex.noise2D(x * 0.0001 + 200, z * 0.0001 + 200);
+            if (lakeRegion > 0.2) {
+                const lakeShape = simplex.noise2D(x * 0.0003 + 300, z * 0.0003 + 300);
+                if (lakeShape > -0.1) {
+                    const westIntensity = Math.min(1, (-x - 3000) / 7000);
+                    const shapeFactor = Math.max(0, lakeShape + 0.1);
+                    let depthFactor = shapeFactor * (lakeRegion - 0.2) * westIntensity;
+                    if (depthFactor > 0) {
+                        n -= depthFactor * 800; // Carve down
+                    }
+                }
+            }
+        }
+
         // --- RIVER CARVING LOGIC ---
         // Define a meandering path running East-West around the equator (Z = 0)
         // Use multiple frequencies of noise for more natural, unpredictable bends
