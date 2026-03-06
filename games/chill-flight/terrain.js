@@ -93,6 +93,45 @@ function createCactusGeometry() {
 const cactusGeo = createCactusGeometry();
 const cactusMat = createMaterial({ color: 0x4CAF50, flatShading: true });
 
+// Snowman geometries and materials
+function createSnowmanGeometry() {
+    const baseGeo = new THREE.SphereGeometry(3, 8, 8);
+    baseGeo.translate(0, 2.5, 0);
+    const midGeo = new THREE.SphereGeometry(2, 8, 8);
+    midGeo.translate(0, 6.5, 0);
+    const headGeo = new THREE.SphereGeometry(1.5, 8, 8);
+    headGeo.translate(0, 9.5, 0);
+
+    // Nose
+    const noseGeo = new THREE.ConeGeometry(0.3, 1.5, 4);
+    noseGeo.rotateX(Math.PI / 2);
+    noseGeo.translate(0, 9.5, 1.5);
+
+    const geometries = [baseGeo, midGeo, headGeo];
+    let pos = [], norm = [], idx = [];
+    let offset = 0;
+
+    // White body parts
+    for (const g of geometries) {
+        pos.push(...g.attributes.position.array);
+        norm.push(...g.attributes.normal.array);
+        for (let i = 0; i < g.index.array.length; i++) {
+            idx.push(g.index.array[i] + offset);
+        }
+        offset += g.attributes.position.count;
+    }
+
+    const bodyGeom = new THREE.BufferGeometry();
+    bodyGeom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    bodyGeom.setAttribute('normal', new THREE.Float32BufferAttribute(norm, 3));
+    bodyGeom.setIndex(idx);
+
+    return { body: bodyGeom, nose: noseGeo };
+}
+const snowmanGeos = createSnowmanGeometry();
+const snowmanBodyMat = createMaterial({ color: 0xFFFFFF, flatShading: true });
+const snowmanNoseMat = createMaterial({ color: 0xFF8C00, flatShading: true });
+
 // Autumn & Cherry Blossom materials
 const autumnLeavesMat1 = createMaterial({ color: 0xD35400, flatShading: true }); // Burnt Orange
 const autumnLeavesMat2 = createMaterial({ color: 0xF39C12, flatShading: true }); // Orange
@@ -246,6 +285,7 @@ function generateChunk(chunkX, chunkZ) {
     const snowRockPositions = [];
     const desertRockPositions = [];
     const cactusPositions = [];
+    const snowmanPositions = [];
     let hasWater = false;
 
     // Normalize density so higher SEGMENTS doesn't mean more trees/houses/etc
@@ -397,6 +437,13 @@ function generateChunk(chunkX, chunkZ) {
             if (desertFactor > 0.4 && rng() < 0.04 * densityScale) {
                 if (height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 50) {
                     cactusPositions.push({ x: localX, y: height, z: localZ });
+                }
+            }
+
+            // Snowman Spawning
+            if (snowFactor > 0.6 && rng() < 0.002 * densityScale) {
+                if (height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 50) {
+                    snowmanPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
                 }
             }
 
@@ -565,6 +612,27 @@ function generateChunk(chunkX, chunkZ) {
         });
         cactusInst.position.set(worldOffsetX, 0, worldOffsetZ);
         group.add(cactusInst);
+    }
+
+    // 2.45 Generate Snowmen
+    if (snowmanPositions.length > 0) {
+        const bodyInst = new THREE.InstancedMesh(snowmanGeos.body, snowmanBodyMat, snowmanPositions.length);
+        const noseInst = new THREE.InstancedMesh(snowmanGeos.nose, snowmanNoseMat, snowmanPositions.length);
+
+        snowmanPositions.forEach((pos, index) => {
+            const scale = 0.8 + rng() * 0.4;
+            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.rotation.set(0, pos.rotY, 0);
+            dummy.scale.set(scale, scale, scale);
+            dummy.updateMatrix();
+            bodyInst.setMatrixAt(index, dummy.matrix);
+            noseInst.setMatrixAt(index, dummy.matrix);
+        });
+
+        bodyInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        noseInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(bodyInst);
+        group.add(noseInst);
     }
 
     // 2.5 Generate Houses
