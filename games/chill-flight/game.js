@@ -792,6 +792,7 @@ function animate() {
                     _hubOffset.set(0, 0, 8.5).applyAxisAngle(_yAxis, pos.rotY);
                     _chunkDummy.position.add(_hubOffset);
                     _chunkDummy.rotation.set(0, pos.rotY, (b * Math.PI / 2) + windmillRotation);
+                    _chunkDummy.scale.set(1.5, 1.5, 1.5);
                     _chunkDummy.updateMatrix();
                     bladesInst.setMatrixAt(bladeIdx, _chunkDummy.matrix);
                 }

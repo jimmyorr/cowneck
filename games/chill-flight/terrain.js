@@ -1114,6 +1114,7 @@ function generateChunk(chunkX, chunkZ) {
                 const hubOffset = new THREE.Vector3(0, 0, 8.5).applyAxisAngle(new THREE.Vector3(0, 1, 0), pos.rotY);
                 dummy.position.add(hubOffset);
                 dummy.rotation.set(0, pos.rotY, (b * Math.PI / 2));
+                dummy.scale.set(1.5, 1.5, 1.5);
                 dummy.updateMatrix();
                 bladesInst.setMatrixAt(bladeIdx, dummy.matrix);
             }
