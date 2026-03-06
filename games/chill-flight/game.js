@@ -91,7 +91,7 @@ function togglePause() {
     if (isPaused) {
         pauseOverlay.style.display = 'flex';
         if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
-        if (ytPlayerReady && (currentStation >= 5 && currentStation <= 7)) ytPlayer.pauseVideo();
+        if (ytPlayerReady && currentStation === 5) ytPlayer.pauseVideo();
     } else {
         pauseOverlay.style.display = 'none';
         clock.getDelta(); // clear accumulated time so plane doesn't skip
@@ -101,7 +101,7 @@ function togglePause() {
             audioCtx.resume();
             nextNoteTime = audioCtx.currentTime + 0.1;
         }
-        if (ytPlayerReady && (currentStation >= 5 && currentStation <= 7)) ytPlayer.playVideo();
+        if (ytPlayerReady && currentStation === 5) ytPlayer.playVideo();
     }
 }
 
@@ -1209,9 +1209,8 @@ window.addEventListener('keydown', (e) => {
             }
         } else if (e.key === '0') {
             setStation(0);
-        } else if (e.key === '2' || e.key === '3' || e.key === '4' || e.key === '5' || e.key === '6' || e.key === '7') {
-            const stationMap = { '2': 5, '3': 6, '4': 7, '5': 5, '6': 6, '7': 7 };
-            setStation(stationMap[e.key]);
+        } else if (e.key === '2' || e.key === '5') {
+            setStation(5);
         }
     }
 });

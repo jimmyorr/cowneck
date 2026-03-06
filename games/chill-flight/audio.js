@@ -8,7 +8,7 @@ let nextNoteTime = 0;
 let beatCount = 0;
 let scheduleTimer;
 
-const stationNames = ["Off", "Ambient dream", "Lofi beats", "Ethereal chords", "Minimal pulse", "Lofi Girl", "Bootleg Boy 2", "Joey Pecoraro"];
+const stationNames = ["Off", "Ambient dream", "Lofi beats", "Ethereal chords", "Minimal pulse", "Lofi Girl"];
 // Pentatonic scale for pleasing chill vibes
 const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
 
@@ -237,8 +237,7 @@ function setStation(num) {
     if (num === 0) {
         nameDisplay.innerText = 'C H I L L - F L I G H T';
     } else {
-        const isYT = (num >= 5 && num <= 7);
-        if (isYT && !ytPlayerReady) {
+        if (num === 5 && !ytPlayerReady) {
             nameDisplay.innerText = stationNames[num] + " [SYNCING...]";
             ytQueuedStation = num;
         } else {
@@ -258,7 +257,7 @@ function setStation(num) {
 
     if (ytPlayerReady) {
         updateYTPlayer(num);
-    } else if (num >= 5 && num <= 7) {
+    } else if (num === 5) {
         ensureYTPlayerInitialized();
     }
 
@@ -292,29 +291,6 @@ function updateYTPlayer(num) {
         ytContainer.style.opacity = isVisible ? '1' : '0';
         ytPlayer.loadVideoById(lofiGirlVideos[lofiGirlIdx]);
         setTimeout(() => ytPlayer.playVideo(), 100);
-    } else if (num === 6) {
-        const isVisible = window.innerWidth > 768;
-        ytContainer.style.display = isVisible ? 'block' : 'none';
-        ytContainer.style.opacity = isVisible ? '1' : '0';
-        const randomStartIndex = Math.floor(Math.random() * 30);
-        ytPlayer.stopVideo();
-        ytPlayer.loadPlaylist({
-            listType: 'playlist',
-            list: 'PLF3eNE6vR-4UAcd0VduNzdgyPjee60-Sl',
-            index: randomStartIndex
-        });
-        // loadPlaylist natively auto-plays. setShuffle breaks autoplay by interfering with initial load state
-    } else if (num === 7) {
-        const isVisible = window.innerWidth > 768;
-        ytContainer.style.display = isVisible ? 'block' : 'none';
-        ytContainer.style.opacity = isVisible ? '1' : '0';
-        const randomStartIndex = Math.floor(Math.random() * 20);
-        ytPlayer.stopVideo();
-        ytPlayer.loadPlaylist({
-            listType: 'playlist',
-            list: 'RDAO7ubZGWpDMOB3aXlmVz9M4A',
-            index: randomStartIndex
-        });
     } else {
         ytContainer.style.display = 'none';
         ytContainer.style.opacity = '0';
