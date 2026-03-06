@@ -470,7 +470,10 @@ function generateChunk(chunkX, chunkZ) {
         const leavesInst = new THREE.InstancedMesh(treeLeavesGeo, treeLeavesMat, treePositions.length);
 
         treePositions.forEach((pos, index) => {
-            const scale = 0.8 + rng() * 0.6;
+            const worldZ = worldOffsetZ + pos.z;
+            const northInfluence = Math.max(0, -worldZ / 4500); // 0 to 1+ based on how far north
+            const baseScale = 0.6 + Math.min(0.6, northInfluence * 0.5); // Starts at 0.6 in south, up to 1.2 in far north
+            const scale = baseScale + rng() * (0.4 + rng() * 0.5); // More dramatic size variance
             dummy.position.set(pos.x, pos.y, pos.z);
             dummy.scale.set(scale, scale, scale);
             dummy.rotation.y = rng() * Math.PI * 2;
@@ -499,7 +502,10 @@ function generateChunk(chunkX, chunkZ) {
             const leavesInst = new THREE.InstancedMesh(treeLeavesGeo, variation.mat, variation.pos.length);
 
             variation.pos.forEach((pos, index) => {
-                const scale = 0.8 + rng() * 0.6;
+                const worldZ = worldOffsetZ + pos.z;
+                const northInfluence = Math.max(0, -worldZ / 4500);
+                const baseScale = 0.6 + Math.min(0.6, northInfluence * 0.5);
+                const scale = baseScale + rng() * (0.4 + rng() * 0.5);
                 dummy.position.set(pos.x, pos.y, pos.z);
                 dummy.scale.set(scale, scale, scale);
                 dummy.rotation.y = rng() * Math.PI * 2;
