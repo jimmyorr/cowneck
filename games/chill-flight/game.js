@@ -372,9 +372,13 @@ const _hubOffset = new THREE.Vector3(0, 0, 8.5);
 const _uncloudedSkyColor = new THREE.Color();
 const _uncloudedFogColor = new THREE.Color();
 const _daySky = new THREE.Color(0x87ceeb);
-const _sunriseSky = new THREE.Color(0xff7b54);
-const _goldenSky = new THREE.Color(0xffb26b);
+const _sunriseSky = new THREE.Color(0xff7b54); // Morning orange/pink
+const _goldenSky = new THREE.Color(0xffb26b);  // Morning gold
+const _sunsetSky = new THREE.Color(0x8A2387);  // Evening violet/magenta
+const _goldenSunsetSky = new THREE.Color(0xE94057); // Evening fiery red
 const _twilightSky = new THREE.Color(0x2c3e50);
+const _currentSunriseSky = new THREE.Color();
+const _currentGoldenSky = new THREE.Color();
 const _cloudyColor = new THREE.Color();
 const _finalSkyColor = new THREE.Color();
 const _finalFogColor = new THREE.Color();
@@ -932,15 +936,24 @@ function animate() {
     _uncloudedFogColor.setHex(0x060815);
 
     if (dayFactor > 0.0) {
-        let sunriseFactor = 1.0 - Math.min(1, Math.abs(sunY) * 2.5);
-        sunriseFactor = Math.max(0, Math.pow(sunriseFactor, 1.5));
+        let dawnDuskFactor = 1.0 - Math.min(1, Math.abs(sunY) * 2.5);
+        dawnDuskFactor = Math.max(0, Math.pow(dawnDuskFactor, 1.5));
+
+        if (sunX > 0) {
+            _currentSunriseSky.copy(_sunriseSky);
+            _currentGoldenSky.copy(_goldenSky);
+        } else {
+            _currentSunriseSky.copy(_sunsetSky);
+            _currentGoldenSky.copy(_goldenSunsetSky);
+        }
+
         _uncloudedSkyColor.lerp(_twilightSky, dayFactor * 0.4);
-        _uncloudedSkyColor.lerp(_sunriseSky, sunriseFactor);
+        _uncloudedSkyColor.lerp(_currentSunriseSky, dawnDuskFactor);
         if (sunY > -0.1 && sunY < 0.15) {
             let goldT = 1.0 - Math.abs(sunY - 0.02) * 10;
-            _uncloudedSkyColor.lerp(_goldenSky, Math.max(0, goldT) * 0.6);
+            _uncloudedSkyColor.lerp(_currentGoldenSky, Math.max(0, goldT) * 0.6);
         }
-        _uncloudedSkyColor.lerp(_daySky, dayFactor * (1.0 - sunriseFactor));
+        _uncloudedSkyColor.lerp(_daySky, dayFactor * (1.0 - dawnDuskFactor));
         _uncloudedFogColor.copy(_uncloudedSkyColor);
     }
 
