@@ -11,6 +11,12 @@ const BASE_FLIGHT_SPEED = 2.5;
 const TURN_SPEED = 0.03;
 let flightSpeedMultiplier = 1;
 
+// Feature Flags
+const ENABLE_PAGODAS = false;
+const ENABLE_BARNS = false;
+const ENABLE_MONASTERIES = true;
+const ENABLE_CASTLE_RUINS = false;
+
 const THEME = new URLSearchParams(window.location.search).get('theme') || 'standard';
 
 function createMaterial(params) {

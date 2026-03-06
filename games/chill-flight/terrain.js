@@ -215,6 +215,160 @@ for (let i = 0; i < 5; i++) {
     }));
 }
 
+// --- PAGODA ---
+function createPagodaBodyGeometry() {
+    const foundation = new THREE.BoxGeometry(12, 2, 12);
+    foundation.translate(0, 1, 0);
+    const tier1 = new THREE.BoxGeometry(9, 6, 9);
+    tier1.translate(0, 5, 0);
+    const tier2 = new THREE.BoxGeometry(6.5, 5, 6.5);
+    tier2.translate(0, 11.5, 0);
+    const tier3 = new THREE.BoxGeometry(4, 4, 4);
+    tier3.translate(0, 17.5, 0);
+    const geometries = [foundation, tier1, tier2, tier3];
+    const pos = [], norm = [], idx = [];
+    let offset = 0;
+    for (const g of geometries) {
+        pos.push(...g.attributes.position.array);
+        norm.push(...g.attributes.normal.array);
+        for (let i = 0; i < g.index.array.length; i++) idx.push(g.index.array[i] + offset);
+        offset += g.attributes.position.count;
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(norm, 3));
+    geom.setIndex(idx);
+    return geom;
+}
+function createPagodaRoofGeometry() {
+    // Wide flat square eaves per tier + top spire
+    const eave1 = new THREE.CylinderGeometry(8.5, 8.5, 1.5, 4);
+    eave1.rotateY(Math.PI / 4);
+    eave1.translate(0, 8.5, 0);
+    const eave2 = new THREE.CylinderGeometry(6, 6, 1.5, 4);
+    eave2.rotateY(Math.PI / 4);
+    eave2.translate(0, 14.5, 0);
+    const eave3 = new THREE.CylinderGeometry(4, 4, 1.5, 4);
+    eave3.rotateY(Math.PI / 4);
+    eave3.translate(0, 20, 0);
+    const spire = new THREE.CylinderGeometry(0.3, 0.6, 7, 6);
+    spire.translate(0, 25, 0);
+    const geometries = [eave1, eave2, eave3, spire];
+    const pos = [], norm = [], idx = [];
+    let offset = 0;
+    for (const g of geometries) {
+        pos.push(...g.attributes.position.array);
+        norm.push(...g.attributes.normal.array);
+        for (let i = 0; i < g.index.array.length; i++) idx.push(g.index.array[i] + offset);
+        offset += g.attributes.position.count;
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(norm, 3));
+    geom.setIndex(idx);
+    return geom;
+}
+const pagodaBodyGeo = createPagodaBodyGeometry();
+const pagodaRoofGeo = createPagodaRoofGeometry();
+const pagodaBodyMat = createMaterial({ color: 0x3E2723, flatShading: true }); // dark wood
+const pagodaRoofMat = createMaterial({ color: 0x1B5E20, flatShading: true }); // deep green eaves
+
+// --- BARN ---
+function createBarnRoofGeometry() {
+    // Triangular prism gable roof
+    const hw = 11.5, hl = 15, yBase = 12, yPeak = 22;
+    const verts = new Float32Array([
+        -hw, yBase, hl,   // 0 front-left
+        hw, yBase, hl,   // 1 front-right
+        0, yPeak, hl,   // 2 front-peak
+        -hw, yBase, -hl,   // 3 back-left
+        hw, yBase, -hl,   // 4 back-right
+        0, yPeak, -hl,   // 5 back-peak
+    ]);
+    const indices = [
+        0, 1, 2,         // front gable
+        3, 5, 4,         // back gable
+        0, 2, 5, 0, 5, 3, // left slope
+        1, 4, 5, 1, 5, 2, // right slope
+        0, 3, 4, 0, 4, 1, // bottom (under barn body)
+    ];
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+    return geo;
+}
+const barnBodyGeo = new THREE.BoxGeometry(18, 12, 28);
+barnBodyGeo.translate(0, 6, 0);
+const barnRoofGeo = createBarnRoofGeometry();
+const barnBodyMat = createMaterial({ color: 0xB71C1C, flatShading: true }); // barn red
+const barnRoofMat = createMaterial({ color: 0x4E342E, flatShading: true }); // dark timber
+
+// --- MONASTERY ---
+function createMonasteryBodyGeometry() {
+    // Long main hall
+    const hall = new THREE.BoxGeometry(30, 10, 16);
+    hall.translate(0, 5, 0);
+    // Side cloister wing
+    const wing = new THREE.BoxGeometry(18, 6, 8);
+    wing.translate(4, 3, -12);
+    // Bell tower base (attached at one end of hall)
+    const tower = new THREE.BoxGeometry(9, 22, 9);
+    tower.translate(-16, 11, 0);
+    const geometries = [hall, wing, tower];
+    const pos = [], norm = [], idx = [];
+    let offset = 0;
+    for (const g of geometries) {
+        pos.push(...g.attributes.position.array);
+        norm.push(...g.attributes.normal.array);
+        for (let i = 0; i < g.index.array.length; i++) idx.push(g.index.array[i] + offset);
+        offset += g.attributes.position.count;
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(norm, 3));
+    geom.setIndex(idx);
+    return geom;
+}
+const monasteryBodyGeo = createMonasteryBodyGeometry();
+const monasteryCapGeo = new THREE.ConeGeometry(5.5, 7, 4);
+monasteryCapGeo.rotateY(Math.PI / 4);
+monasteryCapGeo.translate(-16, 23, 0); // sits on top of the tower
+const monasteryBodyMat = createMaterial({ color: 0x9E9E9E, flatShading: true }); // stone
+const monasteryCapMat = createMaterial({ color: 0x546E7A, flatShading: true });  // slate
+
+// --- CASTLE RUINS ---
+function createCastleRuinsGeometry() {
+    // Tall main tower
+    const tower1 = new THREE.CylinderGeometry(5, 6.5, 36, 8);
+    tower1.translate(0, 18, 0);
+    // Shorter broken tower
+    const tower2 = new THREE.CylinderGeometry(4.5, 6, 20, 8);
+    tower2.translate(26, 10, 4);
+    // Connecting curtain wall
+    const wall = new THREE.BoxGeometry(24, 9, 4);
+    wall.translate(13, 4.5, 2);
+    // Crumbled wall stub (offset, slightly rotated look via translate)
+    const stub = new THREE.BoxGeometry(8, 5, 3);
+    stub.translate(-7, 2.5, -10);
+    const geometries = [tower1, tower2, wall, stub];
+    const pos = [], norm = [], idx = [];
+    let offset = 0;
+    for (const g of geometries) {
+        pos.push(...g.attributes.position.array);
+        norm.push(...g.attributes.normal.array);
+        for (let i = 0; i < g.index.array.length; i++) idx.push(g.index.array[i] + offset);
+        offset += g.attributes.position.count;
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(norm, 3));
+    geom.setIndex(idx);
+    return geom;
+}
+const castleRuinsGeo = createCastleRuinsGeometry();
+const castleRuinsMat = createMaterial({ color: 0x78909C, flatShading: true }); // weathered stone
+
 // Bird geometry
 const birdBodyGeo = new THREE.BoxGeometry(1, 0.8, 4);
 const birdWingGeo = new THREE.BoxGeometry(6, 0.1, 2);
@@ -343,6 +497,10 @@ function generateChunk(chunkX, chunkZ) {
     const snowmanPositions = [];
     const lilyPadPositions = [];
     const bushPositions = [];
+    const pagodaPositions = [];
+    const barnPositions = [];
+    const monasteryPositions = [];
+    const castleRuinsPositions = [];
     let hasWater = false;
 
     // Normalize density so higher SEGMENTS doesn't mean more trees/houses/etc
@@ -386,6 +544,10 @@ function generateChunk(chunkX, chunkZ) {
         // Base sand height is +2, but on the east coast it extends up to +10
         const sandMaxHeight = WATER_LEVEL + 2 + (eastCoastFactor * 8);
 
+        let isForest = false;
+        let autumnNoise = 0;
+        let cherryNoise = 0;
+
         if (height <= sandMaxHeight) {
             if (height <= WATER_LEVEL) {
                 hasWater = true;
@@ -415,9 +577,9 @@ function generateChunk(chunkX, chunkZ) {
                 colorObj.setHex(desertFactor > 0.5 ? 0xCD853F : 0x7F8C8D);
             }
         } else {
-            const isForest = simplex.noise2D(worldX * 0.005 + 100, worldZ * 0.005) > 0.2;
-            const autumnNoise = simplex.noise2D(worldX * 0.0003 + 500, worldZ * 0.0003 + 500);
-            const cherryNoise = simplex.noise2D(worldX * 0.0005 + 1000, worldZ * 0.0005 + 1000);
+            isForest = simplex.noise2D(worldX * 0.005 + 100, worldZ * 0.005) > 0.2;
+            autumnNoise = simplex.noise2D(worldX * 0.0003 + 500, worldZ * 0.0003 + 500);
+            cherryNoise = simplex.noise2D(worldX * 0.0005 + 1000, worldZ * 0.0005 + 1000);
 
             if (isForest) {
                 colorObj.copy(colorForest);
@@ -453,19 +615,44 @@ function generateChunk(chunkX, chunkZ) {
                 if (snowFactor > 0) colorObj.lerp(new THREE.Color(0xFAFAFA), snowFactor);
                 if (desertFactor > 0) colorObj.lerp(colorDesertSand, desertFactor);
 
-                if (rng() < (desertFactor > 0.5 ? 0.002 : 0.005) * densityScale) {
+                const houseThreshold = (desertFactor > 0.5 ? 0.002 : 0.005) * densityScale;
+                const barnThreshold = houseThreshold + 0.002 * densityScale;
+                const monasteryThreshold = barnThreshold + 0.0003 * densityScale;
+                const castleThreshold = monasteryThreshold + 0.0001 * densityScale;
+                const windmillThreshold = castleThreshold + 0.001 * densityScale;
+
+                const plainsRoll = rng();
+                if (plainsRoll < houseThreshold) {
                     housePositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
                     // Chimney smoke for houses in snowy areas
                     if (snowFactor > 0.3) {
                         chimneySmokePositions.push({ x: localX, y: height + 10, z: localZ });
                     }
-                } else if (rng() < 0.001 * densityScale && height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 100 && desertFactor < 0.3 && snowFactor < 0.3) {
+                } else if (ENABLE_BARNS && plainsRoll < barnThreshold
+                    && snowFactor < 0.4 && desertFactor < 0.3
+                    && height > WATER_LEVEL + 3 && height < MOUNTAIN_LEVEL - 100) {
+                    // Barns — temperate plains, slightly less common than houses
+                    barnPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
+                } else if (ENABLE_MONASTERIES && plainsRoll < monasteryThreshold
+                    && snowFactor < 0.2 && desertFactor < 0.2
+                    && height > WATER_LEVEL + 50 && height < MOUNTAIN_LEVEL - 50) {
+                    // Monasteries — elevated temperate terrain, rare
+                    monasteryPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
+                } else if (ENABLE_CASTLE_RUINS && plainsRoll < castleThreshold
+                    && snowFactor < 0.5 && desertFactor < 0.3
+                    && height > WATER_LEVEL + 40 && height < MOUNTAIN_LEVEL - 30) {
+                    // Castle ruins — elevated terrain, very rare
+                    castleRuinsPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
+                } else if (plainsRoll < windmillThreshold
+                    && height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 100
+                    && desertFactor < 0.3 && snowFactor < 0.3) {
                     // Windmills in temperate plains
                     windmillPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
                 } else if (!lighthousePos && rng() < 0.002 * densityScale && worldX > 3000 && height > WATER_LEVEL && height < WATER_LEVEL + 10) {
-                    // Lighthouses on Eastern islands - Max 1 per chunk community
+                    // Lighthouses on Eastern islands - Max 1 per chunk
                     lighthousePos = { x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 };
                 }
+
 
                 // Piers near shore community
                 if (height > WATER_LEVEL + 0.5 && height < WATER_LEVEL + 3 && rng() < 0.15 * densityScale) { // Increased from 0.05 community
@@ -487,50 +674,58 @@ function generateChunk(chunkX, chunkZ) {
                 }
             }
 
+            // Pagodas in cherry blossom zones (temperate, near cherry trees)
+            if (ENABLE_PAGODAS && cherryNoise > 0.65 && snowFactor < 0.2 && desertFactor < 0.2
+                && height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 80
+                && rng() < 0.0003 * densityScale) {
+                pagodaPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
+            }
+
             // Rock Spawning
             if (rng() < 0.015 * densityScale) {
                 if (snowFactor > 0.4) snowRockPositions.push({ x: localX, y: height, z: localZ });
                 else if (desertFactor > 0.4) desertRockPositions.push({ x: localX, y: height, z: localZ });
                 else rockPositions.push({ x: localX, y: height, z: localZ });
             }
+        }
 
-            // Cactus Spawning
-            if (desertFactor > 0.4 && rng() < 0.04 * densityScale) {
-                if (height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 50) {
-                    cactusPositions.push({ x: localX, y: height, z: localZ });
-                }
+
+        // Cactus Spawning
+        if (desertFactor > 0.4 && rng() < 0.04 * densityScale) {
+            if (height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 50) {
+                cactusPositions.push({ x: localX, y: height, z: localZ });
             }
+        }
 
-            // Snowman Spawning
-            if (snowFactor > 0.6 && rng() < 0.002 * densityScale) {
-                if (height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 50) {
-                    snowmanPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
-                }
+        // Snowman Spawning
+        if (snowFactor > 0.6 && rng() < 0.002 * densityScale) {
+            if (height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 50) {
+                snowmanPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
             }
+        }
 
-            // Bush Spawning
-            if (desertFactor < 0.2 && snowFactor < 0.3 && (height > WATER_LEVEL + 3 && height < MOUNTAIN_LEVEL - 100)) {
-                // Spawn mostly on plains/forest edges
-                if (rng() < 0.08 * densityScale) {
-                    bushPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
-                }
+        // Bush Spawning
+        if (desertFactor < 0.2 && snowFactor < 0.3 && (height > WATER_LEVEL + 3 && height < MOUNTAIN_LEVEL - 100)) {
+            // Spawn mostly on plains/forest edges
+            if (rng() < 0.08 * densityScale) {
+                bushPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
             }
+        }
 
-            // Apply special biome ground colors dynamically for both forest and plains
-            if (snowFactor < 0.2) {
-                if (autumnNoise > 0.35) {
-                    // Smooth transition from 0.35 to 0.45
-                    const factor = Math.min(1, (autumnNoise - 0.35) / 0.1);
-                    // Turn to earth/amber for autumn
-                    const tint = isForest ? new THREE.Color(0x5D4037) : new THREE.Color(0x8D6E63);
-                    colorObj.lerp(tint, factor * (isForest ? 0.65 : 0.45));
-                } else if (cherryNoise > 0.55) {
-                    // Smooth transition from 0.55 to 0.65
-                    const factor = Math.min(1, (cherryNoise - 0.55) / 0.1);
-                    // Turn to pinkish for blossoms
-                    const tint = isForest ? new THREE.Color(0xF8BBD0) : new THREE.Color(0xFCE4EC);
-                    colorObj.lerp(tint, factor * (isForest ? 0.45 : 0.3));
-                }
+        // Apply special biome ground colors dynamically for both forest and plains
+        if (snowFactor < 0.2) {
+            if (autumnNoise > 0.35) {
+                // Smooth transition from 0.35 to 0.45
+                const factor = Math.min(1, (autumnNoise - 0.35) / 0.1);
+                // Turn to earth/amber for autumn
+                const tint = isForest ? new THREE.Color(0x5D4037) : new THREE.Color(0x8D6E63);
+                colorObj.lerp(tint, factor * (isForest ? 0.65 : 0.45));
+            } else if (cherryNoise > 0.55) {
+                // Smooth transition from 0.55 to 0.65
+                const factor = Math.min(1, (cherryNoise - 0.55) / 0.1);
+                // Turn to pinkish for blossoms
+                const tint = isForest ? new THREE.Color(0xF8BBD0) : new THREE.Color(0xFCE4EC);
+                colorObj.lerp(tint, factor * (isForest ? 0.45 : 0.3));
             }
         }
 
@@ -815,6 +1010,75 @@ function generateChunk(chunkX, chunkZ) {
 
             poolIndices[poolId]++;
         });
+    }
+
+    // 2.6 Generate Pagodas (rare, cherry blossom zones)
+    if (pagodaPositions.length > 0) {
+        const pagodaBodyInst = new THREE.InstancedMesh(pagodaBodyGeo, pagodaBodyMat, pagodaPositions.length);
+        const pagodaRoofInst = new THREE.InstancedMesh(pagodaRoofGeo, pagodaRoofMat, pagodaPositions.length);
+        pagodaPositions.forEach((pos, i) => {
+            const scale = 0.9 + rng() * 0.3;
+            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.rotation.set(0, pos.rotY, 0);
+            dummy.scale.set(scale, scale, scale);
+            dummy.updateMatrix();
+            pagodaBodyInst.setMatrixAt(i, dummy.matrix);
+            pagodaRoofInst.setMatrixAt(i, dummy.matrix);
+        });
+        pagodaBodyInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        pagodaRoofInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(pagodaBodyInst);
+        group.add(pagodaRoofInst);
+    }
+
+    // 2.61 Generate Barns (temperate plains)
+    if (barnPositions.length > 0) {
+        const barnBodyInst = new THREE.InstancedMesh(barnBodyGeo, barnBodyMat, barnPositions.length);
+        const barnRoofInst = new THREE.InstancedMesh(barnRoofGeo, barnRoofMat, barnPositions.length);
+        barnPositions.forEach((pos, i) => {
+            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.rotation.set(0, pos.rotY, 0);
+            dummy.scale.set(1, 1, 1);
+            dummy.updateMatrix();
+            barnBodyInst.setMatrixAt(i, dummy.matrix);
+            barnRoofInst.setMatrixAt(i, dummy.matrix);
+        });
+        barnBodyInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        barnRoofInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(barnBodyInst);
+        group.add(barnRoofInst);
+    }
+
+    // 2.62 Generate Monasteries (rare, temperate highlands)
+    if (monasteryPositions.length > 0) {
+        const monasteryBodyInst = new THREE.InstancedMesh(monasteryBodyGeo, monasteryBodyMat, monasteryPositions.length);
+        const monasteryCapInst = new THREE.InstancedMesh(monasteryCapGeo, monasteryCapMat, monasteryPositions.length);
+        monasteryPositions.forEach((pos, i) => {
+            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.rotation.set(0, pos.rotY, 0);
+            dummy.scale.set(1, 1, 1);
+            dummy.updateMatrix();
+            monasteryBodyInst.setMatrixAt(i, dummy.matrix);
+            monasteryCapInst.setMatrixAt(i, dummy.matrix);
+        });
+        monasteryBodyInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        monasteryCapInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(monasteryBodyInst);
+        group.add(monasteryCapInst);
+    }
+
+    // 2.63 Generate Castle Ruins (very rare, elevated terrain)
+    if (castleRuinsPositions.length > 0) {
+        const castleInst = new THREE.InstancedMesh(castleRuinsGeo, castleRuinsMat, castleRuinsPositions.length);
+        castleRuinsPositions.forEach((pos, i) => {
+            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.rotation.set(0, pos.rotY, 0);
+            dummy.scale.set(1, 1, 1);
+            dummy.updateMatrix();
+            castleInst.setMatrixAt(i, dummy.matrix);
+        });
+        castleInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(castleInst);
     }
 
     // 2.7 Generate Windmills
