@@ -897,8 +897,8 @@ function animate() {
 
     sunMesh.position.set(sunX * orbitRadius, sunY * orbitRadius, sunZ * orbitRadius);
     moonMesh.position.set(-sunX * orbitRadius, -sunY * orbitRadius, -sunZ * orbitRadius);
-    dirLight.position.copy(sunMesh.position).add(planeGroup.position);
-    moonLight.position.copy(moonMesh.position).add(planeGroup.position);
+    dirLight.position.copy(sunMesh.position);
+    moonLight.position.copy(moonMesh.position);
     skyGroup.position.copy(camera.position);
 
     // Sky color / fog / weather
