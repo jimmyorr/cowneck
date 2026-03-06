@@ -65,6 +65,34 @@ const rockMat = createMaterial({ color: 0x888888, flatShading: true });
 const snowRockMat = createMaterial({ color: 0xDDDDDD, flatShading: true });
 const desertRockMat = createMaterial({ color: 0xD2B48C, flatShading: true });
 
+// Cactus geometries and materials
+function createCactusGeometry() {
+    const mainGeo = new THREE.CylinderGeometry(1.5, 1.5, 12, 6);
+    mainGeo.translate(0, 6, 0);
+    const armGeo1 = new THREE.CylinderGeometry(1, 1, 5, 5);
+    armGeo1.translate(2.5, 6, 0);
+    const armGeo2 = new THREE.CylinderGeometry(1, 1, 6, 5);
+    armGeo2.translate(-2.5, 4, 0);
+    const geometries = [mainGeo, armGeo1, armGeo2];
+    const pos = [], norm = [], idx = [];
+    let offset = 0;
+    for (const g of geometries) {
+        pos.push(...g.attributes.position.array);
+        norm.push(...g.attributes.normal.array);
+        for (let i = 0; i < g.index.array.length; i++) {
+            idx.push(g.index.array[i] + offset);
+        }
+        offset += g.attributes.position.count;
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(norm, 3));
+    geom.setIndex(idx);
+    return geom;
+}
+const cactusGeo = createCactusGeometry();
+const cactusMat = createMaterial({ color: 0x4CAF50, flatShading: true });
+
 // Autumn & Cherry Blossom materials
 const autumnLeavesMat1 = createMaterial({ color: 0xD35400, flatShading: true }); // Burnt Orange
 const autumnLeavesMat2 = createMaterial({ color: 0xF39C12, flatShading: true }); // Orange
@@ -217,6 +245,7 @@ function generateChunk(chunkX, chunkZ) {
     const rockPositions = [];
     const snowRockPositions = [];
     const desertRockPositions = [];
+    const cactusPositions = [];
     let hasWater = false;
 
     // Normalize density so higher SEGMENTS doesn't mean more trees/houses/etc
@@ -364,6 +393,13 @@ function generateChunk(chunkX, chunkZ) {
                 else rockPositions.push({ x: localX, y: height, z: localZ });
             }
 
+            // Cactus Spawning
+            if (desertFactor > 0.4 && rng() < 0.04 * densityScale) {
+                if (height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 50) {
+                    cactusPositions.push({ x: localX, y: height, z: localZ });
+                }
+            }
+
             // Apply special biome ground colors dynamically for both forest and plains
             if (snowFactor < 0.2) {
                 if (autumnNoise > 0.35) {
@@ -509,6 +545,21 @@ function generateChunk(chunkX, chunkZ) {
             group.add(rockInst);
         }
     });
+
+    // 2.4 Generate Cactuses
+    if (cactusPositions.length > 0) {
+        const cactusInst = new THREE.InstancedMesh(cactusGeo, cactusMat, cactusPositions.length);
+        cactusPositions.forEach((pos, index) => {
+            const scale = 0.8 + rng() * 0.6;
+            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.rotation.set(0, rng() * Math.PI * 2, 0);
+            dummy.scale.set(scale, scale, scale);
+            dummy.updateMatrix();
+            cactusInst.setMatrixAt(index, dummy.matrix);
+        });
+        cactusInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(cactusInst);
+    }
 
     // 2.5 Generate Houses
     if (housePositions.length > 0) {
