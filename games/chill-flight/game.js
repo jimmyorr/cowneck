@@ -959,15 +959,17 @@ function animate() {
     weatherNoise = weatherNoise < weatherThreshold ? 0 : (weatherNoise - weatherThreshold) / (1 - weatherThreshold);
 
     // Cloud Drifting
-    chunks.forEach(chunk => {
+    chunks.forEach((chunk, key) => {
         if (chunk.userData.clouds) {
+            const [cx, cz] = key.split(',').map(Number);
+            const chunkCenterX = cx * CHUNK_SIZE;
+
             chunk.userData.clouds.forEach(cloud => {
                 // Drift 2 units per second (very lazy)
                 cloud.position.x += delta * 2;
                 // Wrap clouds within the chunk (2000x2000)
-                const chunkCenterX = chunk.position.x;
-                if (cloud.position.x > chunkCenterX + 1000) {
-                    cloud.position.x -= 2000;
+                if (cloud.position.x > chunkCenterX + (CHUNK_SIZE / 2)) {
+                    cloud.position.x -= CHUNK_SIZE;
                 }
             });
         }
