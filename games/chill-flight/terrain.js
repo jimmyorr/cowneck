@@ -462,6 +462,29 @@ function getElevation(x, z) {
     );
 }
 
+// Optimization: Pre-allocate colors used in chunk generation loop to prevent GC stalling
+const _colorPlains = new THREE.Color(0x7CB342);
+const _colorForest = new THREE.Color(0x388E3C);
+const _colorSnow = new THREE.Color(0xFFFFFF);
+const _colorDesert = new THREE.Color(0xE2725B);
+const _colorSand = new THREE.Color(0xE0E0A8);
+const _colorDesertSand = new THREE.Color(0xF4A460);
+const _colorWater = new THREE.Color(0x40C4FF);
+const _colorIcyWater = new THREE.Color(0x88CCFF);
+const _colorDesertWater = new THREE.Color(0x00CED1);
+const _colorFoam = new THREE.Color(0xEEEEEE);
+const _colorSandSnowTint = new THREE.Color(0x999999);
+const _colorUpperSandSnowTint = new THREE.Color(0xDDDDDD);
+const _colorForestSnowTint = new THREE.Color(0x8BA192);
+const _colorForestDesertTint = new THREE.Color(0xA0522D);
+const _colorPlainsSnowTint = new THREE.Color(0xFAFAFA);
+const _colorMountainDesertTint = new THREE.Color(0xCD853F);
+const _colorMountainTint = new THREE.Color(0x7F8C8D);
+const _colorAutumnForestTint = new THREE.Color(0x5D4037);
+const _colorAutumnPlainsTint = new THREE.Color(0x8D6E63);
+const _colorCherryForestTint = new THREE.Color(0xF8BBD0);
+const _colorCherryPlainsTint = new THREE.Color(0xFCE4EC);
+
 function generateChunk(chunkX, chunkZ) {
     const rng = ChillFlightLogic.chunkRng(chunkX, chunkZ);
     const group = new THREE.Group();
@@ -472,7 +495,7 @@ function generateChunk(chunkX, chunkZ) {
 
     const positions = geometry.attributes.position.array;
     const colors = [];
-    const colorObj = new THREE.Color();
+    const _tempColorObj = new THREE.Color();
 
     const worldOffsetX = chunkX * CHUNK_SIZE;
     const worldOffsetZ = chunkZ * CHUNK_SIZE;
@@ -525,17 +548,6 @@ function generateChunk(chunkX, chunkZ) {
         const desertRaw = Math.max(0, Math.min(1, (southInfluence + tempNoise * 0.05 - 0.7) * 1.5));
         const desertFactor = desertRaw * desertRaw * (3 - 2 * desertRaw);
 
-        const colorPlains = new THREE.Color(0x7CB342);
-        const colorForest = new THREE.Color(0x388E3C);
-        const colorSnow = new THREE.Color(0xFFFFFF);
-        const colorDesert = new THREE.Color(0xE2725B);
-        const colorSand = new THREE.Color(0xE0E0A8);
-        const colorDesertSand = new THREE.Color(0xF4A460);
-        const colorWater = new THREE.Color(0x40C4FF);
-        const colorIcyWater = new THREE.Color(0x88CCFF);
-        const colorDesertWater = new THREE.Color(0x00CED1);
-        const colorFoam = new THREE.Color(0xEEEEEE);
-
         const temperature = tempNoise - (northInfluence * 1.5);
         const isSnowBiome = snowFactor > 0.5;
 
@@ -559,22 +571,22 @@ function generateChunk(chunkX, chunkZ) {
                     lilyPadPositions.push({ x: localX, y: WATER_LEVEL, z: localZ, rotY: rng() * Math.PI * 2 });
                 }
                 positions[i + 1] = height - 5; // Drop seafloor so moving water waves don't clip into it
-                colorObj.copy(colorSand);
-                if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x999999), snowFactor);
-                if (desertFactor > 0) colorObj.lerp(colorDesertSand, desertFactor);
+                _tempColorObj.copy(_colorSand);
+                if (snowFactor > 0) _tempColorObj.lerp(_colorSandSnowTint, snowFactor);
+                if (desertFactor > 0) _tempColorObj.lerp(_colorDesertSand, desertFactor);
             } else if (height <= WATER_LEVEL + 0.5) {
-                colorObj.copy(colorFoam);
-                if (snowFactor > 0) colorObj.lerp(colorSnow, snowFactor);
+                _tempColorObj.copy(_colorFoam);
+                if (snowFactor > 0) _tempColorObj.lerp(_colorSnow, snowFactor);
             } else {
-                colorObj.copy(colorSand);
-                if (snowFactor > 0) colorObj.lerp(new THREE.Color(0xDDDDDD), snowFactor);
-                if (desertFactor > 0) colorObj.lerp(new THREE.Color(0xF4A460), desertFactor);
+                _tempColorObj.copy(_colorSand);
+                if (snowFactor > 0) _tempColorObj.lerp(_colorUpperSandSnowTint, snowFactor);
+                if (desertFactor > 0) _tempColorObj.lerp(_colorDesertSand, desertFactor);
             }
         } else if (height > MOUNTAIN_LEVEL || (snowFactor > 0.5 && height > MOUNTAIN_LEVEL - 50)) {
             if (height > MOUNTAIN_LEVEL + 40 || snowFactor > 0.8) {
-                colorObj.copy(colorSnow);
+                _tempColorObj.copy(_colorSnow);
             } else {
-                colorObj.setHex(desertFactor > 0.5 ? 0xCD853F : 0x7F8C8D);
+                _tempColorObj.copy(desertFactor > 0.5 ? _colorMountainDesertTint : _colorMountainTint);
             }
         } else {
             isForest = simplex.noise2D(worldX * 0.005 + 100, worldZ * 0.005) > 0.2;
@@ -582,9 +594,9 @@ function generateChunk(chunkX, chunkZ) {
             cherryNoise = simplex.noise2D(worldX * 0.0005 + 1000, worldZ * 0.0005 + 1000);
 
             if (isForest) {
-                colorObj.copy(colorForest);
-                if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x8BA192), snowFactor);
-                if (desertFactor > 0) colorObj.lerp(new THREE.Color(0xA0522D), desertFactor);
+                _tempColorObj.copy(_colorForest);
+                if (snowFactor > 0) _tempColorObj.lerp(_colorForestSnowTint, snowFactor);
+                if (desertFactor > 0) _tempColorObj.lerp(_colorForestDesertTint, desertFactor);
 
                 const treeRoll = rng();
                 if (treeRoll < (desertFactor > 0.5 ? 0.05 : 0.15) * densityScale) {
@@ -611,9 +623,9 @@ function generateChunk(chunkX, chunkZ) {
                     campfirePositions.push({ x: localX + offX, y: h, z: localZ + offZ });
                 }
             } else {
-                colorObj.copy(colorPlains);
-                if (snowFactor > 0) colorObj.lerp(new THREE.Color(0xFAFAFA), snowFactor);
-                if (desertFactor > 0) colorObj.lerp(colorDesertSand, desertFactor);
+                _tempColorObj.copy(_colorPlains);
+                if (snowFactor > 0) _tempColorObj.lerp(_colorPlainsSnowTint, snowFactor);
+                if (desertFactor > 0) _tempColorObj.lerp(_colorDesertSand, desertFactor);
 
                 const houseThreshold = (desertFactor > 0.5 ? 0.002 : 0.005) * densityScale;
                 const barnThreshold = houseThreshold + 0.002 * densityScale;
@@ -718,18 +730,18 @@ function generateChunk(chunkX, chunkZ) {
                 // Smooth transition from 0.35 to 0.45
                 const factor = Math.min(1, (autumnNoise - 0.35) / 0.1);
                 // Turn to earth/amber for autumn
-                const tint = isForest ? new THREE.Color(0x5D4037) : new THREE.Color(0x8D6E63);
-                colorObj.lerp(tint, factor * (isForest ? 0.65 : 0.45));
+                const tint = isForest ? _colorAutumnForestTint : _colorAutumnPlainsTint;
+                _tempColorObj.lerp(tint, factor * (isForest ? 0.65 : 0.45));
             } else if (cherryNoise > 0.55) {
                 // Smooth transition from 0.55 to 0.65
                 const factor = Math.min(1, (cherryNoise - 0.55) / 0.1);
                 // Turn to pinkish for blossoms
-                const tint = isForest ? new THREE.Color(0xF8BBD0) : new THREE.Color(0xFCE4EC);
-                colorObj.lerp(tint, factor * (isForest ? 0.45 : 0.3));
+                const tint = isForest ? _colorCherryForestTint : _colorCherryPlainsTint;
+                _tempColorObj.lerp(tint, factor * (isForest ? 0.45 : 0.3));
             }
         }
 
-        colors.push(colorObj.r, colorObj.g, colorObj.b);
+        colors.push(_tempColorObj.r, _tempColorObj.g, _tempColorObj.b);
     }
 
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
@@ -746,6 +758,7 @@ function generateChunk(chunkX, chunkZ) {
         waterGeo.rotateX(-Math.PI / 2);
         const wPositions = waterGeo.attributes.position.array;
         const wColors = [];
+        const _tempWColorObj = new THREE.Color();
         for (let i = 0; i < wPositions.length; i += 3) {
             const worldX = worldOffsetX + wPositions[i];
             const worldZ = worldOffsetZ + wPositions[i + 2];
@@ -760,11 +773,11 @@ function generateChunk(chunkX, chunkZ) {
             const desertRaw = Math.max(0, Math.min(1, (southInfluence + tempNoise * 0.05 - 0.7) * 1.5));
             const desertFactor = desertRaw * desertRaw * (3 - 2 * desertRaw);
 
-            const colorObj = new THREE.Color(0x40C4FF);
-            if (snowFactor > 0) colorObj.lerp(new THREE.Color(0x88CCFF), snowFactor);
-            if (desertFactor > 0) colorObj.lerp(new THREE.Color(0x00CED1), desertFactor);
+            _tempWColorObj.copy(_colorWater);
+            if (snowFactor > 0) _tempWColorObj.lerp(_colorIcyWater, snowFactor);
+            if (desertFactor > 0) _tempWColorObj.lerp(_colorDesertWater, desertFactor);
 
-            wColors.push(colorObj.r, colorObj.g, colorObj.b);
+            wColors.push(_tempWColorObj.r, _tempWColorObj.g, _tempWColorObj.b);
         }
         waterGeo.setAttribute('color', new THREE.Float32BufferAttribute(wColors, 3));
         const waterMesh = new THREE.Mesh(waterGeo, waterMaterial);

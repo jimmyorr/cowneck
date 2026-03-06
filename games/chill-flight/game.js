@@ -354,6 +354,32 @@ updateChunks();
 
 const fpsCounterEl = document.getElementById('debug-fps');
 
+// Optimization: Pre-allocate reusable objects for the animate loop to prevent GC stutter
+const _targetEuler = new THREE.Euler(0, 0, 0, 'XYZ');
+const _forward = new THREE.Vector3(0, 0, -1);
+const _cameraOffset = new THREE.Vector3(0, 0, 0);
+const _idealCameraPos = new THREE.Vector3(0, 0, 0);
+const _lookOffset = new THREE.Vector3(0, 0, -20);
+const _idealLookTarget = new THREE.Vector3(0, 0, 0);
+const _currentLookTarget = new THREE.Vector3(0, 0, 0);
+const _idealUp = new THREE.Vector3(0, 1, 0);
+const _upVector = new THREE.Vector3(0, 1, 0);
+const _chunkDummy = new THREE.Object3D();
+const _yAxis = new THREE.Vector3(0, 1, 0);
+const _hubOffset = new THREE.Vector3(0, 0, 8.5);
+
+// Optimization: Pre-allocate colors for sky gradients
+const _uncloudedSkyColor = new THREE.Color();
+const _uncloudedFogColor = new THREE.Color();
+const _daySky = new THREE.Color(0x87ceeb);
+const _sunriseSky = new THREE.Color(0xff7b54);
+const _goldenSky = new THREE.Color(0xffb26b);
+const _twilightSky = new THREE.Color(0x2c3e50);
+const _cloudyColor = new THREE.Color();
+const _finalSkyColor = new THREE.Color();
+const _finalFogColor = new THREE.Color();
+const _weatherLerpBase = new THREE.Color(0x8899aa);
+
 function animate() {
     requestAnimationFrame(animate);
     const now = performance.now();
@@ -390,9 +416,9 @@ function animate() {
     // Update other players (interpolate & dead reckoning)
     if (typeof otherPlayers !== 'undefined') {
         otherPlayers.forEach((p) => {
-            const targetEuler = new THREE.Euler(p.targetRotX || 0, p.targetRotY || 0, p.targetRotZ || 0, 'XYZ');
-            const forward = new THREE.Vector3(0, 0, -1).applyEuler(targetEuler);
-            p.targetPos.add(forward.multiplyScalar(BASE_FLIGHT_SPEED * (p.targetSpeedMult || 1) * 60 * delta));
+            _targetEuler.set(p.targetRotX || 0, p.targetRotY || 0, p.targetRotZ || 0, 'XYZ');
+            _forward.set(0, 0, -1).applyEuler(_targetEuler);
+            p.targetPos.add(_forward.multiplyScalar(BASE_FLIGHT_SPEED * (p.targetSpeedMult || 1) * 60 * delta));
 
             const dist = p.mesh.position.distanceTo(p.targetPos);
             if (dist > 500) {
@@ -401,7 +427,7 @@ function animate() {
             } else {
                 p.mesh.position.lerp(p.targetPos, delta * 12.0);
                 if (p.targetQuat) {
-                    p.targetQuat.setFromEuler(targetEuler);
+                    p.targetQuat.setFromEuler(_targetEuler);
                     p.mesh.quaternion.slerp(p.targetQuat, delta * 12.0);
                 } else {
                     p.mesh.rotation.x = THREE.MathUtils.lerp(p.mesh.rotation.x, p.targetRotX || 0, delta * 12.0);
@@ -678,26 +704,26 @@ function animate() {
     camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 0.05);
     camera.updateProjectionMatrix();
 
-    const cameraOffset = new THREE.Vector3(0, yOffset, zOffset);
-    const idealCameraPos = cameraOffset.clone().applyMatrix4(planeGroup.matrixWorld);
-    camera.position.lerp(idealCameraPos, 0.1);
+    _cameraOffset.set(0, yOffset, zOffset);
+    _idealCameraPos.copy(_cameraOffset).applyMatrix4(planeGroup.matrixWorld);
+    camera.position.lerp(_idealCameraPos, 0.1);
 
-    const lookOffset = new THREE.Vector3(0, 0, -20);
-    const idealLookTarget = lookOffset.applyMatrix4(planeGroup.matrixWorld);
+    _lookOffset.set(0, 0, -20);
+    _idealLookTarget.copy(_lookOffset).applyMatrix4(planeGroup.matrixWorld);
 
-    const currentLookTarget = new THREE.Vector3();
-    camera.getWorldDirection(currentLookTarget);
-    currentLookTarget.add(camera.position);
-    currentLookTarget.lerp(idealLookTarget, 0.1);
+    camera.getWorldDirection(_currentLookTarget);
+    _currentLookTarget.add(camera.position);
+    _currentLookTarget.lerp(_idealLookTarget, 0.1);
 
     if (isLooping) {
-        const idealUp = new THREE.Vector3(0, 1, 0).applyQuaternion(planeGroup.quaternion);
-        camera.up.lerp(idealUp, 0.1).normalize();
+        _idealUp.set(0, 1, 0).applyQuaternion(planeGroup.quaternion);
+        camera.up.lerp(_idealUp, 0.1).normalize();
     } else {
-        camera.up.lerp(new THREE.Vector3(0, 1, 0), 0.1).normalize();
+        _upVector.set(0, 1, 0);
+        camera.up.lerp(_upVector, 0.1).normalize();
     }
 
-    camera.lookAt(currentLookTarget);
+    camera.lookAt(_currentLookTarget);
 
     // Update terrain chunks
     updateChunks();
@@ -758,17 +784,16 @@ function animate() {
             const bladesInst = chunkGroup.userData.windmillBlades;
             const windmillPositions = chunkGroup.userData.windmillPositions;
             const windmillRotation = performance.now() * 0.001 * 1.5;
-            const dummy = new THREE.Object3D();
 
             windmillPositions.forEach((pos, index) => {
                 for (let b = 0; b < 4; b++) {
                     const bladeIdx = index * 4 + b;
-                    dummy.position.set(pos.x, pos.y + 45, pos.z);
-                    const hubOffset = new THREE.Vector3(0, 0, 8.5).applyAxisAngle(new THREE.Vector3(0, 1, 0), pos.rotY);
-                    dummy.position.add(hubOffset);
-                    dummy.rotation.set(0, pos.rotY, (b * Math.PI / 2) + windmillRotation);
-                    dummy.updateMatrix();
-                    bladesInst.setMatrixAt(bladeIdx, dummy.matrix);
+                    _chunkDummy.position.set(pos.x, pos.y + 45, pos.z);
+                    _hubOffset.set(0, 0, 8.5).applyAxisAngle(_yAxis, pos.rotY);
+                    _chunkDummy.position.add(_hubOffset);
+                    _chunkDummy.rotation.set(0, pos.rotY, (b * Math.PI / 2) + windmillRotation);
+                    _chunkDummy.updateMatrix();
+                    bladesInst.setMatrixAt(bladeIdx, _chunkDummy.matrix);
                 }
             });
             bladesInst.instanceMatrix.needsUpdate = true;
@@ -802,15 +827,14 @@ function animate() {
             const smoke = chunkGroup.userData.campfireSmoke;
             const positions = chunkGroup.userData.campfirePositions;
             const time = performance.now() * 0.01;
-            const dummy = new THREE.Object3D();
 
             positions.forEach((pos, index) => {
                 // Animate Core community
                 const scale = 1.0 + Math.sin(time + index) * 0.2;
-                dummy.position.set(pos.x, pos.y + 2, pos.z);
-                dummy.scale.set(scale, scale, scale);
-                dummy.updateMatrix();
-                cores.setMatrixAt(index, dummy.matrix);
+                _chunkDummy.position.set(pos.x, pos.y + 2, pos.z);
+                _chunkDummy.scale.set(scale, scale, scale);
+                _chunkDummy.updateMatrix();
+                cores.setMatrixAt(index, _chunkDummy.matrix);
 
                 // Animate Smoke community
                 if (smoke) {
@@ -821,11 +845,11 @@ function animate() {
                         const drift = Math.sin(performance.now() * 0.001 + i) * 8;
                         const smokeScale = (1.0 + i * 0.5) * (1.0 + offsetTime * 0.5);
 
-                        dummy.position.set(pos.x + drift, pos.y + 5 + rise, pos.z);
-                        dummy.scale.set(smokeScale, smokeScale, smokeScale);
-                        dummy.rotation.set(offsetTime, offsetTime, offsetTime);
-                        dummy.updateMatrix();
-                        smoke.setMatrixAt(smokeIdx, dummy.matrix);
+                        _chunkDummy.position.set(pos.x + drift, pos.y + 5 + rise, pos.z);
+                        _chunkDummy.scale.set(smokeScale, smokeScale, smokeScale);
+                        _chunkDummy.rotation.set(offsetTime, offsetTime, offsetTime);
+                        _chunkDummy.updateMatrix();
+                        smoke.setMatrixAt(smokeIdx, _chunkDummy.matrix);
                     }
                 }
             });
@@ -845,7 +869,6 @@ function animate() {
         if (chunkGroup.userData.chimneySmoke && chunkGroup.userData.chimneySmokePositions) {
             const smoke = chunkGroup.userData.chimneySmoke;
             const positions = chunkGroup.userData.chimneySmokePositions;
-            const dummy = new THREE.Object3D();
 
             positions.forEach((pos, index) => {
                 for (let i = 0; i < 4; i++) {
@@ -856,11 +879,11 @@ function animate() {
                     const driftZ = Math.cos(performance.now() * 0.0006 + i) * 6;
                     const smokeScale = (0.8 + i * 0.3) * (1.0 + offsetTime * 0.6); // Expands more
 
-                    dummy.position.set(pos.x + driftX, pos.y + rise, pos.z + driftZ);
-                    dummy.scale.set(smokeScale, smokeScale, smokeScale);
-                    dummy.rotation.set(offsetTime * 0.5, offsetTime * 0.5, offsetTime * 0.5);
-                    dummy.updateMatrix();
-                    smoke.setMatrixAt(smokeIdx, dummy.matrix);
+                    _chunkDummy.position.set(pos.x + driftX, pos.y + rise, pos.z + driftZ);
+                    _chunkDummy.scale.set(smokeScale, smokeScale, smokeScale);
+                    _chunkDummy.rotation.set(offsetTime * 0.5, offsetTime * 0.5, offsetTime * 0.5);
+                    _chunkDummy.updateMatrix();
+                    smoke.setMatrixAt(smokeIdx, _chunkDummy.matrix);
                 }
             });
 
@@ -904,25 +927,20 @@ function animate() {
     // Sky color / fog / weather
     // At 12:00 (PI), SunY = 1.0.
 
-    let uncloudedSkyColor = new THREE.Color(0x0a0c20); // Brighter night sky for a chill view
-    let uncloudedFogColor = new THREE.Color(0x060815);
-
-    const daySky = new THREE.Color(0x87ceeb);
-    const sunriseSky = new THREE.Color(0xff7b54);
-    const goldenSky = new THREE.Color(0xffb26b);
-    const twilightSky = new THREE.Color(0x2c3e50);
+    _uncloudedSkyColor.setHex(0x0a0c20); // Brighter night sky for a chill view
+    _uncloudedFogColor.setHex(0x060815);
 
     if (dayFactor > 0.0) {
         let sunriseFactor = 1.0 - Math.min(1, Math.abs(sunY) * 2.5);
         sunriseFactor = Math.max(0, Math.pow(sunriseFactor, 1.5));
-        uncloudedSkyColor.lerp(twilightSky, dayFactor * 0.4);
-        uncloudedSkyColor.lerp(sunriseSky, sunriseFactor);
+        _uncloudedSkyColor.lerp(_twilightSky, dayFactor * 0.4);
+        _uncloudedSkyColor.lerp(_sunriseSky, sunriseFactor);
         if (sunY > -0.1 && sunY < 0.15) {
             let goldT = 1.0 - Math.abs(sunY - 0.02) * 10;
-            uncloudedSkyColor.lerp(goldenSky, Math.max(0, goldT) * 0.6);
+            _uncloudedSkyColor.lerp(_goldenSky, Math.max(0, goldT) * 0.6);
         }
-        uncloudedSkyColor.lerp(daySky, dayFactor * (1.0 - sunriseFactor));
-        uncloudedFogColor.copy(uncloudedSkyColor);
+        _uncloudedSkyColor.lerp(_daySky, dayFactor * (1.0 - sunriseFactor));
+        _uncloudedFogColor.copy(_uncloudedSkyColor);
     }
 
     // Stars fade starting at 4 AM (-0.5) and disappear by roughly 5:15 AM (-0.2)
@@ -954,12 +972,12 @@ function animate() {
         }
     });
 
-    const cloudyColor = new THREE.Color().setHex(0x0a0c10).lerp(new THREE.Color(0x8899aa), dayFactor);
-    const finalSkyColor = uncloudedSkyColor.clone().lerp(cloudyColor, weatherNoise);
-    const finalFogColor = uncloudedFogColor.clone().lerp(cloudyColor, weatherNoise);
+    _cloudyColor.setHex(0x0a0c10).lerp(_weatherLerpBase, dayFactor);
+    _finalSkyColor.copy(_uncloudedSkyColor).lerp(_cloudyColor, weatherNoise);
+    _finalFogColor.copy(_uncloudedFogColor).lerp(_cloudyColor, weatherNoise);
 
-    scene.background.lerp(finalSkyColor, 0.05);
-    scene.fog.color.lerp(finalFogColor, 0.05);
+    scene.background.lerp(_finalSkyColor, 0.05);
+    scene.fog.color.lerp(_finalFogColor, 0.05);
     scene.fog.density = THREE.MathUtils.lerp(scene.fog.density, THREE.MathUtils.lerp(0.00005, 0.0004, weatherNoise), 0.01);
 
     renderer.render(scene, camera);
