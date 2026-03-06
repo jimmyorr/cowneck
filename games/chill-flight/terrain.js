@@ -554,8 +554,8 @@ function generateChunk(chunkX, chunkZ) {
                 if (rng() < 0.0005 * densityScale) { // Very rare sailboat
                     sailboatPositions.push({ x: localX, y: WATER_LEVEL, z: localZ, rotY: rng() * Math.PI * 2 });
                 }
-                // Spawning lily pads in plains biomes near the shore. Needs no snow or desert factor
-                if (snowFactor < 0.1 && desertFactor < 0.1 && rng() < 0.015 * densityScale) {
+                // Spawning lily pads in plains biomes near the shore. Needs no snow or desert factor, and excludes open ocean
+                if (snowFactor < 0.1 && desertFactor < 0.1 && getBiome(worldX, worldZ) > -0.15 && rng() < 0.015 * densityScale) {
                     lilyPadPositions.push({ x: localX, y: WATER_LEVEL, z: localZ, rotY: rng() * Math.PI * 2 });
                 }
                 positions[i + 1] = height - 5; // Drop seafloor so moving water waves don't clip into it
