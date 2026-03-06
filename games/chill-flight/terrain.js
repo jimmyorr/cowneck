@@ -188,8 +188,21 @@ houseRoofGeo.rotateY(Math.PI / 4);
 houseRoofGeo.translate(0, 11, 0);
 const houseWindowGeo = new THREE.BoxGeometry(2.5, 3.5, 0.5);
 
-const houseBodyMat = createMaterial({ color: 0x8D6E63, flatShading: true });
-const houseRoofMat = createMaterial({ color: 0x5D4037, flatShading: true });
+// House color palettes
+const houseBodyPalette = [
+    createMaterial({ color: 0xF5E6C8, flatShading: true }), // Cream
+    createMaterial({ color: 0xD9B99B, flatShading: true }), // Sandy tan
+    createMaterial({ color: 0xB0C4A0, flatShading: true }), // Sage green
+    createMaterial({ color: 0xC8D8E8, flatShading: true }), // Pale blue
+    createMaterial({ color: 0xE8C8B0, flatShading: true }), // Terracotta peach
+    createMaterial({ color: 0xCCBBCC, flatShading: true }), // Dusty mauve
+];
+const houseRoofPalette = [
+    createMaterial({ color: 0x5D4037, flatShading: true }), // Dark brown
+    createMaterial({ color: 0x7B3F2A, flatShading: true }), // Brick red
+    createMaterial({ color: 0x546E7A, flatShading: true }), // Slate blue-grey
+    createMaterial({ color: 0x4A4A3A, flatShading: true }), // Charcoal
+];
 
 // Window Materials (5 variations for staggered lighting)
 const houseWindowMats = [];
@@ -725,8 +738,34 @@ function generateChunk(chunkX, chunkZ) {
 
     // 2.5 Generate Houses
     if (housePositions.length > 0) {
-        const bodyInst = new THREE.InstancedMesh(houseBodyGeo, houseBodyMat, housePositions.length);
-        const roofInst = new THREE.InstancedMesh(houseRoofGeo, houseRoofMat, housePositions.length);
+        const numBodyColors = houseBodyPalette.length;
+        const numRoofColors = houseRoofPalette.length;
+
+        // Count houses per (body, roof) combo
+        const comboCounts = {};
+        const houseCombo = [];
+        housePositions.forEach((pos, idx) => {
+            const bodyId = Math.floor(rng() * numBodyColors);
+            const roofId = Math.floor(rng() * numRoofColors);
+            const key = `${bodyId}_${roofId}`;
+            houseCombo[idx] = { bodyId, roofId, key };
+            comboCounts[key] = (comboCounts[key] || 0) + 1;
+        });
+
+        // Build one InstancedMesh pair per combo that actually appears
+        const bodyInsts = {};
+        const roofInsts = {};
+        const comboIndices = {};
+        for (const key of Object.keys(comboCounts)) {
+            const [bodyId, roofId] = key.split('_').map(Number);
+            bodyInsts[key] = new THREE.InstancedMesh(houseBodyGeo, houseBodyPalette[bodyId], comboCounts[key]);
+            roofInsts[key] = new THREE.InstancedMesh(houseRoofGeo, houseRoofPalette[roofId], comboCounts[key]);
+            bodyInsts[key].position.set(worldOffsetX, 0, worldOffsetZ);
+            roofInsts[key].position.set(worldOffsetX, 0, worldOffsetZ);
+            group.add(bodyInsts[key]);
+            group.add(roofInsts[key]);
+            comboIndices[key] = 0;
+        }
 
         const windowPools = [];
         const poolCounts = [0, 0, 0, 0, 0];
@@ -752,8 +791,11 @@ function generateChunk(chunkX, chunkZ) {
             dummy.scale.set(1, 1, 1);
             dummy.updateMatrix();
 
-            bodyInst.setMatrixAt(index, dummy.matrix);
-            roofInst.setMatrixAt(index, dummy.matrix);
+            const { key } = houseCombo[index];
+            const ci = comboIndices[key];
+            bodyInsts[key].setMatrixAt(ci, dummy.matrix);
+            roofInsts[key].setMatrixAt(ci, dummy.matrix);
+            comboIndices[key]++;
 
             const poolId = houseToPool[index];
             const pIdx = poolIndices[poolId];
@@ -773,11 +815,6 @@ function generateChunk(chunkX, chunkZ) {
 
             poolIndices[poolId]++;
         });
-
-        bodyInst.position.set(worldOffsetX, 0, worldOffsetZ);
-        roofInst.position.set(worldOffsetX, 0, worldOffsetZ);
-        group.add(bodyInst);
-        group.add(roofInst);
     }
 
     // 2.7 Generate Windmills
