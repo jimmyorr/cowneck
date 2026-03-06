@@ -20,15 +20,50 @@ const waterMaterial = createMaterial({
 });
 
 // Reusable tree geometries for forest instances
-const treeTrunkGeo = new THREE.CylinderGeometry(2, 2, 10, 5);
-treeTrunkGeo.translate(0, 5, 0);
-const treeLeavesGeo = new THREE.ConeGeometry(8, 20, 5);
-treeLeavesGeo.translate(0, 15, 0);
+const treeTrunkGeo = new THREE.CylinderGeometry(1.5, 2.5, 12, 5);
+treeTrunkGeo.translate(0, 6, 0);
+
+function createPineGeometry() {
+    const c1 = new THREE.ConeGeometry(9, 14, 5);
+    c1.translate(0, 12, 0);
+    const c2 = new THREE.ConeGeometry(7, 12, 5);
+    c2.translate(0, 20, 0);
+    const c3 = new THREE.ConeGeometry(5, 10, 5);
+    c3.translate(0, 27, 0);
+
+    const geometries = [c1, c2, c3];
+    const pos = [], norm = [], uvs = [], idx = [];
+    let offset = 0;
+
+    for (const g of geometries) {
+        pos.push(...g.attributes.position.array);
+        norm.push(...g.attributes.normal.array);
+        if (g.attributes.uv) uvs.push(...g.attributes.uv.array);
+        for (let i = 0; i < g.index.array.length; i++) {
+            idx.push(g.index.array[i] + offset);
+        }
+        offset += g.attributes.position.count;
+    }
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(norm, 3));
+    if (uvs.length > 0) geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geom.setIndex(idx);
+    return geom;
+}
+const treeLeavesGeo = createPineGeometry();
 
 const treeTrunkMat = createMaterial({ color: 0x5D4037, flatShading: true });
 const treeLeavesMat = createMaterial({ color: 0x2E7D32, flatShading: true });
 const snowTreeTrunkMat = createMaterial({ color: 0x4E342E, flatShading: true });
 const snowTreeLeavesMat = createMaterial({ color: 0xE0F7FA, flatShading: true });
+
+// Rock geometries and materials
+const rockGeo = new THREE.DodecahedronGeometry(3, 0); // Base flat shaded rock
+const rockMat = createMaterial({ color: 0x888888, flatShading: true });
+const snowRockMat = createMaterial({ color: 0xDDDDDD, flatShading: true });
+const desertRockMat = createMaterial({ color: 0xD2B48C, flatShading: true });
 
 // Autumn & Cherry Blossom materials
 const autumnLeavesMat1 = createMaterial({ color: 0xD35400, flatShading: true }); // Burnt Orange
@@ -179,6 +214,9 @@ function generateChunk(chunkX, chunkZ) {
     const campfirePositions = [];
     const chimneySmokePositions = [];
     const sailboatPositions = [];
+    const rockPositions = [];
+    const snowRockPositions = [];
+    const desertRockPositions = [];
     let hasWater = false;
 
     // Normalize density so higher SEGMENTS doesn't mean more trees/houses/etc
@@ -319,6 +357,13 @@ function generateChunk(chunkX, chunkZ) {
                 }
             }
 
+            // Rock Spawning
+            if (rng() < 0.015 * densityScale) {
+                if (snowFactor > 0.4) snowRockPositions.push({ x: localX, y: height, z: localZ });
+                else if (desertFactor > 0.4) desertRockPositions.push({ x: localX, y: height, z: localZ });
+                else rockPositions.push({ x: localX, y: height, z: localZ });
+            }
+
             // Apply special biome ground colors dynamically for both forest and plains
             if (snowFactor < 0.2) {
                 if (autumnNoise > 0.35) {
@@ -431,6 +476,37 @@ function generateChunk(chunkX, chunkZ) {
             leavesInst.position.set(worldOffsetX, 0, worldOffsetZ);
             group.add(trunkInst);
             group.add(leavesInst);
+        }
+    });
+
+    // 2.3 Generate Rocks
+    const rockVariations = [
+        { pos: rockPositions, mat: rockMat },
+        { pos: snowRockPositions, mat: snowRockMat },
+        { pos: desertRockPositions, mat: desertRockMat }
+    ];
+
+    rockVariations.forEach(variation => {
+        if (variation.pos.length > 0) {
+            const rockInst = new THREE.InstancedMesh(rockGeo, variation.mat, variation.pos.length);
+
+            variation.pos.forEach((pos, index) => {
+                // Random scale between 0.5 and 2.5 on each axis for uniquely shaped boulders
+                const sx = 0.5 + rng() * 2.0;
+                const sy = 0.5 + rng() * 2.0;
+                const sz = 0.5 + rng() * 2.0;
+
+                // Random rotation
+                dummy.position.set(pos.x, pos.y, pos.z);
+                dummy.rotation.set(rng() * Math.PI, rng() * Math.PI, rng() * Math.PI);
+                dummy.scale.set(sx, sy, sz);
+                dummy.updateMatrix();
+
+                rockInst.setMatrixAt(index, dummy.matrix);
+            });
+
+            rockInst.position.set(worldOffsetX, 0, worldOffsetZ);
+            group.add(rockInst);
         }
     });
 
