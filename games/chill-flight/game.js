@@ -492,11 +492,11 @@ function animate() {
 
         if (isUpLog) {
             if (nowTime - startUpLog > STEER_HOLD_THRESHOLD && !dtUpLog) {
-                targetPitch = (Math.PI / 6); // 30 degrees
+                targetPitch = (35 * Math.PI / 180); // 35 degrees
             }
         } else if (isDownLog) {
             if (nowTime - startDownLog > STEER_HOLD_THRESHOLD) {
-                targetPitch = (-Math.PI / 12); // 15 degrees
+                targetPitch = (-20 * Math.PI / 180); // 20 degrees
             }
         }
     } else {
