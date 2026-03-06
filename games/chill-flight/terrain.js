@@ -102,6 +102,39 @@ function createLilyPadGeometry() {
 const lilyPadGeo = createLilyPadGeometry();
 const lilyPadMat = createMaterial({ color: 0x4CAF50, flatShading: true });
 
+// Bush geometry and material
+function createBushGeometry() {
+    // Clustered spheres for a bushy look
+    const b1 = new THREE.SphereGeometry(1.5, 6, 6);
+    b1.translate(0, 1.5, 0);
+    const b2 = new THREE.SphereGeometry(1.2, 6, 6);
+    b2.translate(1, 1, 0.5);
+    const b3 = new THREE.SphereGeometry(1.3, 6, 6);
+    b3.translate(-0.8, 1.2, -0.8);
+
+    const geometries = [b1, b2, b3];
+    let pos = [], norm = [], idx = [];
+    let offset = 0;
+
+    for (const g of geometries) {
+        pos.push(...g.attributes.position.array);
+        norm.push(...g.attributes.normal.array);
+        for (let i = 0; i < g.index.array.length; i++) {
+            idx.push(g.index.array[i] + offset);
+        }
+        offset += g.attributes.position.count;
+    }
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(norm, 3));
+    geom.setIndex(idx);
+
+    return geom;
+}
+const bushGeo = createBushGeometry();
+const bushMat = createMaterial({ color: 0x558B2F, flatShading: true }); // Darker green
+
 // Snowman geometries and materials
 function createSnowmanGeometry() {
     const baseGeo = new THREE.SphereGeometry(3, 8, 8);
@@ -296,6 +329,7 @@ function generateChunk(chunkX, chunkZ) {
     const cactusPositions = [];
     const snowmanPositions = [];
     const lilyPadPositions = [];
+    const bushPositions = [];
     let hasWater = false;
 
     // Normalize density so higher SEGMENTS doesn't mean more trees/houses/etc
@@ -458,6 +492,14 @@ function generateChunk(chunkX, chunkZ) {
             if (snowFactor > 0.6 && rng() < 0.002 * densityScale) {
                 if (height > WATER_LEVEL + 5 && height < MOUNTAIN_LEVEL - 50) {
                     snowmanPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
+                }
+            }
+
+            // Bush Spawning
+            if (desertFactor < 0.2 && snowFactor < 0.3 && (height > WATER_LEVEL + 3 && height < MOUNTAIN_LEVEL - 100)) {
+                // Spawn mostly on plains/forest edges
+                if (rng() < 0.08 * densityScale) {
+                    bushPositions.push({ x: localX, y: height, z: localZ, rotY: rng() * Math.PI * 2 });
                 }
             }
 
@@ -664,6 +706,21 @@ function generateChunk(chunkX, chunkZ) {
 
         padInst.position.set(worldOffsetX, 0, worldOffsetZ);
         group.add(padInst);
+    }
+
+    // 2.48 Generate Bushes
+    if (bushPositions.length > 0) {
+        const bushInst = new THREE.InstancedMesh(bushGeo, bushMat, bushPositions.length);
+        bushPositions.forEach((pos, index) => {
+            const scale = 0.5 + rng() * 1.5; // High variance in bush sizes
+            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.rotation.set(0, pos.rotY, 0);
+            dummy.scale.set(scale, scale, scale);
+            dummy.updateMatrix();
+            bushInst.setMatrixAt(index, dummy.matrix);
+        });
+        bushInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(bushInst);
     }
 
     // 2.5 Generate Houses
