@@ -255,7 +255,9 @@ function setStation(num) {
         }
     });
 
-    if (ytPlayerReady) {
+    if (num === 5 && !navigator.onLine) {
+        nameDisplay.innerText = stationNames[num] + ' [OFFLINE]';
+    } else if (ytPlayerReady) {
         updateYTPlayer(num);
     } else if (num === 5) {
         ensureYTPlayerInitialized();
@@ -308,6 +310,52 @@ let ytQueuedStation = null;
 const lofiGirlVideos = ['jfKfPfyJRdk', '28KRPhVzCus', 'HuFYqnbVbzY', 'S_MOd40zlYU'];
 let lofiGirlIdx = 0;
 
+// --- OFFLINE / ONLINE DETECTION (YouTube) ---
+function setYTOfflineState(isOffline) {
+    const lgBtn = document.querySelector('.station-btn[data-station="5"]');
+    const nameDisplay = document.getElementById('station-name');
+    if (lgBtn) {
+        lgBtn.classList.toggle('disabled', isOffline);
+        lgBtn.title = isOffline ? 'Lofi Girl (offline)' : 'Lofi Girl';
+    }
+    if (isOffline) {
+        if (currentStation === 5) {
+            if (nameDisplay) nameDisplay.innerText = 'Lofi Girl [OFFLINE]';
+            if (ytPlayerReady) {
+                try { ytPlayer.pauseVideo(); } catch (e) { /* ignore */ }
+            }
+        }
+        // Reset so we re-init on reconnect
+        ytPlayerReady = false;
+        ytInitializing = false;
+    } else {
+        // Back online — if user had LG selected, re-queue it
+        if (currentStation === 5) {
+            if (nameDisplay) nameDisplay.innerText = stationNames[5] + ' [SYNCING...]';
+            ytQueuedStation = 5;
+            if (ytApiLoaded) {
+                ensureYTPlayerInitialized();
+            }
+        }
+    }
+}
+
+window.addEventListener('offline', () => {
+    console.log('Network offline — disabling YouTube radio.');
+    setYTOfflineState(true);
+});
+
+window.addEventListener('online', () => {
+    console.log('Network online — re-enabling YouTube radio.');
+    setYTOfflineState(false);
+});
+
+// Apply initial offline state on load if needed
+if (!navigator.onLine) {
+    // Delay slightly so DOM is ready
+    setTimeout(() => setYTOfflineState(true), 500);
+}
+
 // FAIL-SAFE: Always finish calibration after 10 seconds (upped from 5s)
 setTimeout(() => {
     if (!calibrationFinished) {
@@ -354,6 +402,10 @@ function finishCalibration() {
 
 function ensureYTPlayerInitialized(callback) {
     if (ytInitializing || ytPlayerReady) return;
+    if (!navigator.onLine) {
+        console.log('YouTube init skipped — offline.');
+        return;
+    }
     ytInitializing = true;
     updateLoadingProgress(40, "Handshaking radio...");
 

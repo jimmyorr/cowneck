@@ -32,6 +32,49 @@ const worldPrefix = `world/${ChillFlightLogic.WORLD_SEED}`;
 // Module-scoped const/let never lands on window, unlike top-level var in plain <script>s
 window.otherPlayers = new Map();
 let playerUid = null;
+let multiplayerActive = false;
+
+// --- OFFLINE / ONLINE INDICATOR ---
+function setMultiplayerOfflineBanner(isOffline) {
+    const title = document.getElementById('online-title');
+    if (!title) return;
+    if (isOffline) {
+        title.textContent = 'OFFLINE';
+        title.style.color = 'rgba(255,100,100,0.7)';
+    } else {
+        title.textContent = 'ONLINE';
+        title.style.color = '';
+    }
+}
+
+// Listen to Firebase .info/connected for real-time connection state
+const connectedRef = ref(db, '.info/connected');
+onValue(connectedRef, (snap) => {
+    const isConnected = snap.val() === true;
+    setMultiplayerOfflineBanner(!isConnected);
+    if (!isConnected && multiplayerActive) {
+        // Remove all remote planes so stale players don't persist
+        window.otherPlayers.forEach((p) => {
+            if (typeof scene !== 'undefined') scene.remove(p.mesh);
+        });
+        window.otherPlayers.clear();
+    }
+});
+
+// Also respond to browser-level network events
+window.addEventListener('offline', () => {
+    console.log('Network offline — multiplayer paused.');
+    setMultiplayerOfflineBanner(true);
+    window.otherPlayers.forEach((p) => {
+        if (typeof scene !== 'undefined') scene.remove(p.mesh);
+    });
+    window.otherPlayers.clear();
+});
+
+window.addEventListener('online', () => {
+    console.log('Network online — Firebase will reconnect automatically.');
+    // Firebase SDK reconnects itself; the connectedRef listener above will update the banner
+});
 
 // Global server offset for deterministic time
 window.serverTimeOffset = 0;
@@ -112,6 +155,7 @@ function createOtherPlaneMesh(uid, forcedColor) {
 signInAnonymously(auth)
     .then((result) => {
         playerUid = result.user.uid;
+        multiplayerActive = true;
         window.currentUserUid = playerUid;
         console.log("Logged in anonymously! ID:", playerUid);
 
@@ -342,8 +386,9 @@ signInAnonymously(auth)
             });
         }, 5000);
 
-        // Periodic position sync every 1 second
+        // Periodic position sync every 200ms
         setInterval(() => {
+            if (!navigator.onLine) return;
             if (!window.firebaseDB) return;
             const debugMenu = document.getElementById('debug-menu');
             if (debugMenu && debugMenu.style.display === 'block') return;
@@ -370,5 +415,7 @@ signInAnonymously(auth)
         }, 200);
     })
     .catch((error) => {
-        console.error("Auth failed:", error);
+        console.warn("Firebase auth failed (offline or config error):", error.code || error.message);
+        setMultiplayerOfflineBanner(true);
+        // Game continues without multiplayer — no crash
     });

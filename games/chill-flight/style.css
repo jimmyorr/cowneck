@@ -275,6 +275,12 @@ input[type=number].customization-input {
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
 }
 
+.station-btn.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 #yt-container {
     position: absolute;
     bottom: 20px;
