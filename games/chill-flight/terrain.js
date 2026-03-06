@@ -93,6 +93,15 @@ function createCactusGeometry() {
 const cactusGeo = createCactusGeometry();
 const cactusMat = createMaterial({ color: 0x4CAF50, flatShading: true });
 
+// Lily pad geometry and material
+function createLilyPadGeometry() {
+    // A flat cylinder with a slice removed (pacman shape)
+    const padGeo = new THREE.CylinderGeometry(1.5, 1.5, 0.2, 8, 1, false, 0, Math.PI * 1.8);
+    return padGeo;
+}
+const lilyPadGeo = createLilyPadGeometry();
+const lilyPadMat = createMaterial({ color: 0x4CAF50, flatShading: true });
+
 // Snowman geometries and materials
 function createSnowmanGeometry() {
     const baseGeo = new THREE.SphereGeometry(3, 8, 8);
@@ -286,6 +295,7 @@ function generateChunk(chunkX, chunkZ) {
     const desertRockPositions = [];
     const cactusPositions = [];
     const snowmanPositions = [];
+    const lilyPadPositions = [];
     let hasWater = false;
 
     // Normalize density so higher SEGMENTS doesn't mean more trees/houses/etc
@@ -334,6 +344,10 @@ function generateChunk(chunkX, chunkZ) {
                 hasWater = true;
                 if (rng() < 0.0005 * densityScale) { // Very rare sailboat
                     sailboatPositions.push({ x: localX, y: WATER_LEVEL, z: localZ, rotY: rng() * Math.PI * 2 });
+                }
+                // Spawning lily pads in plains biomes near the shore. Needs no snow or desert factor
+                if (snowFactor < 0.1 && desertFactor < 0.1 && rng() < 0.015 * densityScale) {
+                    lilyPadPositions.push({ x: localX, y: WATER_LEVEL, z: localZ, rotY: rng() * Math.PI * 2 });
                 }
                 positions[i + 1] = height - 5; // Drop seafloor so moving water waves don't clip into it
                 colorObj.copy(colorSand);
@@ -633,6 +647,23 @@ function generateChunk(chunkX, chunkZ) {
         noseInst.position.set(worldOffsetX, 0, worldOffsetZ);
         group.add(bodyInst);
         group.add(noseInst);
+    }
+
+    // 2.47 Generate Lily Pads
+    if (lilyPadPositions.length > 0) {
+        const padInst = new THREE.InstancedMesh(lilyPadGeo, lilyPadMat, lilyPadPositions.length);
+
+        lilyPadPositions.forEach((pos, index) => {
+            const scale = 0.6 + rng() * 0.8;
+            dummy.position.set(pos.x, pos.y + 0.15, pos.z); // Slightly above water to prevent Z-fighting
+            dummy.rotation.set(0, pos.rotY, 0);
+            dummy.scale.set(scale, scale, scale);
+            dummy.updateMatrix();
+            padInst.setMatrixAt(index, dummy.matrix);
+        });
+
+        padInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(padInst);
     }
 
     // 2.5 Generate Houses
