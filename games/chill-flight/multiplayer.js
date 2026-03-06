@@ -5,6 +5,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
+import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getDatabase, ref, set, get, onValue, onDisconnect, onChildAdded, onChildChanged, onChildRemoved } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
@@ -21,6 +22,13 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+
+// App Check — reCAPTCHA v3 (site key is public; secret key stays server-side)
+initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider('6LfyyIEsAAAAANhEtJpPFwPYSs4Egde3RHFxnokB'),
+    isTokenAutoRefreshEnabled: true
+});
+
 const auth = getAuth(app);
 const db = getDatabase(app);
 
