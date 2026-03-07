@@ -1,0 +1,19 @@
+{
+  "name": "chill-flight",
+  "version": "1.0.0",
+  "description": "",
+  "main": "airplane.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "mkdir -p www && cp *.html *.js *.css www/ && cp -r vendor www/vendor/",
+    "build:tv": "npm run build && npx cap sync android"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/cli": "^8.2.0",
+    "@capacitor/core": "^8.2.0"
+  }
+}
