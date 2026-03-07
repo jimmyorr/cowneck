@@ -12,6 +12,24 @@
         window.STEER_HOLD_THRESHOLD = 100; // Lower threshold to feel more responsive on Bluetooth remotes
     }
 
+    // Performance Optimizations for TV
+    // Capacitor's native platform check:
+    if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform()) {
+        console.log("Applying TV Performance Profile");
+
+        // Lower resolution rendering (cap pixel ratio to 1) 
+        // to greatly relieve the GPU on underpowered Android TVs
+        if (typeof renderer !== 'undefined') {
+            renderer.setPixelRatio(1.0); // Hard cap instead of window.devicePixelRatio
+        }
+
+        // Force lower view distance and mesh segments
+        try {
+            if (typeof RENDER_DISTANCE !== 'undefined') RENDER_DISTANCE = 1; // Short
+            if (typeof SEGMENTS !== 'undefined') SEGMENTS = 20; // Low
+        } catch (e) { }
+    }
+
     // Key mapping for D-pad (Center -> Enter, Back -> Backspace)
     window.addEventListener('keydown', function (e) {
         // D-pad center is usually keycode 23 or 66 (Enter) on Android TV
