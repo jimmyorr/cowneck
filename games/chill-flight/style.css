@@ -136,7 +136,8 @@ input[type=number].customization-input {
 
 /* Android TV UI Focus */
 .tv-focused {
-    outline: 3px solid #FFD700 !important;
+    transform: scale(1.1) !important;
+    outline: 4px solid yellow !important;
     outline-offset: 2px !important;
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.8) !important;
 }
@@ -581,5 +582,23 @@ input[type=number].customization-input {
     .loading-title {
         font-size: 24px;
         letter-spacing: 6px;
+    }
+}
+
+/* TV Overscan Safety Margin */
+@media screen and (tv) {
+
+    #cockpit-ui,
+    #ui-layer {
+        margin: 5%;
+        width: 90% !important;
+        height: 90% !important;
+        box-sizing: border-box;
+    }
+
+    #ui-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
     }
 }
