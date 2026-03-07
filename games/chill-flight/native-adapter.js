@@ -28,6 +28,11 @@
             if (typeof RENDER_DISTANCE !== 'undefined') RENDER_DISTANCE = 1; // Short
             if (typeof SEGMENTS !== 'undefined') SEGMENTS = 20; // Low
         } catch (e) { }
+
+        // Mobile specific: Hide the status bar
+        if (Capacitor.Plugins.StatusBar) {
+            Capacitor.Plugins.StatusBar.hide().catch(e => console.log('StatusBar not available', e));
+        }
     }
 
     // Key mapping for D-pad (Center -> Enter, Back -> Backspace)
