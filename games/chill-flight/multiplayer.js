@@ -7,7 +7,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getDatabase, ref, set, get, onValue, onDisconnect, onChildAdded, onChildChanged, onChildRemoved } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+import { getDatabase, ref, set, update, get, onValue, onDisconnect, onChildAdded, onChildChanged, onChildRemoved } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
 function initMultiplayer() {
     const firebaseConfig = {
@@ -182,12 +182,12 @@ function initMultiplayer() {
             const sessionRef = ref(db, `${worldPrefix}/players/` + playerUid);
 
             const updatePlayerProfile = () => {
-                set(profileRef, {
+                update(profileRef, {
                     name: playerName,
                     color: planeColor,
                     updatedAt: new Date().toISOString()
                 });
-                set(sessionRef, {
+                update(sessionRef, {
                     name: playerName,
                     color: planeColor,
                     lastSeen: new Date().toISOString()
@@ -323,29 +323,29 @@ function initMultiplayer() {
                 const data = snapshot.val();
                 const p = otherPlayers.get(snapKey);
 
+                if (!p) return;
+
+                if (data.color !== undefined) {
+                    p.mesh.children.forEach(child => {
+                        if (child.isMesh && child.geometry.type === 'BoxGeometry' && child.geometry.parameters.width === 4) {
+                            if (child.material && child.material.color) {
+                                child.material.color.setHex(data.color);
+                            }
+                        }
+                    });
+                }
+
+                if (data.name) p.name = data.name;
+
                 if (data.position) {
                     if (data.position.updatedAt) {
                         const packetTime = new Date(data.position.updatedAt).getTime();
                         const now = Date.now() + (window.serverTimeOffset || 0);
                         if (now - packetTime > 10000) {
-                            if (p) {
-                                scene.remove(p.mesh);
-                                otherPlayers.delete(snapKey);
-                            }
+                            scene.remove(p.mesh);
+                            otherPlayers.delete(snapKey);
                             return;
                         }
-                    }
-
-                    if (!p) return;
-
-                    if (data.color !== undefined) {
-                        p.mesh.children.forEach(child => {
-                            if (child.isMesh && child.geometry.type === 'BoxGeometry' && child.geometry.parameters.width === 4) {
-                                if (child.material && child.material.color) {
-                                    child.material.color.setHex(data.color);
-                                }
-                            }
-                        });
                     }
 
                     // Update targets
@@ -354,7 +354,6 @@ function initMultiplayer() {
                     p.targetRotZ = data.position.rotZ || 0;
                     p.targetSpeedMult = data.position.speedMult !== undefined ? data.position.speedMult : 1;
                     p.lastReceivedMs = Date.now();
-                    if (data.name) p.name = data.name;
 
                     // Set target position with latency compensation (Extrapolation)
                     p.targetPos.set(data.position.x || 0, data.position.y || 200, data.position.z || 0);
