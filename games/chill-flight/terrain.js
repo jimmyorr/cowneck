@@ -930,8 +930,8 @@ function generateChunk(chunkX, chunkZ) {
             const northInfluence = Math.max(0, -worldZ / 4000);
 
             const tempNoise = simplex.noise2D((worldOffsetX + pos.x) * 0.0001, worldZ * 0.0001);
-            // Threshold 0.58 means frost only starts once northInfluence > ~0.58 (worldZ < -2300)
-            const snowRaw = Math.max(0, Math.min(1, (northInfluence + tempNoise * 0.05 - 0.58) * 3.5));
+            // Threshold 0.78 means frost only appears deep in the snowy biome (worldZ < -3100 approx)
+            const snowRaw = Math.max(0, Math.min(1, (northInfluence + tempNoise * 0.05 - 0.78) * 3.5));
             const snowFactor = snowRaw * snowRaw * (3 - 2 * snowRaw);
 
             const baseScale = 0.6 + Math.min(0.6, northInfluence * 0.5);
