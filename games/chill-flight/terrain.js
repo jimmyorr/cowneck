@@ -54,10 +54,127 @@ function createPineGeometry() {
 }
 const treeLeavesGeo = createPineGeometry();
 
+function createDeciduousGeometry() {
+    const trunk = new THREE.CylinderGeometry(1.2, 1.8, 10, 5);
+    trunk.translate(0, 5, 0);
+
+    const leaf1 = new THREE.SphereGeometry(6, 6, 5);
+    leaf1.translate(0, 10, 0);
+    const leaf2 = new THREE.SphereGeometry(4.5, 6, 5);
+    leaf2.translate(3, 8, 2);
+    const leaf3 = new THREE.SphereGeometry(4.5, 6, 5);
+    leaf3.translate(-3, 8, -2);
+
+    const geometries = [leaf1, leaf2, leaf3];
+    const pos = [], norm = [], idx = [];
+    let offset = 0;
+
+    for (const g of geometries) {
+        pos.push(...g.attributes.position.array);
+        norm.push(...g.attributes.normal.array);
+        for (let i = 0; i < g.index.array.length; i++) idx.push(g.index.array[i] + offset);
+        offset += g.attributes.position.count;
+    }
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(norm, 3));
+    geom.setIndex(idx);
+    return { trunk, leaves: geom };
+}
+const deciduousGeos = createDeciduousGeometry();
+
+function createPalmGeometry() {
+    const trunkSegments = 6;
+    const trunkHeights = [];
+    const geometries = [];
+
+    // Curved trunk parts
+    for (let i = 0; i < trunkSegments; i++) {
+        const h = 3;
+        const g = new THREE.CylinderGeometry(1.2 - i * 0.1, 1.3 - i * 0.1, h, 6);
+        const angle = i * 0.15;
+        g.rotateZ(angle);
+        g.translate(Math.sin(angle) * i * 2, i * h + h / 2, 0);
+        geometries.push(g);
+    }
+
+    const leafShape = new THREE.BoxGeometry(12, 0.2, 2.5);
+    leafShape.translate(6, 0, 0);
+
+    const leafGeos = [];
+    for (let i = 0; i < 6; i++) {
+        const lg = leafShape.clone();
+        lg.rotateY((i * Math.PI * 2) / 6);
+        lg.rotateZ(-0.4);
+        const lastAngle = (trunkSegments - 1) * 0.15;
+        lg.translate(Math.sin(lastAngle) * (trunkSegments - 1) * 2, trunkSegments * 3, 0);
+        leafGeos.push(lg);
+    }
+
+    const combinedTrunkPos = [], combinedTrunkNorm = [], combinedTrunkIdx = [];
+    let trunkOffset = 0;
+    for (const g of geometries) {
+        combinedTrunkPos.push(...g.attributes.position.array);
+        combinedTrunkNorm.push(...g.attributes.normal.array);
+        for (let i = 0; i < g.index.array.length; i++) combinedTrunkIdx.push(g.index.array[i] + trunkOffset);
+        trunkOffset += g.attributes.position.count;
+    }
+    const trunkGeom = new THREE.BufferGeometry();
+    trunkGeom.setAttribute('position', new THREE.Float32BufferAttribute(combinedTrunkPos, 3));
+    trunkGeom.setAttribute('normal', new THREE.Float32BufferAttribute(combinedTrunkNorm, 3));
+    trunkGeom.setIndex(combinedTrunkIdx);
+
+    const combinedLeafPos = [], combinedLeafNorm = [], combinedLeafIdx = [];
+    let leafOffset = 0;
+    for (const g of leafGeos) {
+        combinedLeafPos.push(...g.attributes.position.array);
+        combinedLeafNorm.push(...g.attributes.normal.array);
+        for (let i = 0; i < g.index.array.length; i++) combinedLeafIdx.push(g.index.array[i] + leafOffset);
+        leafOffset += g.attributes.position.count;
+    }
+    const leafGeom = new THREE.BufferGeometry();
+    leafGeom.setAttribute('position', new THREE.Float32BufferAttribute(combinedLeafPos, 3));
+    leafGeom.setAttribute('normal', new THREE.Float32BufferAttribute(combinedLeafNorm, 3));
+    leafGeom.setIndex(combinedLeafIdx);
+
+    return { trunk: trunkGeom, leaves: leafGeom };
+}
+const palmGeos = createPalmGeometry();
+
+function createDeadTreeGeometry() {
+    const trunk = new THREE.CylinderGeometry(0.5, 1.8, 14, 5);
+    trunk.translate(0, 7, 0);
+
+    const b1 = new THREE.CylinderGeometry(0.3, 0.6, 8, 4);
+    b1.rotateZ(0.8);
+    b1.translate(3, 10, 0);
+
+    const b2 = new THREE.CylinderGeometry(0.3, 0.5, 6, 4);
+    b2.rotateZ(-1.1);
+    b2.translate(-2, 8, 1);
+
+    const geometries = [trunk, b1, b2];
+    const pos = [], norm = [], idx = [];
+    let offset = 0;
+    for (const g of geometries) {
+        pos.push(...g.attributes.position.array);
+        norm.push(...g.attributes.normal.array);
+        for (let i = 0; i < g.index.array.length; i++) idx.push(g.index.array[i] + offset);
+        offset += g.attributes.position.count;
+    }
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geom.setAttribute('normal', new THREE.Float32BufferAttribute(norm, 3));
+    geom.setIndex(idx);
+    return geom;
+}
+const deadTreeGeo = createDeadTreeGeometry();
+
 const treeTrunkMat = createMaterial({ color: 0x5D4037, flatShading: true });
-const treeLeavesMat = createMaterial({ color: 0x2E7D32, flatShading: true });
-const snowTreeTrunkMat = createMaterial({ color: 0x4E342E, flatShading: true });
-const snowTreeLeavesMat = createMaterial({ color: 0xE0F7FA, flatShading: true });
+const treeLeavesMat = createMaterial({ color: 0x1B5E20, flatShading: true }); // Darkened forest green
+const palmLeavesMat = createMaterial({ color: 0x689F38, flatShading: true });
+const deadTreeMat = createMaterial({ color: 0x8D6E63, flatShading: true });
 
 // Rock geometries and materials
 const rockGeo = new THREE.DodecahedronGeometry(3, 0); // Base flat shaded rock
@@ -500,7 +617,10 @@ function generateChunk(chunkX, chunkZ) {
     const worldOffsetX = chunkX * CHUNK_SIZE;
     const worldOffsetZ = chunkZ * CHUNK_SIZE;
 
-    const treePositions = [];
+    const treePositions = []; // Pines (Snow/Mountain)
+    const deciduousTreePositions = []; // Standard green oak
+    const palmTreePositions = []; // Tropical
+    const deadTreePositions = []; // Desert
     const snowTreePositions = [];
     const autumnTree1Positions = [];
     const autumnTree2Positions = [];
@@ -600,9 +720,13 @@ function generateChunk(chunkX, chunkZ) {
 
                 const treeRoll = rng();
                 if (treeRoll < (desertFactor > 0.5 ? 0.05 : 0.15) * densityScale) {
-                    if (snowFactor > 0.4) {
+                    if (snowFactor > 0.4 || height > MOUNTAIN_LEVEL - 100) {
                         snowTreePositions.push({ x: localX, y: height, z: localZ });
-                    } else if (desertFactor < 0.6) {
+                    } else if (desertFactor > 0.6) {
+                        deadTreePositions.push({ x: localX, y: height, z: localZ });
+                    } else if (eastCoastFactor > 0.7 && height < WATER_LEVEL + 40) {
+                        palmTreePositions.push({ x: localX, y: height, z: localZ });
+                    } else {
                         if (cherryNoise > 0.65) {
                             cherryTreePositions.push({ x: localX, y: height, z: localZ });
                         } else if (autumnNoise > 0.45) {
@@ -611,7 +735,7 @@ function generateChunk(chunkX, chunkZ) {
                             else if (variety < 0.66) autumnTree2Positions.push({ x: localX, y: height, z: localZ });
                             else autumnTree3Positions.push({ x: localX, y: height, z: localZ });
                         } else {
-                            treePositions.push({ x: localX, y: height, z: localZ });
+                            deciduousTreePositions.push({ x: localX, y: height, z: localZ });
                         }
                     }
                 } else if (treeRoll < (desertFactor > 0.5 ? 0.0505 : 0.151) * densityScale) {
@@ -789,61 +913,74 @@ function generateChunk(chunkX, chunkZ) {
     // 2. Generate Trees
     const dummy = new THREE.Object3D();
 
-    if (treePositions.length > 0) {
-        const trunkInst = new THREE.InstancedMesh(treeTrunkGeo, treeTrunkMat, treePositions.length);
-        const leavesInst = new THREE.InstancedMesh(treeLeavesGeo, treeLeavesMat, treePositions.length);
+    // Helper for rendering instanced trees with latitude-based snow coloring
+    const _tempColor = new THREE.Color();
+    const _snowColor = new THREE.Color(0xE0F7FA);
 
-        treePositions.forEach((pos, index) => {
+    const renderTrees = (positions, trunkGeo, leavesGeo, trunkMat, leavesMat) => {
+        if (positions.length === 0) return;
+        const trunkInst = new THREE.InstancedMesh(trunkGeo, trunkMat, positions.length);
+        const leavesInst = new THREE.InstancedMesh(leavesGeo, leavesMat, positions.length);
+
+        const baseColor = leavesMat.color.clone();
+
+        positions.forEach((pos, index) => {
             const worldZ = worldOffsetZ + pos.z;
-            const northInfluence = Math.max(0, -worldZ / 4500); // 0 to 1+ based on how far north
-            const baseScale = 0.6 + Math.min(0.6, northInfluence * 0.5); // Starts at 0.6 in south, up to 1.2 in far north
-            const scale = baseScale + rng() * (0.4 + rng() * 0.5); // More dramatic size variance
+            const northInfluence = Math.max(0, -worldZ / 4500);
+
+            // Calculate local snow factor for this specific tree
+            const tempNoise = simplex.noise2D((worldOffsetX + pos.x) * 0.0001, worldZ * 0.0001);
+            const snowRaw = Math.max(0, Math.min(1, (northInfluence + tempNoise * 0.05 - 0.7) * 1.5));
+            const snowFactor = snowRaw * snowRaw * (3 - 2 * snowRaw);
+
+            const baseScale = 0.6 + Math.min(0.6, northInfluence * 0.5);
+            const scale = baseScale + rng() * (0.4 + rng() * 0.5);
             dummy.position.set(pos.x, pos.y, pos.z);
             dummy.scale.set(scale, scale, scale);
             dummy.rotation.y = rng() * Math.PI * 2;
             dummy.updateMatrix();
             trunkInst.setMatrixAt(index, dummy.matrix);
             leavesInst.setMatrixAt(index, dummy.matrix);
+
+            // Apply snow gradient coloring
+            _tempColor.copy(baseColor);
+            if (snowFactor > 0.1) {
+                // Gradually whiten the leaves as we go North
+                _tempColor.lerp(_snowColor, Math.min(1, (snowFactor - 0.1) * 1.5));
+            }
+            leavesInst.setColorAt(index, _tempColor);
         });
 
         trunkInst.position.set(worldOffsetX, 0, worldOffsetZ);
         leavesInst.position.set(worldOffsetX, 0, worldOffsetZ);
         group.add(trunkInst);
         group.add(leavesInst);
+    };
+
+    // Render variations
+    renderTrees(treePositions, treeTrunkGeo, treeLeavesGeo, treeTrunkMat, treeLeavesMat);
+    renderTrees(snowTreePositions, treeTrunkGeo, treeLeavesGeo, treeTrunkMat, treeLeavesMat); // Use green base for pines
+    renderTrees(deciduousTreePositions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, treeLeavesMat);
+    renderTrees(palmTreePositions, palmGeos.trunk, palmGeos.leaves, treeTrunkMat, palmLeavesMat);
+    renderTrees(cherryTreePositions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, cherryBlossomMat);
+    renderTrees(autumnTree1Positions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, autumnLeavesMat1);
+    renderTrees(autumnTree2Positions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, autumnLeavesMat2);
+    renderTrees(autumnTree3Positions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, autumnLeavesMat3);
+
+    if (deadTreePositions.length > 0) {
+        const deadInst = new THREE.InstancedMesh(deadTreeGeo, deadTreeMat, deadTreePositions.length);
+        deadTreePositions.forEach((pos, index) => {
+            const scale = 0.8 + rng() * 0.8;
+            dummy.position.set(pos.x, pos.y, pos.z);
+            dummy.scale.set(scale, scale, scale);
+            dummy.rotation.y = rng() * Math.PI * 2;
+            dummy.updateMatrix();
+            deadInst.setMatrixAt(index, dummy.matrix);
+        });
+        deadInst.position.set(worldOffsetX, 0, worldOffsetZ);
+        group.add(deadInst);
     }
 
-    // --- NEW TREE VARIATIONS ---
-    const treeVariations = [
-        { pos: autumnTree1Positions, mat: autumnLeavesMat1 },
-        { pos: autumnTree2Positions, mat: autumnLeavesMat2 },
-        { pos: autumnTree3Positions, mat: autumnLeavesMat3 },
-        { pos: cherryTreePositions, mat: cherryBlossomMat }
-    ];
-
-    treeVariations.forEach(variation => {
-        if (variation.pos.length > 0) {
-            const trunkInst = new THREE.InstancedMesh(treeTrunkGeo, treeTrunkMat, variation.pos.length);
-            const leavesInst = new THREE.InstancedMesh(treeLeavesGeo, variation.mat, variation.pos.length);
-
-            variation.pos.forEach((pos, index) => {
-                const worldZ = worldOffsetZ + pos.z;
-                const northInfluence = Math.max(0, -worldZ / 4500);
-                const baseScale = 0.6 + Math.min(0.6, northInfluence * 0.5);
-                const scale = baseScale + rng() * (0.4 + rng() * 0.5);
-                dummy.position.set(pos.x, pos.y, pos.z);
-                dummy.scale.set(scale, scale, scale);
-                dummy.rotation.y = rng() * Math.PI * 2;
-                dummy.updateMatrix();
-                trunkInst.setMatrixAt(index, dummy.matrix);
-                leavesInst.setMatrixAt(index, dummy.matrix);
-            });
-
-            trunkInst.position.set(worldOffsetX, 0, worldOffsetZ);
-            leavesInst.position.set(worldOffsetX, 0, worldOffsetZ);
-            group.add(trunkInst);
-            group.add(leavesInst);
-        }
-    });
 
     // 2.3 Generate Rocks
     const rockVariations = [
