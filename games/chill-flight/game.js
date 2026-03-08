@@ -1234,6 +1234,7 @@ if (btnUp) {
     const down = (e) => {
         e.preventDefault();
         e.stopPropagation();
+        keys.Shift = true;
         keys.ArrowUp = true;
         keyPressStartTime.ArrowUp = performance.now();
     };
@@ -1244,6 +1245,7 @@ if (btnUp) {
         if (nowTime - keyPressStartTime.ArrowUp < STEER_HOLD_THRESHOLD) {
             flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + 0.1);
         }
+        keys.Shift = false;
         keys.ArrowUp = false;
         doubleTap.ArrowUp = false;
     };
@@ -1257,6 +1259,7 @@ if (btnDown) {
     const down = (e) => {
         e.preventDefault();
         e.stopPropagation();
+        keys.Shift = true;
         keys.ArrowDown = true;
         keys.ArrowUp = false;
         keyPressStartTime.ArrowDown = performance.now();
@@ -1268,6 +1271,7 @@ if (btnDown) {
         if (nowTime - keyPressStartTime.ArrowDown < 250) {
             flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - 0.1);
         }
+        keys.Shift = false;
         keys.ArrowDown = false;
         doubleTap.ArrowDown = false;
     };
