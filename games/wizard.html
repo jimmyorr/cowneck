@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wizard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .card-proportion {
+            aspect-ratio: 2 / 3;
+            width: 80px;
+        }
+
+        @media (min-width: 768px) {
+            .card-proportion {
+                width: 100px;
+            }
+        }
+
+        .suit-red {
+            color: #ef4444;
+        }
+
+        .suit-black {
+            color: #1e293b;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-plugins="transform-react-jsx">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // --- Constants ---
+        const SUITS = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
+        const SUIT_ICONS = { Hearts: '♥', Diamonds: '♦', Clubs: '♣', Spades: '♠', None: '?' };
+        const BOT_NAMES = ['Oliver', 'Miles', 'Kirby 🐱', 'Pookie', 'Jimmy'];
+
+        // --- Logic Utilities ---
+        const shuffle = (array) => {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[arr[j] ? j : 0]] = [arr[j], arr[i]];
+            }
+            return arr;
+        };
+
+        const createDeck = () => {
+            const deck = [];
+            SUITS.forEach(suit => {
+                for (let v = 1; v <= 13; v++) deck.push({ suit, value: v, type: 'normal' });
+            });
+            for (let i = 0; i < 4; i++) {
+                deck.push({ suit: 'None', value: 0, type: 'jester' });
+                deck.push({ suit: 'None', value: 14, type: 'wizard' });
+            }
+            return shuffle(deck);
+        };
+
+        const getCardDisplay = (card) => {
+            if (card.type === 'jester') return 'J';
+            if (card.type === 'wizard') return 'W';
+            if (card.value === 1) return 'A';
+            if (card.value === 11) return 'J';
+            if (card.value === 12) return 'Q';
+            if (card.value === 13) return 'K';
+            return card.value;
+        };
+
+        const getCardIcon = (card) => {
+            if (card.type === 'jester') return '🤡';
+            if (card.type === 'wizard') return '🧙';
+            return SUIT_ICONS[card.suit];
+        };
+
+        // --- Components ---
+
+        const Card = ({ card, onClick, disabled, size = 'md', className = '' }) => {
+            const isRed = card.suit === 'Hearts' || card.suit === 'Diamonds';
+            const display = getCardDisplay(card);
+            const icon = getCardIcon(card);
+
+            return (
+                <div
+                    onClick={!disabled ? onClick : undefined}
+                    className={`card-proportion bg-white rounded-lg border-2 border-slate-300 flex flex-col justify-between p-1 md:p-2 cursor-pointer transition-all card-shadow select-none
+                        ${disabled ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:-translate-y-2 hover:border-blue-500'}
+                        ${className}`}
+                >
+                    <div className={`text-xs md:text-sm font-bold flex flex-col leading-none ${isRed ? 'text-red-500' : 'text-slate-800'}`}>
+                        <span>{display}</span>
+                        <span>{icon}</span>
+                    </div>
+                    <div className="flex justify-center items-center flex-1 text-2xl md:text-4xl">
+                        {icon}
+                    </div>
+                    <div className={`text-xs md:text-sm font-bold flex flex-col leading-none transform rotate-180 self-end ${isRed ? 'text-red-500' : 'text-slate-800'}`}>
+                        <span>{display}</span>
+                        <span>{icon}</span>
+                    </div>
+                </div>
+            );
+        };
+
+        const HUD = ({ round, trumpCard, playerBid, playerTricks, logs }) => (
+            <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                    <h3 className="text-xs text-slate-400 font-bold mb-1">Round</h3>
+                    <p className="text-xl font-bold">{round}</p>
+                </div>
+                <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 flex flex-col items-center">
+                    <h3 className="text-xs text-slate-400 font-bold mb-1">Trump</h3>
+                    {trumpCard ? (
+                        <div className="flex items-center gap-2">
+                            <span className={`text-2xl ${['Hearts', 'Diamonds'].includes(trumpCard.suit) ? 'text-red-500' : 'text-white'}`}>
+                                {getCardIcon(trumpCard)}
+                            </span>
+                            <span className="text-xs">{trumpCard.type === 'normal' ? trumpCard.suit : trumpCard.type}</span>
+                        </div>
+                    ) : <span className="text-xl font-bold italic">None</span>}
+                </div>
+                <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                    <h3 className="text-xs text-slate-400 font-bold mb-1">Your bid</h3>
+                    <p className="text-xl font-bold">{playerTricks} / {playerBid}</p>
+                </div>
+            </div>
+        );
+
+        const ScoreBoard = ({ players, currentTurn }) => (
+            <div className="bg-slate-800/80 backdrop-blur border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
+                <div className="p-3 bg-slate-700/50 border-b border-slate-600">
+                    <h2 className="text-sm font-bold">Standings</h2>
+                </div>
+                <div className="divide-y divide-slate-700">
+                    {players.map((p, i) => (
+                        <div key={p.id} className={`p-3 flex justify-between items-center ${currentTurn === i ? 'bg-blue-900/30' : ''}`}>
+                            <div className="flex flex-col">
+                                <span className={`text-sm font-medium ${currentTurn === i ? 'text-blue-400' : 'text-slate-200'}`}>
+                                    {p.name} {p.isHuman ? '(You)' : ''}
+                                </span>
+                                <span className="text-xs text-slate-500">Bid: {p.bid} | Won: {p.tricks}</span>
+                            </div>
+                            <span className="text-lg font-bold">{p.score}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+
+        // --- Main App ---
+
+        function App() {
+            const [gameState, setGameState] = useState('start'); // start, bidding, playing, roundEnd, gameEnd
+            const [players, setPlayers] = useState([]);
+            const [deck, setDeck] = useState([]);
+            const [round, setRound] = useState(1);
+            const [maxRounds] = useState(15);
+            const [trumpCard, setTrumpCard] = useState(null);
+            const [trumpSuit, setTrumpSuit] = useState('None');
+            const [currentTrick, setCurrentTrick] = useState([]);
+            const [turn, setTurn] = useState(0);
+            const [leadSuit, setLeadSuit] = useState('None');
+            const [logs, setLogs] = useState([]);
+            const [simulationStats, setSimulationStats] = useState(null);
+            const [fastForward, setFastForward] = useState(false);
+            const [isPaused, setIsPaused] = useState(false);
+            const [spectatorMode, setSpectatorMode] = useState(false);
+
+            const timerRef = useRef(null);
+
+            const addLog = (msg) => setLogs(prev => [msg, ...prev].slice(0, 50));
+
+            const initGame = (spectator = false) => {
+                const opponents = shuffle(BOT_NAMES).slice(0, 3);
+                const initialPlayers = [];
+                if (!spectator) {
+                    initialPlayers.push({ id: 0, name: 'You', isHuman: true, score: 0, bid: 0, tricks: 0, hand: [] });
+                } else {
+                    initialPlayers.push({ id: 0, name: BOT_NAMES[4], isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] });
+                }
+
+                opponents.forEach((name, i) => {
+                    initialPlayers.push({ id: i + 1, name, isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] });
+                });
+
+                setPlayers(initialPlayers);
+                setRound(1);
+                setSpectatorMode(spectator);
+                startRound(1, initialPlayers);
+            };
+
+            const startRound = (r, currentPlayers = players) => {
+                const fullDeck = createDeck();
+                const dealtPlayers = currentPlayers.map(p => ({ ...p, hand: [], bid: 0, tricks: 0 }));
+
+                for (let i = 0; i < r; i++) {
+                    dealtPlayers.forEach(p => p.hand.push(fullDeck.pop()));
+                }
+
+                const upcard = fullDeck.length > 0 ? fullDeck.pop() : null;
+                let tSuit = 'None';
+                if (upcard) {
+                    if (upcard.type === 'wizard') {
+                        tSuit = SUITS[Math.floor(Math.random() * 4)];
+                        addLog(`Wizard flipped! Trump is ${tSuit}.`);
+                    } else if (upcard.type === 'jester') {
+                        addLog(`Jester flipped! No trump.`);
+                    } else {
+                        tSuit = upcard.suit;
+                    }
+                }
+
+                setDeck(fullDeck);
+                setTrumpCard(upcard);
+                setTrumpSuit(tSuit);
+                setPlayers(dealtPlayers);
+                setGameState('bidding');
+                setTurn(r % 4); // Rotate dealer
+                setLeadSuit('None');
+                setCurrentTrick([]);
+                setGameState('bidding');
+            };
+
+            const handleBid = (bidVal) => {
+                const newPlayers = [...players];
+                newPlayers[0].bid = bidVal;
+
+                // AI bids
+                for (let i = 1; i < 4; i++) {
+                    newPlayers[i].bid = calculateAIBid(newPlayers[i], round, trumpSuit);
+                }
+
+                setPlayers(newPlayers);
+                setGameState('playing');
+                addLog(`Bids are locked in. Round ${round} begins!`);
+            };
+
+            const calculateAIBid = (bot, r, tSuit) => {
+                let strength = 0;
+                bot.hand.forEach(c => {
+                    if (c.type === 'wizard') strength += 0.8;
+                    else if (c.suit === tSuit) strength += 0.4;
+                    else if (c.value >= 11) strength += 0.25;
+                });
+                return Math.min(r, Math.round(strength + (Math.random() * 0.4 - 0.2)));
+            };
+
+            const isValidPlay = (pIdx, card, hand, leadS) => {
+                if (leadS === 'None' || card.type !== 'normal') return true;
+                const hasLeadSuit = hand.some(c => c.suit === leadS && c.type === 'normal');
+                if (hasLeadSuit && card.suit !== leadS) return false;
+                return true;
+            };
+
+            const executePlay = (pIdx, cardIdx) => {
+                const p = players[pIdx];
+                const card = p.hand[cardIdx];
+
+                if (!isValidPlay(pIdx, card, p.hand, leadSuit)) return;
+
+                const newHand = [...p.hand];
+                newHand.splice(cardIdx, 1);
+
+                const newPlayers = [...players];
+                newPlayers[pIdx] = { ...p, hand: newHand };
+
+                const newTrick = [...currentTrick, { pIdx, card }];
+                let newLead = leadSuit;
+                if (leadSuit === 'None' && card.type !== 'jester') {
+                    newLead = card.type === 'wizard' ? 'Wizard' : card.suit;
+                }
+
+                setPlayers(newPlayers);
+                setCurrentTrick(newTrick);
+                setLeadSuit(newLead);
+                setTurn((pIdx + 1) % 4);
+            };
+
+            useEffect(() => {
+                if (gameState === 'playing' && currentTrick.length === 4) {
+                    timerRef.current = setTimeout(() => resolveTrick(), fastForward ? 100 : 1000);
+                } else if (gameState === 'playing' && !players[turn].isHuman) {
+                    timerRef.current = setTimeout(() => aiMove(), fastForward ? 50 : 800);
+                } else if (gameState === 'bidding' && spectatorMode) {
+                    timerRef.current = setTimeout(() => handleBid(calculateAIBid(players[0], round, trumpSuit)), 500);
+                }
+                return () => clearTimeout(timerRef.current);
+            }, [turn, currentTrick, gameState, spectatorMode]);
+
+            const aiMove = () => {
+                const p = players[turn];
+                let choices = p.hand.map((c, i) => ({ c, i })).filter(o => isValidPlay(turn, o.c, p.hand, leadSuit));
+
+                // Simple AI logic: try to win if low on tricks, else play low
+                if (p.tricks < p.bid) {
+                    choices.sort((a, b) => b.c.value - a.c.value);
+                } else {
+                    choices.sort((a, b) => a.c.value - b.c.value);
+                }
+                executePlay(turn, choices[0].i);
+            };
+
+            const resolveTrick = () => {
+                let winnerIdx = currentTrick[0].pIdx;
+                let winningCard = currentTrick[0].card;
+
+                const wizardPlay = currentTrick.find(t => t.card.type === 'wizard');
+                if (wizardPlay) {
+                    winnerIdx = wizardPlay.pIdx;
+                } else {
+                    const allJesters = currentTrick.every(t => t.card.type === 'jester');
+                    if (allJesters) {
+                        winnerIdx = currentTrick[0].pIdx;
+                    } else {
+                        for (let i = 1; i < 4; i++) {
+                            const { pIdx, card } = currentTrick[i];
+                            if (card.type === 'jester') continue;
+                            if (trumpSuit !== 'None' && card.suit === trumpSuit && winningCard.suit !== trumpSuit) {
+                                winningCard = card;
+                                winnerIdx = pIdx;
+                            } else if (card.suit === winningCard.suit && card.value > winningCard.value) {
+                                winningCard = card;
+                                winnerIdx = pIdx;
+                            }
+                        }
+                    }
+                }
+
+                const newPlayers = [...players];
+                newPlayers[winnerIdx].tricks++;
+                setPlayers(newPlayers);
+                addLog(`${newPlayers[winnerIdx].name} took the trick.`);
+
+                setCurrentTrick([]);
+                setLeadSuit('None');
+                setTurn(winnerIdx);
+
+                if (newPlayers[0].hand.length === 0) {
+                    resolveRound(newPlayers);
+                }
+            };
+
+            const resolveRound = (finalPlayers) => {
+                const scoredPlayers = finalPlayers.map(p => {
+                    const diff = Math.abs(p.tricks - p.bid);
+                    let gain = 0;
+                    if (diff === 0) gain = 20 + (p.tricks * 10);
+                    else gain = -(diff * 10);
+                    return { ...p, score: p.score + gain };
+                });
+                setPlayers(scoredPlayers);
+                setGameState('roundEnd');
+            };
+
+            const nextRound = () => {
+                if (round === maxRounds) {
+                    setGameState('gameEnd');
+                    if (window.confetti) window.confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                } else {
+                    setRound(round + 1);
+                    startRound(round + 1);
+                }
+            };
+
+            // --- Simulation Logic ---
+            const startSimulation = () => {
+                setGameState('simulating');
+                const stats = {};
+                const simBotNames = BOT_NAMES.slice(0, 4);
+                simBotNames.forEach(n => stats[n] = 0);
+
+                // Run 100 simulations
+                for (let i = 0; i < 100; i++) {
+                    const simPlayers = simBotNames.map((name, id) => ({ id, name, isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] }));
+                    runFullGameSync(simPlayers);
+                    simPlayers.sort((a, b) => b.score - a.score);
+                    stats[simPlayers[0].name]++;
+                }
+                setSimulationStats(stats);
+                setGameState('simulationResults');
+            };
+
+            const runFullGameSync = (simPlayers) => {
+                for (let r = 1; r <= 15; r++) {
+                    const deck = createDeck();
+                    simPlayers.forEach(p => { p.hand = []; p.tricks = 0; for (let j = 0; j < r; j++) p.hand.push(deck.pop()); });
+                    const up = deck.pop();
+                    let tSuit = up && up.type === 'normal' ? up.suit : (up && up.type === 'wizard' ? SUITS[0] : 'None');
+
+                    simPlayers.forEach(p => p.bid = Math.min(r, Math.round(p.hand.reduce((acc, c) => acc + (c.type === 'wizard' ? 0.8 : (c.suit === tSuit ? 0.4 : 0)), 0))));
+
+                    // Simple play simulation (randomized valid play)
+                    for (let t = 0; t < r; t++) {
+                        let lSuit = 'None';
+                        let trick = [];
+                        let pTurn = r % 4; // Simplified turn
+                        for (let j = 0; j < 4; j++) {
+                            const p = simPlayers[(pTurn + j) % 4];
+                            let valid = p.hand.filter(c => lSuit === 'None' || c.type !== 'normal' || (p.hand.some(ch => ch.suit === lSuit && ch.type === 'normal') ? c.suit === lSuit : true));
+                            const play = valid[0];
+                            p.hand.splice(p.hand.indexOf(play), 1);
+                            trick.push({ id: (pTurn + j) % 4, card: play });
+                            if (lSuit === 'None' && play.type !== 'jester') lSuit = play.type === 'wizard' ? 'Wizard' : play.suit;
+                        }
+                        // Winner determination (simplified logic)
+                        let winnerIdx = trick[0].id;
+                        trick.forEach(tk => { if (tk.card.type === 'wizard' && tk.id !== trick[0].id) winnerIdx = tk.id; }); // first wizard wins logic skipped for simplicity
+                        simPlayers[winnerIdx].tricks++;
+                    }
+                    simPlayers.forEach(p => p.score += (p.tricks === p.bid ? (20 + p.tricks * 10) : (-Math.abs(p.tricks - p.bid) * 10)));
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-6xl mx-auto">
+                    {/* Header */}
+                    <header className="flex justify-between items-center mb-6">
+                        <h1 className="text-3xl font-bold tracking-tight text-blue-400">Wizard</h1>
+                        <div className="flex gap-2">
+                            {gameState === 'playing' && (
+                                <button onClick={() => setFastForward(!fastForward)} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${fastForward ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-300'}`}>
+                                    {fastForward ? '⏩ Fast mode' : '🐢 Normal speed'}
+                                </button>
+                            )}
+                            <button onClick={() => setIsPaused(true)} className="p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </button>
+                        </div>
+                    </header>
+
+                    {gameState === 'start' && (
+                        <div className="flex-1 flex flex-col items-center justify-center text-center">
+                            <h2 className="text-5xl font-extrabold mb-4">Master the magic</h2>
+                            <p className="text-slate-400 mb-8 max-w-md">Predict exactly how many tricks you will win to score points. A single mistake could cost you the game.</p>
+                            <div className="flex flex-col gap-4 w-full max-w-xs">
+                                <button onClick={() => initGame()} className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95">Play game</button>
+                                <button onClick={() => initGame(true)} className="bg-slate-800 hover:bg-slate-700 text-slate-200 py-3 rounded-2xl font-bold transition-all">Spectator mode</button>
+                                <button onClick={() => startSimulation()} className="bg-slate-900 border border-slate-700 text-slate-400 py-3 rounded-2xl font-bold transition-all">Simulate 100 games</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {(gameState === 'bidding' || gameState === 'playing' || gameState === 'roundEnd') && (
+                        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-8">
+                            {/* Left: Table & Hand */}
+                            <div className="lg:col-span-3 flex flex-col">
+                                <HUD round={round} trumpCard={trumpCard} playerBid={players[0].bid} playerTricks={players[0].tricks} />
+
+                                <div className="flex-1 bg-slate-900/50 rounded-3xl border border-slate-800 relative flex items-center justify-center p-8 min-h-[300px]">
+                                    <div className="flex gap-4">
+                                        {currentTrick.map((t, i) => (
+                                            <div key={i} className="flex flex-col items-center animate-bounce">
+                                                <Card card={t.card} disabled size="sm" />
+                                                <span className="text-[10px] font-bold text-slate-500 mt-2">{players[t.pIdx].name}</span>
+                                            </div>
+                                        ))}
+                                        {currentTrick.length === 0 && <p className="text-slate-600 italic">Play a card to start the trick</p>}
+                                    </div>
+                                </div>
+
+                                {/* Hand Area */}
+                                <div className="mt-8">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="text-sm font-bold text-slate-400 tracking-widest">Your hand</h3>
+                                        <span className="text-xs text-slate-500">{players[0].hand.length} card{players[0].hand.length !== 1 ? 's' : ''} remaining</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 justify-center">
+                                        {players[0].hand.map((c, i) => (
+                                            <Card
+                                                key={i}
+                                                card={c}
+                                                disabled={gameState !== 'playing' || turn !== 0 || !isValidPlay(0, c, players[0].hand, leadSuit)}
+                                                onClick={() => executePlay(0, i)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right: Scores & Logs */}
+                            <div className="flex flex-col gap-6">
+                                <ScoreBoard players={players} currentTurn={turn} />
+                                <div className="flex-1 bg-slate-900/80 rounded-xl border border-slate-800 p-4 overflow-y-auto max-h-[300px] lg:max-h-none">
+                                    <h3 className="text-xs font-bold text-slate-500 mb-4">Recent events</h3>
+                                    <div className="space-y-3">
+                                        {logs.map((log, i) => (
+                                            <p key={i} className="text-sm text-slate-300 leading-tight border-l-2 border-slate-700 pl-3">{log}</p>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Overlays */}
+                    {gameState === 'bidding' && !spectatorMode && (
+                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+                            <div className="bg-slate-900 border border-slate-700 p-8 rounded-3xl max-w-lg w-full text-center shadow-2xl">
+                                <h2 className="text-3xl font-bold mb-2">Place your bid</h2>
+                                <p className="text-slate-400 mb-8">How many tricks will you take in round {round}?</p>
+                                <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
+                                    {Array.from({ length: round + 1 }, (_, i) => (
+                                        <button key={i} onClick={() => handleBid(i)} className="bg-slate-800 hover:bg-blue-600 p-4 rounded-xl font-bold text-lg transition-all active:scale-95 border border-slate-700">
+                                            {i}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {gameState === 'roundEnd' && (
+                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-6 text-center">
+                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-md w-full shadow-2xl">
+                                <h2 className="text-4xl font-bold mb-4">Round {round} results</h2>
+                                <div className="space-y-3 mb-8">
+                                    {players.map(p => (
+                                        <div key={p.id} className="flex justify-between items-center bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                                            <span className="font-medium">{p.name} {p.tricks} / {p.bid}</span>
+                                            <span className={`font-bold ${p.tricks === p.bid ? 'text-green-500' : 'text-red-500'}`}>
+                                                {p.tricks === p.bid ? 20 + p.tricks * 10 : -(Math.abs(p.tricks - p.bid) * 10)} pts
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={nextRound} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold text-lg transition-all active:scale-95">Next round</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {gameState === 'gameEnd' && (
+                        <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-6 text-center">
+                            <div className="bg-slate-900 border border-slate-700 p-12 rounded-3xl max-w-lg w-full shadow-2xl border-t-4 border-t-blue-500">
+                                <h2 className="text-5xl font-black mb-2 italic">Finita la commedia</h2>
+                                <p className="text-slate-400 mb-8">The magic has faded. Here is the final standing.</p>
+                                <div className="space-y-4 mb-10">
+                                    {[...players].sort((a, b) => b.score - a.score).map((p, i) => (
+                                        <div key={p.id} className={`flex justify-between items-center p-4 rounded-2xl ${i === 0 ? 'bg-blue-600/20 border border-blue-500/30' : 'bg-slate-800/50 border border-slate-700'}`}>
+                                            <span className="text-lg font-bold">{i + 1}. {p.name}</span>
+                                            <span className="text-2xl font-black">{p.score}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={() => location.reload()} className="w-full bg-white text-slate-950 py-4 rounded-2xl font-black text-xl hover:bg-slate-200 transition-all active:scale-95">Play again</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {gameState === 'simulationResults' && (
+                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-6 text-center">
+                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-lg w-full shadow-2xl">
+                                <h2 className="text-3xl font-bold mb-2">Simulation results</h2>
+                                <p className="text-slate-400 mb-8 font-medium">Win counts over 100 simulated games.</p>
+                                <div className="space-y-4 mb-10">
+                                    {Object.entries(simulationStats).sort((a, b) => b[1] - a[1]).map(([name, wins]) => (
+                                        <div key={name} className="flex justify-between items-center bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
+                                            <span className="font-bold">{name}</span>
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-32 h-3 bg-slate-700 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-blue-500" style={{ width: `${wins}%` }}></div>
+                                                </div>
+                                                <span className="text-xl font-bold">{wins}</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={() => setGameState('start')} className="w-full bg-slate-800 hover:bg-slate-700 text-white py-4 rounded-2xl font-bold text-lg transition-all active:scale-95">Back to menu</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {isPaused && (
+                        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-6">
+                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-sm w-full text-center">
+                                <h2 className="text-3xl font-bold mb-8">Game paused</h2>
+                                <div className="flex flex-col gap-4">
+                                    <button onClick={() => setIsPaused(false)} className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold transition-all active:scale-95">Resume game</button>
+                                    <button onClick={() => location.reload()} className="bg-slate-800 hover:bg-slate-700 text-slate-300 py-4 rounded-2xl font-bold transition-all">Quit to menu</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>
