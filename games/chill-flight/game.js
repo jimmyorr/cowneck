@@ -707,7 +707,7 @@ function animate() {
         }
     }
 
-    const maxFlightHeight = 1046;
+    const maxFlightHeight = 2046; // ~50,000 ft display altitude ((2046 - 45.5) * 25 ≈ 50,000)
     if (planeGroup.position.y > maxFlightHeight) {
         planeGroup.position.y = maxFlightHeight;
     }
