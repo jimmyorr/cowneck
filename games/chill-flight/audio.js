@@ -396,6 +396,15 @@ function finishCalibration() {
         setTimeout(() => overlay.style.visibility = 'hidden', 1000);
     }
 
+    setTimeout(() => {
+        const defaultNames = window.CALLSIGNS || ['Pilot'];
+        const hasName = localStorage.getItem('chill_flight_name') || window.playerName;
+        if (!hasName || defaultNames.includes(hasName) || hasName === 'Pilot') {
+            const radioPanel = document.getElementById('radio-panel');
+            if (radioPanel) radioPanel.classList.add('pulse-radio');
+        }
+    }, 1500);
+
     if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
     }

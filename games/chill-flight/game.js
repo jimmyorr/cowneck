@@ -95,17 +95,17 @@ function togglePause() {
         keys.ArrowUp = keys.ArrowDown = keys.ArrowLeft = keys.ArrowRight = false;
         doubleTap.ArrowUp = doubleTap.ArrowDown = doubleTap.ArrowLeft = doubleTap.ArrowRight = false;
 
-        const defaultNames = [
-            'Maverick', 'Goose', 'Iceman', 'Slider', 'Hollywood',
-            'Wolfman', 'Cougar', 'Merlin', 'Viper', 'Jester',
-            'Chipper', 'Sundown', 'Stinger', 'Pilot'
-        ];
+        const defaultNames = window.CALLSIGNS || ['Pilot'];
         const nameInput = document.getElementById('player-name-input');
-        if (nameInput && (!window.playerName || defaultNames.includes(window.playerName))) {
+        const currentName = window.playerName || localStorage.getItem('chill_flight_name');
+        if (nameInput && (!currentName || defaultNames.includes(currentName) || currentName === 'Pilot')) {
             nameInput.classList.add('pulse');
         } else if (nameInput) {
             nameInput.classList.remove('pulse');
         }
+
+        const radioPanel = document.getElementById('radio-panel');
+        if (radioPanel) radioPanel.classList.remove('pulse-radio');
 
         if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
         if (ytPlayerReady && currentStation === 5) ytPlayer.pauseVideo();
