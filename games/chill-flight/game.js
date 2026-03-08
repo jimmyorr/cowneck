@@ -1116,7 +1116,7 @@ const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: f
 const lastArrowTap = { ArrowLeft: 0, ArrowRight: 0, ArrowUp: 0, ArrowDown: 0 };
 const doubleTap = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
 const DOUBLE_TAP_MS = 300;
-let STEER_HOLD_THRESHOLD = window.STEER_HOLD_THRESHOLD || 150; // ms to wait before a tap becomes a hold for pitch/looping
+let STEER_HOLD_THRESHOLD = window.STEER_HOLD_THRESHOLD || 100; // ms to wait before a tap becomes a hold for pitch/looping
 const STUTTER_BUFFER_MS = window.STUTTER_BUFFER_MS || 0; // Only preserve hold state if configured (TV)
 const lastKeyUpTime = { ArrowLeft: 0, ArrowRight: 0, ArrowUp: 0, ArrowDown: 0 };
 
