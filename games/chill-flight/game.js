@@ -1116,7 +1116,9 @@ const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: f
 const lastArrowTap = { ArrowLeft: 0, ArrowRight: 0, ArrowUp: 0, ArrowDown: 0 };
 const doubleTap = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
 const DOUBLE_TAP_MS = 300;
-const STEER_HOLD_THRESHOLD = 150; // ms to wait before a tap becomes a hold for pitch/looping
+let STEER_HOLD_THRESHOLD = window.STEER_HOLD_THRESHOLD || 150; // ms to wait before a tap becomes a hold for pitch/looping
+const STUTTER_BUFFER_MS = window.STUTTER_BUFFER_MS || 0; // Only preserve hold state if configured (TV)
+const lastKeyUpTime = { ArrowLeft: 0, ArrowRight: 0, ArrowUp: 0, ArrowDown: 0 };
 
 // Mobile controls
 const btnUp = document.getElementById('mobile-spd-up');
@@ -1198,10 +1200,19 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' || (key === 's' && !e.shiftKey)) keys.ArrowDown = true;
 
     if (!e.repeat) {
-        if (e.key === 'ArrowLeft' || key === 'a') keyPressStartTime.ArrowLeft = performance.now();
-        if (e.key === 'ArrowRight' || key === 'd') keyPressStartTime.ArrowRight = performance.now();
-        if (e.key === 'ArrowUp' || key === 'w') keyPressStartTime.ArrowUp = performance.now();
-        if (e.key === 'ArrowDown' || key === 's') keyPressStartTime.ArrowDown = performance.now();
+        const now = performance.now();
+        if (e.key === 'ArrowLeft' || key === 'a') {
+            if (STUTTER_BUFFER_MS === 0 || now - lastKeyUpTime.ArrowLeft > STUTTER_BUFFER_MS) keyPressStartTime.ArrowLeft = now;
+        }
+        if (e.key === 'ArrowRight' || key === 'd') {
+            if (STUTTER_BUFFER_MS === 0 || now - lastKeyUpTime.ArrowRight > STUTTER_BUFFER_MS) keyPressStartTime.ArrowRight = now;
+        }
+        if (e.key === 'ArrowUp' || key === 'w') {
+            if (STUTTER_BUFFER_MS === 0 || now - lastKeyUpTime.ArrowUp > STUTTER_BUFFER_MS) keyPressStartTime.ArrowUp = now;
+        }
+        if (e.key === 'ArrowDown' || key === 's') {
+            if (STUTTER_BUFFER_MS === 0 || now - lastKeyUpTime.ArrowDown > STUTTER_BUFFER_MS) keyPressStartTime.ArrowDown = now;
+        }
     }
 
     // Double-tap detection (ignore key-repeat events)
@@ -1320,12 +1331,14 @@ window.addEventListener('keyup', (e) => {
         if (heldTime < TAP_THRESHOLD) manualPitch = 0;
         keys.ArrowLeft = false;
         doubleTap.ArrowLeft = false;
+        lastKeyUpTime.ArrowLeft = now;
     }
     if (e.key === 'ArrowRight' || key === 'd') {
         const heldTime = now - keyPressStartTime.ArrowRight;
         if (heldTime < TAP_THRESHOLD) manualPitch = 0;
         keys.ArrowRight = false;
         doubleTap.ArrowRight = false;
+        lastKeyUpTime.ArrowRight = now;
     }
     if (e.key === 'ArrowUp' || key === 'w') {
         const heldTime = now - keyPressStartTime.ArrowUp;
@@ -1334,6 +1347,7 @@ window.addEventListener('keyup', (e) => {
         }
         keys.ArrowUp = false;
         doubleTap.ArrowUp = false;
+        lastKeyUpTime.ArrowUp = now;
     }
     if (e.key === 'ArrowDown' || key === 's') {
         const heldTime = now - keyPressStartTime.ArrowDown;
@@ -1342,6 +1356,7 @@ window.addEventListener('keyup', (e) => {
         }
         keys.ArrowDown = false;
         doubleTap.ArrowDown = false;
+        lastKeyUpTime.ArrowDown = now;
     }
 });
 

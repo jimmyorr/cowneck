@@ -11,6 +11,7 @@
     if (typeof window.STEER_HOLD_THRESHOLD !== 'undefined') {
         window.STEER_HOLD_THRESHOLD = 100; // Lower threshold to feel more responsive on Bluetooth remotes
     }
+    window.STUTTER_BUFFER_MS = 150; // Fix hold-to-climb on stuttery TV remotes
 
     // Performance Optimizations for TV
     // Capacitor's native platform check:
