@@ -561,14 +561,20 @@ function animate() {
 
     const nowTime = performance.now();
 
+    // Logical inputs based on Y-axis inversion
+    const isUp = invertYAxis ? keys.ArrowDown : keys.ArrowUp;
+    const isDown = invertYAxis ? keys.ArrowUp : keys.ArrowDown;
+    const dtUp = invertYAxis ? doubleTap.ArrowDown : doubleTap.ArrowUp;
+    const dtDown = invertYAxis ? doubleTap.ArrowUp : doubleTap.ArrowDown;
+    const startUp = invertYAxis ? keyPressStartTime.ArrowDown : keyPressStartTime.ArrowUp;
+    const startDown = invertYAxis ? keyPressStartTime.ArrowUp : keyPressStartTime.ArrowDown;
+
     // Shift+Up/Down: throttle control, works at any speed including 0
     if (keys.Shift) {
         const throttleRate = 2.0 * delta;
-        const isUpThrottle = invertYAxis ? keys.ArrowDown : keys.ArrowUp;
-        const isDownThrottle = invertYAxis ? keys.ArrowUp : keys.ArrowDown;
-        if (isUpThrottle) {
+        if (isUp) {
             flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + throttleRate);
-        } else if (isDownThrottle) {
+        } else if (isDown) {
             flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - throttleRate);
         }
     }
@@ -580,24 +586,18 @@ function animate() {
 
         manualPitch = THREE.MathUtils.lerp(manualPitch, 0, 0.1);
 
-        let isUpLog = invertYAxis ? keys.ArrowDown : keys.ArrowUp;
-        let isDownLog = invertYAxis ? keys.ArrowUp : keys.ArrowDown;
-        let dtUpLog = invertYAxis ? doubleTap.ArrowDown : doubleTap.ArrowUp;
-        let startUpLog = invertYAxis ? keyPressStartTime.ArrowDown : keyPressStartTime.ArrowUp;
-        let startDownLog = invertYAxis ? keyPressStartTime.ArrowUp : keyPressStartTime.ArrowDown;
-
         if (keys.Shift) {
             // Throttle already handled above; no pitch changes while Shift is held
-        } else if (isUpLog && !dtUpLog) {
-            const heldTime = nowTime - startUpLog;
+        } else if (isUp && !dtUp) {
+            const heldTime = nowTime - startUp;
             if (heldTime > STEER_HOLD_THRESHOLD) {
                 targetPitch = (35 * Math.PI / 180); // Full climb
             } else {
                 const ramp = heldTime / STEER_HOLD_THRESHOLD;
                 targetPitch = (5 * Math.PI / 180) * ramp;
             }
-        } else if (isDownLog) {
-            const heldTime = nowTime - startDownLog;
+        } else if (isDown) {
+            const heldTime = nowTime - startDown;
             if (heldTime > STEER_HOLD_THRESHOLD) {
                 targetPitch = (-20 * Math.PI / 180); // Full dive
             } else {
@@ -616,18 +616,11 @@ function animate() {
     const manualRollSpeed = 4.0;
     const manualLoopSpeed = 2.5;
     if (flightSpeedMultiplier > 0) {
-        let isUpLog = invertYAxis ? keys.ArrowDown : keys.ArrowUp;
-        let isDownLog = invertYAxis ? keys.ArrowUp : keys.ArrowDown;
-        let dtUpLog = invertYAxis ? doubleTap.ArrowDown : doubleTap.ArrowUp;
-        let dtDownLog = invertYAxis ? doubleTap.ArrowUp : doubleTap.ArrowDown;
-        let startUpLog = invertYAxis ? keyPressStartTime.ArrowDown : keyPressStartTime.ArrowUp;
-        let startDownLog = invertYAxis ? keyPressStartTime.ArrowUp : keyPressStartTime.ArrowDown;
-
-        if (isUpLog && dtUpLog && (nowTime - startUpLog > STEER_HOLD_THRESHOLD)) {
+        if (isUp && dtUp && (nowTime - startUp > STEER_HOLD_THRESHOLD)) {
             // Double-tap up and hold: loop (Direct rotation, no trim pollution)
             planeGroup.rotation.x += manualLoopSpeed * delta;
             isLooping = true;
-        } else if (isDownLog && dtDownLog && (nowTime - startDownLog > STEER_HOLD_THRESHOLD)) {
+        } else if (isDown && dtDown && (nowTime - startDown > STEER_HOLD_THRESHOLD)) {
             // Double-tap down and hold: straight down dive
             const targetDive = -(Math.PI * 75) / 180; // 75 degrees
             planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetDive, 0.1);
@@ -1251,60 +1244,43 @@ window.addEventListener('keydown', (e) => {
     if (isPaused) return;
 
     const key = e.key.toLowerCase();
-    if (e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey)) keys.ArrowLeft = true;
-    if (e.key === 'ArrowRight' || (key === 'd' && !e.shiftKey)) keys.ArrowRight = true;
-    if (e.key === 'ArrowUp' || (key === 'w' && !e.shiftKey)) keys.ArrowUp = true;
-    if (e.key === 'ArrowDown' || (key === 's' && !e.shiftKey)) keys.ArrowDown = true;
-    if (e.key === 'Shift') keys.Shift = true;
+    const keyMap = {
+        'arrowleft': 'ArrowLeft', 'a': 'ArrowLeft',
+        'arrowright': 'ArrowRight', 'd': 'ArrowRight',
+        'arrowup': 'ArrowUp', 'w': 'ArrowUp',
+        'arrowdown': 'ArrowDown', 's': 'ArrowDown'
+    };
 
-    if (!e.repeat) {
-        const now = performance.now();
-        if (e.key === 'ArrowLeft' || key === 'a') {
-            if (STUTTER_BUFFER_MS === 0 || now - lastKeyUpTime.ArrowLeft > STUTTER_BUFFER_MS) keyPressStartTime.ArrowLeft = now;
-        }
-        if (e.key === 'ArrowRight' || key === 'd') {
-            if (STUTTER_BUFFER_MS === 0 || now - lastKeyUpTime.ArrowRight > STUTTER_BUFFER_MS) keyPressStartTime.ArrowRight = now;
-        }
-        if (e.key === 'ArrowUp' || key === 'w') {
-            if (STUTTER_BUFFER_MS === 0 || now - lastKeyUpTime.ArrowUp > STUTTER_BUFFER_MS) keyPressStartTime.ArrowUp = now;
-        }
-        if (e.key === 'ArrowDown' || key === 's') {
-            if (STUTTER_BUFFER_MS === 0 || now - lastKeyUpTime.ArrowDown > STUTTER_BUFFER_MS) keyPressStartTime.ArrowDown = now;
-        }
-    }
+    const action = keyMap[key];
+    if (action) {
+        // Exclude actions that have other Shift-modifiers (like Shift+D for debug)
+        const isConflict = (key === 'd' && e.shiftKey);
 
-    // Double-tap detection (ignore key-repeat events)
-    const isArrowKey = e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey) ||
-        e.key === 'ArrowRight' || (key === 'd' && !e.shiftKey) ||
-        e.key === 'ArrowUp' || (key === 'w' && !e.shiftKey) ||
-        e.key === 'ArrowDown' || (key === 's' && !e.shiftKey);
+        if (!isConflict) {
+            keys[action] = true;
+            if (action === 'ArrowDown') keys.ArrowUp = false;
 
-    if (isArrowKey && !e.repeat) {
-        let tapKey = '';
-        if (e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey)) tapKey = 'ArrowLeft';
-        else if (e.key === 'ArrowRight' || (key === 'd' && !e.shiftKey)) tapKey = 'ArrowRight';
-        else if (e.key === 'ArrowUp' || (key === 'w' && !e.shiftKey)) tapKey = 'ArrowUp';
-        else if (e.key === 'ArrowDown' || (key === 's' && !e.shiftKey)) tapKey = 'ArrowDown';
+            if (!e.repeat) {
+                const now = performance.now();
+                if (STUTTER_BUFFER_MS === 0 || now - lastKeyUpTime[action] > STUTTER_BUFFER_MS) {
+                    keyPressStartTime[action] = now;
+                }
 
-        if (tapKey) {
-            const now = performance.now();
-            if (now - lastArrowTap[tapKey] < DOUBLE_TAP_MS) {
-                doubleTap[tapKey] = true;
+                // Double-tap detection
+                if (now - lastArrowTap[action] < DOUBLE_TAP_MS) {
+                    doubleTap[action] = true;
+                }
+                lastArrowTap[action] = now;
+
+                // Keyboard taking control
+                mouseControlActive = false;
+                mouseX = 0;
+                mouseY = 0;
             }
-            lastArrowTap[tapKey] = now;
         }
     }
 
-    // Any control key press hands control to keyboard; clear mouse until it moves again
-    const isControlKey = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown'].includes(e.key.toLowerCase()) ||
-        (['w', 'a', 's', 'd'].includes(key) && !e.shiftKey);
-    if (isControlKey) {
-        if (!e.repeat) {
-            mouseControlActive = false;
-            mouseX = 0;
-            mouseY = 0;
-        }
-    }
+    if (e.key === 'Shift') keys.Shift = true;
 
     if ((e.key === 'l' || e.key === 'L') && !e.metaKey && !e.ctrlKey && !e.altKey) {
         if (headlight.intensity === 0) {
@@ -1381,41 +1357,28 @@ window.addEventListener('keyup', (e) => {
     if (isPaused) return;
 
     const key = e.key.toLowerCase();
-    const now = performance.now();
-    const TAP_THRESHOLD = 200;
+    const keyMap = {
+        'arrowleft': 'ArrowLeft', 'a': 'ArrowLeft',
+        'arrowright': 'ArrowRight', 'd': 'ArrowRight',
+        'arrowup': 'ArrowUp', 'w': 'ArrowUp',
+        'arrowdown': 'ArrowDown', 's': 'ArrowDown'
+    };
 
-    if (e.key === 'ArrowLeft' || key === 'a') {
-        const heldTime = now - keyPressStartTime.ArrowLeft;
-        if (heldTime < TAP_THRESHOLD) manualPitch = 0;
-        keys.ArrowLeft = false;
-        doubleTap.ArrowLeft = false;
-        lastKeyUpTime.ArrowLeft = now;
-    }
-    if (e.key === 'ArrowRight' || key === 'd') {
-        const heldTime = now - keyPressStartTime.ArrowRight;
-        if (heldTime < TAP_THRESHOLD) manualPitch = 0;
-        keys.ArrowRight = false;
-        doubleTap.ArrowRight = false;
-        lastKeyUpTime.ArrowRight = now;
-    }
-    if (e.key === 'ArrowUp' || key === 'w') {
-        const heldTime = now - keyPressStartTime.ArrowUp;
-        if (heldTime < STEER_HOLD_THRESHOLD && !keys.Shift) {
-            flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + 0.1);
+    const action = keyMap[key];
+    if (action) {
+        const now = performance.now();
+        const TAP_THRESHOLD = 200;
+
+        if (action === 'ArrowLeft' || action === 'ArrowRight') {
+            const heldTime = now - keyPressStartTime[action];
+            if (heldTime < TAP_THRESHOLD) manualPitch = 0;
         }
-        keys.ArrowUp = false;
-        doubleTap.ArrowUp = false;
-        lastKeyUpTime.ArrowUp = now;
+
+        keys[action] = false;
+        doubleTap[action] = false;
+        lastKeyUpTime[action] = now;
     }
-    if (e.key === 'ArrowDown' || key === 's') {
-        const heldTime = now - keyPressStartTime.ArrowDown;
-        if (heldTime < STEER_HOLD_THRESHOLD && !keys.Shift) {
-            flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - 0.1);
-        }
-        keys.ArrowDown = false;
-        doubleTap.ArrowDown = false;
-        lastKeyUpTime.ArrowDown = now;
-    }
+
     if (e.key === 'Shift') keys.Shift = false;
 });
 
