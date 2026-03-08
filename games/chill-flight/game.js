@@ -14,6 +14,7 @@ let mouseControlActive = false; // becomes true once the mouse moves; cleared by
 let windowJustFocused = false;  // absorbs the first mousemove after returning to the tab
 let targetPitch = 0;
 let targetRoll = 0;
+let targetFlightSpeed = 1.0; // The intended throttle speed (0-10)
 let manualPitch = 0;
 let verticalVelocity = 0; // units/sec, negative = falling
 let keyPressStartTime = { ArrowLeft: 0, ArrowRight: 0, ArrowUp: 0, ArrowDown: 0 };
@@ -573,9 +574,9 @@ function animate() {
     if (keys.Shift) {
         const throttleRate = 2.0 * delta;
         if (isUp) {
-            flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + throttleRate);
+            targetFlightSpeed = Math.min(10, targetFlightSpeed + throttleRate);
         } else if (isDown) {
-            flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - throttleRate);
+            targetFlightSpeed = Math.max(0, targetFlightSpeed - throttleRate);
         }
     }
 
@@ -599,7 +600,7 @@ function animate() {
         } else if (isDown) {
             const heldTime = nowTime - startDown;
             if (heldTime > STEER_HOLD_THRESHOLD) {
-                targetPitch = (-20 * Math.PI / 180); // Full dive
+                targetPitch = (-45 * Math.PI / 180); // Dramatic full dive
             } else {
                 const ramp = heldTime / STEER_HOLD_THRESHOLD;
                 targetPitch = (-5 * Math.PI / 180) * ramp;
@@ -666,6 +667,27 @@ function animate() {
     if (flightSpeedMultiplier > 0) {
         let turningRoll = (isBarrelRolling && !isClampedRoll) ? targetRoll : planeGroup.rotation.z;
         planeGroup.rotation.y += turningRoll * 0.025;
+
+        // --- GRAVITY ACCELERATION/DECELERATION ---
+        // Nose down = gain speed, Nose up = lose speed
+        // planeGroup.rotation.x: negative is diving, positive is climbing
+        const pitchRad = planeGroup.rotation.x;
+        const gravityEffect = -Math.sin(pitchRad); // positive when diving
+
+        if (gravityEffect > 0) {
+            // Accelerate in dive
+            flightSpeedMultiplier += gravityEffect * 1.2 * delta;
+        }
+
+        // --- SPEED RECOVERY (DRAG) ---
+        // Naturally return to the target throttle speed.
+        // We use a faster recovery if the engine is "catching up" to throttle, 
+        // and a slower "drag" if we are bleeding off excess gravity speed.
+        const recoverySpeed = (flightSpeedMultiplier < targetFlightSpeed) ? 2.0 : 0.6;
+        flightSpeedMultiplier = THREE.MathUtils.lerp(flightSpeedMultiplier, targetFlightSpeed, recoverySpeed * delta);
+
+        // Keep speed in [0, 10] range
+        flightSpeedMultiplier = Math.max(0, Math.min(10, flightSpeedMultiplier));
     }
 
     // Altitude and Speed constants
@@ -779,14 +801,27 @@ function animate() {
 
     // Camera follow
     const speedFactor = (flightSpeedMultiplier - 0.5) / 9.5;
+    const diveFactor = Math.max(0, -planeGroup.rotation.x / (Math.PI / 4)); // 1.0 at 45 degree dive
+
     const zOffset = THREE.MathUtils.lerp(40, 60, speedFactor);
     const yOffset = THREE.MathUtils.lerp(12, 20, speedFactor);
-    const targetFov = THREE.MathUtils.lerp(60, 85, speedFactor);
+
+    // FOV expands with speed AND dive steepness for extra drama
+    const baseFov = THREE.MathUtils.lerp(60, 85, speedFactor);
+    const targetFov = baseFov + (diveFactor * 15 * Math.min(1, flightSpeedMultiplier / 2));
 
     camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 0.05);
     camera.updateProjectionMatrix();
 
     _cameraOffset.set(0, yOffset, zOffset);
+
+    // Add subtle camera vibration at high speeds/steep dives
+    if (flightSpeedMultiplier > 4.0 && diveFactor > 0.5) {
+        const shakeIntensity = (flightSpeedMultiplier - 4.0) * 0.05 * diveFactor;
+        _cameraOffset.x += (Math.random() - 0.5) * shakeIntensity;
+        _cameraOffset.y += (Math.random() - 0.5) * shakeIntensity;
+    }
+
     _idealCameraPos.copy(_cameraOffset).applyMatrix4(planeGroup.matrixWorld);
     camera.position.lerp(_idealCameraPos, 0.1);
 
