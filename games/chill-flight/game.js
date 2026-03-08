@@ -548,13 +548,23 @@ function animate() {
         let startUpLog = invertYAxis ? keyPressStartTime.ArrowDown : keyPressStartTime.ArrowUp;
         let startDownLog = invertYAxis ? keyPressStartTime.ArrowUp : keyPressStartTime.ArrowDown;
 
-        if (isUpLog) {
-            if (nowTime - startUpLog > STEER_HOLD_THRESHOLD && !dtUpLog) {
-                targetPitch = (35 * Math.PI / 180); // 35 degrees
+        if (isUpLog && !dtUpLog) {
+            const heldTime = nowTime - startUpLog;
+            if (heldTime > STEER_HOLD_THRESHOLD) {
+                targetPitch = (35 * Math.PI / 180); // Full climb
+            } else {
+                // Soft-start: ramp to 5° during the threshold window for instant feel
+                const ramp = heldTime / STEER_HOLD_THRESHOLD;
+                targetPitch = (5 * Math.PI / 180) * ramp;
             }
         } else if (isDownLog) {
-            if (nowTime - startDownLog > STEER_HOLD_THRESHOLD) {
-                targetPitch = (-20 * Math.PI / 180); // 20 degrees
+            const heldTime = nowTime - startDownLog;
+            if (heldTime > STEER_HOLD_THRESHOLD) {
+                targetPitch = (-20 * Math.PI / 180); // Full dive
+            } else {
+                // Soft-start: ramp to -5° during the threshold window
+                const ramp = heldTime / STEER_HOLD_THRESHOLD;
+                targetPitch = (-5 * Math.PI / 180) * ramp;
             }
         }
     } else {
