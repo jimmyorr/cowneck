@@ -5,7 +5,7 @@
 
     // 1. GLOBAL OVERRIDES (Applies everywhere as defaults, but game.js can override)
     window.STEER_HOLD_THRESHOLD = 80; // Snappy for remotes
-    window.STUTTER_BUFFER_MS = 250;     // Filter remote bounce
+    window.STUTTER_BUFFER_MS = 20;     // Filter remote bounce
 
     // 2. NATIVE PLATFORM ONLY
     function isNative() {
