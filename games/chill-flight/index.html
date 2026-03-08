@@ -183,6 +183,18 @@
                 <option value="wireframe">Wireframe</option>
             </select>
         </div>
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+            <div style="margin-bottom: 5px; font-weight: bold; font-size: 11px; opacity: 0.7;">TELEMETRY:</div>
+            <div
+                style="font-size: 11px; font-family: monospace; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <div>FOV: <span id="debug-fov">0</span>°</div>
+                <div>Pull: <span id="debug-pullback">0</span></div>
+                <div>Pitch: <span id="debug-pitch">0</span>°</div>
+                <div>Speed: <span id="debug-speed-mult">0.0</span>x</div>
+                <div>Target: <span id="debug-target-speed">0.0</span>x</div>
+                <div>Factor: <span id="debug-maneuver">0.0</span></div>
+            </div>
+        </div>
     </div>
 
     <!-- Game files: plain globals, loaded sequentially -->

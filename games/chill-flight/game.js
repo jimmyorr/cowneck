@@ -15,6 +15,7 @@ let windowJustFocused = false;  // absorbs the first mousemove after returning t
 let targetPitch = 0;
 let targetRoll = 0;
 let targetFlightSpeed = 1.0; // The intended throttle speed (0-10)
+let smoothedManeuverFactor = 0; // Ensures smooth cinematic transitions
 let manualPitch = 0;
 let verticalVelocity = 0; // units/sec, negative = falling
 let keyPressStartTime = { ArrowLeft: 0, ArrowRight: 0, ArrowUp: 0, ArrowDown: 0 };
@@ -600,7 +601,7 @@ function animate() {
         } else if (isDown) {
             const heldTime = nowTime - startDown;
             if (heldTime > STEER_HOLD_THRESHOLD) {
-                targetPitch = (-45 * Math.PI / 180); // Dramatic full dive
+                targetPitch = (-45 * Math.PI / 180); // Softened full dive
             } else {
                 const ramp = heldTime / STEER_HOLD_THRESHOLD;
                 targetPitch = (-5 * Math.PI / 180) * ramp;
@@ -622,9 +623,9 @@ function animate() {
             planeGroup.rotation.x += manualLoopSpeed * delta;
             isLooping = true;
         } else if (isDown && dtDown && (nowTime - startDown > STEER_HOLD_THRESHOLD)) {
-            // Double-tap down and hold: straight down dive
-            const targetDive = -(Math.PI * 75) / 180; // 75 degrees
-            planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetDive, 0.1);
+            // Double-tap down and hold: steep dive
+            const targetDive = -(Math.PI * 70) / 180; // 70 degrees
+            planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetDive, 0.05);
             isLooping = true;
         } else if (keys.ArrowLeft) {
             if (doubleTap.ArrowLeft) {
@@ -675,8 +676,8 @@ function animate() {
         const gravityEffect = -Math.sin(pitchRad); // positive when diving
 
         if (gravityEffect > 0) {
-            // Accelerate in dive
-            flightSpeedMultiplier += gravityEffect * 1.2 * delta;
+            // Accelerate in dive (reduced for softer feel)
+            flightSpeedMultiplier += gravityEffect * 0.7 * delta;
         }
 
         // --- SPEED RECOVERY (DRAG) ---
@@ -809,14 +810,30 @@ function animate() {
     const zOffset = THREE.MathUtils.lerp(40, 60, speedFactor);
     const yOffset = THREE.MathUtils.lerp(12, 20, speedFactor);
 
-    // FOV expands with speed AND dive steepness for extra drama
+    // FOV expands with speed AND dive/loop steepness, capped at 70 to avoid excessive distortion
+    // We use a smoothed factor to prevent "jumping" when entering loops
+    const maneuverFactor = Math.max(diveFactor, isLooping ? 3.0 : 0);
+    smoothedManeuverFactor = THREE.MathUtils.lerp(smoothedManeuverFactor, maneuverFactor, 0.05);
+
     const baseFov = THREE.MathUtils.lerp(60, 85, speedFactor);
-    const targetFov = baseFov + (diveFactor * 15 * Math.min(1, flightSpeedMultiplier / 2));
+    const targetFov = Math.min(70, baseFov + (smoothedManeuverFactor * 15 * Math.min(1, flightSpeedMultiplier / 2)));
 
     camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 0.05);
     camera.updateProjectionMatrix();
 
-    _cameraOffset.set(0, yOffset, zOffset);
+    // Pull back the camera during high-G maneuvers for extra scale
+    const pullBack = smoothedManeuverFactor * 20 * Math.min(1, flightSpeedMultiplier / 2);
+    _cameraOffset.set(0, yOffset, zOffset + pullBack);
+
+    // Update Debug Telemetry
+    if (debugMenu.style.display === 'block') {
+        document.getElementById('debug-fov').textContent = Math.round(camera.fov);
+        document.getElementById('debug-pullback').textContent = Math.round(pullBack);
+        document.getElementById('debug-pitch').textContent = Math.round(planeGroup.rotation.x * 180 / Math.PI);
+        document.getElementById('debug-speed-mult').textContent = flightSpeedMultiplier.toFixed(2);
+        document.getElementById('debug-target-speed').textContent = targetFlightSpeed.toFixed(2);
+        document.getElementById('debug-maneuver').textContent = smoothedManeuverFactor.toFixed(2);
+    }
 
     // Add subtle camera vibration at high speeds/steep dives
     if (flightSpeedMultiplier > 4.0 && diveFactor > 0.5) {
