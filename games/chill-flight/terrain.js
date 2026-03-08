@@ -172,8 +172,9 @@ function createDeadTreeGeometry() {
 const deadTreeGeo = createDeadTreeGeometry();
 
 const treeTrunkMat = createMaterial({ color: 0x5D4037, flatShading: true });
-const treeLeavesMat = createMaterial({ color: 0x1B5E20, flatShading: true }); // Darkened forest green
-const palmLeavesMat = createMaterial({ color: 0x689F38, flatShading: true });
+// Leaf materials use WHITE as the base color so per-instance colors control the actual appearance
+// (Three.js multiplies instance color × material color, so white = identity / no tint)
+const treeLeavesBaseMat = createMaterial({ color: 0xFFFFFF, flatShading: true });
 const deadTreeMat = createMaterial({ color: 0x8D6E63, flatShading: true });
 
 // Rock geometries and materials
@@ -917,20 +918,20 @@ function generateChunk(chunkX, chunkZ) {
     const _tempColor = new THREE.Color();
     const _snowColor = new THREE.Color(0xE0F7FA);
 
-    const renderTrees = (positions, trunkGeo, leavesGeo, trunkMat, leavesMat) => {
+    const renderTrees = (positions, trunkGeo, leavesGeo, trunkMat, baseLeafColor) => {
         if (positions.length === 0) return;
         const trunkInst = new THREE.InstancedMesh(trunkGeo, trunkMat, positions.length);
-        const leavesInst = new THREE.InstancedMesh(leavesGeo, leavesMat, positions.length);
-
-        const baseColor = leavesMat.color.clone();
+        // Use white base material — instance colors will define the actual leaf color
+        const leavesInst = new THREE.InstancedMesh(leavesGeo, treeLeavesBaseMat, positions.length);
 
         positions.forEach((pos, index) => {
             const worldZ = worldOffsetZ + pos.z;
-            const northInfluence = Math.max(0, -worldZ / 4500);
+            // northInfluence reaches 1.0 at worldZ = -4000; frost starts around -1800
+            const northInfluence = Math.max(0, -worldZ / 4000);
 
-            // Calculate local snow factor for this specific tree
             const tempNoise = simplex.noise2D((worldOffsetX + pos.x) * 0.0001, worldZ * 0.0001);
-            const snowRaw = Math.max(0, Math.min(1, (northInfluence + tempNoise * 0.05 - 0.7) * 1.5));
+            // Threshold 0.58 means frost only starts once northInfluence > ~0.58 (worldZ < -2300)
+            const snowRaw = Math.max(0, Math.min(1, (northInfluence + tempNoise * 0.05 - 0.58) * 3.5));
             const snowFactor = snowRaw * snowRaw * (3 - 2 * snowRaw);
 
             const baseScale = 0.6 + Math.min(0.6, northInfluence * 0.5);
@@ -942,14 +943,15 @@ function generateChunk(chunkX, chunkZ) {
             trunkInst.setMatrixAt(index, dummy.matrix);
             leavesInst.setMatrixAt(index, dummy.matrix);
 
-            // Apply snow gradient coloring
-            _tempColor.copy(baseColor);
-            if (snowFactor > 0.1) {
-                // Gradually whiten the leaves as we go North
-                _tempColor.lerp(_snowColor, Math.min(1, (snowFactor - 0.1) * 1.5));
+            // Set leaf color: base leaf color lerped toward snow-white based on snowFactor
+            _tempColor.set(baseLeafColor);
+            if (snowFactor > 0) {
+                _tempColor.lerp(_snowColor, snowFactor);
             }
             leavesInst.setColorAt(index, _tempColor);
         });
+
+        if (leavesInst.instanceColor) leavesInst.instanceColor.needsUpdate = true;
 
         trunkInst.position.set(worldOffsetX, 0, worldOffsetZ);
         leavesInst.position.set(worldOffsetX, 0, worldOffsetZ);
@@ -957,15 +959,15 @@ function generateChunk(chunkX, chunkZ) {
         group.add(leavesInst);
     };
 
-    // Render variations
-    renderTrees(treePositions, treeTrunkGeo, treeLeavesGeo, treeTrunkMat, treeLeavesMat);
-    renderTrees(snowTreePositions, treeTrunkGeo, treeLeavesGeo, treeTrunkMat, treeLeavesMat); // Use green base for pines
-    renderTrees(deciduousTreePositions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, treeLeavesMat);
-    renderTrees(palmTreePositions, palmGeos.trunk, palmGeos.leaves, treeTrunkMat, palmLeavesMat);
-    renderTrees(cherryTreePositions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, cherryBlossomMat);
-    renderTrees(autumnTree1Positions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, autumnLeavesMat1);
-    renderTrees(autumnTree2Positions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, autumnLeavesMat2);
-    renderTrees(autumnTree3Positions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, autumnLeavesMat3);
+    // Render variations — pass hex color so gradient lerps correctly from green → white
+    renderTrees(treePositions, treeTrunkGeo, treeLeavesGeo, treeTrunkMat, 0x1B5E20);
+    renderTrees(snowTreePositions, treeTrunkGeo, treeLeavesGeo, treeTrunkMat, 0x1B5E20);
+    renderTrees(deciduousTreePositions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, 0x1B5E20);
+    renderTrees(palmTreePositions, palmGeos.trunk, palmGeos.leaves, treeTrunkMat, 0x689F38);
+    renderTrees(cherryTreePositions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, 0xF8BBD0);
+    renderTrees(autumnTree1Positions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, 0xD35400);
+    renderTrees(autumnTree2Positions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, 0xF39C12);
+    renderTrees(autumnTree3Positions, deciduousGeos.trunk, deciduousGeos.leaves, treeTrunkMat, 0xC0392B);
 
     if (deadTreePositions.length > 0) {
         const deadInst = new THREE.InstancedMesh(deadTreeGeo, deadTreeMat, deadTreePositions.length);
