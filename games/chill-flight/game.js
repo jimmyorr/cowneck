@@ -15,6 +15,7 @@ let windowJustFocused = false;  // absorbs the first mousemove after returning t
 let targetPitch = 0;
 let targetRoll = 0;
 let manualPitch = 0;
+let verticalVelocity = 0; // units/sec, negative = falling
 let keyPressStartTime = { ArrowLeft: 0, ArrowRight: 0, ArrowUp: 0, ArrowDown: 0 };
 
 function updateInputPosition(clientX, clientY) {
@@ -533,13 +534,23 @@ function animate() {
 
     const nowTime = performance.now();
 
+    // Shift+Up/Down: throttle control, works at any speed including 0
+    if (keys.Shift) {
+        const throttleRate = 2.0 * delta;
+        const isUpThrottle = invertYAxis ? keys.ArrowDown : keys.ArrowUp;
+        const isDownThrottle = invertYAxis ? keys.ArrowUp : keys.ArrowDown;
+        if (isUpThrottle) {
+            flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + throttleRate);
+        } else if (isDownThrottle) {
+            flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - throttleRate);
+        }
+    }
+
     if (flightSpeedMultiplier > 0) {
         let yMultiplier = invertYAxis ? -1 : 1;
         targetPitch = effMouseY * maxPitch * yMultiplier;
         targetRoll = -effMouseX * (maxRoll * 1.25);
 
-        // Clamping manualPitch to 0 if we aren't using the old persistent trim logic
-        // This ensures hold-to-climb returns to center.
         manualPitch = THREE.MathUtils.lerp(manualPitch, 0, 0.1);
 
         let isUpLog = invertYAxis ? keys.ArrowDown : keys.ArrowUp;
@@ -549,19 +560,12 @@ function animate() {
         let startDownLog = invertYAxis ? keyPressStartTime.ArrowUp : keyPressStartTime.ArrowDown;
 
         if (keys.Shift) {
-            // Shift+Up/Down: throttle control (continuous while held)
-            const throttleRate = 2.0 * delta; // units per second
-            if (isUpLog) {
-                flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + throttleRate);
-            } else if (isDownLog) {
-                flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - throttleRate);
-            }
+            // Throttle already handled above; no pitch changes while Shift is held
         } else if (isUpLog && !dtUpLog) {
             const heldTime = nowTime - startUpLog;
             if (heldTime > STEER_HOLD_THRESHOLD) {
                 targetPitch = (35 * Math.PI / 180); // Full climb
             } else {
-                // Soft-start: ramp to 5° during the threshold window for instant feel
                 const ramp = heldTime / STEER_HOLD_THRESHOLD;
                 targetPitch = (5 * Math.PI / 180) * ramp;
             }
@@ -570,7 +574,6 @@ function animate() {
             if (heldTime > STEER_HOLD_THRESHOLD) {
                 targetPitch = (-20 * Math.PI / 180); // Full dive
             } else {
-                // Soft-start: ramp to -5° during the threshold window
                 const ramp = heldTime / STEER_HOLD_THRESHOLD;
                 targetPitch = (-5 * Math.PI / 180) * ramp;
             }
@@ -662,29 +665,39 @@ function animate() {
 
     if (flightSpeedMultiplier > 0 && !isFreefalling) {
         planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
+        verticalVelocity = 0; // Reset gravity accumulation while flying normally
 
         // Low speed stall/sink mechanics
         if (currentKTS < 100 && planeGroup.position.y > minFlightHeight) {
-            // Calculate how much we are stalling (0.0 at 100 KTS, 1.0 at <50 KTS)
             const stallFactor = Math.max(0, (100 - Math.max(50, currentKTS)) / 50);
             planeGroup.position.y -= 15 * stallFactor * delta;
         }
     } else if (isFreefalling) {
-        // Freefall tumble & sink - Chaotic!
-        planeGroup.rotation.x += (Math.sin(now * 0.002) + Math.cos(now * 0.0011)) * 0.8 * delta;
-        planeGroup.rotation.z += (Math.cos(now * 0.0025) + Math.sin(now * 0.0017)) * 0.8 * delta;
-        planeGroup.rotation.y += (Math.sin(now * 0.0015) + Math.cos(now * 0.0009)) * 0.5 * delta;
-        planeGroup.position.y -= 25 * delta; // Faster sink
+        // Freefall tumble & accelerating gravity
+        const GRAVITY = 120; // units/sec² — feels weighty but not instant
+        verticalVelocity -= GRAVITY * delta;
 
-        // Keep moving slightly forward while tumbling if there is some speed left
+        // Cap terminal velocity so it doesn't go impossibly fast
+        const TERMINAL_VELOCITY = -600;
+        verticalVelocity = Math.max(verticalVelocity, TERMINAL_VELOCITY);
+
+        planeGroup.position.y += verticalVelocity * delta;
+
+        // Tumble chaos scales with fall speed for extra drama
+        const tumbleIntensity = Math.min(1.5, Math.abs(verticalVelocity) / 300);
+        planeGroup.rotation.x += (Math.sin(now * 0.002) + Math.cos(now * 0.0011)) * 0.8 * tumbleIntensity * delta;
+        planeGroup.rotation.z += (Math.cos(now * 0.0025) + Math.sin(now * 0.0017)) * 0.8 * tumbleIntensity * delta;
+        planeGroup.rotation.y += (Math.sin(now * 0.0015) + Math.cos(now * 0.0009)) * 0.5 * tumbleIntensity * delta;
+
+        // Keep drifting forward if there is residual speed
         if (flightSpeedMultiplier > 0) {
             planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
         }
     } else {
-        // Grounded at <50 KTS (or 0 speed) - Rest flat peacefully
+        // Grounded — rest flat peacefully, kill vertical velocity
+        verticalVelocity = 0;
         targetPitch = 0;
         targetRoll = 0;
-        // Normalize rotations to [-PI, PI] to allow clean lerping to 0
         while (planeGroup.rotation.x > Math.PI) planeGroup.rotation.x -= 2 * Math.PI;
         while (planeGroup.rotation.x < -Math.PI) planeGroup.rotation.x += 2 * Math.PI;
         while (planeGroup.rotation.z > Math.PI) planeGroup.rotation.z -= 2 * Math.PI;
@@ -693,7 +706,6 @@ function animate() {
         planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, 0, 0.05);
         planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, 0, 0.05);
 
-        // Allow slow taxiing on the ground if speed > 0
         if (flightSpeedMultiplier > 0) {
             planeGroup.translateZ(-(BASE_FLIGHT_SPEED * flightSpeedMultiplier));
         }
@@ -705,10 +717,10 @@ function animate() {
         keys.ArrowUp = false;
     }
 
-    // Apply Ground avoidance push
+    // Apply Ground avoidance — hard clamp + kill velocity on impact
     if (planeGroup.position.y < minFlightHeight) {
-
-        planeGroup.position.y = THREE.MathUtils.lerp(planeGroup.position.y, restingHeight, 0.05);
+        planeGroup.position.y = minFlightHeight; // Hard clamp, not lerp
+        verticalVelocity = 0; // Kill accumulated gravity immediately on ground impact
 
         if (isWater && planeGroup.position.y < minFlightHeight + 2) {
             if (!pontoonGroup.visible) {
