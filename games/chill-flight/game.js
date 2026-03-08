@@ -681,10 +681,13 @@ function animate() {
 
         // --- SPEED RECOVERY (DRAG) ---
         // Naturally return to the target throttle speed.
-        // We use a faster recovery if the engine is "catching up" to throttle, 
-        // and a slower "drag" if we are bleeding off excess gravity speed.
-        const recoverySpeed = (flightSpeedMultiplier < targetFlightSpeed) ? 2.0 : 0.6;
-        flightSpeedMultiplier = THREE.MathUtils.lerp(flightSpeedMultiplier, targetFlightSpeed, recoverySpeed * delta);
+        // We use a high recovery speed for manual throttle (Shift) and acceleration 
+        // to keep it snappy. We use a lower "drag" rate for bleeding off excess dive speed.
+        let recoveryRate = 0.6; // Base drag rate
+        if (keys.Shift || flightSpeedMultiplier < targetFlightSpeed) {
+            recoveryRate = 10.0; // Snappy responsiveness for active control/acceleration
+        }
+        flightSpeedMultiplier = THREE.MathUtils.lerp(flightSpeedMultiplier, targetFlightSpeed, recoveryRate * delta);
 
         // Keep speed in [0, 10] range
         flightSpeedMultiplier = Math.max(0, Math.min(10, flightSpeedMultiplier));
