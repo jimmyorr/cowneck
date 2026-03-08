@@ -39,7 +39,8 @@ window.addEventListener('mousemove', (e) => {
 
 window.addEventListener('touchstart', (e) => {
     if (e.touches.length > 0) {
-        const isUI = e.target.closest('#cockpit-ui') || e.target.closest('#debug-menu') || e.target.closest('.title') || e.target.closest('#mobile-controls') || e.target.closest('#player-list');
+        const isPauseOverlay = e.target.closest('#pause-overlay');
+        const isUI = isPauseOverlay || e.target.closest('#cockpit-ui') || e.target.closest('#debug-menu') || e.target.closest('.title') || e.target.closest('#mobile-controls') || e.target.closest('#player-list');
         if (!isUI) {
             updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
             mouseControlActive = true;
@@ -56,7 +57,8 @@ window.addEventListener('touchmove', (e) => {
         if (!isCockpit && !isPaused) {
             e.preventDefault();
         }
-        const isUI = isCockpit || e.target.closest('#debug-menu') || e.target.closest('.title') || e.target.closest('#mobile-controls') || e.target.closest('#player-list');
+        const isPauseOverlay = e.target.closest('#pause-overlay');
+        const isUI = isCockpit || isPauseOverlay || e.target.closest('#debug-menu') || e.target.closest('.title') || e.target.closest('#mobile-controls') || e.target.closest('#player-list');
         if (!isUI) {
             updateInputPosition(e.touches[0].clientX, e.touches[0].clientY);
             mouseControlActive = true;
@@ -85,6 +87,21 @@ let lastY = 250; // track for ascent/descent detection
 
 // --- PAUSE ---
 let isPaused = false;
+let justResumed = false; // one-frame guard to suppress any input that bled through from the pause menu
+
+function clearInputState() {
+    mouseX = 0;
+    mouseY = 0;
+    mouseControlActive = false;
+    // keys/doubleTap may not exist yet at first call (togglePause runs before key state is declared),
+    // so guard with typeof.
+    if (typeof keys !== 'undefined') {
+        keys.ArrowUp = keys.ArrowDown = keys.ArrowLeft = keys.ArrowRight = keys.Shift = false;
+    }
+    if (typeof doubleTap !== 'undefined') {
+        doubleTap.ArrowUp = doubleTap.ArrowDown = doubleTap.ArrowLeft = doubleTap.ArrowRight = false;
+    }
+}
 const pauseOverlay = document.getElementById('pause-overlay');
 
 function togglePause() {
@@ -113,6 +130,8 @@ function togglePause() {
     } else {
         pauseOverlay.style.display = 'none';
         clock.getDelta(); // clear accumulated time so plane doesn't skip
+        clearInputState();  // wipe any input that bled through from the pause overlay
+        justResumed = true; // suppress the first animate frame's input application
 
         const isProcedural = (currentStation >= 1 && currentStation <= 4);
         if (isProcedural && audioCtx && audioCtx.state === 'suspended') {
@@ -419,6 +438,14 @@ function animate() {
     const delta = clock.getDelta();
 
     if (isPaused || window.isNamePromptOpen) return;
+
+    // One-frame blanket suppression of all input after resuming from pause,
+    // to catch any input that slipped through despite clearInputState().
+    if (justResumed) {
+        justResumed = false;
+        clearInputState();
+        return;
+    }
 
     // --- DAY/NIGHT CYCLE ---
     const debugMenu = document.getElementById('debug-menu');
