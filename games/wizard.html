@@ -53,7 +53,16 @@
         // --- Constants ---
         const SUITS = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
         const SUIT_ICONS = { Hearts: '♥', Diamonds: '♦', Clubs: '♣', Spades: '♠', None: '?' };
-        const BOT_NAMES = ['Oliver', 'Miles', 'Kirby 🐱', 'Pookie', 'Jimmy'];
+        const ALL_BOTS = [
+            { name: 'Oliver', desc: 'Calculated and cautious.' },
+            { name: 'Miles', desc: 'Aggressive bidder.' },
+            { name: 'Kirby 🐱', desc: 'Unpredictable and chaotic.' },
+            { name: 'Pookie', desc: 'Playful but smart.' },
+            { name: 'Jimmy', desc: 'Mathematical and precise.' },
+            { name: 'Leon 😼', desc: 'Intuitive and lucky.' },
+            { name: 'Shantih 😿', desc: 'Grumpy but solid.' }
+        ];
+        const BOT_NAMES = ALL_BOTS.map(b => b.name);
 
         // --- Logic Utilities ---
         const shuffle = (array) => {
@@ -122,7 +131,7 @@
             );
         };
 
-        const HUD = ({ round, trumpCard, playerBid, playerTricks, logs }) => (
+        const HUD = ({ players, round, trumpCard, playerBid, playerTricks, logs }) => (
             <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
                     <h3 className="text-xs text-slate-400 font-bold mb-1">Round</h3>
@@ -140,7 +149,7 @@
                     ) : <span className="text-xl font-bold italic">None</span>}
                 </div>
                 <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                    <h3 className="text-xs text-slate-400 font-bold mb-1">Your bid</h3>
+                    <h3 className="text-xs text-slate-400 font-bold mb-1">{players[0]?.name || 'You'}'s bid</h3>
                     <p className="text-xl font-bold">{playerTricks} / {playerBid}</p>
                 </div>
             </div>
@@ -185,21 +194,23 @@
             const [fastForward, setFastForward] = useState(false);
             const [isPaused, setIsPaused] = useState(false);
             const [spectatorMode, setSpectatorMode] = useState(false);
+            const [playerName, setPlayerName] = useState('You');
+            const [selectedOpponents, setSelectedOpponents] = useState(BOT_NAMES.slice(0, 3));
+            const [hoveredOpponent, setHoveredOpponent] = useState(null);
 
             const timerRef = useRef(null);
 
             const addLog = (msg) => setLogs(prev => [msg, ...prev].slice(0, 50));
 
             const initGame = (spectator = false) => {
-                const opponents = shuffle(BOT_NAMES).slice(0, 3);
                 const initialPlayers = [];
                 if (!spectator) {
-                    initialPlayers.push({ id: 0, name: 'You', isHuman: true, score: 0, bid: 0, tricks: 0, hand: [] });
+                    initialPlayers.push({ id: 0, name: playerName || 'You', isHuman: true, score: 0, bid: 0, tricks: 0, hand: [] });
                 } else {
                     initialPlayers.push({ id: 0, name: BOT_NAMES[4], isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] });
                 }
 
-                opponents.forEach((name, i) => {
+                selectedOpponents.forEach((name, i) => {
                     initialPlayers.push({ id: i + 1, name, isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] });
                 });
 
@@ -235,7 +246,7 @@
                 setTrumpSuit(tSuit);
                 setPlayers(dealtPlayers);
                 setGameState('bidding');
-                setTurn(r % 4); // Rotate dealer
+                setTurn(r % dealtPlayers.length); // Rotate dealer
                 setLeadSuit('None');
                 setCurrentTrick([]);
                 setGameState('bidding');
@@ -246,7 +257,7 @@
                 newPlayers[0].bid = bidVal;
 
                 // AI bids
-                for (let i = 1; i < 4; i++) {
+                for (let i = 1; i < newPlayers.length; i++) {
                     newPlayers[i].bid = calculateAIBid(newPlayers[i], round, trumpSuit);
                 }
 
@@ -293,11 +304,11 @@
                 setPlayers(newPlayers);
                 setCurrentTrick(newTrick);
                 setLeadSuit(newLead);
-                setTurn((pIdx + 1) % 4);
+                setTurn((pIdx + 1) % players.length);
             };
 
             useEffect(() => {
-                if (gameState === 'playing' && currentTrick.length === 4) {
+                if (gameState === 'playing' && currentTrick.length === players.length) {
                     timerRef.current = setTimeout(() => resolveTrick(), fastForward ? 100 : 1000);
                 } else if (gameState === 'playing' && !players[turn].isHuman) {
                     timerRef.current = setTimeout(() => aiMove(), fastForward ? 50 : 800);
@@ -321,6 +332,7 @@
             };
 
             const resolveTrick = () => {
+                const numPlayers = players.length;
                 let winnerIdx = currentTrick[0].pIdx;
                 let winningCard = currentTrick[0].card;
 
@@ -332,7 +344,7 @@
                     if (allJesters) {
                         winnerIdx = currentTrick[0].pIdx;
                     } else {
-                        for (let i = 1; i < 4; i++) {
+                        for (let i = 1; i < numPlayers; i++) {
                             const { pIdx, card } = currentTrick[i];
                             if (card.type === 'jester') continue;
                             if (trumpSuit !== 'None' && card.suit === trumpSuit && winningCard.suit !== trumpSuit) {
@@ -386,12 +398,11 @@
             const startSimulation = () => {
                 setGameState('simulating');
                 const stats = {};
-                const simBotNames = BOT_NAMES.slice(0, 4);
-                simBotNames.forEach(n => stats[n] = 0);
+                selectedOpponents.forEach(n => stats[n] = 0);
 
                 // Run 100 simulations
                 for (let i = 0; i < 100; i++) {
-                    const simPlayers = simBotNames.map((name, id) => ({ id, name, isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] }));
+                    const simPlayers = selectedOpponents.map((name, id) => ({ id, name, isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] }));
                     runFullGameSync(simPlayers);
                     simPlayers.sort((a, b) => b.score - a.score);
                     stats[simPlayers[0].name]++;
@@ -401,6 +412,7 @@
             };
 
             const runFullGameSync = (simPlayers) => {
+                const numPlayers = simPlayers.length;
                 for (let r = 1; r <= 15; r++) {
                     const deck = createDeck();
                     simPlayers.forEach(p => { p.hand = []; p.tricks = 0; for (let j = 0; j < r; j++) p.hand.push(deck.pop()); });
@@ -413,13 +425,13 @@
                     for (let t = 0; t < r; t++) {
                         let lSuit = 'None';
                         let trick = [];
-                        let pTurn = r % 4; // Simplified turn
-                        for (let j = 0; j < 4; j++) {
-                            const p = simPlayers[(pTurn + j) % 4];
+                        let pTurn = r % numPlayers; // Simplified turn
+                        for (let j = 0; j < numPlayers; j++) {
+                            const p = simPlayers[(pTurn + j) % numPlayers];
                             let valid = p.hand.filter(c => lSuit === 'None' || c.type !== 'normal' || (p.hand.some(ch => ch.suit === lSuit && ch.type === 'normal') ? c.suit === lSuit : true));
                             const play = valid[0];
                             p.hand.splice(p.hand.indexOf(play), 1);
-                            trick.push({ id: (pTurn + j) % 4, card: play });
+                            trick.push({ id: (pTurn + j) % numPlayers, card: play });
                             if (lSuit === 'None' && play.type !== 'jester') lSuit = play.type === 'wizard' ? 'Wizard' : play.suit;
                         }
                         // Winner determination (simplified logic)
@@ -449,13 +461,79 @@
                     </header>
 
                     {gameState === 'start' && (
-                        <div className="flex-1 flex flex-col items-center justify-center text-center">
-                            <h2 className="text-5xl font-extrabold mb-4">Master the magic</h2>
-                            <p className="text-slate-400 mb-8 max-w-md">Predict exactly how many tricks you will win to score points. A single mistake could cost you the game.</p>
-                            <div className="flex flex-col gap-4 w-full max-w-xs">
-                                <button onClick={() => initGame()} className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95">Play game</button>
-                                <button onClick={() => initGame(true)} className="bg-slate-800 hover:bg-slate-700 text-slate-200 py-3 rounded-2xl font-bold transition-all">Spectator mode</button>
-                                <button onClick={() => startSimulation()} className="bg-slate-900 border border-slate-700 text-slate-400 py-3 rounded-2xl font-bold transition-all">Simulate 100 games</button>
+                        <div className="flex-1 flex flex-col items-center justify-center py-8">
+                            <div className="bg-slate-800/50 p-6 md:p-10 rounded-3xl border border-slate-700 max-w-xl w-full text-center shadow-2xl">
+                                <h2 className="text-5xl font-extrabold mb-4 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">Wizard</h2>
+                                <p className="text-slate-400 mb-8">Predict exactly how many tricks you will win.</p>
+
+                                <div className="space-y-6 text-left">
+                                    <div className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-slate-700">
+                                        <label className="text-sm font-bold text-slate-300">Spectator mode</label>
+                                        <input
+                                            type="checkbox"
+                                            checked={spectatorMode}
+                                            onChange={(e) => setSpectatorMode(e.target.checked)}
+                                            className="w-5 h-5 accent-blue-500 cursor-pointer"
+                                        />
+                                    </div>
+
+                                    {!spectatorMode && (
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Your Name</label>
+                                            <input
+                                                type="text"
+                                                value={playerName}
+                                                onChange={(e) => setPlayerName(e.target.value)}
+                                                className="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                                placeholder="Enter your name..."
+                                                maxLength={12}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Select Opponents ({selectedOpponents.length})</label>
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {ALL_BOTS.map(bot => {
+                                                const isSelected = selectedOpponents.includes(bot.name);
+                                                const maxOpponents = spectatorMode ? 6 : 5;
+                                                return (
+                                                    <button
+                                                        key={bot.name}
+                                                        onMouseEnter={() => setHoveredOpponent(bot)}
+                                                        onMouseLeave={() => setHoveredOpponent(null)}
+                                                        onClick={() => {
+                                                            if (isSelected) {
+                                                                if (selectedOpponents.length > 2) {
+                                                                    setSelectedOpponents(selectedOpponents.filter(n => n !== bot.name));
+                                                                }
+                                                            } else {
+                                                                if (selectedOpponents.length < maxOpponents) {
+                                                                    setSelectedOpponents([...selectedOpponents, bot.name]);
+                                                                }
+                                                            }
+                                                        }}
+                                                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${isSelected ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}
+                                                    >
+                                                        {bot.name}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="h-6 text-center">
+                                            {hoveredOpponent && <span className="text-xs text-blue-400 italic">{hoveredOpponent.desc}</span>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-3 mt-8">
+                                    <button onClick={() => initGame(spectatorMode)} className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95">
+                                        {spectatorMode ? 'Start Spectating' : 'Play Game'}
+                                    </button>
+                                    <button onClick={() => startSimulation()} className="bg-slate-900 border border-slate-700 text-slate-400 py-3 rounded-2xl font-bold transition-all hover:bg-slate-800">
+                                        Simulate 100 Games
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -464,7 +542,7 @@
                         <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-8">
                             {/* Left: Table & Hand */}
                             <div className="lg:col-span-3 flex flex-col">
-                                <HUD round={round} trumpCard={trumpCard} playerBid={players[0].bid} playerTricks={players[0].tricks} />
+                                <HUD players={players} round={round} trumpCard={trumpCard} playerBid={players[0].bid} playerTricks={players[0].tricks} />
 
                                 <div className="flex-1 bg-slate-900/50 rounded-3xl border border-slate-800 relative flex items-center justify-center p-8 min-h-[300px]">
                                     <div className="flex gap-4">
