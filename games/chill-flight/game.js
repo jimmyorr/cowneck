@@ -548,7 +548,15 @@ function animate() {
         let startUpLog = invertYAxis ? keyPressStartTime.ArrowDown : keyPressStartTime.ArrowUp;
         let startDownLog = invertYAxis ? keyPressStartTime.ArrowUp : keyPressStartTime.ArrowDown;
 
-        if (isUpLog && !dtUpLog) {
+        if (keys.Shift) {
+            // Shift+Up/Down: throttle control (continuous while held)
+            const throttleRate = 2.0 * delta; // units per second
+            if (isUpLog) {
+                flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + throttleRate);
+            } else if (isDownLog) {
+                flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - throttleRate);
+            }
+        } else if (isUpLog && !dtUpLog) {
             const heldTime = nowTime - startUpLog;
             if (heldTime > STEER_HOLD_THRESHOLD) {
                 targetPitch = (35 * Math.PI / 180); // Full climb
@@ -1120,7 +1128,7 @@ function updatePlayerList() {
 window.onload = animate;
 
 // --- KEY STATE ---
-const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
+const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false, Shift: false };
 
 // Double-tap detection for barrel roll and loops
 const lastArrowTap = { ArrowLeft: 0, ArrowRight: 0, ArrowUp: 0, ArrowDown: 0 };
@@ -1208,6 +1216,7 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' || (key === 'd' && !e.shiftKey)) keys.ArrowRight = true;
     if (e.key === 'ArrowUp' || (key === 'w' && !e.shiftKey)) keys.ArrowUp = true;
     if (e.key === 'ArrowDown' || (key === 's' && !e.shiftKey)) keys.ArrowDown = true;
+    if (e.key === 'Shift') keys.Shift = true;
 
     if (!e.repeat) {
         const now = performance.now();
@@ -1352,7 +1361,7 @@ window.addEventListener('keyup', (e) => {
     }
     if (e.key === 'ArrowUp' || key === 'w') {
         const heldTime = now - keyPressStartTime.ArrowUp;
-        if (heldTime < STEER_HOLD_THRESHOLD) {
+        if (heldTime < STEER_HOLD_THRESHOLD && !keys.Shift) {
             flightSpeedMultiplier = Math.min(10, flightSpeedMultiplier + 0.1);
         }
         keys.ArrowUp = false;
@@ -1361,13 +1370,14 @@ window.addEventListener('keyup', (e) => {
     }
     if (e.key === 'ArrowDown' || key === 's') {
         const heldTime = now - keyPressStartTime.ArrowDown;
-        if (heldTime < STEER_HOLD_THRESHOLD) {
+        if (heldTime < STEER_HOLD_THRESHOLD && !keys.Shift) {
             flightSpeedMultiplier = Math.max(0, flightSpeedMultiplier - 0.1);
         }
         keys.ArrowDown = false;
         doubleTap.ArrowDown = false;
         lastKeyUpTime.ArrowDown = now;
     }
+    if (e.key === 'Shift') keys.Shift = false;
 });
 
 window.addEventListener('blur', () => {
