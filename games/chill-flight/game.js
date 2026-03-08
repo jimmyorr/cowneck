@@ -77,7 +77,7 @@ window.addEventListener('resize', () => {
 
     const ytContainer = document.getElementById('yt-container');
     if (currentStation === 2 || currentStation === 3) {
-        ytContainer.style.display = window.innerWidth <= 768 ? 'none' : 'block';
+        ytContainer.style.display = window.innerWidth <= 1024 ? 'none' : 'block';
     }
 });
 
@@ -355,7 +355,7 @@ if (seedInput) {
 }
 
 // --- MOBILE UI ADJUSTMENTS ---
-if (window.innerWidth <= 768) {
+if (window.innerWidth <= 1024) {
     const cockpitUI = document.getElementById('cockpit-ui');
     if (cockpitUI) {
         cockpitUI.style.justifyContent = 'center';
