@@ -588,6 +588,9 @@ input[type=number].customization-input {
 
 /* TV Overscan Safety Margin */
 @media screen and (tv) {
+    #mobile-controls {
+        display: none !important;
+    }
 
     #cockpit-ui,
     #ui-layer {

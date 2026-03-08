@@ -182,9 +182,10 @@ window.addEventListener('mousemove', () => {
 });
 
 window.addEventListener('keydown', (e) => {
-    // 1. Toggle Pause: Escape = PC, Backspace = TV Back, MediaPlayPause = TV Play/Pause
+    // 1. Toggle Pause: Escape = PC, Backspace = TV Back, MediaPlayPause = TV Play/Pause, Enter = TV Center (if playing)
     const isToggleKey = e.key === 'Escape' || e.code === 'MediaPlayPause' ||
-        (e.key === 'Backspace' && (!document.activeElement || document.activeElement.tagName !== 'INPUT'));
+        (e.key === 'Backspace' && (!document.activeElement || document.activeElement.tagName !== 'INPUT')) ||
+        (e.key === 'Enter' && !isPaused && (!document.activeElement || document.activeElement.id !== 'resume-btn'));
 
     if (isToggleKey) {
         togglePause();
@@ -198,6 +199,11 @@ window.addEventListener('keydown', (e) => {
 
     // 2. Navigation in pause menu
     if (isPaused) {
+        // Prevent arrow keys from scrolling the page
+        if (e.key.startsWith('Arrow')) {
+            e.preventDefault();
+        }
+
         const grid = getMenuGrid();
         let handled = false;
 
@@ -1310,26 +1316,35 @@ window.addEventListener('keydown', (e) => {
         'arrowdown': 'ArrowDown', 's': 'ArrowDown'
     };
 
+    // Prevent arrow keys from scrolling the page (important on TV WebView)
+    if (key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright') {
+        e.preventDefault();
+    }
+
     const action = keyMap[key];
     if (action) {
         // Exclude actions that have other Shift-modifiers (like Shift+D for debug)
         const isConflict = (key === 'd' && e.shiftKey);
 
         if (!isConflict) {
+            const wasKeyPressed = keys[action];
             keys[action] = true;
             if (action === 'ArrowDown') keys.ArrowUp = false;
 
-            if (!e.repeat) {
+            if (!wasKeyPressed) {
                 const now = performance.now();
                 if (STUTTER_BUFFER_MS === 0 || now - lastKeyUpTime[action] > STUTTER_BUFFER_MS) {
                     keyPressStartTime[action] = now;
-                }
 
-                // Double-tap detection
-                if (now - lastArrowTap[action] < DOUBLE_TAP_MS) {
-                    doubleTap[action] = true;
+                    // Double-tap detection: only if NOT within stutter window of the previous key release
+                    const timeSinceLastUp = now - lastKeyUpTime[action];
+                    if (STUTTER_BUFFER_MS === 0 || timeSinceLastUp > STUTTER_BUFFER_MS) {
+                        if (now - lastArrowTap[action] < DOUBLE_TAP_MS) {
+                            doubleTap[action] = true;
+                        }
+                        lastArrowTap[action] = now;
+                    }
                 }
-                lastArrowTap[action] = now;
 
                 // Keyboard taking control
                 mouseControlActive = false;
