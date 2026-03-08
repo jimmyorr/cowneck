@@ -90,6 +90,23 @@ function togglePause() {
     isPaused = !isPaused;
     if (isPaused) {
         pauseOverlay.style.display = 'flex';
+
+        // Clear all movement keys so they aren't stuck when unpausing
+        keys.ArrowUp = keys.ArrowDown = keys.ArrowLeft = keys.ArrowRight = false;
+        doubleTap.ArrowUp = doubleTap.ArrowDown = doubleTap.ArrowLeft = doubleTap.ArrowRight = false;
+
+        const defaultNames = [
+            'Maverick', 'Goose', 'Iceman', 'Slider', 'Hollywood',
+            'Wolfman', 'Cougar', 'Merlin', 'Viper', 'Jester',
+            'Chipper', 'Sundown', 'Stinger', 'Pilot'
+        ];
+        const nameInput = document.getElementById('player-name-input');
+        if (nameInput && (!window.playerName || defaultNames.includes(window.playerName))) {
+            nameInput.classList.add('pulse');
+        } else if (nameInput) {
+            nameInput.classList.remove('pulse');
+        }
+
         if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
         if (ytPlayerReady && currentStation === 5) ytPlayer.pauseVideo();
     } else {
@@ -105,7 +122,14 @@ function togglePause() {
     }
 }
 
-let tvFocusRow = 7; // Default to resume btn
+const nameInput = document.getElementById('player-name-input');
+if (nameInput) {
+    nameInput.addEventListener('input', () => {
+        nameInput.classList.remove('pulse');
+    });
+}
+
+let tvFocusRow = 2; // Default to radio section
 let tvFocusCol = 0;
 
 function getMenuGrid() {
@@ -115,9 +139,7 @@ function getMenuGrid() {
         Array.from(document.querySelectorAll('.station-btn')),
         [document.getElementById('quality-select')],
         [document.getElementById('distance-select')],
-        [document.getElementById('theme-select')],
         [document.getElementById('invert-y-input')],
-        [document.getElementById('seed-input')],
         [document.getElementById('resume-btn')]
     ];
 }
@@ -131,6 +153,12 @@ function updateTVFocus() {
     el.focus();
 }
 
+window.addEventListener('mousemove', () => {
+    if (isPaused) {
+        document.querySelectorAll('.tv-focused').forEach(el => el.classList.remove('tv-focused'));
+    }
+});
+
 window.addEventListener('keydown', (e) => {
     // 1. Toggle Pause: Escape = PC, Backspace = TV Back, MediaPlayPause = TV Play/Pause
     const isToggleKey = e.key === 'Escape' || e.code === 'MediaPlayPause' ||
@@ -139,9 +167,9 @@ window.addEventListener('keydown', (e) => {
     if (isToggleKey) {
         togglePause();
         if (isPaused) {
-            tvFocusRow = 7;
+            tvFocusRow = 2;
             tvFocusCol = 0;
-            updateTVFocus();
+            document.querySelectorAll('.tv-focused').forEach(el => el.classList.remove('tv-focused'));
         }
         return;
     }
@@ -389,7 +417,7 @@ function animate() {
     const now = performance.now();
     const delta = clock.getDelta();
 
-    if (isPaused) return;
+    if (isPaused || window.isNamePromptOpen) return;
 
     // --- DAY/NIGHT CYCLE ---
     const debugMenu = document.getElementById('debug-menu');
@@ -1161,6 +1189,8 @@ if (btnHdgt) {
 }
 
 window.addEventListener('keydown', (e) => {
+    if (isPaused) return;
+
     const key = e.key.toLowerCase();
     if (e.key === 'ArrowLeft' || (key === 'a' && !e.shiftKey)) keys.ArrowLeft = true;
     if (e.key === 'ArrowRight' || (key === 'd' && !e.shiftKey)) keys.ArrowRight = true;
@@ -1279,6 +1309,8 @@ window.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('keyup', (e) => {
+    if (isPaused) return;
+
     const key = e.key.toLowerCase();
     const now = performance.now();
     const TAP_THRESHOLD = 200;

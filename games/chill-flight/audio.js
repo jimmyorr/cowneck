@@ -388,6 +388,7 @@ function finishCalibration() {
 
     updateLoadingProgress(100, "All systems go.");
     const overlay = document.getElementById('loading-overlay');
+
     if (overlay) {
         overlay.style.transition = 'opacity 1s ease';
         overlay.style.opacity = '0';

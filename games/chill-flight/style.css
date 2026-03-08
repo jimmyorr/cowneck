@@ -485,13 +485,14 @@ input[type=number].customization-input {
 .loading-content {
     text-align: center;
     background: rgba(255, 255, 255, 0.05);
-    padding: 60px 80px;
+    padding: 40px 20px;
     border-radius: 24px;
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
     max-width: 450px;
     width: 90%;
+    box-sizing: border-box;
 }
 
 .loading-title {
@@ -601,4 +602,25 @@ input[type=number].customization-input {
         top: 0;
         left: 0;
     }
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+        border-color: rgba(231, 76, 60, 0.8);
+    }
+
+    50% {
+        box-shadow: 0 0 15px 5px rgba(231, 76, 60, 0.2);
+        border-color: rgba(231, 76, 60, 0.3);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+        border-color: rgba(231, 76, 60, 0.8);
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite !important;
 }

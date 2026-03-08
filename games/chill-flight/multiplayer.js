@@ -193,6 +193,7 @@ function initMultiplayer() {
                     lastSeen: new Date().toISOString()
                 });
             };
+            window.updatePlayerProfile = updatePlayerProfile;
 
             get(profileRef).then((snapshot) => {
                 if (snapshot.exists()) {

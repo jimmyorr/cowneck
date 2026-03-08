@@ -76,43 +76,27 @@
                     <option value="3">Long</option>
                 </select>
             </div>
-            <div class="customization-row">
-                <span class="customization-label">Theme</span>
-                <select id="theme-select" class="customization-input"
-                    style="width: 140px; padding: 4px 8px; font-size: 14px;">
-                    <option value="standard" selected>Standard</option>
-                    <option value="toon">Toon</option>
-                    <option value="basic">Basic (Flat)</option>
-                    <option value="phong">Phong (Shiny)</option>
-                    <option value="lambert">Lambert (Matte)</option>
-                    <option value="normal">Normal (Psychedelic)</option>
-                    <option value="wireframe">Wireframe</option>
-                </select>
-            </div>
+
             <div class="customization-row">
                 <span class="customization-label">Invert Y Axis</span>
                 <input type="checkbox" id="invert-y-input" style="width: 20px; height: 20px; cursor: pointer;">
             </div>
-            <div class="customization-row">
-                <span class="customization-label">Seed</span>
-                <input type="number" id="seed-input" class="customization-input" placeholder="Seed"
-                    style="width: 140px; padding: 4px 8px; font-size: 14px; box-sizing: border-box;">
-            </div>
+
 
         </div>
 
         <button id="resume-btn" class="btn" style="margin-bottom: 15px;">Resume flight</button>
     </div>
 
-
-
     <div id="loading-overlay">
         <div class="loading-content">
             <h1 class="loading-title">C H I L L<br>F L I G H T</h1>
-            <div class="loading-bar-container">
-                <div id="loading-bar"></div>
+            <div id="loading-progress-section">
+                <div class="loading-bar-container">
+                    <div id="loading-bar"></div>
+                </div>
+                <p id="loading-status">Warming up engines...</p>
             </div>
-            <p id="loading-status">Warming up engines...</p>
         </div>
     </div>
 
@@ -172,13 +156,32 @@
     </div>
 
     <div id="debug-menu">
-        <div style="margin-bottom: 10px; font-weight: bold;">Debug controls</div>
-        <div style="margin-top: 10px;">
+        <div style="margin-top: 10px; margin-bottom: 15px;">
             <div style="margin-bottom: 5px;">Time speed:</div>
             <button class="speed-btn" data-speed="0">0x</button>
             <button class="speed-btn active" data-speed="1">1x</button>
             <button class="speed-btn" data-speed="10">10x</button>
             <button class="speed-btn" data-speed="100">100x</button>
+        </div>
+
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+            <div style="margin-bottom: 5px;">Seed:</div>
+            <input type="number" id="seed-input" class="customization-input" placeholder="Seed"
+                style="width: 100%; padding: 4px 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 5px;">
+        </div>
+
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+            <div style="margin-bottom: 5px;">Theme:</div>
+            <select id="theme-select" class="customization-input"
+                style="width: 100%; padding: 4px 8px; font-size: 14px;">
+                <option value="standard" selected>Standard</option>
+                <option value="toon">Toon</option>
+                <option value="basic">Basic (Flat)</option>
+                <option value="phong">Phong (Shiny)</option>
+                <option value="lambert">Lambert (Matte)</option>
+                <option value="normal">Normal (Psychedelic)</option>
+                <option value="wireframe">Wireframe</option>
+            </select>
         </div>
     </div>
 
