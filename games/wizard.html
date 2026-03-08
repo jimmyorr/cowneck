@@ -445,21 +445,6 @@
 
             return (
                 <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-6xl mx-auto">
-                    {/* Header */}
-                    <header className="flex justify-between items-center mb-6">
-                        <h1 className="text-3xl font-bold tracking-tight text-blue-400">Wizard</h1>
-                        <div className="flex gap-2">
-                            {gameState === 'playing' && (
-                                <button onClick={() => setFastForward(!fastForward)} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${fastForward ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-300'}`}>
-                                    {fastForward ? '⏩ Fast mode' : '🐢 Normal speed'}
-                                </button>
-                            )}
-                            <button onClick={() => setIsPaused(true)} className="p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors">
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </button>
-                        </div>
-                    </header>
-
                     {gameState === 'start' && (
                         <div className="flex-1 flex flex-col items-center justify-center py-8">
                             <div className="bg-slate-800/50 p-6 md:p-10 rounded-3xl border border-slate-700 max-w-xl w-full text-center shadow-2xl">
@@ -479,7 +464,7 @@
 
                                     {!spectatorMode && (
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Your Name</label>
+                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Your name</label>
                                             <input
                                                 type="text"
                                                 value={playerName}
@@ -492,7 +477,7 @@
                                     )}
 
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Select Opponents ({selectedOpponents.length})</label>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Select opponents ({selectedOpponents.length})</label>
                                         <div className="flex flex-wrap gap-2 mb-4">
                                             {ALL_BOTS.map(bot => {
                                                 const isSelected = selectedOpponents.includes(bot.name);
@@ -528,10 +513,10 @@
 
                                 <div className="flex flex-col gap-3 mt-8">
                                     <button onClick={() => initGame(spectatorMode)} className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95">
-                                        {spectatorMode ? 'Start Spectating' : 'Play Game'}
+                                        {spectatorMode ? 'Start spectating' : 'Play game'}
                                     </button>
                                     <button onClick={() => startSimulation()} className="bg-slate-900 border border-slate-700 text-slate-400 py-3 rounded-2xl font-bold transition-all hover:bg-slate-800">
-                                        Simulate 100 Games
+                                        Simulate 100 games
                                     </button>
                                 </div>
                             </div>
@@ -553,6 +538,16 @@
                                             </div>
                                         ))}
                                         {currentTrick.length === 0 && <p className="text-slate-600 italic">Play a card to start the trick</p>}
+                                    </div>
+                                    <div className="absolute top-4 right-4 flex gap-2">
+                                        {gameState === 'playing' && (
+                                            <button onClick={() => setFastForward(!fastForward)} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${fastForward ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-300'}`}>
+                                                {fastForward ? '⏩ Fast mode' : '🐢 Normal speed'}
+                                            </button>
+                                        )}
+                                        <button onClick={() => setIsPaused(true)} className="p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors">
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        </button>
                                     </div>
                                 </div>
 
