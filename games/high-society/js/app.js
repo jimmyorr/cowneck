@@ -29,6 +29,15 @@ function App() {
     const simResultsRef = useRef({});
 
     useEffect(() => {
+        const savedName = localStorage.getItem('highSociety_playerName');
+        if (savedName) setPlayerName(savedName);
+    }, []);
+
+    useEffect(() => {
+        if (playerName) localStorage.setItem('highSociety_playerName', playerName);
+    }, [playerName]);
+
+    useEffect(() => {
         const handleKeyDown = (e) => { if (e.key === 'Escape' && gameState === 'playing') setIsPaused(p => !p); };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
@@ -39,8 +48,9 @@ function App() {
         setLogs((prev) => [msg, ...prev].slice(0, 50));
     };
 
-    const startGame = () => {
-        const initialPlayers = createInitialPlayers({ spectatorMode, playerName, selectedOpponents, MONEY_CARDS });
+    const startGame = (spectate = false) => {
+        setSpectatorMode(spectate);
+        const initialPlayers = createInitialPlayers({ spectatorMode: spectate, playerName, selectedOpponents, MONEY_CARDS });
         setPlayers(initialPlayers);
         const shuffledDeck = shuffle(INITIAL_DECK);
         setDeck(shuffledDeck);
@@ -52,11 +62,10 @@ function App() {
         drawNextCard(shuffledDeck, initialPlayers, 0, startingTurn);
     };
 
-    const startSimulation = () => {
-        if (!spectatorMode) return;
+    const startSimulation = (count) => {
         isSimulatingRef.current = true;
         simCountRef.current = 1;
-        simTargetRef.current = targetSimulations;
+        simTargetRef.current = count || targetSimulations;
         const stats = {};
         selectedOpponents.forEach(o => stats[o] = 0);
         simResultsRef.current = stats;

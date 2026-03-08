@@ -198,6 +198,33 @@
             const [selectedOpponents, setSelectedOpponents] = useState(BOT_NAMES.slice(0, 3));
             const [hoveredOpponent, setHoveredOpponent] = useState(null);
 
+            useEffect(() => {
+                const savedName = localStorage.getItem('wizard_playerName');
+                if (savedName) setPlayerName(savedName);
+            }, []);
+
+            useEffect(() => {
+                if (playerName) localStorage.setItem('wizard_playerName', playerName);
+            }, [playerName]);
+
+            const [simCount, setSimCount] = useState(100);
+            const [showAdvanced, setShowAdvanced] = useState(false);
+
+            const startSimulationWithCount = () => {
+                setGameState('simulating');
+                const stats = {};
+                selectedOpponents.forEach(n => stats[n] = 0);
+
+                for (let i = 0; i < simCount; i++) {
+                    const simPlayers = selectedOpponents.map((name, id) => ({ id, name, isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] }));
+                    runFullGameSync(simPlayers);
+                    simPlayers.sort((a, b) => b.score - a.score);
+                    stats[simPlayers[0].name]++;
+                }
+                setSimulationStats(stats);
+                setGameState('simulationResults');
+            };
+
             const timerRef = useRef(null);
 
             const addLog = (msg) => setLogs(prev => [msg, ...prev].slice(0, 50));
@@ -447,41 +474,30 @@
                 <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-6xl mx-auto">
                     {gameState === 'start' && (
                         <div className="flex-1 flex flex-col items-center justify-center py-8">
-                            <div className="bg-slate-800/50 p-6 md:p-10 rounded-3xl border border-slate-700 max-w-xl w-full text-center shadow-2xl">
-                                <h2 className="text-5xl font-extrabold mb-4 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">Wizard</h2>
-                                <p className="text-slate-400 mb-8">Predict exactly how many tricks you will win.</p>
+                            <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 max-w-xl w-full text-center shadow-2xl">
+                                <h1 className="text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">Wizard</h1>
+                                <p className="text-slate-400 mb-6 text-sm">Predict exactly how many tricks you will win.</p>
 
-                                <div className="space-y-6 text-left">
-                                    <div className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-slate-700">
-                                        <label className="text-sm font-bold text-slate-300">Spectator mode</label>
+                                {/* Path 1: Join / Play */}
+                                <div className="space-y-6 text-left mb-8">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Your name</label>
                                         <input
-                                            type="checkbox"
-                                            checked={spectatorMode}
-                                            onChange={(e) => setSpectatorMode(e.target.checked)}
-                                            className="w-5 h-5 accent-blue-500 cursor-pointer"
+                                            type="text"
+                                            autoFocus
+                                            value={playerName}
+                                            onChange={(e) => setPlayerName(e.target.value)}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-2xl p-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                            placeholder="Enter your name..."
+                                            maxLength={12}
                                         />
                                     </div>
 
-                                    {!spectatorMode && (
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1">Your name</label>
-                                            <input
-                                                type="text"
-                                                value={playerName}
-                                                onChange={(e) => setPlayerName(e.target.value)}
-                                                className="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                                                placeholder="Enter your name..."
-                                                maxLength={12}
-                                            />
-                                        </div>
-                                    )}
-
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Select opponents ({selectedOpponents.length})</label>
-                                        <div className="flex flex-wrap gap-2 mb-4">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Choose opponents ({selectedOpponents.length} selected):</label>
+                                        <div className="flex flex-wrap gap-2 mb-2">
                                             {ALL_BOTS.map(bot => {
                                                 const isSelected = selectedOpponents.includes(bot.name);
-                                                const maxOpponents = spectatorMode ? 6 : 5;
                                                 return (
                                                     <button
                                                         key={bot.name}
@@ -493,31 +509,63 @@
                                                                     setSelectedOpponents(selectedOpponents.filter(n => n !== bot.name));
                                                                 }
                                                             } else {
-                                                                if (selectedOpponents.length < maxOpponents) {
+                                                                if (selectedOpponents.length < 5) {
                                                                     setSelectedOpponents([...selectedOpponents, bot.name]);
                                                                 }
                                                             }
                                                         }}
-                                                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${isSelected ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}
+                                                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${isSelected ? 'bg-yellow-500 border-yellow-400 text-slate-900 shadow-lg shadow-yellow-500/20' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}
                                                     >
                                                         {bot.name}
                                                     </button>
                                                 );
                                             })}
                                         </div>
-                                        <div className="h-6 text-center">
-                                            {hoveredOpponent && <span className="text-xs text-blue-400 italic">{hoveredOpponent.desc}</span>}
+                                        <div className="h-4 text-center">
+                                            {hoveredOpponent && <span className="text-[10px] text-blue-400 italic">{hoveredOpponent.desc}</span>}
                                         </div>
                                     </div>
+
+                                    <button onClick={() => initGame(false)} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95">
+                                        Play
+                                    </button>
                                 </div>
 
-                                <div className="flex flex-col gap-3 mt-8">
-                                    <button onClick={() => initGame(spectatorMode)} className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95">
-                                        {spectatorMode ? 'Start spectating' : 'Play game'}
-                                    </button>
-                                    <button onClick={() => startSimulation()} className="bg-slate-900 border border-slate-700 text-slate-400 py-3 rounded-2xl font-bold transition-all hover:bg-slate-800">
-                                        Simulate 100 games
-                                    </button>
+                                <div className="border-t border-slate-700 my-8 pt-8">
+                                    {/* Path 2: Spectate */}
+                                    <div className="text-left mb-8">
+                                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Watch a game</h3>
+                                        <button onClick={() => initGame(true)} className="w-full bg-slate-900 border border-slate-700 text-slate-400 py-4 rounded-2xl font-bold text-lg hover:bg-slate-800 transition-all">
+                                            Spectate
+                                        </button>
+                                    </div>
+
+                                    {/* Path 3: Simulation */}
+                                    <div className="text-left">
+                                        <button
+                                            onClick={() => setShowAdvanced(!showAdvanced)}
+                                            className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-4 ml-1 flex items-center gap-2 hover:text-slate-400 transition-colors"
+                                        >
+                                            Advanced Mode {showAdvanced ? '▼' : '▶'}
+                                        </button>
+
+                                        {showAdvanced && (
+                                            <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-sm font-bold text-slate-400">Number of games:</label>
+                                                    <input
+                                                        type="number"
+                                                        value={simCount}
+                                                        onChange={(e) => setSimCount(Math.max(1, parseInt(e.target.value) || 1))}
+                                                        className="w-24 bg-slate-900 border border-slate-700 rounded-xl p-2 text-center text-white focus:outline-none focus:border-blue-500"
+                                                    />
+                                                </div>
+                                                <button onClick={() => startSimulationWithCount()} className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold transition-all border border-slate-700 text-sm">
+                                                    Simulate
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
