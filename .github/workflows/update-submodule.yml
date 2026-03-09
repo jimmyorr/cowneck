@@ -3,6 +3,7 @@ name: Update Chill Flight Submodule
 on:
   repository_dispatch:
     types: [update-game]
+  workflow_dispatch:  # Enable the "Run workflow" button
 
 jobs:
   update:
