@@ -1,0 +1,31 @@
+name: Update Chill Flight Submodule
+
+on:
+  repository_dispatch:
+    types: [update-game]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout cowneck
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.COWNECK_UPDATE_TOKEN }}
+
+      - name: Update Submodule
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git submodule update --remote games/chill-flight
+          
+          # Only commit if there are actual changes
+          if [[ -n $(git status -s) ]]; then
+            git add games/chill-flight
+            git commit -m "Automated update of chill-flight game"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+
