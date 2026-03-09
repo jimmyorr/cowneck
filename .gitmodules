@@ -1,0 +1,3 @@
+[submodule "games/chill-flight"]
+	path = games/chill-flight
+	url = https://github.com/jimmyorr/chill-flight.git
