@@ -162,15 +162,15 @@
             Collect <b>Flying Tacos</b> 🌮.<br>
             Avoid <b>Grumpy Clouds</b> ☁️.<br>
             <br>
-            <i>(Mouse/Touch to move)</i>
+            <i>(Mouse/Touch/Gamepad to move)</i>
         </p>
-        <button id="start-btn" class="btn">LET'S GET GOOFY!</button>
+        <button id="start-btn" class="btn">LET'S GET GOOFY! (A)</button>
     </div>
 
     <div id="game-over-screen" class="hidden">
         <h1>YOU GOT BAMBOOZLED!</h1>
         <p id="final-score" style="color: white; font-size: 2rem;">Bananas Collected: 0</p>
-        <button id="restart-btn" class="btn">TRY AGAIN?</button>
+        <button id="restart-btn" class="btn">TRY AGAIN? (A)</button>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -203,6 +203,9 @@
         let mouseX = 0;
         let mouseY = 0;
         let isTouch = false;
+        let gamepadIndex = null;
+        let lastButtonState = false;
+        let gamepadThrust = 0; // For movement acceleration
 
         // Entities
         let player;
@@ -251,6 +254,61 @@
             isTouch = true;
             updateInput(e.touches[0].clientX, e.touches[0].clientY);
         }, { passive: false });
+
+        window.addEventListener("gamepadconnected", (e) => {
+            console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+                e.gamepad.index, e.gamepad.id,
+                e.gamepad.buttons.length, e.gamepad.axes.length);
+            gamepadIndex = e.gamepad.index;
+        });
+
+        window.addEventListener("gamepaddisconnected", (e) => {
+            console.log("Gamepad disconnected from index %d: %s",
+                e.gamepad.index, e.gamepad.id);
+            gamepadIndex = null;
+        });
+
+        function pollGamepad() {
+            if (gamepadIndex === null) return;
+            const gp = navigator.getGamepads()[gamepadIndex];
+            if (!gp) return;
+
+            // Movement axes (Left Stick)
+            const axisX = gp.axes[0];
+            const axisY = gp.axes[1];
+            const deadzone = 0.1;
+
+            if (player && (Math.abs(axisX) > deadzone || Math.abs(axisY) > deadzone)) {
+                // Acceleration logic: the longer/harder you push, the further the 'target' goes
+                // REDUCED: 0.01 increment and 250 max reach (instead of 0.02 and 500)
+                gamepadThrust = Math.min(gamepadThrust + 0.01, 1.0);
+                const magnitude = Math.sqrt(axisX * axisX + axisY * axisY);
+                const reach = 60 + (gamepadThrust * magnitude * 250); // Dynamic reach up to ~310px
+                
+                // CLAMPED to screen borders
+                mouseX = Math.max(0, Math.min(width, player.x + axisX * reach));
+                mouseY = Math.max(0, Math.min(height, player.y + axisY * reach));
+                isTouch = false; 
+            } else {
+                gamepadThrust = 0;
+            }
+
+            // Buttons (A or Start)
+            const aButton = gp.buttons[0].pressed;
+            const startButton = gp.buttons[9] ? gp.buttons[9].pressed : false;
+            const menuButton = aButton || startButton;
+
+            if (menuButton && !lastButtonState) {
+                if (!isPlaying) {
+                    if (!startScreen.classList.contains('hidden')) {
+                        startBtn.click();
+                    } else if (!gameOverScreen.classList.contains('hidden')) {
+                        restartBtn.click();
+                    }
+                }
+            }
+            lastButtonState = menuButton;
+        }
 
         // --- Classes ---
 
@@ -703,6 +761,7 @@
             checkCollisions();
             frameCount++;
 
+            pollGamepad();
             requestAnimationFrame(gameLoop);
         }
 
@@ -737,6 +796,15 @@
             requestAnimationFrame(menuLoop);
         }
         menuLoop();
+
+        // Also poll gamepad in menu
+        function menuGamepadLoop() {
+            if (!isPlaying) {
+                pollGamepad();
+                requestAnimationFrame(menuGamepadLoop);
+            }
+        }
+        menuGamepadLoop();
 
     </script>
 </body>
