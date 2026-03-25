@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crisp's Canvas Escape</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #1a202c;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none;
+        }
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="uiOverlay" class="ui-layer flex flex-col justify-between p-4">
+        <div id="hud" class="hidden flex justify-between items-start">
+            <div class="flex flex-col gap-2">
+                <div id="hudBox" class="bg-gray-900/80 p-4 rounded-xl shadow-lg border border-red-500/30 backdrop-blur-sm transition-colors duration-300">
+                    <h2 id="hudTitleContainer" class="text-red-400 font-bold text-xl mb-1 flex items-center gap-2">
+                        <span id="hudEmoji" class="text-2xl">🍎</span> <span id="hudName">Crisp</span>
+                    </h2>
+                    <div class="text-gray-300 font-mono text-sm mb-2">Distance: <span id="scoreDisplay" class="text-white font-bold">0</span>m</div>
+                    
+                    <div class="w-48 h-4 bg-gray-700 rounded-full overflow-hidden border border-gray-600 relative">
+                        <div id="inkFill" class="h-full bg-gradient-to-r from-red-400 to-red-600 w-full transition-all duration-100"></div>
+                        <div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-900 uppercase tracking-widest mix-blend-overlay">Ink Level</div>
+                    </div>
+                </div>
+
+                <div id="modeIndicator" class="bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg border-2 border-red-300 flex items-center gap-2 self-start transition-all">
+                    <span id="modeIcon">🖌️</span> <span id="modeText">MODE: PLATFORM</span>
+                </div>
+            </div>
+
+            <div class="bg-gray-900/80 p-3 rounded-xl shadow-lg border border-gray-700 backdrop-blur-sm text-right text-xs text-gray-400 space-y-1">
+                <p><span class="inline-block px-1.5 py-0.5 bg-gray-800 rounded text-white border border-gray-600">A</span> <span class="inline-block px-1.5 py-0.5 bg-gray-800 rounded text-white border border-gray-600">D</span> Move</p>
+                <p><span class="inline-block px-1.5 py-0.5 bg-gray-800 rounded text-white border border-gray-600">SPACE</span> Jump</p>
+                <p><span class="inline-block px-1.5 py-0.5 bg-gray-800 rounded text-white border border-gray-600">F</span> Toggle Weapon/Platform</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biome Notification -->
+    <div id="biomeToast" class="ui-layer flex items-center justify-center opacity-0 transition-opacity duration-1000">
+        <div class="bg-white/10 backdrop-blur-md px-8 py-4 rounded-2xl border-2 border-white/30 text-white text-3xl font-black italic tracking-tighter uppercase shadow-2xl">
+            Entering: <span id="biomeNameText" class="text-orange-400">Sunset Skyway</span>
+        </div>
+    </div>
+
+    <div id="menuLayer" class="ui-layer pointer-events-auto flex items-center justify-center bg-gray-900/90 backdrop-blur-sm transition-opacity duration-300">
+        <!-- Start Screen -->
+        <div id="startScreen" class="bg-gray-800 p-8 rounded-3xl shadow-2xl max-w-lg w-full text-center border-2 border-red-500/50 transition-colors duration-300">
+            <div class="w-24 h-24 mx-auto mb-4 relative">
+                <div id="heroCircle" class="absolute inset-0 bg-red-500 rounded-full shadow-[0_0_20px_rgba(239,68,68,0.5)] flex items-center justify-center transition-colors duration-300">
+                    <span id="heroEmoji" class="text-5xl">🍎</span>
+                </div>
+            </div>
+            <h1 id="gameTitle" class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600 mb-4 transition-all duration-300">Crisp's Canvas</h1>
+            
+            <!-- Character Selector -->
+            <div class="flex flex-wrap justify-center gap-2 mb-6 max-w-sm mx-auto">
+                <button class="char-select-btn border-4 border-white/50 rounded-xl p-2 bg-gray-700 hover:bg-gray-600 transition outline-none w-16" data-char="CRISP">
+                    <div class="text-2xl pointer-events-none">🍎</div>
+                    <div class="char-name text-[10px] text-white font-bold mt-1 pointer-events-none">Crisp</div>
+                </button>
+                <button class="char-select-btn border-4 border-transparent rounded-xl p-2 bg-gray-800 hover:bg-gray-700 transition outline-none w-16" data-char="DOODLE">
+                    <div class="text-2xl pointer-events-none">🧀</div>
+                    <div class="char-name text-[10px] text-gray-400 font-bold mt-1 pointer-events-none">Doodle</div>
+                </button>
+                <button class="char-select-btn border-4 border-transparent rounded-xl p-2 bg-gray-800 hover:bg-gray-700 transition outline-none w-16" data-char="NANA">
+                    <div class="text-2xl pointer-events-none">🍌</div>
+                    <div class="char-name text-[10px] text-gray-400 font-bold mt-1 pointer-events-none">Nana</div>
+                </button>
+                <button class="char-select-btn border-4 border-transparent rounded-xl p-2 bg-gray-800 hover:bg-gray-700 transition outline-none w-16" data-char="BERRY">
+                    <div class="text-2xl pointer-events-none">🍓</div>
+                    <div class="char-name text-[10px] text-gray-400 font-bold mt-1 pointer-events-none">Berry</div>
+                </button>
+                <button class="char-select-btn border-4 border-transparent rounded-xl p-2 bg-gray-800 hover:bg-gray-700 transition outline-none w-16" data-char="AVO">
+                    <div class="text-2xl pointer-events-none">🥑</div>
+                    <div class="char-name text-[10px] text-gray-400 font-bold mt-1 pointer-events-none">Avo</div>
+                </button>
+                <button class="char-select-btn border-4 border-transparent rounded-xl p-2 bg-gray-800 hover:bg-gray-700 transition outline-none w-16" data-char="GLAZE">
+                    <div class="text-2xl pointer-events-none">🍩</div>
+                    <div class="char-name text-[10px] text-gray-400 font-bold mt-1 pointer-events-none">Glaze</div>
+                </button>
+                <button class="char-select-btn border-4 border-transparent rounded-xl p-2 bg-gray-800 hover:bg-gray-700 transition outline-none w-16" data-char="MELON">
+                    <div class="text-2xl pointer-events-none">🍉</div>
+                    <div class="char-name text-[10px] text-gray-400 font-bold mt-1 pointer-events-none">Melon</div>
+                </button>
+                <button class="char-select-btn border-4 border-transparent rounded-xl p-2 bg-gray-800 hover:bg-gray-700 transition outline-none w-16" data-char="SUSHI">
+                    <div class="text-2xl pointer-events-none">🍣</div>
+                    <div class="char-name text-[10px] text-gray-400 font-bold mt-1 pointer-events-none">Sushi</div>
+                </button>
+                <button class="char-select-btn border-4 border-transparent rounded-xl p-2 bg-gray-800 hover:bg-gray-700 transition outline-none w-16" data-char="PATTY">
+                    <div class="text-2xl pointer-events-none">🍔</div>
+                    <div class="char-name text-[10px] text-gray-400 font-bold mt-1 pointer-events-none">Patty</div>
+                </button>
+                <button class="char-select-btn border-4 border-transparent rounded-xl p-2 bg-gray-800 hover:bg-gray-700 transition outline-none w-16" data-char="BOBA">
+                    <div class="text-2xl pointer-events-none">🧋</div>
+                    <div class="char-name text-[10px] text-gray-400 font-bold mt-1 pointer-events-none">Boba</div>
+                </button>
+            </div>
+
+            <p class="text-gray-300 mb-6 text-sm">Escape the city and survive the changing biomes up to 1000m to reach The Canvas Edge! Use WASD to move and 'F' to switch tools.</p>
+            <button id="startBtn" class="w-full py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl text-lg shadow-lg transform transition-transform hover:scale-105 active:scale-95">
+                Start Creating!
+            </button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="hidden bg-gray-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center border-2 border-red-500/50">
+            <div class="text-6xl mb-4">💥</div>
+            <h2 class="text-3xl font-bold text-white mb-2">Splat!</h2>
+            <p id="deathReason" class="text-gray-400 mb-6">Crisp tumbled into the abyss.</p>
+            <div class="bg-gray-900 rounded-xl p-4 mb-6">
+                <p class="text-gray-500 text-sm mb-1">Distance Traveled</p>
+                <p id="finalScore" class="text-4xl font-black text-orange-400">0m</p>
+            </div>
+            <div class="flex flex-col gap-3">
+                <button id="restartBtn" class="w-full py-4 bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold rounded-xl text-lg shadow-lg transform transition-transform hover:scale-105 active:scale-95">
+                    Try Again
+                </button>
+                <button id="changeCharBtn" class="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-xl text-md shadow-lg transition-colors transform transition-transform hover:scale-105 active:scale-95">
+                    Change Character
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const menuLayer = document.getElementById('menuLayer');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const changeCharBtn = document.getElementById('changeCharBtn');
+        const hud = document.getElementById('hud');
+        const inkFill = document.getElementById('inkFill');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const finalScore = document.getElementById('finalScore');
+        const modeIndicator = document.getElementById('modeIndicator');
+        const modeText = document.getElementById('modeText');
+        const modeIcon = document.getElementById('modeIcon');
+        const deathReason = document.getElementById('deathReason');
+        const biomeToast = document.getElementById('biomeToast');
+        const biomeNameText = document.getElementById('biomeNameText');
+
+        // Character Configuration
+        const CHAR_DATA = {
+            'CRISP':  { name: 'Crisp',  emoji: '🍎', gradient: 'from-red-400 to-red-600', bg: 'bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.5)]', border: 'border-red-500/50', text: 'text-red-400', hat: { primary: '#3b82f6', secondary: '#1e3a8a' }, body: '#ef4444' },
+            'DOODLE': { name: 'Doodle', emoji: '🧀', gradient: 'from-yellow-400 to-orange-500', bg: 'bg-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.5)]', border: 'border-orange-500/50', text: 'text-orange-400', hat: { primary: '#ef4444', secondary: '#b91c1c' }, body: '#f97316' },
+            'NANA':   { name: 'Nana',   emoji: '🍌', gradient: 'from-yellow-300 to-yellow-500', bg: 'bg-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.5)]', border: 'border-yellow-400/50', text: 'text-yellow-400', hat: { primary: '#a855f7', secondary: '#7e22ce' }, body: '#eab308' },
+            'BERRY':  { name: 'Berry',  emoji: '🍓', gradient: 'from-rose-400 to-rose-600', bg: 'bg-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.5)]', border: 'border-rose-500/50', text: 'text-rose-400', hat: { primary: '#eab308', secondary: '#ca8a04' }, body: '#f43f5e' },
+            'AVO':    { name: 'Avo',    emoji: '🥑', gradient: 'from-green-400 to-green-600', bg: 'bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.5)]', border: 'border-green-500/50', text: 'text-green-400', hat: { primary: '#f59e0b', secondary: '#d97706' }, body: '#4ade80' },
+            'GLAZE':  { name: 'Glaze',  emoji: '🍩', gradient: 'from-pink-400 to-pink-600', bg: 'bg-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.5)]', border: 'border-pink-500/50', text: 'text-pink-400', hat: { primary: '#0ea5e9', secondary: '#0284c7' }, body: '#d4a373' }, // Body is dough color
+            'MELON':  { name: 'Melon',  emoji: '🍉', gradient: 'from-emerald-400 to-emerald-600', bg: 'bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.5)]', border: 'border-emerald-500/50', text: 'text-emerald-400', hat: { primary: '#fbbf24', secondary: '#d97706' }, body: '#22c55e' }, // Body is rind color
+            'SUSHI':  { name: 'Sushi',  emoji: '🍣', gradient: 'from-orange-400 to-orange-600', bg: 'bg-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.5)]', border: 'border-orange-500/50', text: 'text-orange-400', hat: { primary: '#10b981', secondary: '#059669' }, body: '#ffffff' },
+            'PATTY':  { name: 'Patty',  emoji: '🍔', gradient: 'from-amber-500 to-amber-700', bg: 'bg-amber-600 shadow-[0_0_20px_rgba(217,119,6,0.5)]', border: 'border-amber-600/50', text: 'text-amber-500', hat: { primary: '#ef4444', secondary: '#b91c1c' }, body: '#d97706' }, // Body is bun color
+            'BOBA':   { name: 'Boba',   emoji: '🧋', gradient: 'from-yellow-200 to-yellow-400', bg: 'bg-yellow-300 shadow-[0_0_20px_rgba(253,224,71,0.5)]', border: 'border-yellow-300/50', text: 'text-yellow-300', hat: { primary: '#8b5cf6', secondary: '#6d28d9' }, body: '#fde68a' }
+        };
+        let currentChar = 'CRISP';
+
+        let gameState = 'START'; 
+        let lastTime = 0;
+        let animationFrameId;
+        let drawMode = 'PLATFORM';
+        let currentBiome = 'CITY'; 
+
+        // Biome Configurations
+        const biomeConfig = {
+            'CITY':   { sky1: '#0f172a', sky2: '#0f172a', ground: '#374151', groundEdge: '#4b5563', building: '#1e293b', window: '#0f172a', enemy: '#a855f7', enemyName: 'Grime Goblin' },
+            'SUNSET': { sky1: '#4338ca', sky2: '#312e81', ground: '#4c1d95', groundEdge: '#6d28d9', building: '#2e1065', window: '#1e1b4b', enemy: '#22d3ee', enemyName: 'Glitch Ghost' }, // Changed to Twilight Indigo for contrast
+            'NEON':   { sky1: '#020617', sky2: '#0f172a', ground: '#1e293b', groundEdge: '#ec4899', building: '#000000', window: '#06b6d4', enemy: '#84cc16', enemyName: 'Cyber Slime' },
+            'FROST':  { sky1: '#f0fdfa', sky2: '#bae6fd', ground: '#93c5fd', groundEdge: '#bfdbfe', building: '#1e3a8a', window: '#172554', enemy: '#ffffff', enemyName: 'Frost Sprite' }, // Lighter to contrast red
+            'LAVA':   { sky1: '#27272a', sky2: '#09090b', ground: '#450a0a', groundEdge: '#991b1b', building: '#1c1917', window: '#dc2626', enemy: '#f97316', enemyName: 'Ember Imp' }, // Ashen gray sky
+            'JUNGLE': { sky1: '#064e3b', sky2: '#022c22', ground: '#14532d', groundEdge: '#166534', building: '#064e3b', window: '#a3e635', enemy: '#facc15', enemyName: 'Moss Mite' },
+            'DESERT': { sky1: '#fef3c7', sky2: '#fde68a', ground: '#b45309', groundEdge: '#d97706', building: '#78350f', window: '#451a03', enemy: '#14b8a6', enemyName: 'Dust Devil' }, // Pale sandy sky
+            'OCEAN':  { sky1: '#083344', sky2: '#020617', ground: '#0f766e', groundEdge: '#14b8a6', building: '#042f2e', window: '#164e63', enemy: '#ec4899', enemyName: 'Abyssal Angler' },
+            'SPACE':  { sky1: '#000000', sky2: '#000000', ground: '#171717', groundEdge: '#404040', building: '#0a0a0a', window: '#facc15', enemy: '#a78bfa', enemyName: 'Void Wanderer' },
+            'DREAM':  { sky1: '#e0e7ff', sky2: '#c4b5fd', ground: '#fdf4ff', groundEdge: '#f9a8d4', building: '#fce7f3', window: '#ffffff', enemy: '#fbbf24', enemyName: 'Canvas Keeper' } // Cool pastel sky
+        };
+
+        const biomesList = [
+            { id: 'DREAM', min: 1000, name: 'The Canvas Edge', color: 'text-pink-400' },
+            { id: 'SPACE', min: 900, name: 'Galactic Void', color: 'text-gray-300' },
+            { id: 'OCEAN', min: 800, name: 'Abyssal Trench', color: 'text-teal-400' },
+            { id: 'DESERT', min: 700, name: 'Scorched Sands', color: 'text-yellow-500' },
+            { id: 'JUNGLE', min: 600, name: 'Overgrown Ruins', color: 'text-green-400' },
+            { id: 'LAVA', min: 500, name: 'Magma Core', color: 'text-red-500' },
+            { id: 'FROST', min: 400, name: 'Frostbite Tundra', color: 'text-blue-300' },
+            { id: 'NEON', min: 300, name: 'Neon Grid', color: 'text-fuchsia-500' },
+            { id: 'SUNSET', min: 200, name: 'Sunset Skyway', color: 'text-orange-400' },
+            { id: 'CITY', min: 0, name: 'Gritty City', color: 'text-purple-500' }
+        ];
+
+        const GRAVITY = 1100; 
+        const PLAYER_SPEED = 480; 
+        const PLAYER_JUMP = 580; 
+        const PLAYER_RADIUS = 18;
+        const MAX_INK = 1500; 
+        const DRAW_MIN_DIST = 10; 
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Character Select Logic
+        const charBtns = document.querySelectorAll('.char-select-btn');
+        charBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                charBtns.forEach(b => {
+                    b.classList.remove('border-white/50', 'bg-gray-700');
+                    b.classList.add('border-transparent', 'bg-gray-800');
+                    b.querySelector('.char-name').classList.remove('text-white');
+                    b.querySelector('.char-name').classList.add('text-gray-400');
+                });
+                
+                btn.classList.remove('border-transparent', 'bg-gray-800');
+                btn.classList.add('border-white/50', 'bg-gray-700');
+                btn.querySelector('.char-name').classList.remove('text-gray-400');
+                btn.querySelector('.char-name').classList.add('text-white');
+                
+                currentChar = btn.dataset.char;
+                const cd = CHAR_DATA[currentChar];
+                
+                document.getElementById('heroEmoji').innerText = cd.emoji;
+                document.getElementById('gameTitle').innerText = `${cd.name}'s Canvas`;
+                document.getElementById('gameTitle').className = `text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${cd.gradient} mb-4 transition-all duration-300`;
+                document.getElementById('heroCircle').className = `absolute inset-0 rounded-full flex items-center justify-center transition-colors duration-300 ${cd.bg}`;
+                document.getElementById('startScreen').className = `bg-gray-800 p-8 rounded-3xl shadow-2xl max-w-lg w-full text-center border-2 transition-colors duration-300 ${cd.border}`;
+            });
+        });
+
+        const keys = { left: false, right: false, up: false };
+        const mouse = { x: 0, y: 0, isDown: false, worldX: 0, worldY: 0 };
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
+            if (e.code === 'KeyF') toggleDrawMode();
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                keys.up = true;
+                if(gameState === 'PLAYING' && player.groundedTimer > 0) {
+                    player.vy = -PLAYER_JUMP;
+                    player.groundedTimer = 0; 
+                    player.scaleX = 0.7; player.scaleY = 1.3;
+                    createParticles(player.x, player.y + player.radius, 8, '#4b5563', true);
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = false;
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = false;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            mouse.isDown = true;
+            if (gameState === 'PLAYING') startDrawing();
+        });
+
+        window.addEventListener('mouseup', () => {
+            mouse.isDown = false;
+            currentLine = null;
+        });
+
+        function toggleDrawMode() {
+            if (drawMode === 'PLATFORM') {
+                drawMode = 'WEAPON';
+                modeIndicator.className = "bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg border-2 border-blue-300 flex items-center gap-2 self-start transition-all";
+                modeText.innerText = "MODE: WEAPON";
+                modeIcon.innerText = "⚔️";
+            } else {
+                drawMode = 'PLATFORM';
+                modeIndicator.className = "bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg border-2 border-red-300 flex items-center gap-2 self-start transition-all";
+                modeText.innerText = "MODE: PLATFORM";
+                modeIcon.innerText = "🖌️";
+            }
+        }
+
+        class Vector {
+            constructor(x, y) { this.x = x; this.y = y; }
+            add(v) { return new Vector(this.x + v.x, this.y + v.y); }
+            sub(v) { return new Vector(this.x - v.x, this.y - v.y); }
+            mult(n) { return new Vector(this.x * n, this.y * n); }
+            mag() { return Math.sqrt(this.x * this.x + this.y * this.y); }
+            normalize() { let m = this.mag(); return m === 0 ? new Vector(0,0) : new Vector(this.x/m, this.y/m); }
+            dot(v) { return this.x * v.x + this.y * v.y; }
+            dist(v) { return this.sub(v).mag(); }
+        }
+
+        class Player {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.vx = 0; this.vy = 0;
+                this.radius = PLAYER_RADIUS;
+                this.groundedTimer = 0;
+                this.rotation = 0;
+                this.scaleX = 1; this.scaleY = 1;
+            }
+            update(dt) {
+                this.vy += GRAVITY * dt;
+                this.groundedTimer -= dt;
+                this.scaleX += (1 - this.scaleX) * 15 * dt;
+                this.scaleY += (1 - this.scaleY) * 15 * dt;
+                const targetVx = (keys.right ? PLAYER_SPEED : 0) - (keys.left ? PLAYER_SPEED : 0);
+                this.vx += (targetVx - this.vx) * 12 * dt;
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                this.rotation += (this.vx * dt) / (this.groundedTimer > 0 ? this.radius : this.radius * 2);
+            }
+            draw(ctx) {
+                const cd = CHAR_DATA[currentChar];
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.scale(this.scaleX, this.scaleY);
+                
+                // Base Body
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = cd.body;
+                ctx.fill();
+                
+                if (currentChar === 'CRISP') {
+                    // Stem & Leaf
+                    ctx.fillStyle = '#78350f'; ctx.fillRect(-2, -this.radius - 4, 4, 6);
+                    ctx.fillStyle = '#22c55e';
+                    ctx.beginPath(); ctx.ellipse(6, -this.radius - 2, 6, 3, -Math.PI / 6, 0, Math.PI * 2); ctx.fill();
+                } else if (currentChar === 'DOODLE') {
+                    // Cheese Spots
+                    ctx.fillStyle = '#ea580c';
+                    ctx.beginPath(); ctx.arc(-6, -6, 4, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(8, -2, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(-2, 8, 5, 0, Math.PI*2); ctx.fill();
+                } else if (currentChar === 'NANA') {
+                    // Banana Slice Center
+                    ctx.fillStyle = '#fef08a';
+                    ctx.beginPath(); ctx.arc(0, 0, this.radius - 3, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#a16207';
+                    ctx.beginPath(); ctx.arc(-3, -2, 1, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(3, -2, 1, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(0, 3, 1, 0, Math.PI*2); ctx.fill();
+                } else if (currentChar === 'BERRY') {
+                    // Strawberry Seeds & Leaf Crown
+                    ctx.fillStyle = '#fde047';
+                    ctx.fillRect(-6, -6, 2, 3); ctx.fillRect(4, -8, 2, 3);
+                    ctx.fillRect(-8, 2, 2, 3); ctx.fillRect(6, 4, 2, 3);
+                    ctx.fillRect(-2, 8, 2, 3); ctx.fillRect(0, -2, 2, 3);
+                    ctx.fillStyle = '#22c55e';
+                    ctx.beginPath(); ctx.arc(0, -this.radius, 8, 0, Math.PI); ctx.fill();
+                } else if (currentChar === 'AVO') {
+                    // Pit
+                    ctx.fillStyle = '#8b4513';
+                    ctx.beginPath(); ctx.arc(0, 2, 8, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#a0522d'; // pit highlight
+                    ctx.beginPath(); ctx.arc(2, 0, 3, 0, Math.PI*2); ctx.fill();
+                } else if (currentChar === 'GLAZE') {
+                    // Icing & Sprinkles & Hole
+                    ctx.fillStyle = '#f472b6';
+                    ctx.beginPath(); ctx.arc(0, 0, this.radius - 2, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#38bdf8'; ctx.fillRect(-8, -10, 2, 4);
+                    ctx.fillStyle = '#fbbf24'; ctx.fillRect(8, -8, 4, 2);
+                    ctx.fillStyle = '#a3e635'; ctx.fillRect(-10, 5, 4, 2);
+                    ctx.fillStyle = '#1a202c'; // Dark hole
+                    ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill();
+                } else if (currentChar === 'MELON') {
+                    // Flesh & Seeds
+                    ctx.fillStyle = '#f43f5e';
+                    ctx.beginPath(); ctx.arc(0, 0, this.radius - 4, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = 'black';
+                    ctx.beginPath(); ctx.arc(-5, -5, 1.5, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(5, -5, 1.5, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(0, 5, 1.5, 0, Math.PI*2); ctx.fill();
+                } else if (currentChar === 'SUSHI') {
+                    // Salmon Top & Seaweed
+                    ctx.fillStyle = '#f97316';
+                    ctx.fillRect(-this.radius + 2, -12, this.radius*2 - 4, 14);
+                    ctx.strokeStyle = '#ffedd5'; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.moveTo(-10, -10); ctx.lineTo(-4, -2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(6, -2); ctx.stroke();
+                    ctx.fillStyle = '#111827';
+                    ctx.fillRect(-this.radius, -2, this.radius*2, 6);
+                } else if (currentChar === 'PATTY') {
+                    // Burger Layers
+                    ctx.fillStyle = '#22c55e'; // Lettuce
+                    ctx.fillRect(-this.radius, -4, this.radius*2, 4);
+                    ctx.fillStyle = '#78350f'; // Meat
+                    ctx.fillRect(-this.radius, 0, this.radius*2, 6);
+                    ctx.fillStyle = '#eab308'; // Cheese
+                    ctx.beginPath(); ctx.moveTo(-10, 6); ctx.lineTo(-5, 10); ctx.lineTo(0, 6); ctx.fill();
+                } else if (currentChar === 'BOBA') {
+                    // Tapioca Pearls
+                    ctx.fillStyle = '#451a03';
+                    ctx.beginPath(); ctx.arc(-8, 10, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(0, 12, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(8, 9, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(-4, 6, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(5, 5, 3, 0, Math.PI*2); ctx.fill();
+                }
+                
+                // Eyes
+                ctx.fillStyle = 'white';
+                ctx.beginPath(); ctx.arc(6, -4, 4, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(14, -4, 4, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = 'black';
+                ctx.beginPath(); ctx.arc(7, -4, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(15, -4, 2, 0, Math.PI*2); ctx.fill();
+                
+                // Smile
+                ctx.beginPath(); ctx.arc(10, 2, 5, 0, Math.PI); ctx.strokeStyle = 'black'; ctx.lineWidth = 1.5; ctx.stroke();
+                
+                // Undo rotation for the hat
+                ctx.rotate(-this.rotation);
+                
+                // Beret
+                ctx.fillStyle = cd.hat.primary;
+                ctx.beginPath(); ctx.ellipse(0, -this.radius + 2, 12, 4, 0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = cd.hat.secondary;
+                ctx.beginPath(); ctx.arc(0, -this.radius - 2, 2, 0, Math.PI*2); ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        class Enemy {
+            constructor(x, y, range = 150, biome = 'CITY') {
+                this.x = x; this.startX = x; this.y = y;
+                this.radius = 20; this.range = range;
+                this.speed = 100 + Math.random() * 50;
+                this.dir = 1; this.alive = true; this.bob = 0;
+                this.biome = biome;
+            }
+            update(dt) {
+                this.x += this.speed * this.dir * dt;
+                if (Math.abs(this.x - this.startX) > this.range) this.dir *= -1;
+                this.bob += dt * 5;
+            }
+            draw(ctx) {
+                const config = biomeConfig[this.biome] || biomeConfig['CITY'];
+                ctx.save();
+                ctx.translate(this.x, this.y + Math.sin(this.bob) * 10);
+                ctx.fillStyle = config.enemy;
+                for(let i=0; i<6; i++) {
+                    ctx.beginPath();
+                    ctx.arc(Math.cos(i) * 12, Math.sin(i) * 12, 15, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                ctx.fillStyle = 'white';
+                ctx.fillRect(-10, -5, 6, 4); ctx.fillRect(4, -5, 6, 4);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(-8, -3, 2, 2); ctx.fillRect(6, -3, 2, 2);
+                ctx.restore();
+            }
+        }
+
+        class DrawnSegment {
+            constructor(p1, p2, type = 'PLATFORM', color = '#ef4444') {
+                this.p1 = p1; this.p2 = p2; this.type = type;
+                this.color = color;
+                this.length = p1.dist(p2); this.age = 0;
+                this.maxAge = type === 'PLATFORM' ? 5 : 1.5;
+            }
+            draw(ctx) {
+                let alpha = 1 - (this.age / this.maxAge);
+                if(alpha < 0) alpha = 0;
+                
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                
+                ctx.beginPath();
+                ctx.moveTo(this.p1.x, this.p1.y); ctx.lineTo(this.p2.x, this.p2.y);
+                
+                // Outer Glow
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                
+                // Colored Line
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = this.type === 'PLATFORM' ? 8 : 10;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                // Bright white inner core for maximum visibility
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = alpha * 0.9;
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = this.type === 'PLATFORM' ? 3 : 4;
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+        }
+
+        class StaticBlock {
+            constructor(x, y, w, h, type = 'building', biome = 'CITY') {
+                this.x = x; this.y = y; this.w = w; this.h = h; this.type = type; this.biome = biome;
+                this.edges = [
+                    {p1: new Vector(x, y), p2: new Vector(x+w, y)},
+                    {p1: new Vector(x+w, y), p2: new Vector(x+w, y+h)},
+                    {p1: new Vector(x+w, y+h), p2: new Vector(x, y+h)},
+                    {p1: new Vector(x, y+h), p2: new Vector(x, y)}
+                ];
+                this.windows = [];
+                if (this.type === 'building') {
+                    for(let wx = this.x + 10; wx < this.x + this.w - 10; wx += 30) {
+                        for(let wy = this.y + 10; wy < this.y + this.h - 10; wy += 40) {
+                            if(Math.random() > 0.3) this.windows.push({x: wx, y: wy});
+                        }
+                    }
+                }
+            }
+            draw(ctx) {
+                const config = biomeConfig[this.biome] || biomeConfig['CITY'];
+                if (this.type === 'ground') {
+                    ctx.fillStyle = config.ground; 
+                    ctx.fillRect(this.x, this.y, this.w, this.h);
+                    ctx.fillStyle = config.groundEdge;
+                    ctx.fillRect(this.x, this.y, this.w, 4);
+                } else if (this.type === 'building') {
+                    ctx.fillStyle = config.building;
+                    ctx.fillRect(this.x, this.y, this.w, this.h);
+                    ctx.fillStyle = config.window;
+                    for (let win of this.windows) ctx.fillRect(win.x, win.y, 15, 20);
+                }
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color, isBurst = false) {
+                this.x = x; this.y = y;
+                this.vx = isBurst ? (Math.random() - 0.5) * 450 : (Math.random() - 0.5) * 200;
+                this.vy = isBurst ? (Math.random() - 1) * 200 : (Math.random() - 1) * 200;
+                this.life = 1.0; this.color = color; this.size = Math.random() * 5 + 2;
+            }
+            update(dt) { this.x += this.vx * dt; this.y += this.vy * dt; this.life -= dt * 2; }
+            draw(ctx) {
+                ctx.globalAlpha = Math.max(0, this.life); ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        let player, drawnLines = [], staticBlocks = [], particles = [], enemies = [];
+        let currentLine = null, inkAmount = MAX_INK, camera = { x: 0, y: 0 }, highestX = 0, generationX = 0;
+
+        function initGame() {
+            // Apply Character Info to HUD
+            const cd = CHAR_DATA[currentChar];
+            document.getElementById('hudEmoji').innerText = cd.emoji;
+            document.getElementById('hudName').innerText = cd.name;
+            document.getElementById('hudTitleContainer').className = `font-bold text-xl mb-1 flex items-center gap-2 ${cd.text}`;
+            document.getElementById('hudBox').className = `bg-gray-900/80 p-4 rounded-xl shadow-lg border backdrop-blur-sm transition-colors duration-300 ${cd.border}`;
+
+            // Reset Core Game Elements
+            player = new Player(100, canvas.height / 2);
+            drawnLines = []; staticBlocks = []; particles = []; enemies = [];
+            inkAmount = MAX_INK; camera = { x: 0, y: 0 }; highestX = 0; generationX = -200;
+            currentBiome = 'CITY';
+            staticBlocks.push(new StaticBlock(-200, canvas.height - 150, 800, 300, 'ground', 'CITY'));
+            generationX = 600;
+            
+            // Screen Transitions
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            menuLayer.classList.remove('pointer-events-auto');
+            menuLayer.classList.add('opacity-0', 'pointer-events-none');
+            
+            setTimeout(() => { 
+                menuLayer.classList.add('hidden'); 
+                hud.classList.remove('hidden'); 
+            }, 300);
+
+            gameState = 'PLAYING';
+            lastTime = performance.now();
+            cancelAnimationFrame(animationFrameId);
+            gameLoop(lastTime);
+        }
+
+        function createParticles(x, y, count, color, isBurst = false) {
+            for(let i=0; i<count; i++) particles.push(new Particle(x, y, color, isBurst));
+        }
+
+        function startDrawing() {
+            if (inkAmount <= 0) return;
+            mouse.worldX = mouse.x + camera.x; mouse.worldY = mouse.y + camera.y;
+            currentLine = { points: [new Vector(mouse.worldX, mouse.worldY)] };
+        }
+
+        function drawAction() {
+            if (!currentLine || inkAmount <= 0) return;
+            mouse.worldX = mouse.x + camera.x; mouse.worldY = mouse.y + camera.y;
+            const lastPoint = currentLine.points[currentLine.points.length - 1];
+            const currentPoint = new Vector(mouse.worldX, mouse.worldY);
+            const dist = lastPoint.dist(currentPoint);
+            if (dist > DRAW_MIN_DIST) {
+                if (inkAmount >= dist) {
+                    inkAmount -= dist;
+                    currentLine.points.push(currentPoint);
+                    
+                    // Match line color to the current character's body color
+                    const lineColor = drawMode === 'PLATFORM' ? CHAR_DATA[currentChar].body : '#3b82f6';
+                    
+                    drawnLines.push(new DrawnSegment(lastPoint, currentPoint, drawMode, lineColor));
+                    createParticles(currentPoint.x, currentPoint.y, 1, lineColor);
+                } else { currentLine = null; }
+            }
+        }
+
+        function generateLevel() {
+            const screenW = canvas.width;
+            while (generationX < camera.x + screenW + 800) {
+                const gap = Math.random() * 200 + 100;
+                const width = Math.random() * 400 + 200;
+                const heightChange = (Math.random() - 0.5) * 300;
+                let lastY = canvas.height - 150;
+                for(let i = staticBlocks.length-1; i>=0; i--) { if(staticBlocks[i].type === 'ground') { lastY = staticBlocks[i].y; break; } }
+                let newY = Math.max(200, Math.min(canvas.height + 200, lastY + heightChange));
+                const newX = generationX + gap;
+                
+                if(Math.random() > 0.3) staticBlocks.push(new StaticBlock(newX - 50, newY - 400, width + 100, 800, 'building', currentBiome));
+                staticBlocks.push(new StaticBlock(newX, newY, width, 800, 'ground', currentBiome));
+                
+                if (Math.random() > 0.4) {
+                    enemies.push(new Enemy(newX + 50, newY - 40, width - 100, currentBiome));
+                }
+                generationX = newX + width;
+            }
+        }
+
+        function closestPointOnLineSegment(p, a, b) {
+            let ab = b.sub(a); let t = Math.max(0, Math.min(1, p.sub(a).dot(ab) / ab.dot(ab)));
+            return a.add(ab.mult(t));
+        }
+
+        function handleCollisions() {
+            let pNextCenter = new Vector(player.x, player.y);
+            const checkSegment = (p1, p2, isOneWay) => {
+                const closest = closestPointOnLineSegment(pNextCenter, p1, p2);
+                const dist = pNextCenter.dist(closest);
+                if (dist < player.radius) {
+                    let normal = pNextCenter.sub(closest).normalize();
+                    if (normal.x === 0 && normal.y === 0) normal = new Vector(0, -1);
+                    
+                    if (isOneWay) {
+                        // Allow passing through platforms while moving upward
+                        if (player.vy < 0) return;
+                        
+                        // Calculate the exact upward-facing surface normal of the line
+                        let ab = p2.sub(p1);
+                        let lineNormal = new Vector(-ab.y, ab.x).normalize();
+                        if (lineNormal.y > 0) lineNormal = lineNormal.mult(-1); // Always face UP
+                        
+                        // Snap player perpendicular to the slope, completely fixing the steep angle bug!
+                        pNextCenter = closest.add(lineNormal.mult(player.radius));
+                        
+                        // Use this surface normal for velocity so ramps slide smoothly
+                        normal = lineNormal;
+                    } else {
+                        // Standard collision for solid blocks
+                        const pen = player.radius - dist;
+                        pNextCenter = pNextCenter.add(normal.mult(pen));
+                    }
+                    
+                    const prevVy = player.vy;
+                    const v = new Vector(player.vx, player.vy);
+                    const dot = v.dot(normal);
+                    if (dot < 0) {
+                        // Apply less friction (0.98) on drawn lines (isOneWay), and normal friction (0.8) on regular ground
+                        const friction = (normal.y < -0.5) ? (isOneWay ? 0.98 : 0.8) : 1.0;
+                        const restitution = (normal.y < -0.5) ? 0.0 : 0.2;
+                        player.vx = (v.sub(normal.mult(dot))).x * friction - (normal.mult(dot)).x * restitution;
+                        player.vy = (v.sub(normal.mult(dot))).y * friction - (normal.mult(dot)).y * restitution;
+                        if (normal.y < -0.5) {
+                            if (prevVy > 200) {
+                                player.scaleX = 1.4; player.scaleY = 0.6;
+                                // Match landing particles to the character's body color
+                                const landColor = isOneWay ? CHAR_DATA[currentChar].body : '#64748b';
+                                createParticles(player.x, player.y + player.radius, isOneWay ? 15 : 6, landColor, true);
+                            }
+                            player.groundedTimer = 0.15;
+                            if (Math.abs(player.vy) < 10) player.vy = 0;
+                        }
+                    }
+                }
+            };
+
+            for (let block of staticBlocks) {
+                if (block.type === 'building') continue;
+                if (player.x + player.radius < block.x || player.x - player.radius > block.x + block.w) continue;
+                for (let edge of block.edges) checkSegment(edge.p1, edge.p2, false);
+            }
+            for (let line of drawnLines) {
+                if (line.type === 'PLATFORM') checkSegment(line.p1, line.p2, true);
+            }
+
+            for (let enemy of enemies) {
+                if (!enemy.alive) continue;
+                const d = new Vector(player.x, player.y).dist(new Vector(enemy.x, enemy.y));
+                if (d < player.radius + enemy.radius - 5) {
+                    const eConfig = biomeConfig[currentBiome] || biomeConfig['CITY'];
+                    triggerGameOver(`${CHAR_DATA[currentChar].name} was zapped by a ${eConfig.enemyName}!`);
+                }
+                for (let line of drawnLines) {
+                    if (line.type === 'WEAPON') {
+                        const closest = closestPointOnLineSegment(new Vector(enemy.x, enemy.y), line.p1, line.p2);
+                        if (closest.dist(new Vector(enemy.x, enemy.y)) < enemy.radius + 5) {
+                            enemy.alive = false;
+                            const eConfig = biomeConfig[enemy.biome] || biomeConfig['CITY'];
+                            createParticles(enemy.x, enemy.y, 20, eConfig.enemy, true);
+                        }
+                    }
+                }
+            }
+            player.x = pNextCenter.x; player.y = pNextCenter.y;
+        }
+
+        function update(dt) {
+            if (gameState !== 'PLAYING') return;
+            if (dt > 0.1) dt = 0.1;
+            if (mouse.isDown) drawAction();
+
+            const currentScore = Math.floor(highestX / 50);
+            
+            // Dynamic Biome Switch Check
+            let targetBiome = biomesList.find(b => currentScore >= b.min);
+            if (targetBiome && targetBiome.id !== currentBiome) {
+                currentBiome = targetBiome.id;
+                showBiomeToast(targetBiome.name, targetBiome.color);
+            }
+
+            generateLevel();
+            player.update(dt);
+            handleCollisions();
+            for (let enemy of enemies) if(enemy.alive) enemy.update(dt);
+            for (let i = drawnLines.length - 1; i >= 0; i--) {
+                drawnLines[i].age += dt;
+                if (drawnLines[i].age >= drawnLines[i].maxAge) {
+                    // Increased refund when old lines fade (from 0.4 to 0.8)
+                    inkAmount = Math.min(MAX_INK, inkAmount + drawnLines[i].length * 0.8);
+                    drawnLines.splice(i, 1);
+                }
+            }
+            
+            // Increased passive regeneration rate (400 on ground, 150 in air)
+            if(!mouse.isDown && inkAmount < MAX_INK) inkAmount = Math.min(MAX_INK, inkAmount + (player.groundedTimer > 0 ? 400 : 150) * dt);
+            
+            for(let i = particles.length-1; i>=0; i--) {
+                particles[i].update(dt);
+                if(particles[i].life <= 0) particles.splice(i, 1);
+            }
+            const targetCamX = player.x - canvas.width / 3;
+            if (targetCamX > camera.x) camera.x += (targetCamX - camera.x) * 5 * dt;
+            camera.y += (player.y - canvas.height / 2 - camera.y) * 3 * dt;
+            if (player.x > highestX) highestX = player.x;
+            scoreDisplay.innerText = currentScore;
+            const inkPercent = (inkAmount / MAX_INK) * 100;
+            inkFill.style.width = `${inkPercent}%`;
+            if (player.y > camera.y + canvas.height + 500) triggerGameOver(`${CHAR_DATA[currentChar].name} tumbled into the abyss.`);
+            enemies = enemies.filter(e => e.alive && e.x > camera.x - 1000);
+            staticBlocks = staticBlocks.filter(b => b.x + b.w > camera.x - 1000);
+        }
+
+        function showBiomeToast(name, colorClass) {
+            biomeNameText.innerText = name;
+            biomeNameText.className = colorClass;
+            biomeToast.classList.remove('opacity-0');
+            setTimeout(() => biomeToast.classList.add('opacity-0'), 3000);
+        }
+
+        function draw() {
+            const config = biomeConfig[currentBiome] || biomeConfig['CITY'];
+            if (config.sky1 === config.sky2) {
+                ctx.fillStyle = config.sky1;
+            } else {
+                const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                grad.addColorStop(0, config.sky1); 
+                grad.addColorStop(1, config.sky2); 
+                ctx.fillStyle = grad;
+            }
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save(); ctx.translate(-camera.x, -camera.y);
+            for (let block of staticBlocks) block.draw(ctx);
+            for (let line of drawnLines) line.draw(ctx);
+            
+            // Draw actively drawing line
+            if (currentLine && currentLine.points.length > 0) {
+                ctx.beginPath(); ctx.moveTo(currentLine.points[0].x, currentLine.points[0].y);
+                for(let i=1; i<currentLine.points.length; i++) ctx.lineTo(currentLine.points[i].x, currentLine.points[i].y);
+                
+                // Colored outline matching the character
+                ctx.strokeStyle = drawMode === 'PLATFORM' ? CHAR_DATA[currentChar].body : '#3b82f6'; 
+                ctx.lineWidth = drawMode === 'PLATFORM' ? 8 : 10; 
+                ctx.lineCap = 'round'; 
+                ctx.stroke();
+                
+                // Bright white inner core
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = drawMode === 'PLATFORM' ? 3 : 4;
+                ctx.stroke();
+            }
+            
+            for (let e of enemies) if(e.alive) e.draw(ctx);
+            for (let p of particles) p.draw(ctx);
+            player.draw(ctx);
+            ctx.restore();
+        }
+
+        function gameLoop(time) {
+            const dt = (time - lastTime) / 1000; lastTime = time;
+            update(dt); draw();
+            if (gameState === 'PLAYING') animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function triggerGameOver(reason) {
+            gameState = 'GAMEOVER';
+            
+            // Setup Game Over UI
+            deathReason.innerText = reason;
+            finalScore.innerText = scoreDisplay.innerText + 'm';
+            hud.classList.add('hidden');
+            
+            // Hide Start Screen
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.remove('hidden');
+            
+            // Show Menu Layer
+            menuLayer.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+            menuLayer.classList.add('pointer-events-auto');
+        }
+
+        startBtn.addEventListener('click', initGame);
+        restartBtn.addEventListener('click', initGame);
+        changeCharBtn.addEventListener('click', () => {
+            gameOverScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
