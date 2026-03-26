@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Temple Crossing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #1a202c; /* Tailwind gray-900 */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none; /* Prevent scrolling on mobile */
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .pointer-events-auto {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui-layer" class="p-6">
+        <div class="flex justify-between items-start">
+            <div class="text-white text-2xl font-bold drop-shadow-md">
+                Score: <span id="scoreDisplay" class="text-4xl text-yellow-400">0</span>
+            </div>
+            <div class="text-white text-xl font-bold drop-shadow-md opacity-80">
+                Best: <span id="highScoreDisplay">0</span>
+            </div>
+        </div>
+
+        <!-- Quick Bridge Change Popup (Shows on Score 0) -->
+        <div id="zeroScorePopup" class="absolute top-24 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-2xl flex-col items-center shadow-xl transition-all duration-300 pointer-events-auto z-30 hidden opacity-0 w-64">
+            <p class="text-gray-300 text-[10px] tracking-widest uppercase mb-2 text-center">Quick Change Bridge</p>
+            <div class="flex gap-2 w-full mb-2">
+                <button id="quickBtnWood" class="flex-1 py-1.5 rounded-md font-bold text-xs transition-all border border-transparent shadow-sm">Wood</button>
+                <button id="quickBtnText" class="flex-1 py-1.5 rounded-md font-bold text-xs transition-all border border-transparent shadow-sm">Text</button>
+            </div>
+            <div id="quickTextOptions" class="w-full flex gap-2 hidden transition-opacity">
+                <input type="text" id="quickTextInput" class="flex-1 bg-black/50 border border-gray-600 rounded-md px-2 py-1 text-white text-xs focus:outline-none focus:border-red-500 shadow-inner" placeholder="Pattern...">
+                <input type="color" id="quickColorInput" class="w-7 h-7 rounded cursor-pointer border-0 bg-transparent p-0 shadow-sm">
+            </div>
+            <p class="text-gray-400 text-[9px] mt-1 text-center w-full uppercase tracking-wider">(Click anywhere else to skip)</p>
+        </div>
+    </div>
+
+    <!-- Nicer Start Screen -->
+    <div id="startScreen" class="absolute inset-0 bg-gray-900/90 backdrop-blur-md flex flex-col items-center justify-center z-20 transition-opacity duration-500 pointer-events-auto">
+        <div class="border-4 border-red-500/30 p-8 rounded-3xl bg-black/50 flex flex-col items-center shadow-2xl shadow-red-900/50 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent"></div>
+            <h1 class="text-6xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-amber-400 to-red-600 mb-0 text-center tracking-tighter drop-shadow-sm">TEMPLE</h1>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-200 mb-8 text-center tracking-widest uppercase">Crossing</h1>
+            
+            <p class="text-gray-300 text-lg mb-8 text-center max-w-sm px-4 font-medium leading-relaxed">
+                Hold <span class="text-white font-bold bg-white/10 px-2 py-1 rounded">Space</span> or <span class="text-white font-bold bg-white/10 px-2 py-1 rounded">Touch</span> to build.<br>
+                Release to cross.
+            </p>
+            
+            <div class="mb-6 flex flex-col items-center">
+                <p class="text-gray-400 text-xs tracking-widest uppercase mb-3">Select Headband</p>
+                <div class="flex gap-4">
+                    <button class="color-select w-8 h-8 rounded-full bg-red-500 border-2 border-transparent transition-all hover:scale-110 opacity-60" data-color="#ef4444"></button>
+                    <button class="color-select w-8 h-8 rounded-full bg-blue-500 border-2 border-transparent transition-all hover:scale-110 opacity-60" data-color="#3b82f6"></button>
+                    <button class="color-select w-8 h-8 rounded-full bg-green-500 border-2 border-transparent transition-all hover:scale-110 opacity-60" data-color="#22c55e"></button>
+                    <button class="color-select w-8 h-8 rounded-full bg-purple-500 border-2 border-transparent transition-all hover:scale-110 opacity-60" data-color="#a855f7"></button>
+                    <button class="color-select w-8 h-8 rounded-full bg-yellow-400 border-2 border-transparent transition-all hover:scale-110 opacity-60" data-color="#facc15"></button>
+                    <button class="color-select w-8 h-8 rounded-full bg-white border-2 border-transparent transition-all hover:scale-110 opacity-60" data-color="#ffffff"></button>
+                </div>
+            </div>
+
+            <div class="mb-8 flex flex-col items-center w-full max-w-sm">
+                <p class="text-gray-400 text-xs tracking-widest uppercase mb-3">Bridge Style</p>
+                <div class="flex gap-3 w-full mb-3">
+                    <button id="btnWoodBridge" class="flex-1 py-2 rounded-lg font-bold text-sm transition-all border-2 border-transparent hover:border-white/50 shadow-md">Medieval Wood</button>
+                    <button id="btnTextBridge" class="flex-1 py-2 rounded-lg font-bold text-sm transition-all border-2 border-transparent hover:border-white/50 shadow-md">Custom Text</button>
+                </div>
+                <div id="textBridgeOptions" class="w-full flex gap-2 transition-opacity">
+                    <input type="text" id="customBridgeTextInput" class="flex-1 bg-black/50 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-red-500 shadow-inner" placeholder="Type pattern...">
+                    <input type="color" id="customBridgeColorInput" class="w-10 h-10 rounded cursor-pointer border-0 bg-transparent p-0 shadow-sm">
+                </div>
+            </div>
+            
+            <button id="startBtn" class="bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-black py-4 px-10 rounded-full shadow-lg shadow-red-600/40 transition-all transform hover:scale-105 active:scale-95 text-xl tracking-wider border border-red-400/30 animate-bounce">
+                ENTER TEMPLE
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Over Screen (Auto Restarts) -->
+    <div id="gameOverScreen" class="absolute inset-0 bg-red-950/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 opacity-0 pointer-events-none transition-opacity duration-300">
+        <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-2 text-center tracking-tight">GAME <span class="text-red-500">OVER</span></h1>
+        
+        <div class="flex flex-col items-center mt-4 bg-black/50 p-8 rounded-2xl border border-red-500/20 shadow-2xl">
+            <p class="text-gray-400 text-sm mb-1 uppercase tracking-widest">Final Score</p>
+            <p id="finalScore" class="text-7xl text-amber-400 font-bold mb-2 drop-shadow-lg">0</p>
+            <p id="newBestMsg" class="text-green-400 font-bold hidden animate-pulse bg-green-400/10 px-4 py-1 rounded-full text-sm mt-2">NEW BEST!</p>
+        </div>
+        
+        <p class="text-gray-400 mt-10 text-sm uppercase tracking-widest animate-pulse">Restarting...</p>
+    </div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI Elements
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+    const startScreen = document.getElementById('startScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const finalScore = document.getElementById('finalScore');
+    const newBestMsg = document.getElementById('newBestMsg');
+    const startBtn = document.getElementById('startBtn');
+    
+    // Quick Change Popup Elements
+    const zeroScorePopup = document.getElementById('zeroScorePopup');
+    const quickBtnWood = document.getElementById('quickBtnWood');
+    const quickBtnText = document.getElementById('quickBtnText');
+    const quickTextOptions = document.getElementById('quickTextOptions');
+    const quickTextInput = document.getElementById('quickTextInput');
+    const quickColorInput = document.getElementById('quickColorInput');
+
+    // Game Constants
+    const HERO_SIZE = 24;
+    const PLATFORM_HEIGHT = 0.3; // 30% of screen height
+    const MIN_PLATFORM_WIDTH = 40;
+    const MAX_PLATFORM_WIDTH = 120;
+    const MIN_DISTANCE = 40;
+    const MAX_DISTANCE = 250;
+    const FORGIVENESS_MARGIN = 8; // Pixels of leniency for landing on edges
+
+    // Game State Variables
+    let gameWidth, gameHeight, platformY;
+    let score = 0;
+    let highScore = localStorage.getItem('bridgeHighScore') || 0;
+    let currentHeadbandColor = localStorage.getItem('ninjaHeadbandColor') || '#ef4444';
+    let bridgeType = localStorage.getItem('ninjaBridgeType') || 'wood';
+    let bridgeText = localStorage.getItem('ninjaBridgeText') !== null ? localStorage.getItem('ninjaBridgeText') : '';
+    let bridgeTextColor = localStorage.getItem('ninjaBridgeTextColor') || '#000000';
+    let phase = 'start'; // start, initializing, waiting, stretching, turning, walking, transitioning, falling
+    let lastTime = 0;
+    let cameraX = 0;
+    let bgTransition = 0;
+
+    // Entities
+    let pillars = [];
+    let stick = { length: 0, angle: 0, maxAngle: 90 };
+    let hero = { x: 0, y: 0, velocityY: 0 };
+    let particles = [];
+    let floatingTexts = [];
+
+    // Configuration Speeds
+    const stretchSpeed = 0.35; // px per ms
+    const turnSpeed = 0.003; // rad per ms
+    const walkSpeed = 0.25; // px per ms
+    const fallSpeed = 0.002; // gravity
+    const panSpeed = 0.5; // px per ms
+
+    highScoreDisplay.innerText = highScore;
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        gameWidth = canvas.width;
+        gameHeight = canvas.height;
+        platformY = gameHeight * (1 - PLATFORM_HEIGHT);
+        
+        // If resizing during start, reset to adjust layout
+        if (phase === 'start') {
+            initGame(false);
+            phase = 'start'; // FIX: Force the phase to stay 'start' so the button works!
+        }
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function initGame(resetScore = true) {
+        if (resetScore) {
+            score = 0;
+            updateScore();
+        }
+        
+        lastTime = 0; // Reset time so physics don't jump
+        cameraX = 0;
+        bgTransition = 0;
+        stick = { length: 0, angle: 0, maxAngle: 90 * Math.PI / 180 };
+        hero.velocityY = 0;
+        particles = [];
+        floatingTexts = [];
+
+        // Generate first two pillars
+        pillars = [];
+        const firstPillarWidth = 100;
+        pillars.push({
+            x: 50,
+            width: firstPillarWidth,
+            hit: false,
+            isTemple: false
+        });
+        
+        generateNextPillar();
+
+        hero.x = pillars[0].x + pillars[0].width - HERO_SIZE - 5;
+        hero.y = platformY - HERO_SIZE;
+
+        phase = 'waiting';
+        draw(); // Initial draw
+
+        if (resetScore) {
+            showZeroScorePopup();
+        }
+    }
+
+    function showZeroScorePopup() {
+        zeroScorePopup.classList.remove('hidden', 'opacity-0');
+        zeroScorePopup.classList.add('flex', 'opacity-100');
+    }
+
+    function hideZeroScorePopup() {
+        zeroScorePopup.classList.add('hidden', 'opacity-0');
+        zeroScorePopup.classList.remove('flex', 'opacity-100');
+    }
+
+    function generateNextPillar() {
+        const lastPillar = pillars[pillars.length - 1];
+        
+        // Ensure distance isn't larger than screen space
+        const maxDist = Math.min(MAX_DISTANCE, gameWidth - (lastPillar.x + lastPillar.width) - MIN_PLATFORM_WIDTH - 20);
+        const actualMaxDist = Math.max(MIN_DISTANCE + 20, maxDist);
+        
+        const distance = MIN_DISTANCE + Math.random() * (actualMaxDist - MIN_DISTANCE);
+        let width = MIN_PLATFORM_WIDTH + Math.random() * (MAX_PLATFORM_WIDTH - MIN_PLATFORM_WIDTH);
+        
+        let isTemple = false;
+        if (score === 19) {
+            isTemple = true;
+            width = Math.max(width, 140); // Ensure it's wide enough for the gate
+        }
+        
+        const x = lastPillar.x + lastPillar.width + distance;
+        
+        pillars.push({
+            x: x,
+            width: width,
+            hit: false,
+            isTemple: isTemple
+        });
+    }
+
+    function updateScore() {
+        scoreDisplay.innerText = score;
+    }
+
+    function createParticles(x, y, color) {
+        for (let i = 0; i < 20; i++) {
+            particles.push({
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 5,
+                vy: (Math.random() - 1) * 5,
+                life: 1,
+                color: color
+            });
+        }
+    }
+
+    function createFloatingText(x, y, text, color, life = 1, size = 24) {
+        floatingTexts.push({
+            x: x,
+            y: y,
+            text: text,
+            color: color,
+            life: life,
+            maxLife: life,
+            size: size
+        });
+    }
+
+    // --- GAME LOOP ---
+    function loop(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        // Cap dt to prevent huge physics jumps if the browser lags or tab is changed
+        const dt = Math.min(timestamp - lastTime, 50);
+        lastTime = timestamp;
+
+        if (phase !== 'start' && phase !== 'gameover' && phase !== 'initializing') {
+            update(dt);
+            draw();
+        }
+        
+        requestAnimationFrame(loop);
+    }
+
+    function update(dt) {
+        if (score >= 20) {
+            bgTransition = Math.min(1, bgTransition + 0.0005 * dt); // slow crossfade
+        }
+
+        const currentPillar = pillars[0];
+        const nextPillar = pillars[1];
+        const stickBaseX = currentPillar.x + currentPillar.width;
+
+        switch (phase) {
+            case 'stretching':
+                stick.length += stretchSpeed * dt;
+                break;
+                
+            case 'turning':
+                stick.angle += turnSpeed * dt;
+                if (stick.angle >= stick.maxAngle) {
+                    stick.angle = stick.maxAngle;
+                    phase = 'walking';
+                }
+                break;
+                
+            case 'walking':
+                hero.x += walkSpeed * dt;
+                
+                // Determine destination
+                const stickEnd = stickBaseX + stick.length;
+                // Added FORGIVENESS_MARGIN to give players a little leeway if they are very close
+                const isHit = stickEnd >= (nextPillar.x - FORGIVENESS_MARGIN) && stickEnd <= (nextPillar.x + nextPillar.width + FORGIVENESS_MARGIN);
+                
+                let targetX;
+                if (isHit) {
+                    targetX = nextPillar.x + nextPillar.width - HERO_SIZE - 5;
+                } else {
+                    targetX = stickBaseX + stick.length;
+                }
+
+                if (hero.x >= targetX) {
+                    hero.x = targetX;
+                    if (isHit) {
+                        if (!nextPillar.hit) {
+                            nextPillar.hit = true; // Mark as processed
+                            score += 1;
+                            if (score === 20) {
+                                createFloatingText(canvas.width / 2, platformY - 150, `THE TEMPLE`, '#4ade80', 3, 40);
+                            } else {
+                                createFloatingText(stickEnd, platformY - 20, `+1`, '#ffffff', 1, 24);
+                            }
+                        }
+                        updateScore();
+                        phase = 'transitioning';
+                    } else {
+                        phase = 'falling';
+                    }
+                }
+                break;
+                
+            case 'transitioning':
+                const panDistance = panSpeed * dt;
+                cameraX += panDistance;
+                
+                // Move elements left by panning distance logically
+                hero.x -= panDistance;
+                pillars.forEach(p => {
+                    p.x -= panDistance;
+                });
+                
+                // If the next pillar is now where the first pillar started
+                if (pillars[1].x <= 50) {
+                    // Snap it exactly
+                    const diff = 50 - pillars[1].x;
+                    hero.x += diff;
+                    pillars.forEach(p => {
+                        p.x += diff;
+                    });
+                    
+                    // Remove old pillar, setup for next
+                    pillars.shift();
+                    stick.length = 0;
+                    stick.angle = 0;
+                    generateNextPillar();
+                    phase = 'waiting';
+                }
+                break;
+
+            case 'falling':
+                hero.velocityY += fallSpeed * dt;
+                hero.y += hero.velocityY * dt;
+                stick.angle += turnSpeed * 1.5 * dt; // Stick falls too
+                
+                if (hero.y > gameHeight) {
+                    endGame();
+                }
+                break;
+        }
+
+        // Update Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.1; // gravity
+            p.life -= 0.02;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // Update Floating Texts
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            let ft = floatingTexts[i];
+            ft.y -= 1;
+            ft.life -= 0.02 * (1 / ft.maxLife);
+            if (ft.life <= 0) floatingTexts.splice(i, 1);
+        }
+    }
+
+    function draw() {
+        // Clear background
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        drawSunset();
+        if (bgTransition > 0) {
+            drawForest(bgTransition);
+        }
+
+        // Draw Pillars (Temple Stone)
+        pillars.forEach(pillar => {
+            // Pillar body
+            ctx.fillStyle = '#1c1917'; // stone-900
+            ctx.beginPath();
+            ctx.rect(pillar.x, platformY, pillar.width, gameHeight - platformY);
+            ctx.fill();
+
+            // Pillar top accent
+            ctx.fillStyle = '#44403c'; // stone-700
+            ctx.fillRect(pillar.x, platformY, pillar.width, 12);
+            
+            // Stone details (simple vertical lines)
+            ctx.fillStyle = '#292524';
+            ctx.fillRect(pillar.x + 5, platformY + 12, 4, gameHeight - platformY);
+            ctx.fillRect(pillar.x + pillar.width - 9, platformY + 12, 4, gameHeight - platformY);
+
+            if (pillar.isTemple) {
+                ctx.fillStyle = '#9f1239'; // rose-800
+                const gateHeight = 110;
+                ctx.fillRect(pillar.x + 15, platformY - gateHeight, 12, gateHeight);
+                ctx.fillRect(pillar.x + pillar.width - 27, platformY - gateHeight, 12, gateHeight);
+                
+                // crossbars
+                ctx.fillStyle = '#be123c'; // rose-700
+                ctx.fillRect(pillar.x + 5, platformY - gateHeight + 25, pillar.width - 10, 12); // bottom
+                ctx.fillRect(pillar.x - 5, platformY - gateHeight + 5, pillar.width + 10, 16); // top
+                
+                // roof
+                ctx.fillStyle = '#1c1917'; // stone-900
+                ctx.fillRect(pillar.x - 10, platformY - gateHeight - 5, pillar.width + 20, 10);
+            }
+        });
+
+        // Draw Stick (Bridge)
+        if (stick.length > 0) {
+            const currentPillar = pillars[0];
+            const stickBaseX = currentPillar.x + currentPillar.width;
+            
+            ctx.save();
+            ctx.translate(stickBaseX, platformY);
+            ctx.rotate(stick.angle); 
+            
+            if (bridgeType === 'wood') {
+                const bridgeThickness = 12;
+
+                // Main side support beams
+                ctx.fillStyle = '#291002'; // very dark brown
+                ctx.fillRect(0, -stick.length, 3, stick.length);
+                ctx.fillRect(bridgeThickness - 3, -stick.length, 3, stick.length);
+
+                // Logs laid across the bridge
+                for (let i = 4; i < stick.length; i += 14) {
+                    // Main log body
+                    ctx.fillStyle = '#78350f'; // warm brown
+                    ctx.fillRect(-3, -i, bridgeThickness + 6, 8);
+                    
+                    // Log bottom shadow for 3D depth
+                    ctx.fillStyle = '#291002'; 
+                    ctx.fillRect(-3, -i + 6, bridgeThickness + 6, 2);
+                    
+                    // Log top highlight
+                    ctx.fillStyle = '#92400e'; 
+                    ctx.fillRect(-3, -i, bridgeThickness + 6, 2);
+                    
+                    // Ceremonial ropes tying the logs to the support beams (matches headband)
+                    ctx.fillStyle = currentHeadbandColor; 
+                    ctx.fillRect(-1, -i + 2, 3, 4); // left tie
+                    ctx.fillRect(bridgeThickness - 2, -i + 2, 3, 4); // right tie
+                }
+            } else {
+                // The stick grows UP visually (-Y axis). We rotate -90 deg so the text draws along the length.
+                ctx.rotate(-Math.PI / 2);
+
+                // Clip the drawing area so the text "grows" and stops exactly at the stick's current length
+                ctx.beginPath();
+                ctx.rect(0, -20, stick.length, 40);
+                ctx.clip();
+
+                ctx.fillStyle = bridgeTextColor;
+                ctx.font = 'bold 16px monospace';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                
+                // Give the text a shadow so it pops against the sunset and forest backgrounds
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+
+                const pattern = bridgeText.trim() !== '' ? bridgeText : '_';
+                
+                // Ensure the string repeats if the player stretches the bridge super long
+                let fullText = pattern;
+                while(ctx.measureText(fullText).width < stick.length && fullText.length < 500) {
+                    fullText += " " + pattern;
+                }
+
+                // Draw the text where the center of the old bridge used to be
+                ctx.fillText(fullText, 0, 6);
+            }
+            
+            ctx.restore();
+        }
+
+        // Draw Hero (Ninja)
+        ctx.save();
+        ctx.translate(hero.x, hero.y);
+        
+        // Body
+        ctx.fillStyle = '#000000'; // black
+        ctx.beginPath();
+        ctx.roundRect(0, 0, HERO_SIZE, HERO_SIZE, 4);
+        ctx.fill();
+        
+        // Headband
+        ctx.fillStyle = currentHeadbandColor;
+        ctx.fillRect(-2, 4, HERO_SIZE + 4, 6);
+        
+        // Headband tail (flapping in wind if moving/falling, static if waiting)
+        if (phase === 'walking' || phase === 'falling' || phase === 'transitioning') {
+            ctx.fillRect(-12, 4, 10, 4);
+            ctx.fillRect(-10, 8, 6, 3);
+        } else {
+            ctx.fillRect(-6, 4, 4, 10);
+            ctx.fillRect(-4, 12, 3, 6);
+        }
+        
+        // Eyes
+        ctx.fillStyle = 'white';
+        if (phase === 'falling') {
+            // Surprised eyes
+            ctx.fillRect(4, 12, 6, 6);
+            ctx.fillRect(14, 12, 6, 6);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(6, 14, 2, 2);
+            ctx.fillRect(16, 14, 2, 2);
+        } else {
+            // Focused ninja eye slit
+            ctx.fillRect(12, 12, 8, 6);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(16, 14, 3, 3);
+        }
+        
+        ctx.restore();
+
+        // Draw Particles
+        particles.forEach(p => {
+            ctx.globalAlpha = p.life;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+
+        // Draw Floating Texts
+        ctx.textAlign = "center";
+        floatingTexts.forEach(ft => {
+            ctx.globalAlpha = Math.max(0, Math.min(1, ft.life));
+            ctx.fillStyle = ft.color;
+            ctx.font = `bold ${ft.size}px Arial`;
+            ctx.shadowColor = 'black';
+            ctx.shadowBlur = 4;
+            ctx.fillText(ft.text, ft.x, ft.y);
+        });
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+    }
+
+    function drawSunset() {
+        // Draw Sky Gradient (Sunset)
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#f59e0b'); // amber-500
+        gradient.addColorStop(0.5, '#ef4444'); // red-500
+        gradient.addColorStop(1, '#4c0519'); // rose-950
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Sun
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height * 0.4, 100, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height * 0.4, 70, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw Distant Mountains (Parallax)
+        ctx.fillStyle = '#7f1d1d'; // dark red
+        ctx.beginPath();
+        ctx.moveTo(0, platformY);
+        for (let i = 0; i <= canvas.width + 50; i += 40) {
+            let heightOffset = Math.sin((i + cameraX * 0.2) * 0.05) * 40 + Math.cos((i + cameraX * 0.2) * 0.1) * 20;
+            ctx.lineTo(i, platformY - 80 + heightOffset);
+        }
+        ctx.lineTo(canvas.width + 50, platformY);
+        ctx.fill();
+
+        // Draw Foreground Mountains (Parallax)
+        ctx.fillStyle = '#450a0a'; // darker red
+        ctx.beginPath();
+        ctx.moveTo(0, platformY);
+        for (let i = 0; i <= canvas.width + 50; i += 30) {
+            let heightOffset = Math.sin((i + cameraX * 0.5) * 0.08) * 30 + Math.cos((i + cameraX * 0.5) * 0.15) * 15;
+            ctx.lineTo(i, platformY - 40 + heightOffset);
+        }
+        ctx.lineTo(canvas.width + 50, platformY);
+        ctx.fill();
+    }
+
+    function drawForest(alpha) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#020617'); // slate-950
+        gradient.addColorStop(0.5, '#064e3b'); // emerald-900
+        gradient.addColorStop(1, '#022c22'); // emerald-950
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Moon
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.beginPath();
+        ctx.arc(canvas.width * 0.7, canvas.height * 0.3, 60, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.beginPath();
+        ctx.arc(canvas.width * 0.7, canvas.height * 0.3, 100, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Distant Forest Canopy
+        ctx.fillStyle = '#065f46'; // emerald-800
+        ctx.beginPath();
+        ctx.moveTo(0, platformY);
+        for (let i = 0; i <= canvas.width + 50; i += 20) {
+            let heightOffset = Math.sin((i + cameraX * 0.2) * 0.1) * 25 + Math.cos((i + cameraX * 0.2) * 0.2) * 20;
+            ctx.lineTo(i, platformY - 70 + heightOffset);
+        }
+        ctx.lineTo(canvas.width + 50, platformY);
+        ctx.fill();
+
+        // Foreground Forest Canopy
+        ctx.fillStyle = '#022c22'; // emerald-950
+        ctx.beginPath();
+        ctx.moveTo(0, platformY);
+        for (let i = 0; i <= canvas.width + 50; i += 20) {
+            let heightOffset = Math.sin((i + cameraX * 0.5) * 0.15) * 35 + Math.cos((i + cameraX * 0.5) * 0.3) * 15;
+            ctx.lineTo(i, platformY - 30 + heightOffset);
+        }
+        ctx.lineTo(canvas.width + 50, platformY);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    // --- GAME CONTROL LOGIC ---
+    function handleInputStart() {
+        if (phase === 'waiting') {
+            hideZeroScorePopup(); // Hide the quick popup immediately when starting
+            phase = 'stretching';
+        }
+    }
+
+    function handleInputEnd() {
+        if (phase === 'stretching') {
+            phase = 'turning';
+        }
+    }
+
+    function endGame() {
+        phase = 'gameover';
+        
+        // Check Highscore
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('bridgeHighScore', highScore);
+            highScoreDisplay.innerText = highScore;
+            newBestMsg.classList.remove('hidden');
+        } else {
+            newBestMsg.classList.add('hidden');
+        }
+
+        finalScore.innerText = score;
+        
+        // Show Game Over UI
+        gameOverScreen.classList.remove('opacity-0', 'pointer-events-none');
+        gameOverScreen.classList.add('opacity-100', 'pointer-events-auto');
+        
+        // Auto restart after a shorter delay (1.5x faster)
+        setTimeout(() => {
+            gameOverScreen.classList.remove('opacity-100', 'pointer-events-auto');
+            gameOverScreen.classList.add('opacity-0', 'pointer-events-none');
+            
+            setTimeout(() => {
+                initGame(true);
+            }, 300); // Wait for fade out
+        }, 500); // 0.5 seconds delay (was 750)
+    }
+
+    // --- EVENT LISTENERS ---
+    
+    // Mouse
+    canvas.addEventListener('mousedown', handleInputStart);
+    canvas.addEventListener('mouseup', handleInputEnd);
+    
+    // Touch
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // Prevent scroll/zoom
+        handleInputStart();
+    }, {passive: false});
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handleInputEnd();
+    }, {passive: false});
+
+    // Keyboard
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            // Allow typing space in the bridge text inputs!
+            if (document.activeElement === customBridgeTextInput || document.activeElement === quickTextInput) {
+                return; 
+            }
+            e.preventDefault(); // Prevent page scroll
+            // Spacebar now ONLY grows the bridge. It does not start the game.
+            handleInputStart(); 
+        }
+    });
+    window.addEventListener('keyup', (e) => {
+        if (e.code === 'Space') {
+            if (document.activeElement === customBridgeTextInput || document.activeElement === quickTextInput) {
+                return; 
+            }
+            e.preventDefault();
+            handleInputEnd();
+        }
+    });
+
+    // UI Buttons
+    startBtn.addEventListener('click', () => {
+        if (phase !== 'start') return;
+        
+        phase = 'initializing';
+        startScreen.classList.remove('opacity-100', 'pointer-events-auto');
+        startScreen.classList.add('opacity-0', 'pointer-events-none');
+        
+        setTimeout(() => {
+            initGame(true);
+        }, 500); // Wait for fade out
+    });
+
+    // Color Selector Logic
+    const colorBtns = document.querySelectorAll('.color-select');
+    function updateColorSelection() {
+        colorBtns.forEach(btn => {
+            if (btn.dataset.color === currentHeadbandColor) {
+                btn.classList.add('border-white', 'opacity-100', 'scale-110', 'shadow-lg', 'shadow-white/20');
+                btn.classList.remove('border-transparent', 'opacity-60');
+            } else {
+                btn.classList.remove('border-white', 'opacity-100', 'scale-110', 'shadow-lg', 'shadow-white/20');
+                btn.classList.add('border-transparent', 'opacity-60');
+            }
+        });
+        if (phase === 'start') draw(); // Update ninja in background instantly
+    }
+
+    colorBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent clicking from triggering gameplay events accidentally
+            currentHeadbandColor = btn.dataset.color;
+            localStorage.setItem('ninjaHeadbandColor', currentHeadbandColor);
+            updateColorSelection();
+        });
+    });
+    updateColorSelection(); // Set initial active UI
+
+    // Bridge Customization Logic
+    const btnWoodBridge = document.getElementById('btnWoodBridge');
+    const btnTextBridge = document.getElementById('btnTextBridge');
+    const textBridgeOptions = document.getElementById('textBridgeOptions');
+    const customBridgeTextInput = document.getElementById('customBridgeTextInput');
+    const customBridgeColorInput = document.getElementById('customBridgeColorInput');
+
+    customBridgeTextInput.value = bridgeText;
+    customBridgeColorInput.value = bridgeTextColor;
+    quickTextInput.value = bridgeText;
+    quickColorInput.value = bridgeTextColor;
+
+    function syncBridgeUI() {
+        // Update Start Screen Buttons
+        if (bridgeType === 'wood') {
+            btnWoodBridge.classList.add('bg-rose-700', 'text-white', 'border-rose-400');
+            btnWoodBridge.classList.remove('bg-black/50', 'text-stone-400', 'border-transparent');
+            btnTextBridge.classList.remove('bg-rose-700', 'text-white', 'border-rose-400');
+            btnTextBridge.classList.add('bg-black/50', 'text-stone-400', 'border-transparent');
+            textBridgeOptions.classList.add('hidden');
+            textBridgeOptions.classList.remove('flex');
+            
+            // Update Quick Popup Buttons
+            quickBtnWood.classList.add('bg-rose-700', 'text-white', 'border-rose-400');
+            quickBtnWood.classList.remove('bg-black/50', 'text-stone-400', 'border-transparent');
+            quickBtnText.classList.remove('bg-rose-700', 'text-white', 'border-rose-400');
+            quickBtnText.classList.add('bg-black/50', 'text-stone-400', 'border-transparent');
+            quickTextOptions.classList.add('hidden');
+            quickTextOptions.classList.remove('flex');
+        } else {
+            btnTextBridge.classList.add('bg-rose-700', 'text-white', 'border-rose-400');
+            btnTextBridge.classList.remove('bg-black/50', 'text-stone-400', 'border-transparent');
+            btnWoodBridge.classList.remove('bg-rose-700', 'text-white', 'border-rose-400');
+            btnWoodBridge.classList.add('bg-black/50', 'text-stone-400', 'border-transparent');
+            textBridgeOptions.classList.remove('hidden');
+            textBridgeOptions.classList.add('flex');
+            
+            // Update Quick Popup Buttons
+            quickBtnText.classList.add('bg-rose-700', 'text-white', 'border-rose-400');
+            quickBtnText.classList.remove('bg-black/50', 'text-stone-400', 'border-transparent');
+            quickBtnWood.classList.remove('bg-rose-700', 'text-white', 'border-rose-400');
+            quickBtnWood.classList.add('bg-black/50', 'text-stone-400', 'border-transparent');
+            quickTextOptions.classList.remove('hidden');
+            quickTextOptions.classList.add('flex');
+        }
+        
+        // Sync values
+        customBridgeTextInput.value = bridgeText;
+        customBridgeColorInput.value = bridgeTextColor;
+        quickTextInput.value = bridgeText;
+        quickColorInput.value = bridgeTextColor;
+        
+        if (phase === 'start' || phase === 'waiting') draw(); // Update preview
+    }
+
+    function setBridgeType(type) {
+        bridgeType = type;
+        localStorage.setItem('ninjaBridgeType', type);
+        syncBridgeUI();
+    }
+
+    function setBridgeText(text) {
+        bridgeText = text;
+        localStorage.setItem('ninjaBridgeText', text);
+        if (phase === 'start' || phase === 'waiting') draw();
+    }
+
+    function setBridgeColor(color) {
+        bridgeTextColor = color;
+        localStorage.setItem('ninjaBridgeTextColor', color);
+        if (phase === 'start' || phase === 'waiting') draw();
+    }
+
+    // Start Screen Listeners
+    btnWoodBridge.addEventListener('click', (e) => { e.stopPropagation(); setBridgeType('wood'); });
+    btnTextBridge.addEventListener('click', (e) => { e.stopPropagation(); setBridgeType('text'); });
+    customBridgeTextInput.addEventListener('input', (e) => setBridgeText(e.target.value));
+    customBridgeColorInput.addEventListener('input', (e) => setBridgeColor(e.target.value));
+    customBridgeTextInput.addEventListener('click', (e) => e.stopPropagation());
+    customBridgeColorInput.addEventListener('click', (e) => e.stopPropagation());
+
+    // Quick Popup Listeners
+    quickBtnWood.addEventListener('click', (e) => { e.stopPropagation(); setBridgeType('wood'); });
+    quickBtnText.addEventListener('click', (e) => { e.stopPropagation(); setBridgeType('text'); });
+    quickTextInput.addEventListener('input', (e) => setBridgeText(e.target.value));
+    quickColorInput.addEventListener('input', (e) => setBridgeColor(e.target.value));
+    quickTextInput.addEventListener('click', (e) => e.stopPropagation());
+    quickColorInput.addEventListener('click', (e) => e.stopPropagation());
+    
+    // Prevent clicking popup background from triggering game start
+    zeroScorePopup.addEventListener('mousedown', (e) => e.stopPropagation());
+    zeroScorePopup.addEventListener('touchstart', (e) => e.stopPropagation());
+
+    syncBridgeUI(); // Initialize UI
+
+    // Initial render setup
+    resize();
+    requestAnimationFrame(loop);
+
+</script>
+</body>
+</html>
