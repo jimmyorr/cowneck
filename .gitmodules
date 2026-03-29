@@ -1,3 +1,6 @@
 [submodule "games/chill-flight"]
 	path = games/chill-flight
 	url = https://github.com/jimmyorr/chill-flight.git
+[submodule "birds"]
+	path = birds
+	url = https://github.com/jimmyorr/birds.git
