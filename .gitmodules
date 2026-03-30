@@ -4,3 +4,6 @@
 [submodule "birds"]
 	path = birds
 	url = https://github.com/jimmyorr/birds.git
+[submodule "dislikes"]
+	path = dislikes
+	url = https://github.com/jimmyorr/dislikes.git
