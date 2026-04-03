@@ -7,3 +7,9 @@
 [submodule "dislikes"]
 	path = dislikes
 	url = https://github.com/jimmyorr/dislikes.git
+[submodule "paumanok"]
+	path = paumanok
+	url = https://github.com/jimmyorr/paumanok
+[submodule "kid-li"]
+	path = kid-li
+	url = https://github.com/jimmyorr/kid-li
