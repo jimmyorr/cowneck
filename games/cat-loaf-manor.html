@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Loaf Manor: Chronicles of the Crust</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fff5e6;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        .cat-loaf-btn {
+            transition: transform 0.1s ease-in-out;
+            cursor: pointer;
+        }
+
+        .cat-loaf-btn:active {
+            transform: scale(0.95);
+        }
+
+        .floating-text {
+            position: absolute;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            font-weight: bold;
+            color: #d97706;
+            z-index: 50;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+        }
+
+        .house-part {
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+            transform: translateY(30px);
+        }
+
+        .house-part.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #fff5e6;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #fcd34d;
+            border-radius: 10px;
+        }
+
+        .story-entry {
+            animation: fadeIn 1s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+
+<body class="flex flex-col lg:flex-row min-h-screen">
+
+    <!-- Settings Button (Top Right) -->
+    <button onclick="toggleSettings()"
+        class="fixed top-4 right-4 z-50 p-2 bg-amber-100 border-2 border-amber-300 rounded-full text-amber-800 hover:bg-amber-200 shadow-md transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path
+                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+            <circle cx="12" cy="12" r="3" />
+        </svg>
+    </button>
+
+    <!-- Left Side: Clicking Area & Story -->
+    <div
+        class="w-full lg:w-1/3 flex flex-col p-6 bg-amber-50 border-b lg:border-b-0 lg:border-r-4 border-amber-200 overflow-y-auto h-screen">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-amber-800">Cat Loaf Manor</h1>
+            <p class="text-amber-600 italic">The Legend of the Golden Loaf</p>
+        </div>
+
+        <div class="flex flex-col items-center mb-8">
+            <div id="loaf-clicker" class="cat-loaf-btn w-48 h-48 lg:w-56 lg:h-56 relative">
+                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M40,120 Q40,60 100,60 Q160,60 160,120 L160,140 Q160,160 140,160 L60,160 Q40,160 40,140 Z"
+                        fill="#d97706" stroke="#92400e" stroke-width="4" />
+                    <path d="M55,75 L40,40 L75,65 Z" fill="#d97706" stroke="#92400e" stroke-width="4" />
+                    <path d="M145,75 L160,40 L125,65 Z" fill="#d97706" stroke="#92400e" stroke-width="4" />
+                    <circle cx="75" cy="110" r="4" fill="#451a03" />
+                    <circle cx="125" cy="110" r="4" fill="#451a03" />
+                    <path d="M90,125 Q100,135 110,125" fill="none" stroke="#451a03" stroke-width="2" />
+                    <path d="M160,130 Q180,130 180,110" fill="none" stroke="#92400e" stroke-width="4"
+                        stroke-linecap="round" />
+                </svg>
+            </div>
+
+            <div class="bg-white p-4 rounded-3xl shadow-lg border-4 border-amber-200 w-full mt-6 text-center">
+                <div class="text-xs uppercase tracking-widest text-amber-500 font-bold">Cat Loafs Wealth</div>
+                <div id="loaf-count" class="text-4xl font-black text-amber-900 my-1">0</div>
+                <div id="per-second" class="text-amber-700 font-semibold text-sm">1 per second</div>
+                <div id="status-indicator" class="text-[10px] text-amber-400 font-bold mt-2 uppercase tracking-widest">
+                    Starting up...</div>
+            </div>
+        </div>
+
+        <div class="bg-amber-100/50 rounded-2xl p-4 border border-amber-200 flex-1 overflow-y-auto">
+            <h3 class="font-bold text-amber-900 border-b border-amber-200 mb-2 pb-1">Chronicles of the Crust</h3>
+            <div id="story-container" class="space-y-4 text-sm text-amber-800 leading-relaxed italic">
+                <p class="story-entry">"In the beginning, the world was flat and cold, like unrisen dough. Then came the
+                    Great Kneading..."</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: House & Shop -->
+    <div class="w-full lg:w-2/3 flex flex-col h-screen overflow-hidden">
+        <div
+            class="h-1/2 bg-sky-100 flex items-end justify-center relative p-4 border-b-4 border-emerald-400 overflow-hidden">
+            <div class="absolute top-10 left-10 text-white opacity-40 animate-pulse">
+                <svg width="60" height="40" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M17.5,19c-3.037,0-5.5-2.463-5.5-5.5c0-0.101,0.003-0.201,0.008-0.3c-0.231,0.065-0.474,0.1-0.724,0.1c-1.381,0-2.5-1.119-2.5-2.5c0-0.301,0.053-0.589,0.15-0.856C8.528,9.63,8.028,9.5,7.5,9.5c-2.485,0-4.5,2.015-4.5,4.5S5.015,18.5,7.5,18.5H17.5c1.933,0,3.5-1.567,3.5-3.5S19.433,11.5,17.5,11.5c-0.205,0-0.404,0.018-0.597,0.052C16.81,9.756,15.305,8.5,13.5,8.5c-0.153,0-0.304,0.009-0.452,0.027C12.518,7.545,11.341,6.5,10,6.5c-1.933,0-3.5,1.567-3.5,3.5c0,0.119,0.006,0.236,0.018,0.352C5.064,10.669,4,11.961,4,13.5C4,15.433,5.567,17,7.5,17h10c0.828,0,1.5-0.672,1.5-1.5S18.328,14,17.5,14">
+                    </path>
+                </svg>
+            </div>
+
+            <div id="house-canvas" class="relative w-full max-w-lg h-full">
+                <div id="house-garden"
+                    class="house-part absolute bottom-0 left-[-20%] w-[140%] h-12 bg-emerald-500 rounded-full border-b-4 border-emerald-700">
+                </div>
+                <div id="house-fence"
+                    class="house-part absolute bottom-4 left-[-15%] w-[130%] h-10 flex space-x-1 items-end"></div>
+                <div id="house-foundation"
+                    class="house-part absolute bottom-12 left-[15%] w-[70%] h-12 bg-stone-400 border-4 border-stone-600 rounded-sm">
+                </div>
+                <div id="house-walls"
+                    class="house-part absolute bottom-24 left-[15%] w-[70%] h-32 bg-amber-100 border-x-4 border-amber-300">
+                </div>
+                <div id="house-door"
+                    class="house-part absolute bottom-24 left-[42.5%] w-[15%] h-20 bg-orange-800 border-2 border-orange-950 rounded-t-lg z-10">
+                    <div class="absolute top-1/2 right-2 w-2 h-2 bg-yellow-500 rounded-full"></div>
+                </div>
+                <div id="house-window-l"
+                    class="house-part absolute bottom-36 left-[22%] w-[12%] h-12 bg-sky-200 border-2 border-white rounded shadow-inner">
+                </div>
+                <div id="house-window-r"
+                    class="house-part absolute bottom-36 right-[22%] w-[12%] h-12 bg-sky-200 border-2 border-white rounded shadow-inner">
+                </div>
+                <div id="house-balcony"
+                    class="house-part absolute bottom-56 left-[15%] w-[70%] h-4 bg-amber-200 border-y-2 border-amber-400 z-20">
+                </div>
+                <div id="house-top-walls"
+                    class="house-part absolute bottom-60 left-[25%] w-[50%] h-24 bg-amber-50 border-x-4 border-amber-200">
+                </div>
+                <div id="house-roof"
+                    class="house-part absolute bottom-[calc(60px+24px+140px)] left-[10%] w-[80%] h-24 bg-red-700 border-b-4 border-red-900"
+                    style="clip-path: polygon(50% 0%, 0% 100%, 100% 100%);"></div>
+                <div id="house-chimney"
+                    class="house-part absolute bottom-80 right-[28%] w-8 h-16 bg-stone-500 border-x-2 border-stone-700 z-0">
+                </div>
+                <div id="house-mailbox"
+                    class="house-part absolute bottom-8 left-[5%] w-6 h-10 bg-blue-600 rounded-t-sm border-2 border-blue-800 z-30">
+                </div>
+                <div id="house-cat-statue" class="house-part absolute bottom-24 right-[18%] w-10 h-10">
+                    <svg viewBox="0 0 24 24" fill="#d97706">
+                        <path
+                            d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z" />
+                    </svg>
+                </div>
+                <div id="house-solar"
+                    class="house-part absolute bottom-[310px] left-[40%] w-20 h-8 bg-blue-900 border-2 border-blue-400 rounded flex space-x-1 p-1">
+                    <div class="flex-1 bg-blue-500/30"></div>
+                    <div class="flex-1 bg-blue-500/30"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 bg-white flex flex-col overflow-hidden">
+            <div class="flex border-b">
+                <button onclick="showTab('upgrades')" id="tab-upgrades"
+                    class="flex-1 py-3 font-bold text-amber-800 bg-amber-50 border-b-2 border-amber-500">Kneading
+                    Helpers</button>
+                <button onclick="showTab('house')" id="tab-house"
+                    class="flex-1 py-3 font-bold text-amber-600 hover:bg-amber-50">Build Manor</button>
+            </div>
+
+            <div id="content-upgrades" class="p-4 space-y-3 overflow-y-auto flex-1">
+                <div id="helpers-list" class="space-y-3"></div>
+            </div>
+
+            <div id="content-house" class="p-4 space-y-3 overflow-y-auto flex-1 hidden">
+                <div id="shop-house-container" class="space-y-3"></div>
+                <div id="win-message" class="hidden text-center p-8">
+                    <h2 class="text-3xl font-bold text-amber-800">Manor Eternal! 🏰✨</h2>
+                    <p class="text-amber-600 mt-2">The Golden Loaf smiles upon your warm, flaky creation.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-[100] modal-overlay flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border-4 border-amber-200">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-amber-900">Settings</h2>
+                    <button onclick="toggleSettings()" class="text-amber-500 hover:text-amber-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-amber-50 rounded-2xl">
+                        <span class="font-bold text-amber-900">Floating Text</span>
+                        <button onclick="toggleFloatingText()" id="toggle-float-btn"
+                            class="px-4 py-2 bg-amber-500 text-white font-bold rounded-xl text-sm">ON</button>
+                    </div>
+
+                    <div class="p-3 bg-amber-50 rounded-2xl">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-amber-900">Cloud Storage</span>
+                            <span id="last-saved" class="text-[10px] text-amber-600 italic">Never saved</span>
+                        </div>
+                        <button onclick="manualSave()"
+                            class="w-full py-2 bg-amber-600 text-white font-bold rounded-xl text-sm shadow hover:bg-amber-700 transition-colors">Save
+                            Now</button>
+                    </div>
+
+                    <div class="p-3 bg-red-50 rounded-2xl border-2 border-red-100">
+                        <p class="text-xs text-red-600 mb-2 font-semibold">Danger Zone</p>
+                        <button onclick="showResetConfirmation()"
+                            class="w-full py-2 bg-red-500 text-white font-bold rounded-xl shadow-md hover:bg-red-600 transition-colors">Reset
+                            Progress</button>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-amber-50 p-4 text-center">
+                <button onclick="toggleSettings()"
+                    class="font-bold text-amber-800 px-6 py-2 border-2 border-amber-200 rounded-xl hover:bg-white transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="reset-confirm-modal"
+        class="hidden fixed inset-0 z-[110] modal-overlay flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-3xl w-full max-w-xs overflow-hidden shadow-2xl border-4 border-red-200 text-center p-6">
+            <h2 class="text-xl font-bold text-red-700 mb-2">Are you sure?</h2>
+            <p class="text-sm text-gray-600 mb-6">This will delete all your loafs, helpers, and house progress forever!
+            </p>
+            <div class="flex space-x-3">
+                <button onclick="hideResetConfirmation()"
+                    class="flex-1 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl">Cancel</button>
+                <button onclick="resetGame()"
+                    class="flex-1 py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg">RESET</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDoc, collection } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+        // Firebase Setup
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cat-loaf-manor';
+
+        let user = null;
+
+        const getInitialState = () => ({
+            loafs: 0,
+            totalLoafs: 0,
+            perClick: 1,
+            perSecond: 1,
+            basePerSecond: 1,
+            settings: {
+                showFloatingText: true
+            },
+            helpers: {
+                'tiny-paws': { name: 'Tiny Paws', desc: 'A tiny kitten kneads dough.', count: 0, cost: 15, baseCost: 15, rate: 1 },
+                'dough-roller': { name: 'Dough Roller', desc: 'Flattens dough with speed.', count: 0, cost: 80, baseCost: 80, rate: 4 },
+                'baker-cat': { name: 'Baker Cat', desc: 'A professional in a tiny hat.', count: 0, cost: 300, baseCost: 300, rate: 12 },
+                'yeasty-elder': { name: 'Yeasty Elder', desc: 'Uses ancient fermentation secrets.', count: 0, cost: 1200, baseCost: 1200, rate: 45 },
+                'loaf-factory': { name: 'Loaf Factory', desc: 'Industrial-grade purring power.', count: 0, cost: 5000, baseCost: 5000, rate: 150 },
+                'guardian': { name: 'Gluten Guardian', desc: 'Protects the integrity of the rise.', count: 0, cost: 20000, baseCost: 20000, rate: 500 },
+                'batch-bot': { name: 'Bread-Batch Bot', desc: 'Cyber-kneading at peak efficiency.', count: 0, cost: 85000, baseCost: 85000, rate: 1800 },
+                'celestial-kneader': { name: 'Celestial Kneader', desc: 'Kneads the fabric of reality.', count: 0, cost: 400000, baseCost: 400000, rate: 7000 },
+                'loaf-god': { name: 'Avatar of Wheat', desc: 'The Golden Loaf itself provides.', count: 0, cost: 2000000, baseCost: 2000000, rate: 25000 }
+            },
+            houseParts: [
+                { id: 'foundation', name: 'Stone Foundation', cost: 50, purchased: false, story: "The ground was prepared. Stability is key for a rising loaf." },
+                { id: 'mailbox', name: 'Cat Mailbox', cost: 150, purchased: false, story: "Letters of appreciation began to arrive from hungry strays." },
+                { id: 'walls', name: 'First Floor Walls', cost: 500, purchased: false, story: "Structure appeared. The scent of fresh yeast filled the neighborhood." },
+                { id: 'door', name: 'Cat Flap Entrance', cost: 1200, purchased: false, story: "A way in! The first guests arrived, paws dusty with flour." },
+                { id: 'window-l', name: 'Morning Sun Window', cost: 3000, purchased: false, story: "Light hit the dough. The rising could truly begin." },
+                { id: 'window-r', name: 'Sunset Window', cost: 3000, purchased: false, story: "Even as the sun dipped, the ovens glowed with a feline warmth." },
+                { id: 'fence', name: 'Picket Fence', cost: 8000, purchased: false, story: "Boundaries were set. This land was now officially Meow-territory." },
+                { id: 'balcony', name: 'Sunbathing Ledge', cost: 15000, purchased: false, story: "A place to rest. A loaf must be allowed to proof in the sun." },
+                { id: 'top-walls', name: 'Upper Manor Suite', cost: 35000, purchased: false, story: "The manor grew taller, reaching for the stars of the Meow-ky Way." },
+                { id: 'roof', name: 'Cat-Ear Tiling', cost: 75000, purchased: false, story: "The crown was placed. Water-tight and whisker-approved." },
+                { id: 'chimney', name: 'Smoke Stack', cost: 150000, purchased: false, story: "The hearth fire burned. Eternal warmth for all who loaf." },
+                { id: 'garden', name: 'Catnip Meadows', cost: 400000, purchased: false, story: "The surroundings flourished. Joy was as abundant as gluten." },
+                { id: 'solar', name: 'Paw-lar Panels', cost: 1000000, purchased: false, story: "Sustainable purring. The manor now hums with cosmic energy." },
+                { id: 'cat-statue', name: 'The Golden Monument', cost: 5000000, purchased: false, story: "Behold! The legend is complete. The Great Golden Loaf lives on." }
+            ],
+            stories: []
+        });
+
+        window.state = getInitialState();
+
+        const loafCountEl = document.getElementById('loaf-count');
+        const perSecondEl = document.getElementById('per-second');
+        const clickerBtn = document.getElementById('loaf-clicker');
+        const houseShopContainer = document.getElementById('shop-house-container');
+        const helpersList = document.getElementById('helpers-list');
+        const storyContainer = document.getElementById('story-container');
+        const statusIndicator = document.getElementById('status-indicator');
+
+        // Global functions (exposed to window for onclick handlers)
+        window.toggleSettings = () => document.getElementById('settings-modal').classList.toggle('hidden');
+        window.hideResetConfirmation = () => document.getElementById('reset-confirm-modal').classList.add('hidden');
+        window.showResetConfirmation = () => document.getElementById('reset-confirm-modal').classList.remove('hidden');
+
+        window.toggleFloatingText = () => {
+            state.settings.showFloatingText = !state.settings.showFloatingText;
+            updateUI();
+        };
+
+        window.showTab = (tab) => {
+            document.getElementById('content-upgrades').classList.toggle('hidden', tab !== 'upgrades');
+            document.getElementById('content-house').classList.toggle('hidden', tab !== 'house');
+            document.getElementById('tab-upgrades').classList.toggle('bg-amber-50', tab === 'upgrades');
+            document.getElementById('tab-upgrades').classList.toggle('border-b-2', tab === 'upgrades');
+            document.getElementById('tab-house').classList.toggle('bg-amber-50', tab === 'house');
+            document.getElementById('tab-house').classList.toggle('border-b-2', tab === 'house');
+        };
+
+        window.buyHelper = (type) => {
+            const helper = state.helpers[type];
+            if (state.loafs >= helper.cost) {
+                state.loafs -= helper.cost;
+                helper.count++;
+                helper.cost = Math.floor(helper.baseCost * Math.pow(1.15, helper.count));
+                calculatePPS();
+                renderHelpers();
+                updateUI();
+            }
+        };
+
+        window.buyHousePart = (index) => {
+            const part = state.houseParts[index];
+            if (state.loafs >= part.cost && !part.purchased) {
+                state.loafs -= part.cost;
+                part.purchased = true;
+                const visual = document.getElementById(`house-${part.id}`);
+                if (visual) visual.classList.add('visible');
+
+                state.stories.unshift(`"${part.story}"`);
+                renderStory();
+                renderHouseShop();
+                updateUI();
+                checkWin();
+            }
+        };
+
+        window.manualSave = async () => {
+            if (!user) return;
+            statusIndicator.innerText = "Saving progress...";
+            try {
+                const saveRef = doc(db, 'artifacts', appId, 'users', user.uid, 'saveData', 'main');
+                await setDoc(saveRef, {
+                    loafs: state.loafs,
+                    totalLoafs: state.totalLoafs,
+                    helpers: state.helpers,
+                    houseParts: state.houseParts,
+                    stories: state.stories,
+                    settings: state.settings,
+                    timestamp: Date.now()
+                });
+                document.getElementById('last-saved').innerText = `Saved at ${new Date().toLocaleTimeString()}`;
+                statusIndicator.innerText = "Progress saved!";
+                setTimeout(() => { if (statusIndicator.innerText === "Progress saved!") statusIndicator.innerText = ""; }, 3000);
+            } catch (e) {
+                statusIndicator.innerText = "Error saving!";
+            }
+        };
+
+        window.resetGame = async () => {
+            state = getInitialState();
+            document.querySelectorAll('.house-part').forEach(p => p.classList.remove('visible'));
+            document.getElementById('win-message').classList.add('hidden');
+            document.getElementById('shop-house-container').classList.remove('hidden');
+
+            renderStory();
+            renderHelpers();
+            renderHouseShop();
+            calculatePPS();
+            updateUI();
+            hideResetConfirmation();
+            toggleSettings();
+            await manualSave();
+        };
+
+        // Game Logic
+        const calculatePPS = () => {
+            let total = state.basePerSecond;
+            for (const key in state.helpers) {
+                total += state.helpers[key].count * state.helpers[key].rate;
+            }
+            state.perSecond = total;
+        };
+
+        const renderStory = () => {
+            storyContainer.innerHTML = '';
+            state.stories.forEach(text => {
+                const p = document.createElement('p');
+                p.className = "story-entry pt-2 border-t border-amber-100";
+                p.innerText = text;
+                storyContainer.appendChild(p);
+            });
+            const baseP = document.createElement('p');
+            baseP.className = "story-entry";
+            baseP.innerText = `"In the beginning, the world was flat and cold, like unrisen dough. Then came the Great Kneading..."`;
+            storyContainer.appendChild(baseP);
+        };
+
+        const updateUI = () => {
+            loafCountEl.innerText = Math.floor(state.loafs).toLocaleString();
+            perSecondEl.innerText = `${state.perSecond.toLocaleString()} per second`;
+
+            for (const key in state.helpers) {
+                const helper = state.helpers[key];
+                const btn = document.getElementById(`btn-${key}`);
+                if (btn) btn.disabled = state.loafs < helper.cost;
+            }
+
+            state.houseParts.forEach((part, index) => {
+                const btn = document.getElementById(`btn-part-${index}`);
+                if (btn) {
+                    btn.disabled = state.loafs < part.cost || part.purchased;
+                }
+            });
+
+            document.getElementById('toggle-float-btn').innerText = state.settings.showFloatingText ? "ON" : "OFF";
+            document.getElementById('toggle-float-btn').className = state.settings.showFloatingText
+                ? "px-4 py-2 bg-amber-500 text-white font-bold rounded-xl text-sm"
+                : "px-4 py-2 bg-gray-400 text-white font-bold rounded-xl text-sm";
+        };
+
+        const renderHelpers = () => {
+            helpersList.innerHTML = '';
+            for (const key in state.helpers) {
+                const helper = state.helpers[key];
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-amber-50 rounded-2xl border-2 border-amber-100 group transition-all hover:border-amber-300';
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <div class="font-bold text-amber-900">${helper.name} <span class="text-xs text-amber-500 font-normal ml-2">Qty: ${helper.count}</span></div>
+                        <div class="text-[10px] text-amber-600 uppercase font-bold">+${helper.rate} loaf/s</div>
+                        <div class="text-xs text-amber-500 italic">${helper.desc}</div>
+                    </div>
+                    <button onclick="buyHelper('${key}')" id="btn-${key}" class="ml-4 px-4 py-2 bg-amber-500 text-white font-bold rounded-xl shadow-md hover:bg-amber-600 disabled:opacity-50 disabled:bg-gray-300">
+                        ${Math.floor(helper.cost).toLocaleString()}
+                    </button>
+                `;
+                helpersList.appendChild(div);
+            }
+        };
+
+        const renderHouseShop = () => {
+            houseShopContainer.innerHTML = '';
+            state.houseParts.forEach((part, index) => {
+                if (part.purchased) return;
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-3 bg-amber-50 rounded-2xl border-2 border-amber-100';
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <div class="font-bold text-amber-900">${part.name}</div>
+                        <div class="text-xs text-amber-600">Requires ${part.cost.toLocaleString()} loafs</div>
+                    </div>
+                    <button onclick="buyHousePart(${index})" id="btn-part-${index}" class="ml-4 px-4 py-2 bg-amber-700 text-white font-bold rounded-xl shadow-md hover:bg-amber-800 disabled:opacity-50">
+                        Build
+                    </button>
+                `;
+                houseShopContainer.appendChild(div);
+            });
+        };
+
+        const checkWin = () => {
+            const allBought = state.houseParts.every(p => p.purchased);
+            if (allBought) {
+                document.getElementById('win-message').classList.remove('hidden');
+                document.getElementById('shop-house-container').classList.add('hidden');
+            }
+        };
+
+        const initFence = () => {
+            const fence = document.getElementById('house-fence');
+            fence.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const slat = document.createElement('div');
+                slat.className = "w-2 h-full bg-white border border-gray-200 rounded-t-sm";
+                fence.appendChild(slat);
+            }
+        };
+
+        const loadGame = async () => {
+            if (!user) return;
+            statusIndicator.innerText = "Loading manor...";
+            try {
+                const saveRef = doc(db, 'artifacts', appId, 'users', user.uid, 'saveData', 'main');
+                const docSnap = await getDoc(saveRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    state.loafs = data.loafs || 0;
+                    state.totalLoafs = data.totalLoafs || 0;
+                    state.settings = data.settings || state.settings;
+                    state.stories = data.stories || [];
+
+                    if (data.helpers) {
+                        for (let key in data.helpers) {
+                            if (state.helpers[key]) {
+                                state.helpers[key].count = data.helpers[key].count;
+                                state.helpers[key].cost = data.helpers[key].cost;
+                            }
+                        }
+                    }
+
+                    if (data.houseParts) {
+                        data.houseParts.forEach((savedPart, idx) => {
+                            if (state.houseParts[idx]) {
+                                state.houseParts[idx].purchased = savedPart.purchased;
+                                if (savedPart.purchased) {
+                                    const visual = document.getElementById(`house-${state.houseParts[idx].id}`);
+                                    if (visual) visual.classList.add('visible');
+                                }
+                            }
+                        });
+                    }
+
+                    document.getElementById('last-saved').innerText = data.timestamp ? `Loaded save from ${new Date(data.timestamp).toLocaleTimeString()}` : 'No save found';
+                    statusIndicator.innerText = "Manor loaded!";
+                    setTimeout(() => { if (statusIndicator.innerText === "Manor loaded!") statusIndicator.innerText = ""; }, 3000);
+                } else {
+                    statusIndicator.innerText = "New bakery started!";
+                    setTimeout(() => { if (statusIndicator.innerText === "New bakery started!") statusIndicator.innerText = ""; }, 3000);
+                }
+            } catch (e) {
+                statusIndicator.innerText = "Error loading!";
+            }
+            renderStory();
+            renderHelpers();
+            renderHouseShop();
+            calculatePPS();
+            updateUI();
+            checkWin();
+        };
+
+        // Click Handler
+        clickerBtn.addEventListener('click', (e) => {
+            state.loafs += state.perClick;
+            state.totalLoafs += state.perClick;
+            if (state.settings.showFloatingText) {
+                const div = document.createElement('div');
+                div.className = 'floating-text';
+                div.innerText = `+${state.perClick}`;
+                div.style.left = `${e.clientX}px`;
+                div.style.top = `${e.clientY}px`;
+                document.body.appendChild(div);
+                setTimeout(() => div.remove(), 1000);
+            }
+            updateUI();
+        });
+
+        // Initialize App
+        const init = async () => {
+            initFence();
+            const initAuth = async () => {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            };
+            await initAuth();
+            onAuthStateChanged(auth, (u) => {
+                user = u;
+                if (user) {
+                    loadGame();
+                    // Auto-save every 60 seconds
+                    setInterval(manualSave, 60000);
+                }
+            });
+
+            // Fast loop for loaf accumulation
+            setInterval(() => {
+                if (state.perSecond > 0) {
+                    state.loafs += (state.perSecond / 10);
+                    state.totalLoafs += (state.perSecond / 10);
+                    updateUI();
+                }
+            }, 100);
+        };
+
+        init();
+    </script>
+</body>
+
+</html>
