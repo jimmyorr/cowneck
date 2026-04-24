@@ -242,6 +242,40 @@
             background: #555;
             cursor: not-allowed;
         }
+        .save-slot {
+            width: 120px;
+            padding: 10px;
+            background: rgba(0, 136, 204, 0.1);
+            border: 1px solid #08c;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .save-slot:hover {
+            background: rgba(0, 136, 204, 0.3);
+        }
+
+        .save-slot.selected {
+            background: rgba(0, 136, 204, 0.5);
+            border-width: 2px;
+            box-shadow: 0 0 10px #0af;
+        }
+
+        .inv-item {
+            background: rgba(0, 40, 80, 0.4);
+            padding: 5px;
+            border-radius: 3px;
+            border: 1px solid rgba(0, 136, 204, 0.2);
+        }
+        .craft-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 5px;
+            background: rgba(0, 40, 80, 0.2);
+        }
     </style>
     <!-- Import Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -267,7 +301,14 @@
                 my oxygen.</p>
         </div>
         <p>Controls: WASD to move, Mouse to look, Space to ascend, Shift to descend. Left Click to interact.</p>
-        <button id="start-btn">DIVE IN</button>
+        <div id="save-slots" style="display: flex; gap: 10px; margin-top: 20px;">
+            <div class="save-slot" onclick="selectSlot(0)">Slot 1<br><small id="slot-0-info">Empty</small></div>
+            <div class="save-slot" onclick="selectSlot(1)">Slot 2<br><small id="slot-1-info">Empty</small></div>
+            <div class="save-slot" onclick="selectSlot(2)">Slot 3<br><small id="slot-2-info">Empty</small></div>
+        </div>
+        <div id="selected-slot-info" style="margin-top: 10px; color: #0af; font-weight: bold;">Select a slot to begin</div>
+        <button id="start-btn" disabled>DIVE IN</button>
+        <button id="delete-btn" style="margin-top: 10px; background: rgba(255,0,0,0.2); border-color: #f33; display: none;">Wipe Slot</button>
     </div>
 
     <div id="death-screen">
@@ -290,11 +331,11 @@
         </div>
         <div id="crosshair"></div>
 
-        <div id="inventory-panel" class="hud-panel">
+        <div id="inventory-panel" class="hud-panel" style="max-height: 70vh; overflow-y: auto;">
             <div style="font-size: 1.2rem; font-weight: bold; color: #0af; margin-bottom: 5px;">INVENTORY</div>
-            <div>Titanium: <span id="inv-titanium">0</span></div>
-            <div>Copper: <span id="inv-copper">0</span></div>
-            <div>Sea Rice: <span id="inv-rice">0</span></div>
+            <div id="inventory-items" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.8rem;">
+                <!-- Dynamically populated -->
+            </div>
         </div>
         <div id="interaction-prompt">Click to Interact</div>
     </div>
@@ -304,25 +345,50 @@
         <span class="close-btn" onclick="closeModal('printer')">X</span>
         <h2>Hydraulic Printer</h2>
         <div id="crafting-list">
-            <div style="margin-bottom: 15px; border-bottom: 1px solid #08c; padding-bottom: 10px;">
-                <strong>High Capacity O2 Tank</strong><br>
-                <small>Increases Max Oxygen to 200.</small><br>
-                Cost: 3 Titanium<br>
-                <button class="craft-btn" id="craft-tank" onclick="craft('tank', {titanium: 3})">Craft Tank</button>
+            <div style="font-size: 0.9rem; color: #6cf; border-bottom: 1px solid #069; padding-bottom: 5px; margin-bottom: 10px;">BASIC COMPONENTS</div>
+            <div class="craft-group">
+                <strong>Glass</strong> <small>(2 Quartz)</small>
+                <button class="craft-btn" onclick="craft('glass', {quartz: 2})">Craft</button>
             </div>
-            <div style="margin-bottom: 15px; border-bottom: 1px solid #08c; padding-bottom: 10px;">
-                <strong>Flippers</strong><br>
-                <small>Increases swim speed.</small><br>
-                Cost: 2 Titanium, 1 Copper<br>
-                <button class="craft-btn" id="craft-fins" onclick="craft('fins', {titanium: 2, copper: 1})">Craft
-                    Flippers</button>
+            <div class="craft-group">
+                <strong>Battery</strong> <small>(1 Copper, 1 Lead)</small>
+                <button class="craft-btn" onclick="craft('battery', {copper: 1, lead: 1})">Craft</button>
             </div>
-            <div>
-                <strong>Rice Ball</strong><br>
-                <small>A quick snack. Restores 30 Oxygen instantly.</small><br>
-                Cost: 2 Sea Rice<br>
-                <button class="craft-btn" id="craft-rice" onclick="craft('riceball', {rice: 2})">Craft Rice
-                    Ball</button>
+            <div class="craft-group">
+                <strong>Lubricant</strong> <small>(2 Sea Rice)</small>
+                <button class="craft-btn" onclick="craft('lubricant', {rice: 2})">Craft</button>
+            </div>
+            <div class="craft-group" style="border-bottom: 1px solid #069; padding-bottom: 5px;">
+                <strong>Computer Chip</strong> <small>(1 Gold, 1 Silver, 1 Copper)</small>
+                <button class="craft-btn" onclick="craft('chip', {gold: 1, silver: 1, copper: 1})">Craft</button>
+            </div>
+
+            <div style="font-size: 0.9rem; color: #6cf; margin-top: 10px; border-bottom: 1px solid #069; padding-bottom: 5px; margin-bottom: 10px;">SURVIVAL GEAR</div>
+            <div class="craft-group">
+                <strong>High Capacity Tank</strong> <small>(3 Titanium, 1 Glass)</small>
+                <button class="craft-btn" id="craft-tank1" onclick="craft('tank1', {titanium: 3, glass: 1})">Craft</button>
+            </div>
+            <div class="craft-group">
+                <strong>Ultra Capacity Tank</strong> <small>(1 High Cap Tank, 1 Lithium)</small>
+                <button class="craft-btn" id="craft-tank2" onclick="craft('tank2', {lithium: 1}, 'tank1')">Craft</button>
+            </div>
+            <div class="craft-group">
+                <strong>Flippers</strong> <small>(2 Titanium, 1 Lubricant)</small>
+                <button class="craft-btn" id="craft-fins" onclick="craft('fins', {titanium: 2, lubricant: 1})">Craft</button>
+            </div>
+            <div class="craft-group">
+                <strong>Seaglide</strong> <small>(1 Battery, 1 Lubricant, 1 Titanium)</small>
+                <button class="craft-btn" id="craft-seaglide" onclick="craft('seaglide', {battery: 1, lubricant: 1, titanium: 1})">Craft</button>
+            </div>
+            <div class="craft-group">
+                <strong>Compass</strong> <small>(1 Copper, 1 Silver)</small>
+                <button class="craft-btn" id="craft-compass" onclick="craft('compass', {copper: 1, silver: 1})">Craft</button>
+            </div>
+            
+            <div style="font-size: 0.9rem; color: #6cf; margin-top: 10px; border-bottom: 1px solid #069; padding-bottom: 5px; margin-bottom: 10px;">CONSUMABLES</div>
+            <div class="craft-group">
+                <strong>Rice Ball</strong> <small>(2 Sea Rice)</small>
+                <button class="craft-btn" onclick="craft('riceball', {rice: 2})">Craft</button>
             </div>
         </div>
     </div>
@@ -340,24 +406,119 @@
         // --- Game Configuration & State ---
         const config = {
             seaLevel: 50,
-            worldSize: 400,
+            worldSize: 600, // expanded
             fogColor: 0x001e36,
             waterSurfaceColor: 0x004466,
             maxO2: 100,
-            o2DepletionRate: 2, // per second
+            o2DepletionRate: 2,
             o2RefillRate: 30,
             swimSpeed: 30,
-            drag: 5.0
+            drag: 5.0,
+            inventoryItems: [
+                'titanium', 'copper', 'quartz', 'lead', 'silver', 'gold', 'lithium', 'diamond', 'rice',
+                'glass', 'battery', 'lubricant', 'chip', 'silicon'
+            ]
         };
 
         let state = {
             isRunning: false,
             o2: config.maxO2,
             isDead: false,
-            inventory: { titanium: 0, copper: 0, rice: 0 },
-            upgrades: { tank: false, fins: false },
+            currentSlot: null,
+            inventory: { 
+                titanium: 0, copper: 0, quartz: 0, lead: 0, silver: 0, gold: 0, lithium: 0, diamond: 0, rice: 0,
+                glass: 0, battery: 0, lubricant: 0, chip: 0, silicon: 0
+            },
+            upgrades: { tank: 0, fins: false, rebreather: false, seaglide: false, compass: false, flashlight: false },
             activeModal: null
         };
+
+        // --- Save / Load System ---
+        function getSlotKey(idx) { return `pupnautica_save_slot_${idx}`; }
+
+        function saveGame() {
+            if (state.currentSlot === null) return;
+            const data = {
+                inventory: state.inventory,
+                upgrades: state.upgrades,
+                pos: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+                rot: { yaw: yaw, pitch: pitch },
+                o2: state.o2
+            };
+            localStorage.setItem(getSlotKey(state.currentSlot), JSON.stringify(data));
+            updateSlotUI();
+        }
+
+        function loadGame(idx) {
+            const raw = localStorage.getItem(getSlotKey(idx));
+            if (!raw) return false;
+            const data = JSON.parse(raw);
+            state.inventory = data.inventory;
+            state.upgrades = data.upgrades;
+            state.o2 = data.o2;
+            camera.position.set(data.pos.x, data.pos.y, data.pos.z);
+            yaw = data.rot.yaw;
+            pitch = data.rot.pitch;
+            camera.rotation.set(pitch, yaw, 0);
+            
+            // Apply upgrade effects
+            if (state.upgrades.tank === 1) config.maxO2 = 200;
+            if (state.upgrades.tank === 2) config.maxO2 = 350;
+            if (state.upgrades.fins) config.swimSpeed = 45;
+            
+            if (state.upgrades.compass && !document.getElementById('compass')) {
+                document.body.insertAdjacentHTML('beforeend', '<div id="compass" style="position:fixed; top:70px; left:50%; transform:translateX(-50%); color:#0af; font-weight:bold; z-index:100; pointer-events:none;">N</div>');
+            }
+            
+            updateInventoryUI();
+            return true;
+        }
+
+        function updateSlotUI() {
+            for (let i = 0; i < 3; i++) {
+                const raw = localStorage.getItem(getSlotKey(i));
+                const info = document.getElementById(`slot-${i}-info`);
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    const depth = Math.floor(config.seaLevel - data.pos.y);
+                    info.innerHTML = `Depth: ${depth}m<br>Items: ${Object.values(data.inventory).reduce((a, b) => a + b, 0)}`;
+                } else {
+                    info.innerText = "Empty";
+                }
+            }
+        }
+
+        window.selectSlot = function(idx) {
+            state.currentSlot = idx;
+            document.querySelectorAll('.save-slot').forEach((s, i) => {
+                s.classList.toggle('selected', i === idx);
+            });
+            const raw = localStorage.getItem(getSlotKey(idx));
+            const startBtn = document.getElementById('start-btn');
+            const delBtn = document.getElementById('delete-btn');
+            const info = document.getElementById('selected-slot-info');
+            
+            startBtn.disabled = false;
+            if (raw) {
+                startBtn.innerText = "CONTINUE EXPEDITION";
+                info.innerText = "Slot " + (idx + 1) + " (Saved Progress)";
+                delBtn.style.display = 'block';
+            } else {
+                startBtn.innerText = "START NEW DIVE";
+                info.innerText = "Slot " + (idx + 1) + " (New Game)";
+                delBtn.style.display = 'none';
+            }
+        };
+
+        document.getElementById('delete-btn').addEventListener('click', () => {
+            if (state.currentSlot !== null && confirm("Wipe this save slot?")) {
+                localStorage.removeItem(getSlotKey(state.currentSlot));
+                updateSlotUI();
+                selectSlot(state.currentSlot);
+            }
+        });
+
+        updateSlotUI();
 
         // --- Three.js Setup ---
         const container = document.getElementById('game-container');
@@ -663,22 +824,48 @@
         }
 
         // 8. Limestone Outcrops
-        function spawnOutcrops() {
-            const outcropGeo = new THREE.DodecahedronGeometry(0.8, 1); // slightly bumpy
-            const outcropMat = new THREE.MeshStandardMaterial({ color: 0x8888aa, roughness: 1.0 });
+        function spawnResources() {
+            const types = [
+                { name: 'Limestone Outcrop', color: 0x8888aa, depthRange: [0, 30], density: 100 },
+                { name: 'Sandstone Outcrop', color: 0xaa8866, depthRange: [25, 60], density: 80 },
+                { name: 'Shale Outcrop', color: 0x444455, depthRange: [50, 150], density: 60 },
+                { name: 'Quartz Chunk', color: 0xccffff, depthRange: [0, 200], density: 60 }
+            ];
 
-            for (let i = 0; i < 200; i++) {
-                const outcrop = new THREE.Mesh(outcropGeo, outcropMat);
-                const x = (Math.random() - 0.5) * config.worldSize * 0.9;
-                const z = (Math.random() - 0.5) * config.worldSize * 0.9;
-                const y = simpleNoise(x, z) - 9.5; // sitting on terrain
+            const outcropGeo = new THREE.DodecahedronGeometry(0.8, 1);
+            
+            types.forEach(t => {
+                const mat = new THREE.MeshStandardMaterial({ color: t.color, roughness: 1.0 });
+                for (let i = 0; i < t.density; i++) {
+                    const x = (Math.random() - 0.5) * config.worldSize * 0.9;
+                    const z = (Math.random() - 0.5) * config.worldSize * 0.9;
+                    const surfY = simpleNoise(x, z) - 10;
+                    const depth = config.seaLevel - surfY;
 
-                outcrop.position.set(x, y, z);
-                outcrop.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+                    // Only spawn if in depth range (roughly)
+                    if (depth >= t.depthRange[0] && depth <= t.depthRange[1]) {
+                        const outcrop = new THREE.Mesh(outcropGeo, mat);
+                        outcrop.position.set(x, surfY + 0.5, z);
+                        outcrop.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+                        outcrop.userData = { type: 'outcrop', subType: t.name, name: t.name };
+                        interactables.push(outcrop);
+                        scene.add(outcrop);
+                    }
+                }
+            });
 
-                outcrop.userData = { type: 'outcrop', name: 'Limestone Outcrop' };
-                interactables.push(outcrop);
-                scene.add(outcrop);
+            // Also spawn some Sea Rice plants
+            const riceGeo = new THREE.SphereGeometry(0.5, 8, 8);
+            const riceMat = new THREE.MeshStandardMaterial({ color: 0x00ff88 });
+            for (let i = 0; i < 50; i++) {
+                const x = (Math.random() - 0.5) * config.worldSize * 0.8;
+                const z = (Math.random() - 0.5) * config.worldSize * 0.8;
+                const surfY = simpleNoise(x, z) - 10;
+                const rice = new THREE.Mesh(riceGeo, riceMat);
+                rice.position.set(x, surfY + 0.5, z);
+                rice.userData = { type: 'item', subType: 'rice', name: 'Sea Rice' };
+                interactables.push(rice);
+                scene.add(rice);
             }
         }
 
@@ -690,7 +877,7 @@
         spawnKelp();
         spawnFish();
         spawnDropPod();
-        spawnOutcrops();
+        spawnResources();
 
         // --- Custom First-Person Controller ---
 
@@ -753,7 +940,9 @@
             direction.normalize(); // Ensure consistent speed in all directions
 
             // Base acceleration
-            const acceleration = config.swimSpeed * delta;
+            let speed = config.swimSpeed;
+            if (state.upgrades.seaglide) speed *= 2.5;
+            const acceleration = speed * delta;
 
             if (keys.w || keys.s) velocity.z += direction.z * acceleration;
             if (keys.a || keys.d) velocity.x += direction.x * acceleration;
@@ -798,49 +987,79 @@
         const promptEl = document.getElementById('interaction-prompt');
 
         function updateInventoryUI() {
-            document.getElementById('inv-titanium').innerText = state.inventory.titanium;
-            document.getElementById('inv-copper').innerText = state.inventory.copper;
-            document.getElementById('inv-rice').innerText = state.inventory.rice;
+            const container = document.getElementById('inventory-items');
+            container.innerHTML = '';
+            
+            config.inventoryItems.forEach(item => {
+                const count = state.inventory[item];
+                if (count > 0) {
+                    const el = document.createElement('div');
+                    el.className = 'inv-item';
+                    el.innerHTML = `<span style="text-transform: capitalize;">${item}</span>: <strong>${count}</strong>`;
+                    container.appendChild(el);
+                }
+            });
+
+            // If empty
+            if (container.innerHTML === '') {
+                container.innerHTML = '<div style="grid-column: span 2; color: #666; font-style: italic;">Empty</div>';
+            }
         }
 
-        function craft(itemId, cost) {
+        function craft(itemId, cost, requiredUpgrade = null) {
+            // Check if required upgrade is possessed
+            if (requiredUpgrade && !state.upgrades[requiredUpgrade === 'tank1' ? 'tank' : requiredUpgrade]) {
+                alert("Requires prerequisites!");
+                return;
+            }
+
             // Check cost
-            if (state.inventory.titanium >= (cost.titanium || 0) &&
-                state.inventory.copper >= (cost.copper || 0) &&
-                state.inventory.rice >= (cost.rice || 0)) {
+            let hasMaterials = true;
+            for (let [mat, amount] of Object.entries(cost)) {
+                if ((state.inventory[mat] || 0) < amount) hasMaterials = false;
+            }
 
+            if (hasMaterials) {
                 // Deduct cost
-                state.inventory.titanium -= (cost.titanium || 0);
-                state.inventory.copper -= (cost.copper || 0);
-                state.inventory.rice -= (cost.rice || 0);
+                for (let [mat, amount] of Object.entries(cost)) {
+                    state.inventory[mat] -= amount;
+                }
 
-                // Apply upgrade
-                if (itemId === 'tank') {
+                // Apply upgrade or item
+                if (itemId === 'tank1') {
                     config.maxO2 = 200;
-                    state.upgrades.tank = true;
-                    document.getElementById('craft-tank').innerText = "Crafted";
-                    document.getElementById('craft-tank').disabled = true;
+                    state.upgrades.tank = 1;
+                    document.getElementById('craft-tank1').innerText = "Owned";
+                    document.getElementById('craft-tank1').disabled = true;
+                } else if (itemId === 'tank2') {
+                    config.maxO2 = 350;
+                    state.upgrades.tank = 2;
+                    document.getElementById('craft-tank2').innerText = "Owned";
+                    document.getElementById('craft-tank2').disabled = true;
                 } else if (itemId === 'fins') {
-                    config.swimSpeed = 45; // faster
+                    config.swimSpeed = 45;
                     state.upgrades.fins = true;
-                    document.getElementById('craft-fins').innerText = "Crafted";
+                    document.getElementById('craft-fins').innerText = "Owned";
                     document.getElementById('craft-fins').disabled = true;
+                } else if (itemId === 'seaglide') {
+                    state.upgrades.seaglide = true;
+                    document.getElementById('craft-seaglide').innerText = "Owned";
+                    document.getElementById('craft-seaglide').disabled = true;
+                } else if (itemId === 'compass') {
+                    state.upgrades.compass = true;
+                    document.getElementById('craft-compass').innerText = "Owned";
+                    document.body.insertAdjacentHTML('beforeend', '<div id="compass" style="position:fixed; top:70px; left:50%; transform:translateX(-50%); color:#0af; font-weight:bold; z-index:100; pointer-events:none;">N</div>');
                 } else if (itemId === 'riceball') {
                     state.o2 = Math.min(config.maxO2, state.o2 + 30);
+                } else {
+                    // It's a material component
+                    state.inventory[itemId] = (state.inventory[itemId] || 0) + 1;
                 }
 
                 updateInventoryUI();
+                saveGame();
             } else {
-                const btn = document.getElementById('craft-' + (itemId === 'riceball' ? 'rice' : itemId));
-                if (btn) {
-                    const originalText = btn.innerText;
-                    btn.innerText = "Need more materials";
-                    btn.style.background = "red";
-                    setTimeout(() => {
-                        btn.innerText = originalText;
-                        btn.style.background = "#08c";
-                    }, 1000);
-                }
+                alert("Insufficient materials!");
             }
         }
 
@@ -961,6 +1180,17 @@
             // Update procedural animations (kelp, fish, particles)
             animateObjects.forEach(item => item.update(delta, time));
 
+            // Update Compass
+            if (state.upgrades.compass) {
+                const compassEl = document.getElementById('compass');
+                if (compassEl) {
+                    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+                    const angle = (yaw % (Math.PI * 2) + (Math.PI * 2)) % (Math.PI * 2); // Normalize
+                    const index = Math.round(angle / (Math.PI / 4)) % 8;
+                    compassEl.innerText = directions[index];
+                }
+            }
+
             renderer.render(scene, camera);
         }
 
@@ -979,21 +1209,37 @@
                 if (currentInteractable) {
                     const type = currentInteractable.userData.type;
 
-                    if (type === 'outcrop') {
-                        // Break outcrop
+                    if (type === 'outcrop' || type === 'item') {
                         scene.remove(currentInteractable);
                         interactables.splice(interactables.indexOf(currentInteractable), 1);
 
-                        // Random loot
-                        const roll = Math.random();
                         let loot = '';
-                        if (roll < 0.35) { state.inventory.titanium++; loot = 'Titanium'; }
-                        else if (roll < 0.7) { state.inventory.copper++; loot = 'Copper'; }
-                        else { state.inventory.rice++; loot = 'Sea Rice'; }
+                        const subType = currentInteractable.userData.subType;
+
+                        if (type === 'item' && subType === 'rice') {
+                            state.inventory.rice++;
+                            loot = 'Sea Rice';
+                        } else if (subType === 'Limestone Outcrop') {
+                            const roll = Math.random();
+                            if (roll < 0.6) { state.inventory.titanium++; loot = 'Titanium'; }
+                            else { state.inventory.copper++; loot = 'Copper'; }
+                        } else if (subType === 'Sandstone Outcrop') {
+                            const roll = Math.random();
+                            if (roll < 0.4) { state.inventory.lead++; loot = 'Lead'; }
+                            else if (roll < 0.8) { state.inventory.silver++; loot = 'Silver'; }
+                            else { state.inventory.gold++; loot = 'Gold'; }
+                        } else if (subType === 'Shale Outcrop') {
+                            const roll = Math.random();
+                            if (roll < 0.7) { state.inventory.lithium++; loot = 'Lithium'; }
+                            else { state.inventory.diamond++; loot = 'Diamond'; }
+                        } else if (subType === 'Quartz Chunk') {
+                            state.inventory.quartz++;
+                            loot = 'Quartz';
+                        }
 
                         updateInventoryUI();
+                        saveGame(); // Auto-save on collection
 
-                        // Briefly show loot message
                         promptEl.innerText = `Acquired: ${loot}`;
                         promptEl.style.display = 'block';
                         promptEl.style.color = '#0f0';
@@ -1003,7 +1249,6 @@
                             promptEl.style.color = 'white';
                             if (!currentInteractable) promptEl.style.display = 'none';
                         }, 1500);
-
                     } else if (type === 'printer') {
                         // Open printer UI
                         document.exitPointerLock();
@@ -1021,6 +1266,11 @@
 
         // Start Game
         document.getElementById('start-btn').addEventListener('click', async () => {
+            if (state.currentSlot === null) return;
+            
+            // Try loading
+            loadGame(state.currentSlot);
+            
             try {
                 const promise = document.body.requestPointerLock();
                 if (promise) {
@@ -1064,6 +1314,7 @@
             } else {
                 // Game paused / lost focus
                 if (!state.isDead && !state.activeModal) {
+                    saveGame(); // Auto-save on pause
                     document.getElementById('start-screen').style.display = 'flex';
                     document.getElementById('start-screen').querySelector('h1').innerText = "PAUSED";
                     document.getElementById('start-btn').innerText = "RESUME";
