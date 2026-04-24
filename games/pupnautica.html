@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Sea Explorer</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Courier New', Courier, monospace;
+            user-select: none;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* UI Layer */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            /* Let clicks pass through to canvas */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            /* Subtly darkened edges to simulate dive mask */
+            box-shadow: inset 0 0 150px rgba(0, 20, 40, 0.8);
+        }
+
+        /* Start Screen */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 15, 30, 0.9);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #4df;
+            pointer-events: auto;
+            text-align: center;
+        }
+
+        #start-screen h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #08c;
+        }
+
+        #start-btn {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            background-color: rgba(0, 136, 204, 0.3);
+            border: 2px solid #08c;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+
+        #start-btn:hover {
+            background-color: rgba(0, 136, 204, 0.6);
+            box-shadow: 0 0 15px #08c;
+        }
+
+        /* HUD Elements */
+        .hud-panel {
+            background: rgba(0, 20, 40, 0.6);
+            border: 1px solid rgba(0, 136, 204, 0.4);
+            padding: 15px;
+            border-radius: 5px;
+            color: #aaddff;
+        }
+
+        #top-left {
+            align-self: flex-start;
+        }
+
+        #bottom-left {
+            align-self: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .bar-container {
+            width: 200px;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #08c;
+            margin-top: 5px;
+            position: relative;
+        }
+
+        #o2-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #0af, #0df);
+            transition: width 0.1s linear, background 0.3s;
+        }
+
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, 0.5);
+        }
+
+        .alert {
+            color: #ff3333 !important;
+            animation: pulse 1s infinite;
+        }
+
+        .alert-bg {
+            background: linear-gradient(90deg, #f33, #f00) !important;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        #death-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 0, 0, 0.9);
+            z-index: 30;
+            color: red;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- NEW STYLES --- */
+        #story-box {
+            max-width: 600px;
+            background: rgba(0, 20, 40, 0.8);
+            border: 1px solid #0af;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 1rem;
+            line-height: 1.5;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+
+        #inventory-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            text-align: right;
+        }
+
+        #interaction-prompt {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 1.2rem;
+            text-shadow: 1px 1px 2px black;
+            display: none;
+            pointer-events: none;
+        }
+
+        .modal {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 30, 60, 0.95);
+            border: 2px solid #08c;
+            padding: 20px;
+            z-index: 40;
+            color: white;
+            min-width: 300px;
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            color: #0af;
+        }
+
+        .close-btn {
+            float: right;
+            cursor: pointer;
+            color: red;
+            font-weight: bold;
+        }
+
+        .craft-btn {
+            background: #08c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .craft-btn:hover {
+            background: #0af;
+        }
+
+        .craft-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+    </style>
+    <!-- Import Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+
+    <div id="start-screen">
+        <h1>DEEP SEA EXPLORER</h1>
+        <div id="story-box">
+            <p><strong>PERSONAL LOG - PLANET 4546B</strong></p>
+            <p>The Aurora starship suffered a catastrophic failure. I barely made it to Drop Pod 7 before the explosion.
+                The pod crashed into this endless alien ocean. The life support systems are heavily damaged, and rescue
+                is not coming anytime soon.</p>
+            <p>I am stranded.</p>
+            <p>Thankfully, the pod's <strong>Hydraulic Printer</strong> and <strong>Storage Locker</strong> survived the
+                impact. The printer is like a highly advanced crafting table—it can rearrange atomic structures to build
+                survival gear, provided I have the raw materials.</p>
+            <p>My PDA sensors detect abundant resources in the <strong>Limestone Outcrops</strong> scattered across the
+                seabed. Breaking them should yield <strong>Copper</strong>, <strong>Titanium</strong>, or even the
+                peculiar alien flora the PDA calls "<strong>Sea Rice</strong>".</p>
+            <p>I need to dive, gather materials, and craft better gear if I want to live another day. But I must watch
+                my oxygen.</p>
+        </div>
+        <p>Controls: WASD to move, Mouse to look, Space to ascend, Shift to descend. Left Click to interact.</p>
+        <button id="start-btn">DIVE IN</button>
+    </div>
+
+    <div id="death-screen">
+        <h1 style="font-size: 4rem;">OXYGEN DEPLETED</h1>
+        <button id="restart-btn"
+            style="padding: 10px 20px; font-size: 1.2rem; cursor:pointer; background: #300; color:white; border: 1px solid red;">Respawn</button>
+    </div>
+
+    <div id="ui-layer">
+        <div id="top-left" class="hud-panel">
+            <div style="font-size: 1.2rem; font-weight: bold;">DEPTH: <span id="depth-val">0</span>m</div>
+            <div id="biome-name" style="color: #6cf; margin-top: 5px;">Safe Shallows</div>
+        </div>
+
+        <div id="bottom-left" class="hud-panel">
+            <div>OXYGEN</div>
+            <div class="bar-container">
+                <div id="o2-bar"></div>
+            </div>
+        </div>
+        <div id="crosshair"></div>
+
+        <div id="inventory-panel" class="hud-panel">
+            <div style="font-size: 1.2rem; font-weight: bold; color: #0af; margin-bottom: 5px;">INVENTORY</div>
+            <div>Titanium: <span id="inv-titanium">0</span></div>
+            <div>Copper: <span id="inv-copper">0</span></div>
+            <div>Sea Rice: <span id="inv-rice">0</span></div>
+        </div>
+        <div id="interaction-prompt">Click to Interact</div>
+    </div>
+
+    <!-- Modals -->
+    <div id="printer-modal" class="modal">
+        <span class="close-btn" onclick="closeModal('printer')">X</span>
+        <h2>Hydraulic Printer</h2>
+        <div id="crafting-list">
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #08c; padding-bottom: 10px;">
+                <strong>High Capacity O2 Tank</strong><br>
+                <small>Increases Max Oxygen to 200.</small><br>
+                Cost: 3 Titanium<br>
+                <button class="craft-btn" id="craft-tank" onclick="craft('tank', {titanium: 3})">Craft Tank</button>
+            </div>
+            <div style="margin-bottom: 15px; border-bottom: 1px solid #08c; padding-bottom: 10px;">
+                <strong>Flippers</strong><br>
+                <small>Increases swim speed.</small><br>
+                Cost: 2 Titanium, 1 Copper<br>
+                <button class="craft-btn" id="craft-fins" onclick="craft('fins', {titanium: 2, copper: 1})">Craft
+                    Flippers</button>
+            </div>
+            <div>
+                <strong>Rice Ball</strong><br>
+                <small>A quick snack. Restores 30 Oxygen instantly.</small><br>
+                Cost: 2 Sea Rice<br>
+                <button class="craft-btn" id="craft-rice" onclick="craft('riceball', {rice: 2})">Craft Rice
+                    Ball</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="storage-modal" class="modal">
+        <span class="close-btn" onclick="closeModal('storage')">X</span>
+        <h2>Drop Pod Storage</h2>
+        <p>Storage is currently empty, but safe from the elements.</p>
+        <div style="color: #888;">(Feature in development: Storing excess materials)</div>
+    </div>
+
+    <div id="game-container"></div>
+
+    <script>
+        // --- Game Configuration & State ---
+        const config = {
+            seaLevel: 50,
+            worldSize: 400,
+            fogColor: 0x001e36,
+            waterSurfaceColor: 0x004466,
+            maxO2: 100,
+            o2DepletionRate: 2, // per second
+            o2RefillRate: 30,
+            swimSpeed: 30,
+            drag: 5.0
+        };
+
+        let state = {
+            isRunning: false,
+            o2: config.maxO2,
+            isDead: false,
+            inventory: { titanium: 0, copper: 0, rice: 0 },
+            upgrades: { tank: false, fins: false },
+            activeModal: null
+        };
+
+        // --- Three.js Setup ---
+        const container = document.getElementById('game-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(config.fogColor);
+        scene.fog = new THREE.FogExp2(config.fogColor, 0.015);
+
+        // --- Raycaster for Interaction ---
+        const raycaster = new THREE.Raycaster();
+        const screenCenter = new THREE.Vector2(0, 0);
+        const interactables = [];
+        let currentInteractable = null;
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        // Set specific rotation order for FPS camera
+        camera.rotation.order = 'YXZ';
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // --- Lighting ---
+        const ambientLight = new THREE.AmbientLight(0x003355, 0.6); // Deep blue ambient
+        scene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(0xaaccff, 0.8); // Pale sunlight filtering down
+        sunLight.position.set(100, 200, 50);
+        sunLight.castShadow = true;
+        sunLight.shadow.camera.left = -100;
+        sunLight.shadow.camera.right = 100;
+        sunLight.shadow.camera.top = 100;
+        sunLight.shadow.camera.bottom = -100;
+        sunLight.shadow.mapSize.width = 1024;
+        sunLight.shadow.mapSize.height = 1024;
+        scene.add(sunLight);
+
+        // --- Procedural Generation Utilities ---
+        // Simple noise function replacement since we can't import external libraries easily
+        function simpleNoise(x, z) {
+            let n = Math.sin(x * 0.05) * 5 + Math.cos(z * 0.05) * 5;
+            n += Math.sin(x * 0.1 + z * 0.1) * 2;
+            n += Math.sin(x * 0.02) * 15; // larger hills
+            return n;
+        }
+
+        // --- Environment Objects arrays ---
+        const animateObjects = []; // Items that need updating every frame
+
+        // 1. The Seabed Terrain
+        function createTerrain() {
+            const geometry = new THREE.PlaneGeometry(config.worldSize, config.worldSize, 100, 100);
+            geometry.rotateX(-Math.PI / 2); // Lay flat
+
+            const positions = geometry.attributes.position.array;
+            for (let i = 0; i < positions.length; i += 3) {
+                const x = positions[i];
+                const z = positions[i + 2];
+                // Y is at index i+1
+                positions[i + 1] = simpleNoise(x, z) - 10; // offset down
+            }
+
+            geometry.computeVertexNormals();
+
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x224433, // Sand/algae color
+                roughness: 0.9,
+                metalness: 0.1
+            });
+            const terrain = new THREE.Mesh(geometry, material);
+            terrain.receiveShadow = true;
+            scene.add(terrain);
+        }
+
+        // 2. The Water Surface (seen from below)
+        function createWaterSurface() {
+            const geometry = new THREE.PlaneGeometry(config.worldSize * 2, config.worldSize * 2);
+            geometry.rotateX(Math.PI / 2); // Face downwards
+            const material = new THREE.MeshBasicMaterial({
+                color: config.waterSurfaceColor,
+                transparent: true,
+                opacity: 0.6,
+                side: THREE.DoubleSide
+            });
+            const surface = new THREE.Mesh(geometry, material);
+            surface.position.y = config.seaLevel;
+            scene.add(surface);
+        }
+
+        // 3. Floating Particles (Plankton/Bubbles)
+        function createParticles() {
+            const particleCount = 2000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * config.worldSize;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const material = new THREE.PointsMaterial({
+                color: 0x88ccff,
+                size: 0.5,
+                transparent: true,
+                opacity: 0.6
+            });
+
+            const particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            // Add to animation loop
+            animateObjects.push({
+                obj: particles,
+                update: (delta, time) => {
+                    const pos = particles.geometry.attributes.position.array;
+                    for (let i = 1; i < pos.length; i += 3) {
+                        pos[i] += delta * 2; // slowly rise
+                        // Wrap around
+                        if (pos[i] > config.seaLevel) {
+                            pos[i] = -40;
+                        }
+                        // Slight wobble
+                        pos[i - 1] += Math.sin(time + i) * 0.01;
+                    }
+                    particles.geometry.attributes.position.needsUpdate = true;
+                }
+            });
+        }
+
+        // 4. Scenery: Rocks
+        function spawnRocks() {
+            const rockGeo = new THREE.DodecahedronGeometry(1, 1);
+            const rockMat = new THREE.MeshStandardMaterial({ color: 0x444455, roughness: 1 });
+
+            for (let i = 0; i < 150; i++) {
+                const rock = new THREE.Mesh(rockGeo, rockMat);
+                const x = (Math.random() - 0.5) * config.worldSize * 0.8;
+                const z = (Math.random() - 0.5) * config.worldSize * 0.8;
+                const y = simpleNoise(x, z) - 10;
+
+                rock.position.set(x, y, z);
+
+                // Random scale and rotation
+                const scale = 1 + Math.random() * 4;
+                rock.scale.set(scale, scale * (0.5 + Math.random()), scale);
+                rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+                rock.castShadow = true;
+                rock.receiveShadow = true;
+                scene.add(rock);
+            }
+        }
+
+        // 5. Scenery: Kelp Forests
+        function spawnKelp() {
+            const kelpMat = new THREE.MeshStandardMaterial({ color: 0x33aa44, roughness: 0.8 });
+            // Create a compound shape for a kelp stalk
+
+            for (let i = 0; i < 100; i++) {
+                const group = new THREE.Group();
+                const numSegments = 5 + Math.floor(Math.random() * 8);
+                const segments = [];
+
+                for (let j = 0; j < numSegments; j++) {
+                    const segGeo = new THREE.CylinderGeometry(0.2, 0.3, 2, 8);
+                    const seg = new THREE.Mesh(segGeo, kelpMat);
+                    seg.position.y = j * 1.8; // stack them
+
+                    // Add leaves
+                    if (j > 0) {
+                        const leafGeo = new THREE.ConeGeometry(0.5, 2, 3);
+                        const leaf = new THREE.Mesh(leafGeo, kelpMat);
+                        leaf.rotation.z = Math.PI / 2;
+                        leaf.position.set(0.5, 0, 0);
+                        seg.add(leaf);
+                    }
+
+                    segments.push(seg);
+                    group.add(seg);
+                }
+
+                const x = (Math.random() - 0.5) * config.worldSize * 0.7;
+                const z = (Math.random() - 0.5) * config.worldSize * 0.7;
+                const baseY = simpleNoise(x, z) - 10;
+
+                group.position.set(x, baseY, z);
+                scene.add(group);
+
+                // Animate kelp swaying
+                const randomOffset = Math.random() * 100;
+                animateObjects.push({
+                    obj: group,
+                    update: (delta, time) => {
+                        segments.forEach((seg, idx) => {
+                            // Bottom segments sway less, top sway more
+                            const swayAmount = (idx / numSegments) * 0.3;
+                            seg.rotation.x = Math.sin(time + randomOffset + idx * 0.5) * swayAmount;
+                            seg.rotation.z = Math.cos(time * 0.8 + randomOffset) * swayAmount;
+                        });
+                    }
+                });
+            }
+        }
+
+        // 6. Basic Creatures (Fish)
+        function spawnFish() {
+            const fishGeo = new THREE.ConeGeometry(0.3, 1.5, 4);
+            fishGeo.rotateX(Math.PI / 2); // Point forward
+            const fishMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 0.4 });
+
+            for (let i = 0; i < 30; i++) {
+                const fish = new THREE.Mesh(fishGeo, fishMat);
+                const startY = -10 + Math.random() * 30;
+                fish.position.set(
+                    (Math.random() - 0.5) * config.worldSize * 0.5,
+                    startY,
+                    (Math.random() - 0.5) * config.worldSize * 0.5
+                );
+                scene.add(fish);
+
+                // Fish movement properties
+                const speed = 2 + Math.random() * 3;
+                const orbitRadius = 5 + Math.random() * 15;
+                const orbitCenter = new THREE.Vector3().copy(fish.position);
+                const randomOffset = Math.random() * Math.PI * 2;
+
+                animateObjects.push({
+                    obj: fish,
+                    update: (delta, time) => {
+                        // Swim in circles
+                        const angle = time * speed * 0.2 + randomOffset;
+                        const targetX = orbitCenter.x + Math.cos(angle) * orbitRadius;
+                        const targetZ = orbitCenter.z + Math.sin(angle) * orbitRadius;
+
+                        // Slowly move orbit center to wander
+                        orbitCenter.x += Math.sin(time * 0.1) * 0.05;
+                        orbitCenter.z += Math.cos(time * 0.15) * 0.05;
+
+                        // Keep fish above terrain and below surface
+                        const floorY = simpleNoise(fish.position.x, fish.position.z) - 8;
+                        orbitCenter.y = Math.max(floorY, Math.min(config.seaLevel - 2, orbitCenter.y));
+
+                        // Calculate look direction
+                        const lookTarget = new THREE.Vector3(targetX, orbitCenter.y, targetZ);
+                        fish.lookAt(lookTarget);
+
+                        // Move forward
+                        fish.position.lerp(lookTarget, delta);
+                    }
+                });
+            }
+        }
+
+        // 7. The Drop Pod
+        function spawnDropPod() {
+            const podGroup = new THREE.Group();
+
+            // Pod Body (floating cylinder)
+            const podGeo = new THREE.CylinderGeometry(4, 4, 6, 16);
+            const podMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.5, metalness: 0.8 });
+            const pod = new THREE.Mesh(podGeo, podMat);
+            podGroup.add(pod);
+
+            // Flotation ring
+            const ringGeo = new THREE.TorusGeometry(4.5, 1, 8, 24);
+            const ringMat = new THREE.MeshStandardMaterial({ color: 0xff3300 });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            podGroup.add(ring);
+
+            // Hydraulic Printer (inside/on pod)
+            const printerGeo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+            const printerMat = new THREE.MeshStandardMaterial({ color: 0x00aaff });
+            const printer = new THREE.Mesh(printerGeo, printerMat);
+            printer.position.set(2, -1, 2);
+            printer.userData = { type: 'printer', name: 'Hydraulic Printer' };
+            interactables.push(printer);
+            podGroup.add(printer);
+
+            // Storage
+            const storageGeo = new THREE.BoxGeometry(1.5, 2, 1.5);
+            const storageMat = new THREE.MeshStandardMaterial({ color: 0x33aa33 });
+            const storage = new THREE.Mesh(storageGeo, storageMat);
+            storage.position.set(-2, -0.5, 2);
+            storage.userData = { type: 'storage', name: 'Storage Locker' };
+            interactables.push(storage);
+            podGroup.add(storage);
+
+            // Position pod at sea level, slight random drift
+            podGroup.position.set(0, config.seaLevel, 0);
+            scene.add(podGroup);
+
+            // Bobbing animation
+            animateObjects.push({
+                obj: podGroup,
+                update: (delta, time) => {
+                    podGroup.position.y = config.seaLevel + Math.sin(time * 2) * 0.3;
+                    podGroup.rotation.z = Math.sin(time * 1.5) * 0.05;
+                    podGroup.rotation.x = Math.cos(time * 1.2) * 0.05;
+                }
+            });
+        }
+
+        // 8. Limestone Outcrops
+        function spawnOutcrops() {
+            const outcropGeo = new THREE.DodecahedronGeometry(0.8, 1); // slightly bumpy
+            const outcropMat = new THREE.MeshStandardMaterial({ color: 0x8888aa, roughness: 1.0 });
+
+            for (let i = 0; i < 200; i++) {
+                const outcrop = new THREE.Mesh(outcropGeo, outcropMat);
+                const x = (Math.random() - 0.5) * config.worldSize * 0.9;
+                const z = (Math.random() - 0.5) * config.worldSize * 0.9;
+                const y = simpleNoise(x, z) - 9.5; // sitting on terrain
+
+                outcrop.position.set(x, y, z);
+                outcrop.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+
+                outcrop.userData = { type: 'outcrop', name: 'Limestone Outcrop' };
+                interactables.push(outcrop);
+                scene.add(outcrop);
+            }
+        }
+
+        // Run generation
+        createTerrain();
+        createWaterSurface();
+        createParticles();
+        spawnRocks();
+        spawnKelp();
+        spawnFish();
+        spawnDropPod();
+        spawnOutcrops();
+
+        // --- Custom First-Person Controller ---
+
+        // Spawn Point
+        camera.position.set(0, config.seaLevel - 2, 15);
+
+        const velocity = new THREE.Vector3();
+        const direction = new THREE.Vector3();
+        let pitch = 0; // rotation around X
+        let yaw = 0;   // rotation around Y
+
+        const keys = { w: false, a: false, s: false, d: false, space: false, shift: false };
+
+        document.addEventListener('keydown', (e) => {
+            switch (e.code) {
+                case 'KeyW': keys.w = true; break;
+                case 'KeyA': keys.a = true; break;
+                case 'KeyS': keys.s = true; break;
+                case 'KeyD': keys.d = true; break;
+                case 'Space': keys.space = true; break;
+                case 'ShiftLeft': case 'ShiftRight': keys.shift = true; break;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            switch (e.code) {
+                case 'KeyW': keys.w = false; break;
+                case 'KeyA': keys.a = false; break;
+                case 'KeyS': keys.s = false; break;
+                case 'KeyD': keys.d = false; break;
+                case 'Space': keys.space = false; break;
+                case 'ShiftLeft': case 'ShiftRight': keys.shift = false; break;
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (document.pointerLockElement === document.body) {
+                // Mouse sensitivity
+                const sensitivity = 0.002;
+                yaw -= e.movementX * sensitivity;
+                pitch -= e.movementY * sensitivity;
+
+                // Clamp pitch to look straight up or down (89 degrees)
+                const PI_2 = Math.PI / 2 - 0.01;
+                pitch = Math.max(-PI_2, Math.min(PI_2, pitch));
+
+                camera.rotation.set(pitch, yaw, 0);
+            }
+        });
+
+        function updateMovement(delta) {
+            // Apply drag (water resistance)
+            velocity.x -= velocity.x * config.drag * delta;
+            velocity.y -= velocity.y * config.drag * delta;
+            velocity.z -= velocity.z * config.drag * delta;
+
+            direction.z = Number(keys.s) - Number(keys.w);
+            direction.x = Number(keys.d) - Number(keys.a);
+            direction.y = Number(keys.space) - Number(keys.shift);
+            direction.normalize(); // Ensure consistent speed in all directions
+
+            // Base acceleration
+            const acceleration = config.swimSpeed * delta;
+
+            if (keys.w || keys.s) velocity.z -= direction.z * acceleration;
+            if (keys.a || keys.d) velocity.x -= direction.x * acceleration;
+            if (keys.space || keys.shift) velocity.y += direction.y * acceleration;
+
+            // Apply velocity relative to camera orientation
+            // Create vectors pointing in the camera's local right and forward directions
+            const right = new THREE.Vector3(1, 0, 0).applyEuler(new THREE.Euler(0, yaw, 0));
+            const forward = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(pitch, yaw, 0));
+            // Up is world up, to allow independent vertical swimming
+            const up = new THREE.Vector3(0, 1, 0);
+
+            // Create movement vector
+            const moveVec = new THREE.Vector3()
+                .addScaledVector(right, velocity.x)
+                .addScaledVector(up, velocity.y)
+                .addScaledVector(forward, -velocity.z); // velocity.z is negative when moving forward
+
+            camera.position.add(moveVec);
+
+            // Collision Constraints
+            // 1. Terrain Collision
+            const terrainHeight = simpleNoise(camera.position.x, camera.position.z) - 10;
+            const playerHeightOffset = 1.5; // distance from eyes to feet
+            if (camera.position.y < terrainHeight + playerHeightOffset) {
+                camera.position.y = terrainHeight + playerHeightOffset;
+                velocity.y = Math.max(0, velocity.y); // Stop downward velocity
+            }
+
+            // 2. Bound to world size
+            const limit = config.worldSize / 2 - 5;
+            camera.position.x = Math.max(-limit, Math.min(limit, camera.position.x));
+            camera.position.z = Math.max(-limit, Math.min(limit, camera.position.z));
+        }
+
+        // --- Game Logic & UI ---
+
+        const depthEl = document.getElementById('depth-val');
+        const biomeEl = document.getElementById('biome-name');
+        const o2Bar = document.getElementById('o2-bar');
+        const o2Text = document.getElementById('bottom-left').firstElementChild;
+        const promptEl = document.getElementById('interaction-prompt');
+
+        function updateInventoryUI() {
+            document.getElementById('inv-titanium').innerText = state.inventory.titanium;
+            document.getElementById('inv-copper').innerText = state.inventory.copper;
+            document.getElementById('inv-rice').innerText = state.inventory.rice;
+        }
+
+        function craft(itemId, cost) {
+            // Check cost
+            if (state.inventory.titanium >= (cost.titanium || 0) &&
+                state.inventory.copper >= (cost.copper || 0) &&
+                state.inventory.rice >= (cost.rice || 0)) {
+
+                // Deduct cost
+                state.inventory.titanium -= (cost.titanium || 0);
+                state.inventory.copper -= (cost.copper || 0);
+                state.inventory.rice -= (cost.rice || 0);
+
+                // Apply upgrade
+                if (itemId === 'tank') {
+                    config.maxO2 = 200;
+                    state.upgrades.tank = true;
+                    document.getElementById('craft-tank').innerText = "Crafted";
+                    document.getElementById('craft-tank').disabled = true;
+                } else if (itemId === 'fins') {
+                    config.swimSpeed = 45; // faster
+                    state.upgrades.fins = true;
+                    document.getElementById('craft-fins').innerText = "Crafted";
+                    document.getElementById('craft-fins').disabled = true;
+                } else if (itemId === 'riceball') {
+                    state.o2 = Math.min(config.maxO2, state.o2 + 30);
+                }
+
+                updateInventoryUI();
+            } else {
+                const btn = document.getElementById('craft-' + (itemId === 'riceball' ? 'rice' : itemId));
+                if (btn) {
+                    const originalText = btn.innerText;
+                    btn.innerText = "Need more materials";
+                    btn.style.background = "red";
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.style.background = "#08c";
+                    }, 1000);
+                }
+            }
+        }
+
+        window.closeModal = function (type) {
+            document.getElementById(`${type}-modal`).style.display = 'none';
+            state.activeModal = null;
+        }
+
+        function updateGameLogic(delta) {
+            if (state.isDead) return;
+
+            // Depth calculation (Sea level is 0 depth)
+            let depth = Math.max(0, config.seaLevel - camera.position.y);
+            depthEl.innerText = Math.floor(depth);
+
+            // Biome naming based on depth
+            if (depth < 5) biomeEl.innerText = "Surface";
+            else if (depth < 30) biomeEl.innerText = "Safe Shallows";
+            else if (depth < 60) {
+                biomeEl.innerText = "Kelp Forest";
+                biomeEl.style.color = "#8f8";
+            }
+            else {
+                biomeEl.innerText = "The Void";
+                biomeEl.style.color = "#a5f";
+            }
+
+            // Oxygen Mechanics
+            if (camera.position.y < config.seaLevel) {
+                // Underwater: deplete
+                state.o2 -= config.o2DepletionRate * delta;
+            } else {
+                // Above water: refill
+                state.o2 += config.o2RefillRate * delta;
+            }
+
+            // Clamp O2
+            state.o2 = Math.max(0, Math.min(config.maxO2, state.o2));
+
+            // Update UI Bar
+            const o2Percent = (state.o2 / config.maxO2) * 100;
+            o2Bar.style.width = `${o2Percent}%`;
+
+            // Visual Warnings
+            if (o2Percent < 25) {
+                o2Text.classList.add('alert');
+                o2Bar.classList.add('alert-bg');
+            } else {
+                o2Text.classList.remove('alert');
+                o2Bar.classList.remove('alert-bg');
+            }
+
+            // Death condition
+            if (state.o2 <= 0) {
+                die();
+            }
+
+            // Raycasting for interactions
+            raycaster.setFromCamera(screenCenter, camera);
+            const intersects = raycaster.intersectObjects(interactables);
+
+            if (intersects.length > 0 && intersects[0].distance < 8) { // within 8 meters
+                currentInteractable = intersects[0].object;
+                promptEl.style.display = 'block';
+
+                if (currentInteractable.userData.type === 'outcrop') {
+                    promptEl.innerText = "[Left Click] Break Limestone Outcrop";
+                } else if (currentInteractable.userData.type === 'printer') {
+                    promptEl.innerText = "[Left Click] Open Hydraulic Printer";
+                } else if (currentInteractable.userData.type === 'storage') {
+                    promptEl.innerText = "[Left Click] Open Storage";
+                }
+            } else {
+                currentInteractable = null;
+                promptEl.style.display = 'none';
+            }
+
+            // Visual Effects based on depth
+            // Make it darker as you go deeper
+            const depthFactor = Math.min(1, depth / 100);
+            scene.fog.density = 0.015 + (depthFactor * 0.02); // Thicker fog
+            ambientLight.intensity = 0.6 - (depthFactor * 0.4); // Darker
+        }
+
+        function die() {
+            state.isDead = true;
+            document.exitPointerLock();
+            document.getElementById('death-screen').style.display = 'flex';
+        }
+
+        function respawn() {
+            state.isDead = false;
+            state.o2 = config.maxO2;
+            camera.position.set(0, config.seaLevel - 2, 15);
+            velocity.set(0, 0, 0);
+            pitch = 0;
+            yaw = 0;
+            camera.rotation.set(0, 0, 0);
+            document.getElementById('death-screen').style.display = 'none';
+        }
+
+        // --- Main Loop ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!state.isRunning) return;
+
+            const delta = Math.min(clock.getDelta(), 0.1); // Cap delta to prevent huge jumps on lag
+            const time = clock.getElapsedTime();
+
+            if (!state.isDead && document.pointerLockElement === document.body) {
+                updateMovement(delta);
+                updateGameLogic(delta);
+            }
+
+            // Update procedural animations (kelp, fish, particles)
+            animateObjects.forEach(item => item.update(delta, time));
+
+            renderer.render(scene, camera);
+        }
+
+        // --- Event Listeners ---
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Interaction Click Handler
+        document.addEventListener('mousedown', (e) => {
+            if (document.pointerLockElement === document.body && e.button === 0) {
+                if (currentInteractable) {
+                    const type = currentInteractable.userData.type;
+
+                    if (type === 'outcrop') {
+                        // Break outcrop
+                        scene.remove(currentInteractable);
+                        interactables.splice(interactables.indexOf(currentInteractable), 1);
+
+                        // Random loot
+                        const roll = Math.random();
+                        let loot = '';
+                        if (roll < 0.35) { state.inventory.titanium++; loot = 'Titanium'; }
+                        else if (roll < 0.7) { state.inventory.copper++; loot = 'Copper'; }
+                        else { state.inventory.rice++; loot = 'Sea Rice'; }
+
+                        updateInventoryUI();
+
+                        // Briefly show loot message
+                        promptEl.innerText = `Acquired: ${loot}`;
+                        promptEl.style.display = 'block';
+                        promptEl.style.color = '#0f0';
+                        currentInteractable = null;
+
+                        setTimeout(() => {
+                            promptEl.style.color = 'white';
+                            if (!currentInteractable) promptEl.style.display = 'none';
+                        }, 1500);
+
+                    } else if (type === 'printer') {
+                        // Open printer UI
+                        document.exitPointerLock();
+                        document.getElementById('printer-modal').style.display = 'block';
+                        state.activeModal = 'printer';
+                    } else if (type === 'storage') {
+                        // Open storage UI
+                        document.exitPointerLock();
+                        document.getElementById('storage-modal').style.display = 'block';
+                        state.activeModal = 'storage';
+                    }
+                }
+            }
+        });
+
+        // Start Game
+        document.getElementById('start-btn').addEventListener('click', async () => {
+            try {
+                const promise = document.body.requestPointerLock();
+                if (promise) {
+                    await promise;
+                }
+            } catch (e) {
+                console.warn("Pointer lock error (cooldown). Try again.", e);
+                const btn = document.getElementById('start-btn');
+                btn.innerText = "COOLDOWN... TRY AGAIN";
+                setTimeout(() => {
+                    if (btn.innerText === "COOLDOWN... TRY AGAIN") {
+                        btn.innerText = "RESUME";
+                    }
+                }, 1500);
+            }
+        });
+
+        // Respawn
+        document.getElementById('restart-btn').addEventListener('click', async () => {
+            respawn();
+            try {
+                const promise = document.body.requestPointerLock();
+                if (promise) {
+                    await promise;
+                }
+            } catch (e) {
+                console.warn("Pointer lock error on respawn.", e);
+                document.getElementById('start-screen').style.display = 'flex';
+                document.getElementById('start-screen').querySelector('h1').innerText = "PAUSED";
+                document.getElementById('start-btn').innerText = "RESUME";
+            }
+        });
+
+        // Pointer Lock state change handler
+        document.addEventListener('pointerlockchange', () => {
+            if (document.pointerLockElement === document.body) {
+                // Game focused
+                document.getElementById('start-screen').style.display = 'none';
+                state.isRunning = true;
+                clock.getDelta(); // reset clock delta
+            } else {
+                // Game paused / lost focus
+                if (!state.isDead && !state.activeModal) {
+                    document.getElementById('start-screen').style.display = 'flex';
+                    document.getElementById('start-screen').querySelector('h1').innerText = "PAUSED";
+                    document.getElementById('start-btn').innerText = "RESUME";
+                }
+            }
+        });
+
+        // Start rendering (even if paused, to show background)
+        animate();
+
+    </script>
+</body>
+
+</html>
