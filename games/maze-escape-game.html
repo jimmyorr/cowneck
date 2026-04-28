@@ -15,8 +15,10 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" data-preset="react">
+  <script type="text/babel" data-plugins="transform-react-jsx">
+console.log("Script loaded");
 const React = window.React;
+console.log("React:", React);
 const ReactDOM = window.ReactDOM;
 const { useState, useEffect, useCallback, useMemo, useRef } = React;
 const firebase = window.firebase;
