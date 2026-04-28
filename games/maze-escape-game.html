@@ -15,7 +15,7 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" data-presets="react">
+  <script type="text/babel" data-preset="react">
 const React = window.React;
 const ReactDOM = window.ReactDOM;
 const { useState, useEffect, useCallback, useMemo, useRef } = React;
@@ -266,7 +266,7 @@ const generateRoomCode = () => {
   return result;
 };
 
-export default function App() {
+function App() {
   const [user, setUser] = useState(null);
   const [view, setView] = useState('menu'); 
   const [roomId, setRoomId] = useState('');
