@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pack Opening Simulator Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            overflow-x: hidden;
+        }
+
+        /* Carousel Styles */
+        .carousel-viewport {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            overflow: hidden;
+            background: #0f172a;
+            border-radius: 1rem;
+            border: 2px solid #1e293b;
+        }
+
+        .carousel-reel {
+            display: flex;
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            transition: transform 5s cubic-bezier(0.15, 0, 0.05, 1);
+            will-change: transform;
+        }
+
+        .carousel-item {
+            flex: 0 0 140px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            padding: 10px;
+        }
+
+        .winning-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #facc15;
+            transform: translateX(-50%);
+            z-index: 10;
+            box-shadow: 0 0 15px #facc15;
+        }
+
+        /* Animations */
+        @keyframes pulse-subtle { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+        @keyframes drift { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        @keyframes rotate-hue { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+        @keyframes breathe { 0%, 100% { transform: scale(1); box-shadow: 0 0 5px currentColor; } 50% { transform: scale(1.02); box-shadow: 0 0 20px currentColor; } }
+        @keyframes cosmic { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
+
+        /* Rarity Styles */
+        .rarity-common { background: #475569; animation: pulse-subtle 3s infinite ease-in-out; }
+        .rarity-uncommon { background: linear-gradient(135deg, #16a34a, #15803d); animation: pulse-subtle 2s infinite ease-in-out; }
+        .rarity-rare { background: linear-gradient(135deg, #2563eb, #1d4ed8); animation: drift 4s infinite linear alternate; background-size: 200% 200%; }
+        .rarity-epic { background: linear-gradient(135deg, #9333ea, #7e22ce); animation: drift 3s infinite linear alternate; background-size: 200% 200%; box-shadow: inset 0 0 15px rgba(255,255,255,0.2); }
+        .rarity-legendary { background: linear-gradient(135deg, #d97706, #b45309); animation: breathe 2s infinite ease-in-out; border: 1px solid #fbbf24; }
+        .rarity-mythic { background: linear-gradient(135deg, #dc2626, #991b1b); animation: breathe 1.5s infinite ease-in-out; border: 1px solid #f87171; }
+        .rarity-exotic { background: linear-gradient(135deg, #0d9488, #115e59, #0d9488); background-size: 200% 200%; animation: drift 2s infinite linear; border: 1px solid #2dd4bf; }
+        .rarity-divine { background: linear-gradient(135deg, #fbbf24, #fef08a, #fbbf24); background-size: 200% 200%; animation: drift 1.5s infinite linear; border: 2px solid #fff; color: #451a03; }
+        .rarity-transcendent { background: linear-gradient(135deg, #db2777, #f472b6, #db2777); background-size: 200% 200%; animation: drift 1s infinite linear, rotate-hue 4s infinite linear; border: 2px solid #fff; }
+        .rarity-eternal { background: radial-gradient(circle, #1e293b 0%, #000000 100%); background-size: 200% 200%; animation: cosmic 10s infinite linear; border: 2px solid #fff; box-shadow: 0 0 30px rgba(255,255,255,0.3); }
+        .rarity-secret { background: linear-gradient(45deg, #ff0000, #ffff00, #00ffff, #ff00ff, #ff0000); background-size: 400% 400%; animation: drift 3s ease infinite, rotate-hue 2s infinite linear; color: black; border: 2px solid white; }
+        .rarity-infinity { background: radial-gradient(circle, #ffffff 0%, #e0f2fe 50%, #38bdf8 100%); background-size: 200% 200%; animation: breathe 0.5s infinite alternate, rotate-hue 1s infinite linear; color: #020617; border: 3px solid #fff; box-shadow: 0 0 50px #38bdf8, inset 0 0 30px #ffffff; }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: sparkle 0.8s linear infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .loading-overlay {
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    </style>
+</head>
+<body class="text-slate-200 min-h-screen flex flex-col items-center p-4 pb-20">
+
+    <!-- Loading State -->
+    <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center loading-overlay">
+        <div class="text-center">
+            <div class="inline-block w-12 h-12 border-4 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="mt-4 font-bold text-sky-400 uppercase tracking-widest text-xs">Syncing Collection...</p>
+        </div>
+    </div>
+
+    <!-- UI Overlay for Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Shop Modal -->
+    <div id="shop-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-slate-900 border border-slate-700 p-6 rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-black text-emerald-400 uppercase tracking-tighter">🛒 Global Market</h2>
+                <button onclick="toggleShop()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none">&times;</button>
+            </div>
+            <div class="overflow-y-auto pr-2 flex-1 space-y-8" id="shop-items-container">
+                <!-- Shop items categories injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-700 p-6 rounded-2xl w-full max-w-sm m-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-black text-sky-400 uppercase tracking-tighter">Settings</h2>
+                <button onclick="toggleSettings()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none">&times;</button>
+            </div>
+            <div class="flex items-center justify-between bg-slate-800 p-4 rounded-xl border border-slate-700">
+                <div>
+                    <div class="font-bold text-slate-200">Creative Mode</div>
+                    <div class="text-xs text-slate-400 italic">Unlimited funds for testing</div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="creative-toggle" class="sr-only peer" onchange="toggleCreativeMode(this.checked)">
+                    <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <header class="w-full max-w-md flex justify-between items-center mb-8 mt-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-800 backdrop-blur-md">
+        <div class="flex flex-col">
+            <span class="text-[10px] uppercase tracking-widest text-slate-400 font-black">Balance</span>
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-black text-yellow-400 leading-tight" id="coins">0</span>
+                <span class="text-lg">🪙</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="text-right">
+                <span class="text-[10px] uppercase tracking-widest text-slate-400 font-black">Packs</span>
+                <div class="text-xl font-black leading-tight" id="packs-stat">0</div>
+            </div>
+            <div class="flex gap-1">
+                <button onclick="toggleShop()" class="p-2 bg-slate-800/80 hover:bg-emerald-500/20 hover:text-emerald-400 rounded-xl transition-all border border-slate-700 text-lg">🛒</button>
+                <button onclick="toggleSettings()" class="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 text-lg">⚙️</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-2xl flex flex-col items-center">
+        <!-- Carousel -->
+        <div class="w-full mb-8 relative">
+            <div class="carousel-viewport shadow-2xl">
+                <div class="winning-line"></div>
+                <div id="carousel-reel" class="carousel-reel">
+                    <div class="carousel-item opacity-40">
+                        <div class="text-5xl">📦</div>
+                        <div class="mt-2 font-black text-xs text-sky-500 uppercase tracking-tighter">Tap to Open</div>
+                    </div>
+                </div>
+            </div>
+            <div id="sparkle-container" class="absolute inset-0 pointer-events-none"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex flex-col gap-3 w-full max-w-md">
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="openPack(1)" class="open-btn bg-sky-600 hover:bg-sky-500 text-white font-black py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-sky-900/20 disabled:opacity-50">1 PACK</button>
+                <button onclick="openPack(5)" class="open-btn bg-indigo-600 hover:bg-indigo-500 text-white font-black py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-indigo-900/20 disabled:opacity-50">5 PACKS</button>
+                <button onclick="openPack(10)" class="open-btn bg-purple-600 hover:bg-purple-500 text-white font-black py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-purple-900/20 disabled:opacity-50">10 PACKS</button>
+            </div>
+
+            <div class="flex gap-2">
+                <input id="custom-amount" type="number" placeholder="Custom" min="1" max="100000" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 font-black focus:outline-none focus:border-emerald-500 transition-colors text-center text-sm" value="50">
+                <button onclick="openCustom()" class="open-btn bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-900/20 disabled:opacity-50 text-xs">OPEN MASS</button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 mt-2">
+                <button onclick="sellAll('Common')" class="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-black py-3 rounded-xl transition-colors uppercase tracking-widest">Sell Commons</button>
+                <button onclick="sellAll('all')" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-[10px] font-black py-3 rounded-xl transition-colors border border-rose-500/20 uppercase tracking-widest">Sell Duplicates</button>
+            </div>
+        </div>
+
+        <!-- Display Case -->
+        <section id="display-case-section" class="w-full mt-10 max-w-md mx-auto hidden">
+            <h2 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-500 mb-3 ml-1">Rare Collectibles</h2>
+            <div id="display-case" class="grid grid-cols-5 gap-3 bg-slate-900/50 border border-slate-800 p-4 rounded-2xl backdrop-blur-sm"></div>
+        </section>
+
+        <!-- Inventory -->
+        <section class="w-full mt-8 max-w-md mx-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xs font-black uppercase tracking-[0.2em] text-sky-400 ml-1">My Collection</h2>
+                <span id="inv-count" class="text-[10px] font-black bg-slate-800 px-3 py-1 rounded-full text-slate-400">0 ITEMS</span>
+            </div>
+            <div id="inventory" class="space-y-3"></div>
+        </section>
+    </main>
+
+    <script>
+        // Game state
+        const gameState = {
+            coins: 100,
+            inventory: [],
+            totalOpened: 0,
+            creativeMode: false,
+            collectibles: []
+        };
+
+        function openPack(amount) {
+            console.log(`Opening ${amount} pack(s)`);
+        }
+
+        function openCustom() {
+            const amount = parseInt(document.getElementById('custom-amount').value);
+            openPack(amount);
+        }
+
+        function sellAll(rarity) {
+            console.log(`Selling all ${rarity} items`);
+        }
+
+        function toggleShop() {
+            const modal = document.getElementById('shop-modal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+        }
+
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+        }
+
+        function toggleCreativeMode(enabled) {
+            gameState.creativeMode = enabled;
+            if (enabled) {
+                gameState.coins = 999999;
+                document.getElementById('coins').textContent = '999999';
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            document.getElementById('coins').textContent = gameState.coins;
+            document.getElementById('packs-stat').textContent = '0';
+            document.getElementById('loading').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
