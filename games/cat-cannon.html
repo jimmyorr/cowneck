@@ -1,0 +1,2511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cat Cannon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0f172a;
+            touch-action: none; /* Prevent zooming/scrolling on mobile */
+            -webkit-user-select: none; /* Prevent text selection dragging on Mac/Chromebook */
+            user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #game-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #1e1b4b, #312e81);
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+        .tutorial-bg {
+            background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #1e3a8a 100%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+        .hidden {
+            display: none !important;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    
+    <!-- Toast Notification for Achievements -->
+    <div id="toastNotification" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-6 py-3 rounded-full font-black shadow-[0_0_20px_#facc15] transition-all duration-300 z-[400] opacity-0 pointer-events-none translate-y-[-20px] flex items-center gap-3">
+        <span class="text-2xl">🏆</span>
+        <span id="toastText">Achievement Unlocked!</span>
+    </div>
+
+    <!-- Tutorial / Start Screen -->
+    <div id="startScreen" class="overlay tutorial-bg hidden">
+        <button id="openSettingsBtn" class="absolute top-6 right-6 text-4xl hover:scale-110 transition drop-shadow-lg z-50" title="Settings">⚙️</button>
+        <div class="text-center p-8 max-w-2xl">
+            <h1 class="text-6xl md:text-8xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-300 drop-shadow-[0_5px_5px_rgba(0,0,0,0.5)]">
+                CAT CANNON
+            </h1>
+            <p class="text-xl md:text-2xl mb-12 text-blue-200 font-medium">Bounce the sleepy kitty into the goal!</p>
+            
+            <div class="flex flex-col md:flex-row gap-4 justify-center flex-wrap">
+                <button id="startEasyBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl">
+                    PLAY EASY
+                </button>
+                <button id="startNormalBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl">
+                    PLAY NORMAL
+                </button>
+                <button id="openLevelSelectBtn" class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full text-xl md:text-2xl transition border border-white/20 backdrop-blur-sm">
+                    LEVELS
+                </button>
+                <button id="openEditorBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-orange-500 to-red-600 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl">
+                    MAP MAKER
+                </button>
+                <button id="openImportBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl">
+                    ENTER CODE
+                </button>
+                <button id="openAchievementsBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl flex items-center justify-center gap-2">
+                    <span>🏆</span> ACHIEVEMENTS
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Select Menu -->
+    <div id="levelSelectScreen" class="overlay tutorial-bg hidden">
+        <div class="glass-panel p-8 rounded-3xl max-w-4xl w-11/12 text-center">
+            <h2 class="text-4xl font-black mb-6 text-white uppercase tracking-widest">Select Level</h2>
+            
+            <!-- Mode Toggle Tabs -->
+            <div class="flex justify-center gap-4 mb-6">
+                <button id="tabEasy" class="px-6 py-2 rounded-full font-bold bg-white/20 text-white transition border border-white/20 hover:bg-white/30">EASY MODE</button>
+                <button id="tabNormal" class="px-6 py-2 rounded-full font-bold bg-purple-500 text-white transition transform hover:scale-105 shadow-lg">NORMAL MODE</button>
+            </div>
+
+            <div id="levelGrid" class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
+                <!-- Level buttons generated by JS -->
+            </div>
+            
+            <!-- Pagination Controls -->
+            <div class="flex justify-between items-center mb-8 px-4">
+                <button id="prevPageBtn" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition border border-white/20 disabled:opacity-30 disabled:cursor-not-allowed">
+                    &larr; Prev
+                </button>
+                <span id="pageIndicator" class="text-purple-300 font-bold tracking-widest uppercase text-sm">PAGE 1/2</span>
+                <button id="nextPageBtn" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition border border-white/20 disabled:opacity-30 disabled:cursor-not-allowed">
+                    Next &rarr;
+                </button>
+            </div>
+
+            <button id="backToStartBtn" class="px-8 py-3 bg-white/10 hover:bg-red-500/30 text-white font-bold rounded-full transition border border-white/10">
+                BACK
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings Menu -->
+    <div id="settingsScreen" class="overlay tutorial-bg hidden">
+        <div class="glass-panel p-8 rounded-3xl max-w-md w-11/12 text-center max-h-[90vh] overflow-y-auto">
+            <h2 class="text-4xl font-black mb-8 text-white uppercase tracking-widest">Settings</h2>
+            
+            <!-- Controls Section -->
+            <div class="bg-white/10 rounded-xl mb-6 border border-white/20 text-left overflow-hidden">
+                <button id="howToPlayToggleBtn" class="w-full flex items-center justify-between p-4 text-white hover:bg-white/5 transition">
+                    <span class="text-xl font-bold">🎮 How to Play</span>
+                    <span id="howToPlayChevron" class="transform transition-transform duration-300">▼</span>
+                </button>
+                <div id="howToPlayContent" class="hidden px-4 pb-4">
+                    <ul class="space-y-3 text-white text-sm border-t border-white/10 pt-4">
+                        <li>🎯 <strong>Press & Hold</strong> anywhere to aim and charge the cannon.</li>
+                        <li>🚀 <strong>Release</strong> to shoot the sleepy kitty into the portal!</li>
+                        <li>✨ <strong>Tap mid-air</strong> near a <span class="text-yellow-400 font-bold">Yellow Orb</span> to double-jump, a <span class="text-pink-400 font-bold">Pink Orb</span> for a tiny hop, or a <span class="text-green-400 font-bold">Green Orb</span> to flip gravity.</li>
+                        <li>🔄 Press <strong>'R'</strong> on your keyboard to quick-restart a level.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between bg-white/10 p-4 rounded-xl mb-6 border border-white/20">
+                <span class="text-white text-xl font-bold">Auto Next Level</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="autoNextLevelToggle" class="sr-only peer">
+                    <div class="w-14 h-7 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-green-500"></div>
+                </label>
+            </div>
+
+            <div class="flex flex-col gap-4 bg-white/10 p-4 rounded-xl mb-6 border border-white/20">
+                <span class="text-white text-xl font-bold">Choose Kitty</span>
+                <div class="flex flex-wrap justify-center gap-3" id="catSkinSelector">
+                    <!-- Skin buttons generated dynamically by JS -->
+                </div>
+            </div>
+
+            <button id="closeSettingsBtn" class="px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition border border-white/10 w-full">
+                BACK
+            </button>
+        </div>
+    </div>
+
+    <!-- Achievements Menu -->
+    <div id="achievementsScreen" class="overlay tutorial-bg hidden z-[150]">
+        <div class="glass-panel p-8 rounded-3xl max-w-2xl w-11/12 text-center max-h-[90vh] overflow-y-auto flex flex-col">
+            <h2 class="text-4xl font-black mb-2 text-white uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 drop-shadow-md">Achievements</h2>
+            <p class="text-white/80 mb-6 font-medium">Complete challenges to unlock new hats!</p>
+            
+            <div id="achievementsList" class="flex flex-col gap-3 overflow-y-auto pr-2">
+                <!-- Achievement rows generated dynamically by JS -->
+            </div>
+
+            <button id="closeAchievementsBtn" class="mt-6 px-8 py-3 bg-white/10 hover:bg-red-500 text-white font-bold rounded-full transition border border-white/20 w-full md:w-auto self-center">
+                BACK TO MENU
+            </button>
+        </div>
+    </div>
+
+    <div id="levelCompleteScreen" class="overlay hidden bg-black/40 backdrop-blur-sm">
+        <h1 class="text-6xl md:text-8xl font-black mb-4 text-green-400 drop-shadow-lg italic">SWISH!</h1>
+        <p class="text-2xl mb-8 text-white">Purr-fect shot!</p>
+        <div class="flex gap-4">
+            <button id="nextLevelBtn" class="px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full text-2xl transition transform hover:scale-105 shadow-lg">Next Level</button>
+            <button id="menuFromWinBtn" class="px-8 py-4 bg-white/10 text-white font-bold rounded-full text-2xl transition border border-white/20">Menu</button>
+        </div>
+    </div>
+
+    <div id="gameOverScreen" class="overlay hidden bg-black/60 backdrop-blur-sm">
+        <h1 class="text-6xl md:text-8xl font-black mb-4 text-red-400 drop-shadow-lg">MISS!</h1>
+        <p class="text-2xl mb-8 text-white">Let's try that again...</p>
+    </div>
+    
+    <!-- Editor UI Toolbar (Forced into Two Rows) -->
+    <div id="editorUI" class="fixed top-0 left-0 w-full pointer-events-none hidden z-[200]">
+        <div class="pointer-events-auto bg-[#0f172a]/95 backdrop-blur-md border-b border-white/20 p-2 md:px-4 md:py-3 flex flex-col items-center justify-center gap-2 shadow-2xl max-h-[60vh] overflow-y-auto">
+            
+            <!-- First Row: Build Tools -->
+            <div class="flex flex-wrap items-center justify-center gap-1.5 md:gap-2 w-full">
+                <button class="editor-tool border-2 border-white px-2 py-1.5 md:px-3 md:py-1.5 bg-purple-600 hover:bg-purple-500 rounded-md text-white font-bold transition text-xs md:text-sm shadow-md" data-tool="platform">Platform</button>
+                <button class="editor-tool border-2 border-transparent px-2 py-1.5 md:px-3 md:py-1.5 bg-blue-600 hover:bg-blue-500 rounded-md text-white font-bold transition text-xs md:text-sm shadow-md" data-tool="cannon">Cannon</button>
+                <button class="editor-tool border-2 border-transparent px-2 py-1.5 md:px-3 md:py-1.5 bg-pink-600 hover:bg-pink-500 rounded-md text-white font-bold transition text-xs md:text-sm shadow-md" data-tool="hole">Goal</button>
+                <button class="editor-tool border-2 border-transparent px-2 py-1.5 md:px-3 md:py-1.5 bg-yellow-400 hover:bg-yellow-300 rounded-md text-black font-black transition text-xs md:text-sm shadow-md" data-tool="orb_yellow">Y-Orb</button>
+                <button class="editor-tool border-2 border-transparent px-2 py-1.5 md:px-3 md:py-1.5 bg-pink-400 hover:bg-pink-300 rounded-md text-black font-black transition text-xs md:text-sm shadow-md" data-tool="orb_pink">P-Orb</button>
+                <button class="editor-tool border-2 border-transparent px-2 py-1.5 md:px-3 md:py-1.5 bg-green-400 hover:bg-green-300 rounded-md text-black font-black transition text-xs md:text-sm shadow-md" data-tool="orb_green">G-Orb</button>
+                <button class="editor-tool border-2 border-transparent px-2 py-1.5 md:px-3 md:py-1.5 bg-red-600 hover:bg-red-500 rounded-md text-white font-bold transition text-xs md:text-sm shadow-md" data-tool="erase">Erase</button>
+                <button class="editor-tool border-2 border-transparent px-2 py-1.5 md:px-3 md:py-1.5 bg-gray-600 hover:bg-gray-500 rounded-md text-white font-bold transition text-xs md:text-sm shadow-md" data-tool="pan">Pan</button>
+            </div>
+            
+            <!-- Second Row: Settings & Actions -->
+            <div class="flex flex-wrap items-center justify-center gap-2 md:gap-3 w-full border-t border-white/10 pt-2 mt-1">
+                <div class="flex border border-white/20 rounded-md overflow-hidden text-xs md:text-sm shadow-md">
+                    <span class="bg-black/50 text-white px-2 py-1.5 font-bold">W:</span>
+                    <button id="editorDecW" class="bg-white/10 hover:bg-white/30 text-white px-2 py-1.5">-</button>
+                    <span id="editorValW" class="bg-black/50 text-white px-2 py-1.5 font-mono">1</span>
+                    <button id="editorIncW" class="bg-white/10 hover:bg-white/30 text-white px-2 py-1.5">+</button>
+                </div>
+                <div class="flex border border-white/20 rounded-md overflow-hidden text-xs md:text-sm shadow-md">
+                    <span class="bg-black/50 text-white px-2 py-1.5 font-bold">H:</span>
+                    <button id="editorDecH" class="bg-white/10 hover:bg-white/30 text-white px-2 py-1.5">-</button>
+                    <span id="editorValH" class="bg-black/50 text-white px-2 py-1.5 font-mono">1</span>
+                    <button id="editorIncH" class="bg-white/10 hover:bg-white/30 text-white px-2 py-1.5">+</button>
+                </div>
+                <label class="text-white flex items-center gap-1.5 font-bold cursor-pointer text-xs md:text-sm bg-white/5 px-2 py-1.5 md:px-3 md:py-1.5 rounded-md border border-white/10 hover:bg-white/10 transition whitespace-nowrap">
+                    <input type="checkbox" id="editorBouncyToggle" class="w-3 h-3 md:w-4 md:h-4 accent-purple-500"> Bouncy
+                </label>
+                <button id="editorClearBtn" class="px-2 py-1.5 md:px-3 md:py-1.5 bg-red-900/80 hover:bg-red-700 rounded-md text-white font-bold transition text-xs md:text-sm border border-red-500/50 hidden md:block">Clear</button>
+                <button id="editorShareBtn" class="px-3 py-1.5 md:px-4 md:py-1.5 bg-blue-500 hover:bg-blue-400 font-bold rounded-md text-white transition text-xs md:text-sm shadow-md">SHARE</button>
+                <button id="editorTestBtn" class="px-4 py-1.5 md:px-5 md:py-1.5 bg-emerald-500 hover:bg-emerald-400 font-bold rounded-md text-white transition text-xs md:text-sm shadow-[0_0_10px_#10b981]">TEST</button>
+                <button id="editorExitBtn" class="px-3 py-1.5 md:px-4 md:py-1.5 bg-white/10 hover:bg-red-500 border border-white/20 font-bold rounded-md text-white transition text-xs md:text-sm">EXIT</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="gameUI" class="absolute top-4 left-4 text-white font-black text-2xl pointer-events-none drop-shadow-lg hidden flex items-center gap-4">
+        <div class="bg-black/30 px-4 py-2 rounded-full border border-white/10">LEVEL <span id="levelDisplay">1</span></div>
+        <button id="inGameMenuBtn" class="pointer-events-auto bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full border border-white/10 text-sm transition">EXIT</button>
+    </div>
+
+    <!-- Share Level Modal -->
+    <div id="shareModal" class="overlay hidden bg-black/80 backdrop-blur-sm z-[200]">
+        <div class="glass-panel p-8 rounded-3xl max-w-lg w-11/12 text-center">
+            <h2 class="text-3xl font-black mb-4 text-white">Share Level</h2>
+            <p class="text-white/80 mb-4">Copy this code and send it to your friends!</p>
+            <textarea id="shareCodeOutput" class="w-full bg-black/50 text-green-400 p-4 rounded-xl border border-white/20 font-mono text-sm mb-4 h-32 break-all resize-none" readonly></textarea>
+            <div class="flex gap-4 justify-center">
+                <button id="copyCodeBtn" class="px-6 py-2 bg-purple-600 hover:bg-purple-500 font-bold rounded-lg text-white transition shadow-lg">Copy Code</button>
+                <button id="closeShareBtn" class="px-6 py-2 bg-white/10 hover:bg-red-500 font-bold rounded-lg text-white transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Level Modal -->
+    <div id="importModal" class="overlay hidden bg-black/80 backdrop-blur-sm z-[200]">
+        <div class="glass-panel p-8 rounded-3xl max-w-lg w-11/12 text-center">
+            <h2 class="text-3xl font-black mb-4 text-white">Import Level</h2>
+            <p class="text-white/80 mb-4">Paste a level code below to play it!</p>
+            <textarea id="importCodeInput" class="w-full bg-black/50 text-white p-4 rounded-xl border border-white/20 font-mono text-sm mb-4 h-32 focus:outline-none focus:border-purple-500 resize-none" placeholder="Paste code here..."></textarea>
+            <p id="importErrorMsg" class="text-red-400 text-sm mb-4 hidden font-bold">Invalid level code! Make sure you copied the whole thing.</p>
+            <div class="flex gap-4 justify-center">
+                <button id="playImportedBtn" class="px-6 py-2 bg-green-500 hover:bg-green-400 font-bold rounded-lg text-white transition shadow-lg">Play Level</button>
+                <button id="closeImportBtn" class="px-6 py-2 bg-white/10 hover:bg-red-500 font-bold rounded-lg text-white transition">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI Elements
+    const screens = {
+        start: document.getElementById('startScreen'),
+        levelSelect: document.getElementById('levelSelectScreen'),
+        levelComplete: document.getElementById('levelCompleteScreen'),
+        gameOver: document.getElementById('gameOverScreen'),
+        ui: document.getElementById('gameUI'),
+        settings: document.getElementById('settingsScreen'),
+        editor: document.getElementById('editorUI'),
+        achievements: document.getElementById('achievementsScreen')
+    };
+    const levelDisplay = document.getElementById('levelDisplay');
+    const levelGrid = document.getElementById('levelGrid');
+
+    // Stats & Achievements
+    let stats = JSON.parse(localStorage.getItem('catCannonStats')) || { gamesPlayed: 0, bounces: 0, orbsUsed: 0, levelsBeaten: 0, customPlayed: 0 };
+    let previouslyUnlocked = JSON.parse(localStorage.getItem('catCannonUnlockedHats')) || ['none'];
+    let currentHat = localStorage.getItem('catCannonHat') || 'none';
+    let toastTimer = null;
+
+    const hats = {
+        none: { name: 'No Hat', condition: 'Default', icon: '❌', check: () => true },
+        tophat: { name: 'Top Hat', condition: 'Play 1 game', icon: '🎩', check: () => stats.gamesPlayed >= 1 },
+        cap: { name: 'Baseball Cap', condition: 'Bounce off 50 walls/floors', icon: '🧢', check: () => stats.bounces >= 50 },
+        beanie: { name: 'Propeller Beanie', condition: 'Use 10 Magic Orbs', icon: '🚁', check: () => stats.orbsUsed >= 10 },
+        crown: { name: 'Royal Crown', condition: 'Beat 10 levels', icon: '👑', check: () => stats.levelsBeaten >= 10 },
+        wizard: { name: 'Wizard Hat', condition: 'Beat a Custom Level', icon: '🧙', check: () => stats.customPlayed >= 1 },
+        party: { name: 'Party Hat', condition: 'Play 10 games', icon: '🥳', check: () => stats.gamesPlayed >= 10 },
+        chef: { name: 'Chef Hat', condition: 'Bounce 100 times', icon: '🧑‍🍳', check: () => stats.bounces >= 100 },
+        headband: { name: 'Ninja Headband', condition: 'Use 25 Orbs', icon: '🥷', check: () => stats.orbsUsed >= 25 },
+        sombrero: { name: 'Sombrero', condition: 'Beat 20 levels', icon: '👒', check: () => stats.levelsBeaten >= 20 },
+        halo: { name: 'Glowing Halo', condition: 'Play 5 Custom Levels', icon: '😇', check: () => stats.customPlayed >= 5 }
+    };
+
+    function updateStat(key, amount = 1) {
+        stats[key] += amount;
+        localStorage.setItem('catCannonStats', JSON.stringify(stats));
+        checkUnlocks();
+    }
+
+    function checkUnlocks() {
+        Object.keys(hats).forEach(key => {
+            if (!previouslyUnlocked.includes(key) && hats[key].check()) {
+                previouslyUnlocked.push(key);
+                localStorage.setItem('catCannonUnlockedHats', JSON.stringify(previouslyUnlocked));
+                showToast(`Unlocked: ${hats[key].name}!`);
+                initHatSelector(); // Refresh UI to show the new hat
+            }
+        });
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('toastNotification');
+        document.getElementById('toastText').innerText = msg;
+        toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+        toast.classList.add('opacity-100', 'translate-y-0');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-y-[-20px]');
+            toast.classList.remove('opacity-100', 'translate-y-0');
+        }, 3000);
+    }
+
+    // Game Variables
+    let scale = 1;
+    let GRAVITY = 0.25;
+    let CAT_RADIUS = 15;
+    const CAT_BOUNCE = 0.8; // Increased for way more bouncing!
+    const FRICTION = 0.995; // Less air friction so he flies further
+    
+    // POWER SETTINGS
+    const MIN_POWER = 5;
+    const MAX_POWER = 30; // Reduced from 35 for a little less power
+
+    let gameState = 'START'; 
+    let currentMode = 'normal'; // Track whether we are playing easy or normal mode
+    let currentLevelIdx = 0;
+    let currentLevelPage = 0; // Added to track level pages
+    let autoNextLevel = false; // Track auto progression
+    let currentCatSkin = 'orange'; // Track selected cat breed
+    
+    // Map Maker Variables
+    let isTestingLevel = false;
+    let isPlayingImported = false; // Track if we are playing a shared code level
+    let editorTool = 'platform';
+    let isEditorDragging = false; 
+    let isDraggingObject = null; // NEW: Smart drag tracking
+    let editorDragStart = null;
+    let editorCurrentMouse = {x: 0, y: 0};
+    
+    // Camera Variables
+    let camera = {x: 0, y: 0};
+    let targetCamera = {x: 0, y: 0};
+    let lastCamera = {x: 0, y: 0};
+    let keys = {};
+    
+    // Auto-repair missing properties from old localStorage saves
+    let savedLevelStr = localStorage.getItem('catCannonCustomLevel');
+    let customLevel = null;
+    try {
+        if (savedLevelStr) customLevel = JSON.parse(savedLevelStr);
+    } catch(e) {}
+    
+    if (!customLevel) customLevel = {};
+    if (!customLevel.cannonPos) customLevel.cannonPos = {x: 0.1, y: 0.8};
+    if (!customLevel.platforms) customLevel.platforms = [{x: 0, y: 0.9, w: 1, h: 0.1}];
+    if (!customLevel.hole) customLevel.hole = {x: 0.85, y: 0.8, radius: 40};
+    if (customLevel.hole.radius === undefined) customLevel.hole.radius = 40;
+    if (!customLevel.orbs) customLevel.orbs = []; // Critical fix for the crash!
+    if (customLevel.bouncyEdges === undefined) customLevel.bouncyEdges = false;
+    if (customLevel.width === undefined) customLevel.width = 1;
+    if (customLevel.height === undefined) customLevel.height = 1;
+    
+    // NEW variables for the satisfying swish & gravity!
+    let winTime = 0; 
+    let shakeTime = 0; 
+    let idleFrames = 0; // Tracks if the cat is stuck jittering
+    let currentGravityDir = 1; // 1 = down, -1 = up
+    
+    let cat = { x: 0, y: 0, vx: 0, vy: 0, rotation: 0 };
+    let cannon = { x: 50, y: 500, angle: -Math.PI/4, angleDir: 1, power: 0, powerDir: 1 };
+    let hole = { x: 0, y: 0, radius: 25 };
+    let platforms = [];
+    let particles = [];
+    let orbs = [];
+
+    const catSkins = {
+        orange: { name: 'Orange Tabby', dark: '#b35900', mid: '#e67300', light: '#ff9933', white: '#fff3e6', eye: '#2ecc71', nose: '#ff6666', ear: '#e6b3b3' },
+        midnight: { name: 'Midnight Tuxedo', dark: '#111111', mid: '#333333', light: '#555555', white: '#ffffff', eye: '#f1c40f', nose: '#ff99aa', ear: '#cc8899' },
+        blue: { name: 'Russian Blue', dark: '#37474f', mid: '#546e7a', light: '#78909c', white: '#eceff1', eye: '#ffb300', nose: '#90a4ae', ear: '#d7ccc8' },
+        snow: { name: 'Snow White', dark: '#90a4ae', mid: '#cfd8dc', light: '#ffffff', white: '#ffffff', eye: '#00e5ff', nose: '#ff80ab', ear: '#f8bbd0' },
+        candy: { name: 'Cotton Candy', dark: '#d81b60', mid: '#f06292', light: '#f8bbd0', white: '#fff0f5', eye: '#00e676', nose: '#ff4081', ear: '#ff80ab' },
+        brown_tabby: { name: 'Brown Tabby', dark: '#4e342e', mid: '#795548', light: '#a1887f', white: '#d7ccc8', eye: '#aed581', nose: '#ef9a9a', ear: '#ffcdd2' },
+        silver_tabby: { name: 'Silver Tabby', dark: '#424242', mid: '#757575', light: '#bdbdbd', white: '#f5f5f5', eye: '#fdd835', nose: '#f48fb1', ear: '#f8bbd0' },
+        siamese: { name: 'Siamese', dark: '#3e2723', mid: '#d7ccc8', light: '#efebe9', white: '#ffffff', eye: '#29b6f6', nose: '#3e2723', ear: '#5d4037' },
+        calico: { name: 'Calico', dark: '#212121', mid: '#e65100', light: '#ffb300', white: '#ffffff', eye: '#4db6ac', nose: '#f48fb1', ear: '#f8bbd0' },
+        sphynx: { name: 'Sphynx', dark: '#d8aa9c', mid: '#ffccbc', light: '#fbe9e7', white: '#ffffff', eye: '#69f0ae', nose: '#ff8a80', ear: '#ff8a80' }
+    };
+
+    function initSkinSelector() {
+        const selector = document.getElementById('catSkinSelector');
+        selector.innerHTML = '';
+        
+        Object.keys(catSkins).forEach(skinKey => {
+            const skin = catSkins[skinKey];
+            const btn = document.createElement('button');
+            const isActive = skinKey === currentCatSkin;
+            
+            btn.className = `skin-btn w-12 h-12 md:w-14 md:h-14 rounded-full border-4 transition relative overflow-hidden flex items-center justify-center bg-[#1e1b4b] ${isActive ? 'border-white shadow-[0_0_10px_white] opacity-100' : 'border-transparent opacity-50 hover:opacity-100'}`;
+            btn.title = skin.name;
+            btn.dataset.skin = skinKey;
+            
+            // Build an adorable SVG face matching the exact skin colors
+            btn.innerHTML = `
+                <svg viewBox="0 0 48 48" class="w-full h-full pointer-events-none transform translate-y-1">
+                  <!-- Ears -->
+                  <polygon points="8,26 4,8 20,18" fill="${skin.dark}" />
+                  <polygon points="40,26 44,8 28,18" fill="${skin.dark}" />
+                  <!-- Inner Ears -->
+                  <polygon points="10,24 8,12 18,19" fill="${skin.ear}" />
+                  <polygon points="38,24 40,12 30,19" fill="${skin.ear}" />
+                  <!-- Head -->
+                  <circle cx="24" cy="26" r="16" fill="${skin.mid}" />
+                  <!-- Muzzle/White fluff -->
+                  <ellipse cx="24" cy="31" rx="9" ry="6" fill="${skin.white}" />
+                  <!-- Nose -->
+                  <polygon points="21,29 27,29 24,32" fill="${skin.nose}" />
+                  <!-- Eyes -->
+                  <ellipse cx="16" cy="23" rx="3.5" ry="4.5" fill="${skin.eye}" />
+                  <ellipse cx="32" cy="23" rx="3.5" ry="4.5" fill="${skin.eye}" />
+                  <ellipse cx="16" cy="23" rx="1.5" ry="3.5" fill="#000" />
+                  <ellipse cx="32" cy="23" rx="1.5" ry="3.5" fill="#000" />
+                  <!-- Catchlights -->
+                  <circle cx="15" cy="22" r="1.5" fill="#fff" />
+                  <circle cx="31" cy="22" r="1.5" fill="#fff" />
+                </svg>
+            `;
+            
+            btn.addEventListener('click', () => {
+                currentCatSkin = skinKey;
+                document.querySelectorAll('.skin-btn').forEach(b => {
+                    b.classList.remove('border-white', 'shadow-[0_0_10px_white]', 'opacity-100');
+                    b.classList.add('border-transparent', 'opacity-50');
+                });
+                btn.classList.remove('border-transparent', 'opacity-50');
+                btn.classList.add('border-white', 'shadow-[0_0_10px_white]', 'opacity-100');
+            });
+            
+            selector.appendChild(btn);
+        });
+    }
+
+    function initHatSelector() {
+        const selector = document.getElementById('achievementsList');
+        if (!selector) return;
+        selector.innerHTML = '';
+
+        Object.keys(hats).forEach(key => {
+            const hat = hats[key];
+            const isUnlocked = previouslyUnlocked.includes(key);
+            const isActive = key === currentHat;
+            
+            const row = document.createElement('div');
+            row.className = `flex flex-col sm:flex-row items-center justify-between p-4 rounded-2xl border transition-all ${isActive ? 'bg-yellow-500/20 border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.3)]' : 'bg-white/5 border-white/10 hover:bg-white/10'}`;
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'flex items-center gap-4 text-left w-full sm:w-auto mb-3 sm:mb-0';
+            
+            const iconDiv = document.createElement('div');
+            iconDiv.className = `text-4xl w-14 h-14 flex items-center justify-center bg-black/30 rounded-full border border-white/10 ${isUnlocked ? 'shadow-[0_0_10px_rgba(255,255,255,0.2)]' : 'grayscale opacity-40'}`;
+            iconDiv.innerHTML = isUnlocked ? hat.icon : '🔒';
+            
+            const textDiv = document.createElement('div');
+            const titleSpan = document.createElement('div');
+            titleSpan.className = `font-black text-xl tracking-wide ${isUnlocked ? 'text-white' : 'text-white/50'}`;
+            titleSpan.innerText = hat.name;
+            const descSpan = document.createElement('div');
+            descSpan.className = `text-sm font-medium ${isUnlocked ? 'text-green-400' : 'text-yellow-200/60'}`;
+            descSpan.innerText = isUnlocked ? (key === 'none' ? 'Default' : 'Unlocked!') : `Unlock: ${hat.condition}`;
+            
+            textDiv.appendChild(titleSpan);
+            textDiv.appendChild(descSpan);
+            infoDiv.appendChild(iconDiv);
+            infoDiv.appendChild(textDiv);
+
+            const equipBtn = document.createElement('button');
+            if (!isUnlocked) {
+                equipBtn.className = 'px-6 py-2 bg-black/40 text-white/30 font-bold rounded-xl border border-white/5 cursor-not-allowed w-full sm:w-auto';
+                equipBtn.innerText = 'Locked';
+            } else if (isActive) {
+                equipBtn.className = 'px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-black rounded-xl shadow-[0_0_10px_#facc15] w-full sm:w-auto';
+                equipBtn.innerText = 'Equipped';
+            } else {
+                equipBtn.className = 'px-6 py-2 bg-white/10 hover:bg-purple-600 text-white font-bold rounded-xl transition border border-white/20 hover:scale-105 hover:shadow-lg w-full sm:w-auto';
+                equipBtn.innerText = 'Equip';
+                equipBtn.onclick = () => {
+                    currentHat = key;
+                    localStorage.setItem('catCannonHat', currentHat);
+                    initHatSelector(); // re-render
+                };
+            }
+
+            row.appendChild(infoDiv);
+            row.appendChild(equipBtn);
+            selector.appendChild(row);
+        });
+    }
+
+    function getActiveLevelData() {
+        if (gameState === 'EDITOR' || isTestingLevel || isPlayingImported) {
+            return { bouncyEdges: customLevel.bouncyEdges, flipHole: customLevel.hole.y < 0.5 };
+        }
+        return getLevels(canvas.width, canvas.height, scale)[currentLevelIdx];
+    }
+    
+    function saveCustomLevel() {
+        localStorage.setItem('catCannonCustomLevel', JSON.stringify(customLevel));
+    }
+
+    // --- LEVEL DATA ---
+    function getLevels(w, h, s) {
+        const easyLevels = [
+            { // Easy 1: Flat ground
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [{x: 0, y: h * 0.91, w: w, h: h * 0.1}],
+                hole: {x: w * 0.85, y: h * 0.91}
+            },
+            { // Easy 2: Gentle hill
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [{x: 0, y: h * 0.91, w: w*0.3, h: h * 0.1}, {x: w*0.3, y: h*0.8, w: w*0.7, h: h*0.2}],
+                hole: {x: w * 0.85, y: h * 0.8}
+            },
+            { // Easy 3: Big backboard
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w, h: h * 0.1},
+                    {x: w * 0.95, y: 0, w: w * 0.05, h: h} // Huge wall to bounce off
+                ],
+                orbs: [{x: w * 0.8, y: h * 0.5, radius: 25 * s, type: 'pink'}],
+                hole: {x: w * 0.80, y: h * 0.91}
+            },
+            { // Easy 4: The Wide Funnel
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.3, h: h * 0.1},
+                    {x: w * 0.7, y: h * 0.91, w: w * 0.3, h: h * 0.1},
+                    {x: w * 0.3, y: h * 0.5, w: w * 0.05, h: h * 0.5},
+                    {x: w * 0.65, y: h * 0.5, w: w * 0.05, h: h * 0.5}
+                ],
+                hole: {x: w * 0.5, y: h * 0.91} // Huge space in the middle to drop down
+            },
+            { // Easy 5: Drop Down
+                cannonPos: {x: w * 0.05, y: h * 0.2},
+                platforms: [
+                    {x: 0, y: h * 0.25, w: w * 0.2, h: h * 0.05},
+                    {x: 0, y: h * 0.91, w: w, h: h * 0.1}
+                ],
+                orbs: [{x: w * 0.5, y: h * 0.6, radius: 25 * s, type: 'pink'}],
+                hole: {x: w * 0.8, y: h * 0.91}
+            },
+            { // Easy 6: Bouncy Edges Intro
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.5, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w, h: h * 0.1}
+                ],
+                hole: {x: w * 0.5, y: h * 0.91, radius: w * 0.15} // Extra large hole
+            },
+            { // Easy 7: Yellow Orb Intro
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.2, h: h * 0.1},
+                    {x: w * 0.6, y: h * 0.5, w: w * 0.4, h: h * 0.5}
+                ],
+                orbs: [{x: w * 0.4, y: h * 0.6, radius: 25 * s, type: 'yellow'}],
+                hole: {x: w * 0.85, y: h * 0.5}
+            },
+            { // Easy 8: Green Orb Intro
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.3, h: h * 0.1},
+                    {x: w * 0.5, y: 0, w: w * 0.5, h: h * 0.15}
+                ],
+                orbs: [{x: w * 0.4, y: h * 0.5, radius: 25 * s, type: 'green'}],
+                hole: {x: w * 0.75, y: h * 0.15},
+                flipHole: true
+            },
+            { // Easy 9: Stairs Down
+                cannonPos: {x: w * 0.05, y: h * 0.2},
+                platforms: [
+                    {x: 0, y: h * 0.25, w: w * 0.2, h: h * 0.05},
+                    {x: w * 0.2, y: h * 0.45, w: w * 0.2, h: h * 0.05},
+                    {x: w * 0.4, y: h * 0.65, w: w * 0.2, h: h * 0.05},
+                    {x: w * 0.6, y: h * 0.91, w: w * 0.4, h: h * 0.1}
+                ],
+                hole: {x: w * 0.85, y: h * 0.91}
+            },
+            { // Easy 10: The Big Target
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.2, h: h * 0.1},
+                    {x: w * 0.5, y: h * 0.91, w: w * 0.5, h: h * 0.1}
+                ],
+                hole: {x: w * 0.75, y: h * 0.91, radius: 80 * s} // Super massive hole!
+            },
+            { // Easy 11: Gentle Steps
+                cannonPos: {x: w * 0.05, y: h * 0.2},
+                platforms: [
+                    {x: 0, y: h * 0.25, w: w * 0.3, h: h * 0.05},
+                    {x: w * 0.3, y: h * 0.55, w: w * 0.3, h: h * 0.05},
+                    {x: w * 0.6, y: h * 0.91, w: w * 0.4, h: h * 0.1}
+                ],
+                orbs: [{x: w * 0.45, y: h * 0.5, radius: 25 * s, type: 'pink'}],
+                hole: {x: w * 0.8, y: h * 0.91}
+            },
+            { // Easy 12: Funnel Drop
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.4, h: h * 0.1},
+                    {x: w * 0.7, y: h * 0.91, w: w * 0.3, h: h * 0.1},
+                    {x: w * 0.9, y: 0, w: w * 0.1, h: h} // Back wall
+                ],
+                orbs: [{x: w * 0.55, y: h * 0.3, radius: 25 * s, type: 'yellow'}],
+                hole: {x: w * 0.55, y: h * 0.91, radius: 80 * s}
+            },
+            { // Easy 13: High Wall Drop
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.2, h: h * 0.1},
+                    {x: w * 0.9, y: 0, w: w * 0.1, h: h * 0.91}, // Big right wall
+                    {x: w * 0.5, y: h * 0.91, w: w * 0.5, h: h * 0.1}
+                ],
+                hole: {x: w * 0.8, y: h * 0.91, radius: 70 * s}
+            },
+            { // Easy 14: Friendly Yellow Orb
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.3, h: h * 0.1},
+                    {x: w * 0.6, y: h * 0.91, w: w * 0.4, h: h * 0.1}
+                ],
+                orbs: [{x: w * 0.45, y: h * 0.7, radius: 35 * s, type: 'yellow'}], // Huge orb!
+                hole: {x: w * 0.8, y: h * 0.91, radius: 70 * s}
+            },
+            { // Easy 15: Easy Flip
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.4, h: h * 0.1},
+                    {x: w * 0.5, y: 0, w: w * 0.5, h: h * 0.15}
+                ],
+                orbs: [{x: w * 0.45, y: h * 0.6, radius: 35 * s, type: 'green'}], // Huge orb!
+                hole: {x: w * 0.75, y: h * 0.15, radius: 80 * s},
+                flipHole: true
+            }
+        ];
+
+        const normalLevels = [
+            { // Level 1: Simple bounce
+                cannonPos: {x: w * 0.1, y: h * 0.86}, 
+                platforms: [{x: 0, y: h * 0.91, w: w * 0.25, h: h * 0.1}, {x: w * 0.43, y: h * 0.75, w: w * 0.18, h: h * 0.03}, {x: w * 0.75, y: h * 0.58, w: w * 0.25, h: h * 0.42}], 
+                hole: {x: w * 0.87, y: h * 0.58} 
+            },
+            { // Level 2: The Tunnel (Low Ceiling)
+                cannonPos: {x: w * 0.05, y: h * 0.86}, 
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.2, h: h * 0.1}, 
+                    {x: w * 0.2, y: h * 0.4, w: w * 0.6, h: h * 0.05}, 
+                    {x: w * 0.8, y: h * 0.91, w: w * 0.2, h: h * 0.1}  
+                ], 
+                hole: {x: w * 0.9, y: h * 0.91} 
+            },
+            { // Level 3: Precision required
+                cannonPos: {x: w * 0.06, y: h * 0.25}, 
+                platforms: [{x: 0, y: h * 0.3, w: w * 0.15, h: h * 0.03}, {x: w * 0.31, y: h * 0.5, w: w * 0.1, h: h * 0.03}, {x: w * 0.56, y: h * 0.75, w: w * 0.1, h: h * 0.03}, {x: w * 0.81, y: h * 0.41, w: w * 0.15, h: h * 0.03}], 
+                orbs: [{x: w * 0.43, y: h * 0.4, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.88, y: h * 0.41} 
+            },
+            { // Level 4: The Summit (Vertical Jump)
+                cannonPos: {x: w * 0.05, y: h * 0.86}, 
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.1, h: h * 0.1}, 
+                    {x: w * 0.25, y: h * 0.2, w: w * 0.05, h: h * 0.8}, 
+                    {x: w * 0.8, y: h * 0.1, w: w * 0.2, h: h * 0.05} 
+                ], 
+                hole: {x: w * 0.9, y: h * 0.1} 
+            },
+            { // Level 5: The Pit
+                cannonPos: {x: w * 0.05, y: h * 0.3}, 
+                platforms: [{x: 0, y: h * 0.35, w: w * 0.15, h: h * 0.05}, {x: w * 0.5, y: h * 0.5, w: w * 0.1, h: h * 0.5}, {x: w * 0.85, y: h * 0.5, w: w * 0.15, h: h * 0.5}, {x: w * 0.6, y: h * 0.91, w: w * 0.25, h: h * 0.1}], 
+                orbs: [{x: w * 0.7, y: h * 0.6, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.72, y: h * 0.91} 
+            },
+            { // Level 6: Stepping Stones
+                cannonPos: {x: w * 0.05, y: h * 0.86}, 
+                platforms: [{x: 0, y: h * 0.91, w: w * 0.15, h: h * 0.1}, {x: w * 0.25, y: h * 0.8, w: w * 0.1, h: h * 0.03}, {x: w * 0.45, y: h * 0.65, w: w * 0.1, h: h * 0.03}, {x: w * 0.65, y: h * 0.5, w: w * 0.1, h: h * 0.03}, {x: w * 0.85, y: h * 0.35, w: w * 0.15, h: h * 0.05}], 
+                hole: {x: w * 0.92, y: h * 0.35} 
+            },
+            { // Level 7: Ceiling Bounce
+                cannonPos: {x: w * 0.05, y: h * 0.86}, 
+                platforms: [{x: 0, y: h * 0.91, w: w * 0.2, h: h * 0.1}, {x: w * 0.3, y: h * 0.1, w: w * 0.4, h: h * 0.05}, {x: w * 0.4, y: h * 0.91, w: w * 0.2, h: h * 0.1}], 
+                hole: {x: w * 0.5, y: h * 0.91} 
+            },
+            { // Level 8: The Zig-Zag Path (Bouncy Edges)
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.05, y: h * 0.1}, 
+                platforms: [
+                    {x: 0, y: h * 0.15, w: w * 0.15, h: h * 0.03}, // Start ledge
+                    {x: w * 0.4, y: h * 0.35, w: w * 0.6, h: h * 0.05}, // Right Zig
+                    {x: 0, y: h * 0.6, w: w * 0.6, h: h * 0.05},  // Left Zag
+                    {x: w * 0.75, y: h * 0.91, w: w * 0.25, h: h * 0.1} // Goal floor
+                ], 
+                orbs: [{x: w * 0.2, y: h * 0.45, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.88, y: h * 0.91} 
+            },
+            { // Level 9: Staircase
+                cannonPos: {x: w * 0.05, y: h * 0.86}, 
+                platforms: [{x: 0, y: h * 0.91, w: w * 0.1, h: h * 0.1}, {x: w * 0.2, y: h * 0.8, w: w * 0.1, h: h * 0.2}, {x: w * 0.4, y: h * 0.65, w: w * 0.1, h: h * 0.35}, {x: w * 0.6, y: h * 0.5, w: w * 0.1, h: h * 0.5}, {x: w * 0.8, y: h * 0.35, w: w * 0.2, h: h * 0.65}], 
+                hole: {x: w * 0.9, y: h * 0.35} 
+            },
+            { // Level 10: The Backboard
+                cannonPos: {x: w * 0.05, y: h * 0.5}, 
+                platforms: [{x: 0, y: h * 0.55, w: w * 0.15, h: h * 0.05}, {x: w * 0.9, y: h * 0.2, w: w * 0.1, h: h * 0.8}, {x: w * 0.2, y: h * 0.91, w: w * 0.4, h: h * 0.1}], 
+                orbs: [{x: w * 0.5, y: h * 0.3, radius: 15 * s, type: 'yellow'}],
+                hole: {x: w * 0.4, y: h * 0.91} 
+            },
+            { // Level 11: The Narrow Drop
+                cannonPos: {x: w * 0.05, y: h * 0.2},
+                platforms: [
+                    {x: 0, y: h * 0.25, w: w * 0.15, h: h * 0.05}, 
+                    {x: w * 0.2, y: h * 0.4, w: w * 0.1, h: h * 0.6}, 
+                    {x: w * 0.4, y: h * 0.0, w: w * 0.1, h: h * 0.8}, 
+                    {x: w * 0.2, y: h * 0.95, w: w * 0.3, h: h * 0.05} 
+                ],
+                hole: {x: w * 0.3, y: h * 0.95}
+            },
+            { // Level 12: Bouncy Pinball
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.5, y: h * 0.2},
+                platforms: [
+                    {x: w * 0.45, y: h * 0.25, w: w * 0.1, h: h * 0.03},
+                    {x: w * 0.2, y: h * 0.4, w: w * 0.1, h: h * 0.03},
+                    {x: w * 0.7, y: h * 0.5, w: w * 0.1, h: h * 0.03},
+                    {x: w * 0.3, y: h * 0.7, w: w * 0.1, h: h * 0.03},
+                    {x: 0, y: h * 0.91, w: w * 0.4, h: h * 0.1},
+                    {x: w * 0.6, y: h * 0.91, w: w * 0.4, h: h * 0.1}
+                ],
+                orbs: [{x: w * 0.5, y: h * 0.5, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.5, y: h * 0.91}
+            },
+            { // Level 13: Under the Bridge
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.15, h: h * 0.1},
+                    {x: w * 0.2, y: h * 0.5, w: w * 0.6, h: h * 0.05}, 
+                    {x: w * 0.2, y: h * 0.91, w: w * 0.8, h: h * 0.1}  
+                ],
+                hole: {x: w * 0.5, y: h * 0.91}
+            },
+            { // Level 14: Gravity Flip (Ceiling Goal!)
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.15, h: h * 0.1},
+                    {x: w * 0.3, y: h * 0.7, w: w * 0.05, h: h * 0.3}, // Lowered wall to make the arc easier
+                    {x: w * 0.7, y: 0, w: w * 0.3, h: h * 0.15} // Widened ceiling goal platform
+                ],
+                orbs: [{x: w * 0.5, y: h * 0.5, radius: 15 * s, type: 'green'}], // Moved orb for a better arc
+                hole: {x: w * 0.85, y: h * 0.15, radius: w * 0.15}, // Hole takes up the entire w*0.3 platform
+                flipHole: true // Draw the hole on the ceiling
+            },
+            { // Level 15: The Squeeze
+                cannonPos: {x: w * 0.05, y: h * 0.5},
+                platforms: [
+                    {x: 0, y: h * 0.55, w: w * 0.15, h: h * 0.05},
+                    {x: w * 0.25, y: 0, w: w * 0.05, h: h * 0.4}, 
+                    {x: w * 0.25, y: h * 0.55, w: w * 0.05, h: h * 0.45}, 
+                    {x: w * 0.7, y: h * 0.91, w: w * 0.3, h: h * 0.1}
+                ],
+                orbs: [{x: w * 0.5, y: h * 0.7, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.85, y: h * 0.91}
+            },
+            { // Level 16: Bouncy Box
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.2, h: h * 0.1},
+                    {x: 0, y: h * 0.05, w: w, h: h * 0.05}, 
+                    {x: w * 0.7, y: h * 0.3, w: w * 0.3, h: h * 0.05} 
+                ],
+                hole: {x: w * 0.85, y: h * 0.3}
+            },
+            { // Level 17: Descending Steps
+                cannonPos: {x: w * 0.05, y: h * 0.15},
+                platforms: [
+                    {x: 0, y: h * 0.2, w: w * 0.15, h: h * 0.05},
+                    {x: w * 0.3, y: h * 0.4, w: w * 0.15, h: h * 0.05},
+                    {x: w * 0.55, y: h * 0.6, w: w * 0.15, h: h * 0.05},
+                    {x: w * 0.8, y: h * 0.91, w: w * 0.2, h: h * 0.1}
+                ],
+                orbs: [{x: w * 0.45, y: h * 0.3, radius: 15 * s, type: 'yellow'}],
+                hole: {x: w * 0.9, y: h * 0.91}
+            },
+            { // Level 18: Twin Peaks
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.15, h: h * 0.1},
+                    {x: w * 0.25, y: h * 0.4, w: w * 0.05, h: h * 0.6}, 
+                    {x: w * 0.7, y: h * 0.4, w: w * 0.05, h: h * 0.6}, 
+                    {x: w * 0.3, y: h * 0.91, w: w * 0.4, h: h * 0.1} 
+                ],
+                hole: {x: w * 0.5, y: h * 0.91}
+            },
+            { // Level 19: The Gauntlet
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.15, h: h * 0.1},
+                    {x: w * 0.25, y: h * 0.3, w: w * 0.05, h: h * 0.3},
+                    {x: w * 0.45, y: h * 0.7, w: w * 0.05, h: h * 0.3},
+                    {x: w * 0.65, y: h * 0.3, w: w * 0.05, h: h * 0.3},
+                    {x: w * 0.85, y: h * 0.91, w: w * 0.15, h: h * 0.1}
+                ],
+                orbs: [{x: w * 0.55, y: h * 0.2, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.92, y: h * 0.91}
+            },
+            { // Level 20: The Ultimate Swish
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.15, h: h * 0.1},
+                    {x: w * 0.8, y: h * 0.15, w: w * 0.15, h: h * 0.05} 
+                ],
+                orbs: [{x: w * 0.4, y: h * 0.4, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.87, y: h * 0.15} 
+            },
+            { // Level 21: Thread the Needle
+                cannonPos: {x: w * 0.05, y: h * 0.5},
+                platforms: [
+                    {x: 0, y: h * 0.55, w: w * 0.15, h: h * 0.05}, 
+                    {x: w * 0.5, y: 0, w: w * 0.1, h: h * 0.4}, 
+                    {x: w * 0.5, y: h * 0.6, w: w * 0.1, h: h * 0.4}, 
+                    {x: w * 0.8, y: h * 0.5, w: w * 0.2, h: h * 0.1}
+                ],
+                hole: {x: w * 0.9, y: h * 0.5}
+            },
+            { // Level 22: High Shelf
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.2, h: h * 0.1}, 
+                    {x: w * 0.7, y: h * 0.2, w: w * 0.3, h: h * 0.05}, 
+                    {x: w * 0.5, y: h * 0.5, w: w * 0.1, h: h * 0.5}
+                ],
+                orbs: [{x: w * 0.35, y: h * 0.5, radius: 15 * s, type: 'yellow'}],
+                hole: {x: w * 0.85, y: h * 0.2}
+            },
+            { // Level 23: Bouncy Shaft
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.5, y: h * 0.86},
+                platforms: [
+                    {x: w * 0.4, y: h * 0.91, w: w * 0.2, h: h * 0.1}, 
+                    {x: w * 0.2, y: h * 0.4, w: w * 0.6, h: h * 0.05}, 
+                    {x: w * 0.4, y: h * 0.1, w: w * 0.2, h: h * 0.05}
+                ],
+                hole: {x: w * 0.5, y: h * 0.1}
+            },
+            { // Level 24: The Bucket
+                cannonPos: {x: w * 0.05, y: h * 0.2},
+                platforms: [
+                    {x: 0, y: h * 0.25, w: w * 0.15, h: h * 0.05}, 
+                    {x: w * 0.7, y: h * 0.5, w: w * 0.05, h: h * 0.4}, 
+                    {x: w * 0.95, y: h * 0.5, w: w * 0.05, h: h * 0.4}, 
+                    {x: w * 0.7, y: h * 0.9, w: w * 0.3, h: h * 0.1}
+                ],
+                orbs: [{x: w * 0.825, y: h * 0.2, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.825, y: h * 0.9}
+            },
+            { // Level 25: Three Pillars
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.15, h: h * 0.1}, 
+                    {x: w * 0.3, y: h * 0.7, w: w * 0.05, h: h * 0.3}, // Lowered pillar 1
+                    {x: w * 0.55, y: h * 0.5, w: w * 0.05, h: h * 0.5}, // Lowered pillar 2
+                    {x: w * 0.8, y: h * 0.3, w: w * 0.05, h: h * 0.7}, // Lowered pillar 3
+                    {x: w * 0.85, y: h * 0.8, w: w * 0.15, h: h * 0.05}, // Goal platform
+                    {x: w * 0.98, y: 0, w: w * 0.05, h: h} // Back wall
+                ],
+                orbs: [{x: w * 0.4, y: h * 0.3, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.92, y: h * 0.8}
+            },
+            { // Level 26: Roof Bounce
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.05, y: h * 0.5},
+                platforms: [
+                    {x: 0, y: h * 0.55, w: w * 0.15, h: h * 0.05}, 
+                    {x: w * 0.2, y: 0, w: w * 0.6, h: h * 0.1}, 
+                    {x: w * 0.2, y: h * 0.9, w: w * 0.6, h: h * 0.1}
+                ],
+                hole: {x: w * 0.5, y: h * 0.9}
+            },
+            { // Level 27: Aerial Obstacles
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.1, h: h * 0.1}, 
+                    {x: w * 0.2, y: h * 0.5, w: w * 0.1, h: h * 0.05}, 
+                    {x: w * 0.4, y: h * 0.2, w: w * 0.1, h: h * 0.05}, 
+                    {x: w * 0.6, y: h * 0.5, w: w * 0.1, h: h * 0.05}, 
+                    {x: w * 0.8, y: h * 0.8, w: w * 0.2, h: h * 0.1}
+                ],
+                orbs: [{x: w * 0.3, y: h * 0.6, radius: 15 * s, type: 'pink'}, {x: w * 0.7, y: h * 0.4, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.9, y: h * 0.8}
+            },
+            { // Level 28: Zig-Zag Vertical
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.05, y: h * 0.1},
+                platforms: [
+                    {x: 0, y: h * 0.15, w: w * 0.15, h: h * 0.05}, 
+                    {x: w * 0.25, y: h * 0.3, w: w * 0.5, h: h * 0.05}, 
+                    {x: w * 0.7, y: h * 0.5, w: w * 0.3, h: h * 0.05}, 
+                    {x: 0, y: h * 0.7, w: w * 0.5, h: h * 0.05}, 
+                    {x: w * 0.6, y: h * 0.9, w: w * 0.4, h: h * 0.1}
+                ],
+                hole: {x: w * 0.8, y: h * 0.9}
+            },
+            { // Level 29: Sky High
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.15, h: h * 0.1}, 
+                    {x: w * 0.75, y: h * 0.15, w: w * 0.25, h: h * 0.05} // Moved platform to top right
+                ],
+                orbs: [
+                    {x: w * 0.35, y: h * 0.65, radius: 15 * s, type: 'yellow'},
+                    {x: w * 0.65, y: h * 0.35, radius: 15 * s, type: 'yellow'}
+                ],
+                hole: {x: w * 0.85, y: h * 0.15} // Moved hole to top right
+            },
+            { // Level 30: Gauntlet Part 2
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.5, y: h * 0.1},
+                platforms: [
+                    {x: w * 0.45, y: h * 0.15, w: w * 0.1, h: h * 0.05}, 
+                    {x: 0, y: h * 0.3, w: w * 0.4, h: h * 0.05}, 
+                    {x: w * 0.6, y: h * 0.5, w: w * 0.4, h: h * 0.05}, 
+                    {x: 0, y: h * 0.7, w: w * 0.4, h: h * 0.05}, 
+                    {x: w * 0.4, y: h * 0.9, w: w * 0.2, h: h * 0.1}
+                ],
+                hole: {x: w * 0.5, y: h * 0.9}
+            }
+        ];
+
+        return currentMode === 'easy' ? easyLevels : normalLevels;
+    }
+
+    // --- UI LOGIC ---
+    function initLevelGrid() {
+        levelGrid.innerHTML = '';
+        const totalLevels = currentMode === 'easy' ? 15 : 30;
+        const levelsPerPage = 10;
+        const totalPages = Math.ceil(totalLevels / levelsPerPage);
+        
+        const startIdx = currentLevelPage * levelsPerPage;
+        const endIdx = Math.min(startIdx + levelsPerPage, totalLevels);
+
+        const levels = getLevels(canvas.width || 800, canvas.height || 600, scale);
+
+        for (let i = startIdx; i < endIdx; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'w-full aspect-square flex flex-col items-center justify-center bg-white/10 hover:bg-purple-500/50 text-white text-2xl font-black rounded-xl border border-white/20 transition transform hover:scale-105 relative';
+            btn.onclick = () => loadLevel(i);
+            
+            const numSpan = document.createElement('span');
+            numSpan.innerText = i + 1;
+            btn.appendChild(numSpan);
+
+            const levelData = levels[i];
+            if (levelData && levelData.orbs && levelData.orbs.length > 0) {
+                const dotsContainer = document.createElement('div');
+                dotsContainer.className = 'flex gap-1.5 absolute bottom-2.5';
+
+                let hasYellow = levelData.orbs.some(o => o.type === 'yellow' || !o.type);
+                let hasPink = levelData.orbs.some(o => o.type === 'pink');
+                let hasGreen = levelData.orbs.some(o => o.type === 'green');
+
+                if (hasYellow) {
+                    const dot = document.createElement('div');
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-[0_0_5px_#facc15]';
+                    dotsContainer.appendChild(dot);
+                }
+                if (hasPink) {
+                    const dot = document.createElement('div');
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-pink-400 shadow-[0_0_5px_#f472b6]';
+                    dotsContainer.appendChild(dot);
+                }
+                if (hasGreen) {
+                    const dot = document.createElement('div');
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-green-400 shadow-[0_0_5px_#4ade80]';
+                    dotsContainer.appendChild(dot);
+                }
+
+                btn.appendChild(dotsContainer);
+            }
+
+            levelGrid.appendChild(btn);
+        }
+        
+        // Update pagination UI state
+        document.getElementById('pageIndicator').innerText = `PAGE ${currentLevelPage + 1}/${totalPages}`;
+        document.getElementById('prevPageBtn').disabled = currentLevelPage === 0;
+        document.getElementById('nextPageBtn').disabled = currentLevelPage === totalPages - 1;
+    }
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        scale = Math.min(canvas.width / 800, canvas.height / 600);
+        scale = Math.max(0.5, scale);
+        GRAVITY = 0.25 * scale;
+        CAT_RADIUS = 15 * scale;
+        
+        if (gameState !== 'START' && gameState !== 'LEVEL_SELECT') {
+            loadLevel(currentLevelIdx);
+        }
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    initLevelGrid();
+    initSkinSelector();
+    initHatSelector();
+    checkUnlocks(); // Verify initial unlocks on load
+
+    function loadLevel(idx) {
+        const levels = getLevels(canvas.width, canvas.height, scale);
+        if (idx >= levels.length) idx = 0; // Wrap back to first level of current mode
+        currentLevelIdx = idx;
+        const levelData = levels[idx];
+        
+        platforms = JSON.parse(JSON.stringify(levelData.platforms));
+        orbs = levelData.orbs ? JSON.parse(JSON.stringify(levelData.orbs)) : [];
+        orbs.forEach(orb => orb.active = true); // Ensure they start active
+        
+        // Easy mode defaults to significantly larger hole (60 vs 40)
+        let defaultRadius = currentMode === 'easy' ? 60 * scale : 40 * scale;
+        hole = { ...levelData.hole, radius: levelData.hole.radius || defaultRadius };
+        
+        cannon = { x: levelData.cannonPos.x, y: levelData.cannonPos.y, angle: -Math.PI/4, angleDir: 1, power: 0, powerDir: 1 };
+        
+        // Reset Physics Environment
+        currentGravityDir = 1;
+        resetCatToCannon();
+        particles = [];
+        gameState = 'AIMING';
+        
+        // Display EASY 1 vs LEVEL 1
+        levelDisplay.innerText = (currentMode === 'easy' ? 'EASY ' : '') + (currentLevelIdx + 1);
+        
+        hideAllScreens();
+        screens.ui.classList.remove('hidden');
+    }
+
+    function resetCatToCannon() {
+        cat = { x: cannon.x, y: cannon.y, vx: 0, vy: 0, rotation: 0, isMoving: false };
+        idleFrames = 0;
+    }
+
+    function hideAllScreens() {
+        Object.values(screens).forEach(s => s.classList.add('hidden'));
+    }
+
+    function getPointerPos(e) {
+        if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        return { x: e.clientX || 0, y: e.clientY || 0 };
+    }
+
+    function handlePointerMove(e) {
+        if (gameState === 'EDITOR') {
+            let rawPos = getPointerPos(e);
+            let worldPos = { x: rawPos.x + camera.x, y: rawPos.y + camera.y };
+            let px = worldPos.x / canvas.width;
+            let py = worldPos.y / canvas.height;
+            editorCurrentMouse = { x: px, y: py };
+
+            if (isEditorDragging) {
+                // Pan Tool Logic
+                if (editorTool === 'pan' && editorDragStart) {
+                    targetCamera.x = lastCamera.x - (rawPos.x - editorDragStart.x);
+                    targetCamera.y = lastCamera.y - (rawPos.y - editorDragStart.y);
+                    return;
+                }
+                
+                // Smart Dragging Logic
+                if (isDraggingObject === 'cannon') {
+                    customLevel.cannonPos = {x: px, y: py};
+                } else if (isDraggingObject === 'hole') {
+                    customLevel.hole.x = px;
+                    customLevel.hole.y = py;
+                } else if (isDraggingObject && isDraggingObject.type === 'orb') {
+                    customLevel.orbs[isDraggingObject.index].x = px;
+                    customLevel.orbs[isDraggingObject.index].y = py;
+                } else if (!isDraggingObject && editorTool === 'erase') {
+                    // Erase brush
+                    customLevel.orbs = customLevel.orbs.filter(o => {
+                        let dx = (o.x * canvas.width) - worldPos.x;
+                        let dy = (o.y * canvas.height) - worldPos.y;
+                        return Math.sqrt(dx*dx + dy*dy) > 30 * scale;
+                    });
+                    customLevel.platforms = customLevel.platforms.filter(p => {
+                        return !(px >= p.x && px <= p.x + p.w && py >= p.y && py <= p.y + p.h);
+                    });
+                }
+                saveCustomLevel();
+            }
+        }
+    }
+
+    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('touchmove', (e) => {
+        if (gameState === 'EDITOR') e.preventDefault(); // Stop scrolling while editing
+        handlePointerMove(e);
+    }, {passive: false});
+
+    // --- INPUT HANDLING ---
+    function handleInputDown(e) {
+        // Handle keyboard shortcuts
+        if (e.type === 'keydown') {
+            keys[e.code] = true;
+            // Quick Restart Hotkey
+            if (e.key.toLowerCase() === 'r') {
+                if (['AIMING', 'CHARGING', 'FLYING', 'GAME_OVER'].includes(gameState)) {
+                    if (isTestingLevel || isPlayingImported) {
+                        loadCustomLevelToEngine();
+                    } else {
+                        loadLevel(currentLevelIdx);
+                    }
+                }
+                return;
+            }
+            // Only allow Spacebar to continue for normal inputs
+            if (e.code !== 'Space') return;
+        }
+
+        if (gameState === 'EDITOR') {
+            // Check if clicking UI so we don't draw under it
+            if (e.target && e.target.closest && (e.target.closest('button') || e.target.closest('#editorUI') || e.target.tagName === 'INPUT')) return;
+
+            let rawPos = getPointerPos(e);
+            let worldPos = { x: rawPos.x + camera.x, y: rawPos.y + camera.y };
+            let px = worldPos.x / canvas.width;
+            let py = worldPos.y / canvas.height;
+
+            isEditorDragging = true;
+            
+            // Pan tool setup
+            if (editorTool === 'pan') {
+                editorDragStart = rawPos;
+                lastCamera = { x: targetCamera.x, y: targetCamera.y };
+                return;
+            }
+
+            // 1. SMART DRAG DETECTION: Check if we clicked an existing object first
+            let distCannon = Math.sqrt(Math.pow(worldPos.x - cannon.x, 2) + Math.pow(worldPos.y - cannon.y, 2));
+            if (distCannon < 50 * scale) {
+                isDraggingObject = 'cannon';
+                return;
+            }
+
+            let distHole = Math.sqrt(Math.pow(worldPos.x - hole.x, 2) + Math.pow(worldPos.y - hole.y, 2));
+            if (distHole < hole.radius * 1.5) {
+                isDraggingObject = 'hole';
+                return;
+            }
+
+            for (let i = 0; i < customLevel.orbs.length; i++) {
+                let o = customLevel.orbs[i];
+                let distOrb = Math.sqrt(Math.pow(worldPos.x - o.x*canvas.width, 2) + Math.pow(worldPos.y - o.y*canvas.height, 2));
+                if (distOrb < 40 * scale) {
+                    isDraggingObject = { type: 'orb', index: i };
+                    return;
+                }
+            }
+
+            // 2. NORMAL TOOL USAGE (If we clicked empty space)
+            isDraggingObject = null;
+
+            if (editorTool === 'platform') {
+                editorDragStart = {x: px, y: py};
+            } else if (editorTool === 'cannon') {
+                customLevel.cannonPos = {x: px, y: py};
+                isDraggingObject = 'cannon'; // Allow dragging immediately after placing
+            } else if (editorTool === 'hole') {
+                customLevel.hole = {x: px, y: py, radius: 40};
+                isDraggingObject = 'hole';
+            } else if (editorTool === 'orb_yellow') {
+                customLevel.orbs.push({x: px, y: py, type: 'yellow'});
+                isDraggingObject = { type: 'orb', index: customLevel.orbs.length - 1 };
+            } else if (editorTool === 'orb_pink') {
+                customLevel.orbs.push({x: px, y: py, type: 'pink'});
+                isDraggingObject = { type: 'orb', index: customLevel.orbs.length - 1 };
+            } else if (editorTool === 'orb_green') {
+                customLevel.orbs.push({x: px, y: py, type: 'green'});
+                isDraggingObject = { type: 'orb', index: customLevel.orbs.length - 1 };
+            } else if (editorTool === 'erase') {
+                customLevel.orbs = customLevel.orbs.filter(o => {
+                    let dx = (o.x * canvas.width) - worldPos.x;
+                    let dy = (o.y * canvas.height) - worldPos.y;
+                    return Math.sqrt(dx*dx + dy*dy) > 30 * scale;
+                });
+                customLevel.platforms = customLevel.platforms.filter(p => {
+                    return !(px >= p.x && px <= p.x + p.w && py >= p.y && py <= p.y + p.h);
+                });
+            }
+            saveCustomLevel();
+            return;
+        }
+
+        if (gameState === 'AIMING') {
+            gameState = 'CHARGING';
+            cannon.power = MIN_POWER * scale;
+        } else if (gameState === 'FLYING') {
+            // Check for orb interaction
+            for (let orb of orbs) {
+                if (orb.active) {
+                    let dx = cat.x - orb.x;
+                    let dy = cat.y - orb.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    // Leniency radius for satisfying gameplay
+                    if (dist < orb.radius + CAT_RADIUS + (40 * scale)) {
+                        if (orb.type === 'green') {
+                            currentGravityDir *= -1; // FLIP GRAVITY!
+                            cat.vy = 12 * scale * currentGravityDir; // Big dash towards the new "up"
+                            cat.vx *= 1.3; // Awesome speed boost
+                            createExplosion(orb.x, orb.y, 25, '#4ade80'); // Green particles
+                        } else if (orb.type === 'pink') {
+                            cat.vy = -7 * scale * currentGravityDir; // Small jump boost
+                            cat.vx *= 1.1; // Very slight forward momentum boost
+                            createExplosion(orb.x, orb.y, 20, '#f472b6'); // Pink particles
+                        } else {
+                            cat.vy = -14 * scale * currentGravityDir; // Big jump boost relative to current gravity
+                            cat.vx *= 1.2; // Slight forward momentum boost
+                            createExplosion(orb.x, orb.y, 25, '#fde047'); // Yellow particles
+                        }
+                        orb.active = false;
+                        updateStat('orbsUsed', 1); // Track achievement
+                        shakeTime = 8;
+                        break; // Only activate one orb per tap
+                    }
+                }
+            }
+        }
+    }
+
+    function handleInputUp(e) {
+        if (e.type === 'keyup') {
+            keys[e.code] = false;
+            if (e.code !== 'Space') return;
+        }
+        
+        if (gameState === 'EDITOR') {
+            isEditorDragging = false;
+            isDraggingObject = null;
+            
+            if (editorTool === 'platform' && editorDragStart) {
+                let rawPos = getPointerPos(e);
+                let worldPos = { x: rawPos.x + camera.x, y: rawPos.y + camera.y };
+                let px = worldPos.x / canvas.width;
+                let py = worldPos.y / canvas.height;
+                
+                let x = Math.min(editorDragStart.x, px);
+                let y = Math.min(editorDragStart.y, py);
+                let w = Math.abs(px - editorDragStart.x);
+                let h = Math.abs(py - editorDragStart.y);
+                
+                if (w > 0.01 && h > 0.01) {
+                    customLevel.platforms.push({x, y, w, h});
+                    saveCustomLevel();
+                }
+                editorDragStart = null;
+            }
+            return;
+        }
+
+        if (gameState === 'CHARGING') {
+            fireCannon();
+        }
+    }
+
+    function fireCannon() {
+        gameState = 'FLYING';
+        cat.isMoving = true;
+        const speed = cannon.power; 
+        cat.vx = Math.cos(cannon.angle) * speed;
+        cat.vy = Math.sin(cannon.angle) * speed;
+        cat.x = cannon.x + Math.cos(cannon.angle) * (60 * scale);
+        cat.y = cannon.y + Math.sin(cannon.angle) * (60 * scale);
+        createExplosion(cat.x, cat.y, 15, '#A855F7'); 
+        updateStat('gamesPlayed', 1); // Track achievement
+    }
+
+    window.addEventListener('keydown', handleInputDown);
+    window.addEventListener('keyup', handleInputUp);
+    window.addEventListener('mousedown', handleInputDown);
+    window.addEventListener('mouseup', handleInputUp);
+    window.addEventListener('touchstart', (e) => { 
+        if (e.target && e.target.closest && e.target.closest('#editorUI')) return; // Allow toolbar interactions
+        if (e.target && e.target.closest && e.target.closest('button')) return; // Allow buttons to be clicked normally
+        if (e.target && e.target.tagName === 'INPUT') return; 
+        if (e.cancelable) e.preventDefault(); 
+        handleInputDown(e); 
+    }, {passive: false});
+    window.addEventListener('touchend', (e) => { 
+        if (e.target && e.target.closest && e.target.closest('#editorUI')) return;
+        if (e.target && e.target.closest && e.target.closest('button')) return;
+        if (e.target && e.target.tagName === 'INPUT') return; 
+        if (e.cancelable) e.preventDefault(); 
+        handleInputUp(e); 
+    }, {passive: false});
+
+    // Button Events
+    document.getElementById('startEasyBtn').addEventListener('click', () => { currentMode = 'easy'; loadLevel(0); });
+    document.getElementById('startNormalBtn').addEventListener('click', () => { currentMode = 'normal'; loadLevel(0); });
+    
+    // Editor Events
+    document.getElementById('openEditorBtn').addEventListener('click', () => {
+        gameState = 'EDITOR';
+        isTestingLevel = false;
+        hideAllScreens();
+        screens.editor.classList.remove('hidden');
+        document.getElementById('editorBouncyToggle').checked = customLevel.bouncyEdges;
+        document.getElementById('editorValW').innerText = customLevel.width || 1;
+        document.getElementById('editorValH').innerText = customLevel.height || 1;
+    });
+
+    // Make tool selection strictly bulletproof so clicking anywhere on the button works
+    document.querySelectorAll('.editor-tool').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            editorTool = this.dataset.tool;
+            document.querySelectorAll('.editor-tool').forEach(b => {
+                b.classList.remove('border-white');
+                b.classList.add('border-transparent');
+            });
+            this.classList.remove('border-transparent');
+            this.classList.add('border-white');
+        });
+    });
+
+    document.getElementById('editorBouncyToggle').addEventListener('change', (e) => {
+        customLevel.bouncyEdges = e.target.checked;
+        saveCustomLevel();
+    });
+    
+    // Editor Map Size Toggles
+    const updateSizeDisplay = () => {
+        document.getElementById('editorValW').innerText = customLevel.width;
+        document.getElementById('editorValH').innerText = customLevel.height;
+        saveCustomLevel();
+    };
+    document.getElementById('editorIncW').addEventListener('click', () => { customLevel.width = Math.min(10, (customLevel.width || 1) + 1); updateSizeDisplay(); });
+    document.getElementById('editorDecW').addEventListener('click', () => { customLevel.width = Math.max(1, (customLevel.width || 1) - 1); updateSizeDisplay(); });
+    document.getElementById('editorIncH').addEventListener('click', () => { customLevel.height = Math.min(10, (customLevel.height || 1) + 1); updateSizeDisplay(); });
+    document.getElementById('editorDecH').addEventListener('click', () => { customLevel.height = Math.max(1, (customLevel.height || 1) - 1); updateSizeDisplay(); });
+
+    document.getElementById('editorClearBtn').addEventListener('click', () => {
+        if(confirm("Clear all platforms and orbs?")) {
+            customLevel.platforms = [];
+            customLevel.orbs = [];
+            saveCustomLevel();
+        }
+    });
+
+    document.getElementById('editorExitBtn').addEventListener('click', () => {
+        gameState = 'START';
+        hideAllScreens();
+        screens.start.classList.remove('hidden');
+    });
+
+    // --- SHARE AND IMPORT LOGIC ---
+    document.getElementById('editorShareBtn').addEventListener('click', () => {
+        saveCustomLevel(); // Make sure everything is up to date
+        // Convert the customLevel object to a Base64 string so players can copy it
+        const code = btoa(JSON.stringify(customLevel));
+        document.getElementById('shareCodeOutput').value = code;
+        document.getElementById('shareModal').classList.remove('hidden');
+    });
+
+    document.getElementById('closeShareBtn').addEventListener('click', () => {
+        document.getElementById('shareModal').classList.add('hidden');
+    });
+
+    document.getElementById('copyCodeBtn').addEventListener('click', () => {
+        const codeOutput = document.getElementById('shareCodeOutput');
+        codeOutput.select();
+        document.execCommand('copy'); // Fallback clipboard API works safely
+        
+        const btn = document.getElementById('copyCodeBtn');
+        const originalText = btn.innerText;
+        btn.innerText = 'Copied!';
+        btn.classList.add('bg-green-500');
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.classList.remove('bg-green-500');
+        }, 2000);
+    });
+
+    document.getElementById('openImportBtn').addEventListener('click', () => {
+        document.getElementById('importCodeInput').value = '';
+        document.getElementById('importErrorMsg').classList.add('hidden');
+        document.getElementById('importModal').classList.remove('hidden');
+    });
+
+    document.getElementById('closeImportBtn').addEventListener('click', () => {
+        document.getElementById('importModal').classList.add('hidden');
+    });
+
+    function loadCustomLevelToEngine() {
+        let w = canvas.width, h = canvas.height;
+        platforms = customLevel.platforms.map(p => ({ x: p.x*w, y: p.y*h, w: p.w*w, h: p.h*h }));
+        orbs = (customLevel.orbs || []).map(o => ({ x: o.x*w, y: o.y*h, radius: 15*scale, type: o.type, active: true }));
+        hole = { x: customLevel.hole.x*w, y: customLevel.hole.y*h, radius: (customLevel.hole.radius || 40)*scale };
+        cannon = { x: customLevel.cannonPos.x*w, y: customLevel.cannonPos.y*h, angle: -Math.PI/4, angleDir: 1, power: 0, powerDir: 1 };
+        
+        currentGravityDir = 1;
+        resetCatToCannon();
+        particles = [];
+        
+        // Fix: Clean up screens and reset state to aiming after restarting a custom map
+        gameState = 'AIMING';
+        hideAllScreens();
+        screens.ui.classList.remove('hidden');
+    }
+
+    document.getElementById('playImportedBtn').addEventListener('click', () => {
+        const code = document.getElementById('importCodeInput').value.trim();
+        try {
+            const parsedLevel = JSON.parse(atob(code));
+            if (!parsedLevel.cannonPos || !parsedLevel.platforms || !parsedLevel.hole) throw new Error("Invalid Level Format");
+            
+            // Set the imported level as our custom level
+            customLevel = parsedLevel;
+            if (!customLevel.orbs) customLevel.orbs = [];
+            if (customLevel.bouncyEdges === undefined) customLevel.bouncyEdges = false;
+            if (customLevel.width === undefined) customLevel.width = 1;
+            if (customLevel.height === undefined) customLevel.height = 1;
+            
+            saveCustomLevel(); // Save it to local storage so they don't lose it
+            
+            document.getElementById('importModal').classList.add('hidden');
+            
+            isPlayingImported = true;
+            isTestingLevel = false;
+            gameState = 'AIMING';
+            hideAllScreens();
+            screens.ui.classList.remove('hidden');
+            
+            document.getElementById('levelDisplay').parentNode.style.display = 'none';
+            let exitBtn = document.getElementById('inGameMenuBtn');
+            exitBtn.innerText = 'EXIT TO MENU';
+            exitBtn.classList.replace('bg-white/10', 'bg-red-600');
+            
+            loadCustomLevelToEngine();
+        } catch(e) {
+            document.getElementById('importErrorMsg').classList.remove('hidden');
+        }
+    });
+
+    document.getElementById('editorTestBtn').addEventListener('click', () => {
+        isTestingLevel = true;
+        isPlayingImported = false;
+        gameState = 'AIMING';
+        hideAllScreens();
+        screens.ui.classList.remove('hidden');
+        
+        // Hide level text, change exit button
+        document.getElementById('levelDisplay').parentNode.style.display = 'none';
+        let exitBtn = document.getElementById('inGameMenuBtn');
+        exitBtn.innerText = 'BACK TO EDITOR';
+        exitBtn.classList.replace('bg-white/10', 'bg-red-600');
+        
+        loadCustomLevelToEngine();
+    });
+    
+    // Override standard UI behavior for testing
+    document.getElementById('inGameMenuBtn').addEventListener('click', () => { 
+        if (isTestingLevel) {
+            isTestingLevel = false;
+            gameState = 'EDITOR';
+            hideAllScreens();
+            screens.editor.classList.remove('hidden');
+            document.getElementById('levelDisplay').parentNode.style.display = '';
+            let exitBtn = document.getElementById('inGameMenuBtn');
+            exitBtn.innerText = 'EXIT';
+            exitBtn.classList.replace('bg-red-600', 'bg-white/10');
+        } else if (isPlayingImported) {
+            isPlayingImported = false;
+            gameState = 'START';
+            hideAllScreens();
+            screens.start.classList.remove('hidden');
+            document.getElementById('levelDisplay').parentNode.style.display = '';
+            let exitBtn = document.getElementById('inGameMenuBtn');
+            exitBtn.innerText = 'EXIT';
+            exitBtn.classList.replace('bg-red-600', 'bg-white/10');
+        } else {
+            gameState = 'START'; hideAllScreens(); screens.start.classList.remove('hidden'); 
+        }
+    });
+    document.getElementById('menuFromWinBtn').addEventListener('click', () => { 
+        if (isTestingLevel || isPlayingImported) {
+            document.getElementById('inGameMenuBtn').click(); // Reuse logic
+        } else {
+            gameState = 'START'; hideAllScreens(); screens.start.classList.remove('hidden'); 
+        }
+    });
+
+    // Tab toggles in level menu
+    const tabEasy = document.getElementById('tabEasy');
+    const tabNormal = document.getElementById('tabNormal');
+
+    function updateTabs() {
+        if (currentMode === 'easy') {
+            tabEasy.className = "px-6 py-2 rounded-full font-bold bg-green-500 text-white transition transform hover:scale-105 shadow-lg";
+            tabNormal.className = "px-6 py-2 rounded-full font-bold bg-white/20 text-white transition border border-white/20 hover:bg-white/30";
+        } else {
+            tabNormal.className = "px-6 py-2 rounded-full font-bold bg-purple-500 text-white transition transform hover:scale-105 shadow-lg";
+            tabEasy.className = "px-6 py-2 rounded-full font-bold bg-white/20 text-white transition border border-white/20 hover:bg-white/30";
+        }
+    }
+
+    tabEasy.addEventListener('click', () => { currentMode = 'easy'; currentLevelPage = 0; updateTabs(); initLevelGrid(); });
+    tabNormal.addEventListener('click', () => { currentMode = 'normal'; currentLevelPage = 0; updateTabs(); initLevelGrid(); });
+
+    document.getElementById('openLevelSelectBtn').addEventListener('click', () => {
+        hideAllScreens();
+        currentLevelPage = 0; // Reset to first page when opening menu
+        updateTabs();
+        initLevelGrid();
+        screens.levelSelect.classList.remove('hidden');
+    });
+
+    // Pagination Events
+    document.getElementById('prevPageBtn').addEventListener('click', () => {
+        if (currentLevelPage > 0) {
+            currentLevelPage--;
+            initLevelGrid();
+        }
+    });
+    
+    document.getElementById('nextPageBtn').addEventListener('click', () => {
+        const totalLevels = currentMode === 'easy' ? 15 : 30;
+        const totalPages = Math.ceil(totalLevels / 10);
+        if (currentLevelPage < totalPages - 1) {
+            currentLevelPage++;
+            initLevelGrid();
+        }
+    });
+
+    document.getElementById('backToStartBtn').addEventListener('click', () => {
+        gameState = 'START';
+        hideAllScreens();
+        screens.start.classList.remove('hidden');
+    });
+
+    // Settings Events
+    document.getElementById('openSettingsBtn').addEventListener('click', () => {
+        gameState = 'START';
+        hideAllScreens();
+        screens.settings.classList.remove('hidden');
+    });
+    document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+        gameState = 'START';
+        hideAllScreens();
+        screens.start.classList.remove('hidden');
+    });
+
+    // How to Play Expandable Toggle
+    document.getElementById('howToPlayToggleBtn').addEventListener('click', () => {
+        const content = document.getElementById('howToPlayContent');
+        const chevron = document.getElementById('howToPlayChevron');
+        content.classList.toggle('hidden');
+        if (content.classList.contains('hidden')) {
+            chevron.classList.remove('rotate-180');
+        } else {
+            chevron.classList.add('rotate-180');
+        }
+    });
+
+    // Achievements Events
+    document.getElementById('openAchievementsBtn').addEventListener('click', () => {
+        gameState = 'START';
+        hideAllScreens();
+        initHatSelector(); // Ensure UI is updated
+        screens.achievements.classList.remove('hidden');
+    });
+    document.getElementById('closeAchievementsBtn').addEventListener('click', () => {
+        gameState = 'START';
+        hideAllScreens();
+        screens.start.classList.remove('hidden');
+    });
+
+    document.getElementById('autoNextLevelToggle').addEventListener('change', (e) => {
+        autoNextLevel = e.target.checked;
+    });
+
+    document.getElementById('nextLevelBtn').addEventListener('click', () => loadLevel(currentLevelIdx + 1));
+
+    // --- PHYSICS ENGINE ---
+    function update() {
+        let maxW = (gameState === 'EDITOR' || isTestingLevel || isPlayingImported) ? (customLevel.width || 1) : 1;
+        let maxH = (gameState === 'EDITOR' || isTestingLevel || isPlayingImported) ? (customLevel.height || 1) : 1;
+
+        // Camera Logic
+        if (gameState === 'EDITOR') {
+            // WASD / Arrow Keys for fast panning in Editor
+            if (keys['ArrowRight'] || keys['KeyD']) targetCamera.x += 20 * scale;
+            if (keys['ArrowLeft'] || keys['KeyA']) targetCamera.x -= 20 * scale;
+            if (keys['ArrowDown'] || keys['KeyS']) targetCamera.y += 20 * scale;
+            if (keys['ArrowUp'] || keys['KeyW']) targetCamera.y -= 20 * scale;
+            
+            // Live sync custom level to canvas variables so they draw correctly in editor
+            let w = canvas.width, h = canvas.height;
+            platforms = customLevel.platforms.map(p => ({ x: p.x*w, y: p.y*h, w: p.w*w, h: p.h*h }));
+            orbs = customLevel.orbs.map(o => ({ x: o.x*w, y: o.y*h, radius: 15*scale, type: o.type, active: true }));
+            hole = { x: customLevel.hole.x*w, y: customLevel.hole.y*h, radius: customLevel.hole.radius*scale };
+            cannon.x = customLevel.cannonPos.x * w;
+            cannon.y = customLevel.cannonPos.y * h;
+        } else if (gameState === 'FLYING' || gameState === 'LEVEL_COMPLETE' || gameState === 'GAME_OVER') {
+            targetCamera.x = cat.x - canvas.width / 2;
+            targetCamera.y = cat.y - canvas.height / 2;
+        } else {
+            targetCamera.x = cannon.x - canvas.width / 2;
+            targetCamera.y = cannon.y - canvas.height / 2;
+        }
+
+        // Clamp & Smooth Camera
+        targetCamera.x = clamp(targetCamera.x, 0, Math.max(0, canvas.width * maxW - canvas.width));
+        targetCamera.y = clamp(targetCamera.y, 0, Math.max(0, canvas.height * maxH - canvas.height));
+        camera.x += (targetCamera.x - camera.x) * 0.15;
+        camera.y += (targetCamera.y - camera.y) * 0.15;
+
+        if (gameState === 'EDITOR') return; // Pause physics for editor
+
+        if (gameState === 'AIMING') {
+            cannon.angle += 0.03 * cannon.angleDir;
+            if (cannon.angle > 0) { cannon.angle = 0; cannon.angleDir = -1; }
+            if (cannon.angle < -Math.PI / 2) { cannon.angle = -Math.PI / 2; cannon.angleDir = 1; }
+        } 
+        else if (gameState === 'CHARGING') {
+            cannon.power += (0.6 * scale) * cannon.powerDir;
+            if (cannon.power > MAX_POWER * scale) { cannon.power = MAX_POWER * scale; cannon.powerDir = -1; }
+            if (cannon.power < MIN_POWER * scale) { cannon.power = MIN_POWER * scale; cannon.powerDir = 1; }
+        }
+        else if (gameState === 'FLYING' || gameState === 'LEVEL_COMPLETE') {
+            cat.vy += GRAVITY * currentGravityDir; // Apply directional gravity!
+
+            if (gameState === 'LEVEL_COMPLETE') {
+                // Swish Physics! Pull heavily towards gravity direction
+                cat.vy += GRAVITY * 1.5 * currentGravityDir; 
+                cat.vx *= 0.7; // Kill horizontal speed
+                cat.x += (hole.x - cat.x) * 0.25; // Magnetize perfectly to the center
+                cat.rotation += 0.5; // Rapid spin as he falls
+            } else {
+                cat.vx *= FRICTION;
+                cat.vy *= FRICTION;
+                cat.rotation += cat.vx * 0.05;
+                checkCollisions();
+                checkWinLoss();
+            }
+            
+            cat.x += cat.vx;
+            cat.y += cat.vy;
+        }
+        updateParticles();
+    }
+
+    function checkCollisions() {
+        const currentLevelData = getActiveLevelData();
+        let maxW = (isTestingLevel || isPlayingImported) ? (customLevel.width || 1) : 1;
+        
+        // Bouncy Edges Logic
+        if (currentLevelData.bouncyEdges) {
+            if (cat.x - CAT_RADIUS < 0) {
+                cat.x = CAT_RADIUS;
+                cat.vx = Math.abs(cat.vx) * CAT_BOUNCE;
+                if (Math.abs(cat.vx) > 2 * scale) updateStat('bounces', 1); // Track achievement
+            } else if (cat.x + CAT_RADIUS > canvas.width * maxW) {
+                cat.x = canvas.width * maxW - CAT_RADIUS;
+                cat.vx = -Math.abs(cat.vx) * CAT_BOUNCE;
+                if (Math.abs(cat.vx) > 2 * scale) updateStat('bounces', 1); // Track achievement
+            }
+        }
+
+        for (let p of platforms) {
+            let closestX = clamp(cat.x, p.x, p.x + p.w);
+            let closestY = clamp(cat.y, p.y, p.y + p.h);
+            let distX = cat.x - closestX;
+            let distY = cat.y - closestY;
+            let distance = Math.sqrt((distX*distX) + (distY*distY));
+            if (distance < CAT_RADIUS) {
+                let overlap = CAT_RADIUS - distance;
+                if (distance === 0) { distY = -1; distance = 1; }
+                let nx = distX / distance;
+                let ny = distY / distance;
+                cat.x += nx * overlap;
+                cat.y += ny * overlap;
+                let dot = (cat.vx * nx) + (cat.vy * ny);
+                
+                let speedBefore = Math.sqrt(cat.vx*cat.vx + cat.vy*cat.vy);
+                
+                cat.vx = (cat.vx - 2 * dot * nx) * CAT_BOUNCE;
+                cat.vy = (cat.vy - 2 * dot * ny) * CAT_BOUNCE;
+                
+                if (speedBefore > 2 * scale) updateStat('bounces', 1); // Track achievement
+                
+                // Aggressively kill micro-bounces on floors (taking flipped gravity into account)
+                let isFloor = (currentGravityDir === 1 && ny < -0.5) || (currentGravityDir === -1 && ny > 0.5);
+                if (Math.abs(cat.vy) < (1.5 * scale) && isFloor) { 
+                    cat.vy = 0; 
+                    cat.vx *= 0.96; // Slower sliding friction so he rolls longer
+                }
+                
+                // Kill micro-bounces on walls to prevent corner traps
+                if (Math.abs(cat.vx) < (1.0 * scale) && Math.abs(nx) > 0.5) {
+                    cat.vx = 0;
+                }
+            }
+        }
+    }
+
+    function checkWinLoss() {
+        const currentLevelData = getActiveLevelData();
+        let maxW = (isTestingLevel || isPlayingImported) ? (customLevel.width || 1) : 1;
+        let maxH = (isTestingLevel || isPlayingImported) ? (customLevel.height || 1) : 1;
+        
+        let distHoleX = cat.x - hole.x;
+        let distHoleY = cat.y - hole.y;
+        let distToHole = Math.sqrt(distHoleX*distHoleX + distHoleY*distHoleY);
+        
+        // Falling into hole means moving in same direction as gravity (or sliding flat!)
+        let isFallingIntoHole = (currentGravityDir === 1 && cat.vy >= -0.5) || (currentGravityDir === -1 && cat.vy <= 0.5);
+        
+        if (distToHole < hole.radius * 0.8 && isFallingIntoHole && gameState !== 'LEVEL_COMPLETE') {
+            cat.vx *= 0.1; 
+            cat.vy = Math.max(Math.abs(cat.vy), 6 * scale) * currentGravityDir; // Pull into hole
+            gameState = 'LEVEL_COMPLETE';
+            
+            // Achievement Hooks
+            if (isTestingLevel || isPlayingImported) {
+                updateStat('customPlayed', 1);
+            } else {
+                updateStat('levelsBeaten', 1);
+            }
+
+            winTime = Date.now(); // Track when we won for animations
+            shakeTime = 15; // 15 frames of screen shake!
+            createConfetti(hole.x, hole.y); // Shoot confetti out of hole
+            setTimeout(() => { 
+                if(gameState === 'LEVEL_COMPLETE') {
+                    if (isTestingLevel || isPlayingImported) {
+                        screens.levelComplete.classList.remove('hidden');
+                        document.getElementById('nextLevelBtn').classList.add('hidden');
+                        document.getElementById('levelCompleteScreen').querySelector('p').innerText = isTestingLevel ? "Level Verified!" : "Custom Level Beaten!";
+                        document.getElementById('menuFromWinBtn').innerText = isTestingLevel ? "Back to Editor" : "Menu";
+                    } else if (autoNextLevel) {
+                        loadLevel(currentLevelIdx + 1);
+                    } else {
+                        document.getElementById('nextLevelBtn').classList.remove('hidden');
+                        document.getElementById('levelCompleteScreen').querySelector('p').innerText = "Purr-fect shot!";
+                        document.getElementById('menuFromWinBtn').innerText = "Menu";
+                        screens.levelComplete.classList.remove('hidden'); 
+                    }
+                }
+            }, 1200);
+        }
+        
+        let outOfBoundsX = !currentLevelData.bouncyEdges && (cat.x < -100 || cat.x > canvas.width * maxW + 100);
+        let outOfBoundsY = (currentGravityDir === 1 && cat.y > canvas.height * maxH + 100) || (currentGravityDir === -1 && cat.y < -100);
+        
+        if (outOfBoundsY || outOfBoundsX) {
+            if (gameState !== 'GAME_OVER') {
+                gameState = 'GAME_OVER';
+                screens.gameOver.classList.remove('hidden');
+                setTimeout(() => {
+                    if (gameState === 'GAME_OVER') {
+                        if (isTestingLevel || isPlayingImported) loadCustomLevelToEngine();
+                        else loadLevel(currentLevelIdx);
+                    }
+                }, 500); // Auto restart after 0.5s
+            }
+        }
+        
+        // Track if the cat is barely moving to catch jittering bugs
+        if (gameState === 'FLYING') {
+            // Increased tolerance to catch bigger micro-bounces and corner traps
+            if (Math.abs(cat.vx) < (2.0 * scale) && Math.abs(cat.vy) < (2.0 * scale)) {
+                idleFrames++;
+            } else {
+                idleFrames = 0;
+            }
+
+            // Trigger Miss if completely stopped (sliding friction took over), or jittering endlessly
+            if (idleFrames > 60 || (Math.abs(cat.vx) < (0.1 * scale) && Math.abs(cat.vy) < (0.5 * scale) && idleFrames > 5)) {
+                 if (gameState !== 'GAME_OVER') {
+                     gameState = 'GAME_OVER';
+                     screens.gameOver.classList.remove('hidden');
+                     setTimeout(() => {
+                         if (gameState === 'GAME_OVER') {
+                             if (isTestingLevel || isPlayingImported) loadCustomLevelToEngine();
+                             else loadLevel(currentLevelIdx);
+                         }
+                     }, 500); // Auto restart after 0.5s
+                 }
+            }
+        }
+    }
+
+    function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
+
+    // --- DRAWING FUNCTIONS ---
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.save();
+        // Satisfying Screen Shake Effect
+        if (shakeTime > 0) {
+            let dx = (Math.random() - 0.5) * 10 * scale;
+            let dy = (Math.random() - 0.5) * 10 * scale;
+            ctx.translate(dx, dy);
+            shakeTime--;
+        }
+        
+        // Apply Camera Translation
+        ctx.translate(-camera.x, -camera.y);
+
+        const currentLevelData = getActiveLevelData();
+        let maxW = (gameState === 'EDITOR' || isTestingLevel || isPlayingImported) ? (customLevel.width || 1) : 1;
+        let maxH = (gameState === 'EDITOR' || isTestingLevel || isPlayingImported) ? (customLevel.height || 1) : 1;
+
+        if (currentLevelData && currentLevelData.bouncyEdges) {
+            ctx.fillStyle = 'rgba(168, 85, 247, 0.15)'; // Soft purple glow for bouncy edges
+            ctx.fillRect(0, 0, 15 * scale, canvas.height * maxH);
+            ctx.fillRect(canvas.width * maxW - 15 * scale, 0, 15 * scale, canvas.height * maxH);
+        }
+
+        drawPlatforms();
+        drawHole();
+        drawCannon();
+        drawOrbs();
+        if (gameState !== 'START' && gameState !== 'LEVEL_SELECT' && gameState !== 'EDITOR') drawCat();
+        drawHoleFront(); // Draws the front rim of the portal over the cat!
+        if (gameState === 'CHARGING') drawPowerBar();
+        drawParticles();
+        
+        if (gameState === 'EDITOR') {
+            // Draw Editor Bounds
+            ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4 * scale;
+            ctx.strokeRect(0, 0, canvas.width * maxW, canvas.height * maxH);
+            
+            // Draw Editor Grid & Drag Preview
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 1;
+            for(let i=1; i<20*maxW; i++) {
+                ctx.beginPath(); ctx.moveTo(i*canvas.width/20, 0); ctx.lineTo(i*canvas.width/20, canvas.height*maxH); ctx.stroke();
+            }
+            for(let i=1; i<20*maxH; i++) {
+                ctx.beginPath(); ctx.moveTo(0, i*canvas.height/20); ctx.lineTo(canvas.width*maxW, i*canvas.height/20); ctx.stroke();
+            }
+            
+            if (editorDragStart && editorTool === 'platform') {
+                let x = Math.min(editorDragStart.x, editorCurrentMouse.x) * canvas.width;
+                let y = Math.min(editorDragStart.y, editorCurrentMouse.y) * canvas.height;
+                let w = Math.abs(editorCurrentMouse.x - editorDragStart.x) * canvas.width;
+                let h = Math.abs(editorCurrentMouse.y - editorDragStart.y) * canvas.height;
+                ctx.fillStyle = 'rgba(168, 85, 247, 0.4)'; ctx.fillRect(x, y, w, h);
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(x, y, w, h);
+            }
+            
+            // Highlight current tool pointer (only if not panning to avoid visual clutter)
+            if (editorTool === 'cannon') { ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.beginPath(); ctx.arc(editorCurrentMouse.x*canvas.width, editorCurrentMouse.y*canvas.height, 25*scale, 0, Math.PI*2); ctx.fill(); }
+            if (editorTool === 'hole') { ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.beginPath(); ctx.ellipse(editorCurrentMouse.x*canvas.width, editorCurrentMouse.y*canvas.height, 40*scale, 16*scale, 0, 0, Math.PI*2); ctx.fill(); }
+        }
+        
+        ctx.restore(); // Restore camera and shake translation
+    }
+
+    function drawOrbs() {
+        const pulse = Math.sin(Date.now() / 150) * 4 * scale;
+        orbs.forEach(orb => {
+            if (!orb.active) {
+                // Dimly draw consumed orbs
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.beginPath(); ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI*2); ctx.fill();
+                return;
+            }
+            
+            const color = orb.type === 'green' ? '#4ade80' : (orb.type === 'pink' ? '#f472b6' : '#fde047');
+            
+            ctx.save();
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 15 * scale;
+            
+            // Outer glowing ring
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3 * scale;
+            ctx.beginPath(); ctx.arc(orb.x, orb.y, orb.radius + 5 * scale + pulse, 0, Math.PI*2); ctx.stroke();
+            
+            // Inner core
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.arc(orb.x, orb.y, orb.radius - 2 * scale, 0, Math.PI*2); ctx.fill();
+            
+            // Bright white center
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(orb.x, orb.y, orb.radius * 0.4, 0, Math.PI*2); ctx.fill();
+            
+            ctx.restore();
+        });
+    }
+
+    function drawPlatforms() {
+        platforms.forEach(p => {
+            ctx.fillStyle = '#1e1b4b'; 
+            ctx.fillRect(p.x, p.y, p.w, p.h);
+            ctx.fillStyle = '#6d28d9'; 
+            ctx.fillRect(p.x, p.y, p.w, Math.min(8 * scale, p.h));
+            ctx.strokeStyle = '#a855f7'; 
+            ctx.lineWidth = 1 * scale;
+            ctx.strokeRect(p.x, p.y, p.w, p.h);
+        });
+    }
+
+    function drawHole() {
+        const currentLevelData = getActiveLevelData();
+        let holeDir = currentLevelData.flipHole ? -1 : 1; // Draw hole on ceiling if required
+        
+        ctx.save();
+        
+        // Clip the bottom half of the portal for ceiling goals so it doesn't float in the air
+        if (currentLevelData.flipHole) {
+            ctx.beginPath();
+            // Create a clipping rectangle covering the top of the screen down to the hole's edge
+            // Fixed width to handle huge map sizes seamlessly
+            ctx.rect(hole.x - 10000, hole.y - 10000, 20000, 10000);
+            ctx.clip();
+        }
+        
+        let hY = hole.y + (hole.radius * 0.15 * holeDir);
+        ctx.fillStyle = '#4c1d95';
+        ctx.beginPath();
+        ctx.ellipse(hole.x, hY, hole.radius, hole.radius * 0.4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.ellipse(hole.x, hY + (hole.radius*0.05 * holeDir), hole.radius * 0.8, hole.radius * 0.25, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+    }
+
+    function drawHoleFront() {
+        const currentLevelData = getActiveLevelData();
+        let holeDir = currentLevelData.flipHole ? -1 : 1;
+        
+        ctx.save();
+        
+        if (currentLevelData.flipHole) {
+            ctx.beginPath();
+            ctx.rect(hole.x - 10000, hole.y - 10000, 20000, 10000);
+            ctx.clip();
+        }
+        
+        let hY = hole.y + (hole.radius * 0.15 * holeDir);
+        
+        // 1. Clip out the dark center void (so the cat isn't covered in the middle)
+        ctx.beginPath();
+        ctx.rect(hole.x - 10000, hole.y - 10000, 20000, 20000); // Outer box
+        ctx.ellipse(hole.x, hY + (hole.radius*0.05 * holeDir), hole.radius * 0.8, hole.radius * 0.25, 0, 0, Math.PI * 2, true); // True = anticlockwise punchout
+        ctx.clip();
+        
+        // 2. Clip to only the "front" half of the hole
+        ctx.beginPath();
+        if (currentLevelData.flipHole) {
+            // Front is the top half for ceiling holes
+            ctx.rect(hole.x - hole.radius - 10, hY - hole.radius - 10, hole.radius * 2 + 20, hole.radius + 10);
+        } else {
+            // Front is the bottom half for ground holes
+            ctx.rect(hole.x - hole.radius - 10, hY, hole.radius * 2 + 20, hole.radius + 10);
+        }
+        ctx.clip();
+        
+        // 3. Redraw the purple base (clipped to just the front rim)
+        ctx.fillStyle = '#4c1d95';
+        ctx.beginPath();
+        ctx.ellipse(hole.x, hY, hole.radius, hole.radius * 0.4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+    }
+
+    function drawCannon() {
+        ctx.save();
+        ctx.translate(cannon.x, cannon.y);
+        ctx.scale(scale, scale);
+        ctx.rotate(cannon.angle);
+        ctx.fillStyle = '#312e81';
+        ctx.beginPath();
+        ctx.moveTo(-10, -15); ctx.lineTo(60, -10); ctx.lineTo(60, 10); ctx.lineTo(-10, 15);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(55, -12, 10, 24);
+        ctx.rotate(-cannon.angle);
+        ctx.fillStyle = '#1e1b4b';
+        ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#818cf8';
+        ctx.lineWidth = 4; ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawTopper(x, y, hr, isSleeping) {
+        if (currentHat === 'none') return;
+        ctx.save();
+        ctx.translate(x, y);
+
+        if (isSleeping) {
+            ctx.rotate(0.2); // Tilted for sleeping posture
+            ctx.translate(hr*0.1, -hr*0.2); // Small offset to keep it on head
+        }
+
+        const hatY = -hr * 0.85; // Base of the hat sits here
+
+        if (currentHat === 'tophat') {
+            ctx.fillStyle = '#111';
+            ctx.fillRect(-hr*0.9, hatY, hr*1.8, hr*0.2); // Brim
+            ctx.fillRect(-hr*0.6, hatY - hr*1.2, hr*1.2, hr*1.2); // Top
+            ctx.fillStyle = '#e63946'; // Red band
+            ctx.fillRect(-hr*0.6, hatY - hr*0.3, hr*1.2, hr*0.3);
+        } else if (currentHat === 'cap') {
+            ctx.fillStyle = '#1d3557';
+            ctx.beginPath(); ctx.arc(0, hatY, hr*0.8, Math.PI, 0); ctx.fill(); // Dome
+            ctx.fillStyle = '#e63946';
+            ctx.fillRect(hr*0.2, hatY - hr*0.1, hr*1.0, hr*0.2); // Bill pointing right
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(0, hatY - hr*0.8, hr*0.15, 0, Math.PI*2); ctx.fill(); // Top button
+        } else if (currentHat === 'beanie') {
+            ctx.fillStyle = '#2a9d8f';
+            ctx.beginPath(); ctx.arc(0, hatY, hr*0.8, Math.PI, 0); ctx.fill(); // Dome
+            ctx.fillStyle = '#e9c46a';
+            ctx.fillRect(-hr*0.8, hatY - hr*0.1, hr*1.6, hr*0.2); // Brim
+            // Propeller stick
+            ctx.fillStyle = '#e76f51';
+            ctx.fillRect(-hr*0.05, hatY - hr*1.3, hr*0.1, hr*0.5);
+            // Propeller blades
+            ctx.fillStyle = '#ddd';
+            ctx.beginPath(); ctx.ellipse(0, hatY - hr*1.3, hr*0.7, hr*0.1, 0, 0, Math.PI*2); ctx.fill();
+            // Center button
+            ctx.fillStyle = '#e76f51';
+            ctx.beginPath(); ctx.arc(0, hatY - hr*1.3, hr*0.15, 0, Math.PI*2); ctx.fill();
+        } else if (currentHat === 'crown') {
+            ctx.fillStyle = '#ffb703';
+            ctx.beginPath();
+            ctx.moveTo(-hr*0.7, hatY + hr*0.1);
+            ctx.lineTo(-hr*0.8, hatY - hr*0.8); // Left peak
+            ctx.lineTo(-hr*0.3, hatY - hr*0.4); // Inner left
+            ctx.lineTo(0, hatY - hr*1.1);       // Center peak
+            ctx.lineTo(hr*0.3, hatY - hr*0.4);  // Inner right
+            ctx.lineTo(hr*0.8, hatY - hr*0.8);  // Right peak
+            ctx.lineTo(hr*0.7, hatY + hr*0.1);
+            ctx.fill();
+            // Jewels
+            ctx.fillStyle = '#e63946'; ctx.beginPath(); ctx.arc(-hr*0.8, hatY - hr*0.8, hr*0.1, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#457b9d'; ctx.beginPath(); ctx.arc(0, hatY - hr*1.1, hr*0.1, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#e63946'; ctx.beginPath(); ctx.arc(hr*0.8, hatY - hr*0.8, hr*0.1, 0, Math.PI*2); ctx.fill();
+        } else if (currentHat === 'wizard') {
+            ctx.fillStyle = '#4a4e69';
+            ctx.fillRect(-hr*1.3, hatY, hr*2.6, hr*0.2); // Brim
+            ctx.beginPath();
+            ctx.moveTo(-hr*0.9, hatY);
+            ctx.lineTo(0, hatY - hr*2.2); // Pointy tip
+            ctx.lineTo(hr*0.9, hatY);
+            ctx.fill();
+            // Stars
+            ctx.fillStyle = '#fca311';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.font = `${hr*0.7}px Arial`; ctx.fillText('★', -hr*0.1, hatY - hr*0.6);
+            ctx.font = `${hr*0.5}px Arial`; ctx.fillText('★', 0, hatY - hr*1.4);
+        } else if (currentHat === 'party') {
+            ctx.fillStyle = '#00b4d8';
+            ctx.beginPath(); ctx.moveTo(-hr*0.6, hatY); ctx.lineTo(hr*0.6, hatY); ctx.lineTo(0, hatY - hr*1.6); ctx.fill();
+            // Polka dots
+            ctx.fillStyle = '#ffb703'; ctx.beginPath(); ctx.arc(0, hatY - hr*0.5, hr*0.15, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#e63946'; ctx.beginPath(); ctx.arc(-hr*0.2, hatY - hr*0.9, hr*0.12, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#e63946'; ctx.beginPath(); ctx.arc(hr*0.25, hatY - hr*0.3, hr*0.1, 0, Math.PI*2); ctx.fill();
+            // Pom pom
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, hatY - hr*1.6, hr*0.25, 0, Math.PI*2); ctx.fill();
+        } else if (currentHat === 'chef') {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(-hr*0.6, hatY - hr*0.8, hr*1.2, hr*0.8); // Base cylinder
+            // Puffy top
+            ctx.beginPath(); ctx.arc(-hr*0.5, hatY - hr*0.8, hr*0.5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(hr*0.5, hatY - hr*0.8, hr*0.5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(0, hatY - hr*1.2, hr*0.6, 0, Math.PI*2); ctx.fill();
+            // Outline detail
+            ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = hr*0.1;
+            ctx.beginPath(); ctx.moveTo(-hr*0.6, hatY - hr*0.3); ctx.lineTo(hr*0.6, hatY - hr*0.3); ctx.stroke();
+        } else if (currentHat === 'headband') {
+            const bandY = hatY + hr*0.5; // Offset to wrap around forehead
+            ctx.fillStyle = '#e63946';
+            ctx.fillRect(-hr*0.9, bandY, hr*1.8, hr*0.25);
+            // Trailing ties blowing back
+            ctx.lineWidth = hr*0.2; ctx.strokeStyle = '#e63946';
+            ctx.beginPath(); ctx.moveTo(-hr*0.8, bandY); ctx.quadraticCurveTo(-hr*1.5, bandY - hr*0.5, -hr*2.0, bandY + hr*0.2); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(-hr*0.8, bandY + hr*0.1); ctx.quadraticCurveTo(-hr*1.4, bandY + hr*0.2, -hr*1.8, bandY + hr*0.6); ctx.stroke();
+            // Metal plate
+            ctx.fillStyle = '#adb5bd'; ctx.fillRect(-hr*0.3, bandY - hr*0.05, hr*0.6, hr*0.35);
+        } else if (currentHat === 'sombrero') {
+            ctx.fillStyle = '#f4a261';
+            ctx.beginPath(); ctx.ellipse(0, hatY, hr*1.5, hr*0.2, 0, 0, Math.PI*2); ctx.fill(); // Brim
+            ctx.beginPath(); ctx.arc(0, hatY, hr*0.6, Math.PI, 0); ctx.fill(); // Dome
+            ctx.fillRect(-hr*0.6, hatY - hr*0.3, hr*1.2, hr*0.3);
+            ctx.fillStyle = '#e76f51'; // Decoration band
+            ctx.beginPath(); ctx.ellipse(0, hatY, hr*0.61, hr*0.1, 0, Math.PI, 0); ctx.fill();
+        } else if (currentHat === 'halo') {
+            ctx.strokeStyle = '#fca311';
+            ctx.lineWidth = hr*0.15;
+            ctx.shadowColor = '#fca311';
+            ctx.shadowBlur = hr*0.4;
+            // Halo ring magically floating above
+            ctx.beginPath(); ctx.ellipse(0, hatY - hr*0.6, hr*0.7, hr*0.2, 0, 0, Math.PI*2); ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    function drawCat() {
+        ctx.save();
+        
+        // --- NEW: CLIPPING PATH FOR ENTERING HOLE ---
+        // This perfectly crops the cat so it doesn't spill onto adjacent walls!
+        if (gameState === 'LEVEL_COMPLETE') {
+            const currentLevelData = getActiveLevelData();
+            let holeDir = currentLevelData.flipHole ? -1 : 1;
+            let hY = hole.y + (hole.radius * 0.15 * holeDir);
+            
+            ctx.beginPath();
+            if (holeDir === 1) {
+                // Region above the hole
+                ctx.rect(hole.x - 4000, hY - 8000, 8000, 8000);
+                // The hole itself
+                ctx.ellipse(hole.x, hY, hole.radius, hole.radius * 0.4, 0, 0, Math.PI * 2);
+            } else {
+                // Region below the ceiling hole
+                ctx.rect(hole.x - 4000, hY, 8000, 8000);
+                ctx.ellipse(hole.x, hY, hole.radius, hole.radius * 0.4, 0, 0, Math.PI * 2);
+            }
+            ctx.clip();
+        }
+
+        ctx.translate(cat.x, cat.y);
+        
+        // Satisfying Shrink & Fade if in the hole!
+        if (gameState === 'LEVEL_COMPLETE') {
+            let elapsed = Date.now() - winTime;
+            let shrink = Math.max(0, 1 - (elapsed / 600)); // Shrink to nothing over 600ms
+            ctx.scale(scale * shrink, scale * shrink);
+            ctx.globalAlpha = shrink;
+        } else {
+            // Flip the cat upside down visually if gravity is inverted!
+            if (currentGravityDir === -1) {
+                ctx.scale(scale, -scale); 
+            } else {
+                ctx.scale(scale, scale);
+            }
+        }
+        
+        ctx.rotate(cat.rotation);
+        const r = 14;
+        const isFlying = (gameState === 'FLYING' || gameState === 'GAME_OVER' || gameState === 'LEVEL_COMPLETE');
+
+        // Realistic color palette based on selected breed
+        const skin = catSkins[currentCatSkin] || catSkins.orange;
+        const furDark = skin.dark;
+        const furMid = skin.mid;
+        const furLight = skin.light;
+        const furWhite = skin.white;
+        const eyeColor = skin.eye;
+        const noseColor = skin.nose;
+        const earColor = skin.ear;
+        
+        if (isFlying) {
+            // --- REALISTIC FLYING CAT (Jumping Jacks) ---
+            
+            // Tail (Fluffy and aerodynamic)
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = furDark;
+            ctx.beginPath(); ctx.moveTo(0, r); ctx.quadraticCurveTo(r*0.4, r*2, 0, r*2.8); ctx.stroke();
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = furMid;
+            ctx.stroke();
+
+            // Limbs with Paws and Toe Beans!
+            const drawLimb = (startX, startY, endX, endY) => {
+                // Limb structure
+                ctx.lineWidth = 7; ctx.strokeStyle = furDark;
+                ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX, endY); ctx.stroke();
+                ctx.lineWidth = 4; ctx.strokeStyle = furMid;
+                ctx.stroke();
+                
+                // White Paw
+                ctx.fillStyle = furWhite;
+                ctx.beginPath(); ctx.arc(endX, endY, r*0.4, 0, Math.PI*2); ctx.fill();
+                
+                // Pink Toe Beans
+                ctx.fillStyle = '#ff8080';
+                ctx.beginPath(); ctx.arc(endX, endY + r*0.15, r*0.15, 0, Math.PI*2); ctx.fill(); // Main pad
+                ctx.beginPath(); ctx.arc(endX - r*0.2, endY - r*0.05, r*0.08, 0, Math.PI*2); ctx.fill(); // Toe 1
+                ctx.beginPath(); ctx.arc(endX, endY - r*0.15, r*0.08, 0, Math.PI*2); ctx.fill(); // Toe 2
+                ctx.beginPath(); ctx.arc(endX + r*0.2, endY - r*0.05, r*0.08, 0, Math.PI*2); ctx.fill(); // Toe 3
+            };
+
+            drawLimb(0, -r*0.5, -r*2.0, -r*1.6); // Top Left
+            drawLimb(0, -r*0.5, r*2.0, -r*1.6);  // Top Right
+            drawLimb(0, r*0.5, -r*1.8, r*1.6);   // Bottom Left
+            drawLimb(0, r*0.5, r*1.8, r*1.6);    // Bottom Right
+
+            // Main Torso with 3D Gradient
+            const bodyGrad = ctx.createLinearGradient(0, -r, 0, r);
+            bodyGrad.addColorStop(0, furMid);
+            bodyGrad.addColorStop(1, furDark);
+            ctx.fillStyle = bodyGrad;
+            ctx.beginPath(); ctx.ellipse(0, 0, r*0.9, r*1.3, 0, 0, Math.PI*2); ctx.fill();
+            
+            // White Belly Fluff
+            ctx.fillStyle = furWhite;
+            ctx.beginPath(); ctx.ellipse(0, r*0.2, r*0.5, r*0.8, 0, 0, Math.PI*2); ctx.fill();
+
+            // Head and Face Setup
+            const hy = -r*1.4; 
+            const hr = r*0.85;
+            
+            // Realistic Ears
+            const drawEar = (side) => {
+                ctx.fillStyle = furDark;
+                ctx.beginPath(); ctx.moveTo(side*hr*0.3, hy-hr*0.5); ctx.lineTo(side*hr*0.9, hy-hr*1.4); ctx.lineTo(side*hr*0.9, hy); ctx.fill();
+                ctx.fillStyle = furMid;
+                ctx.beginPath(); ctx.moveTo(side*hr*0.35, hy-hr*0.5); ctx.lineTo(side*hr*0.8, hy-hr*1.3); ctx.lineTo(side*hr*0.8, hy); ctx.fill();
+                ctx.fillStyle = earColor; // Inner ear pink
+                ctx.beginPath(); ctx.moveTo(side*hr*0.4, hy-hr*0.4); ctx.lineTo(side*hr*0.7, hy-hr*1.1); ctx.lineTo(side*hr*0.7, hy-hr*0.2); ctx.fill();
+            };
+            drawEar(-1); drawEar(1);
+
+            // Head Base
+            ctx.fillStyle = furMid;
+            ctx.beginPath(); ctx.arc(0, hy, hr, 0, Math.PI*2); ctx.fill();
+            
+            // Cheek Fluff / Mutton Chops
+            ctx.beginPath(); ctx.moveTo(-hr, hy); ctx.lineTo(-hr*1.4, hy+hr*0.2); ctx.lineTo(-hr*0.8, hy+hr*0.5); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(hr, hy); ctx.lineTo(hr*1.4, hy+hr*0.2); ctx.lineTo(hr*0.8, hy+hr*0.5); ctx.fill();
+
+            // White Muzzle Area
+            ctx.fillStyle = furWhite;
+            ctx.beginPath(); ctx.ellipse(0, hy+hr*0.3, hr*0.6, hr*0.4, 0, 0, Math.PI*2); ctx.fill();
+
+            // Wide Realistic Eyes
+            ctx.fillStyle = eyeColor;
+            ctx.beginPath(); ctx.ellipse(-hr*0.35, hy-hr*0.2, hr*0.28, hr*0.35, -0.2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(hr*0.35, hy-hr*0.2, hr*0.28, hr*0.35, 0.2, 0, Math.PI*2); ctx.fill();
+            
+            // Slit Pupils (Dilated from shock)
+            ctx.fillStyle = '#000';
+            ctx.beginPath(); ctx.ellipse(-hr*0.35, hy-hr*0.2, hr*0.15, hr*0.28, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(hr*0.35, hy-hr*0.2, hr*0.15, hr*0.28, 0, 0, Math.PI*2); ctx.fill();
+            
+            // Eye Catchlights
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(-hr*0.4, hy-hr*0.3, hr*0.06, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(hr*0.3, hy-hr*0.3, hr*0.06, 0, Math.PI*2); ctx.fill();
+
+            // Cute Nose
+            ctx.fillStyle = noseColor;
+            ctx.beginPath(); ctx.moveTo(-hr*0.15, hy+hr*0.15); ctx.lineTo(hr*0.15, hy+hr*0.15); ctx.lineTo(0, hy+hr*0.3); ctx.fill();
+
+            // Screaming Mouth with Fangs
+            ctx.fillStyle = '#4a0000'; 
+            ctx.beginPath(); ctx.ellipse(0, hy+hr*0.55, hr*0.3, hr*0.35, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ff6666'; // Tongue
+            ctx.beginPath(); ctx.ellipse(0, hy+hr*0.7, hr*0.2, hr*0.15, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; // Sharp little fangs
+            ctx.beginPath(); ctx.moveTo(-hr*0.2, hy+hr*0.25); ctx.lineTo(-hr*0.1, hy+hr*0.45); ctx.lineTo(0, hy+hr*0.25); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(hr*0.2, hy+hr*0.25); ctx.lineTo(hr*0.1, hy+hr*0.45); ctx.lineTo(0, hy+hr*0.25); ctx.fill();
+            
+            // Dynamic Whiskers blowing back
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(-hr*0.4, hy+hr*0.3); ctx.lineTo(-hr*1.6, hy+hr*0.1); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(-hr*0.4, hy+hr*0.4); ctx.lineTo(-hr*1.5, hy+hr*0.4); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(hr*0.4, hy+hr*0.3); ctx.lineTo(hr*1.6, hy+hr*0.1); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(hr*0.4, hy+hr*0.4); ctx.lineTo(hr*1.5, hy+hr*0.4); ctx.stroke();
+
+            drawTopper(0, hy, hr, false); // Add hat
+
+        } else {
+            // --- REALISTIC SLEEPING CAT ---
+            const breathe = Math.sin(Date.now() / 250) * 0.03;
+            ctx.scale(1 + breathe, 1 - breathe);
+            
+            // Soft Shadow underneath
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath(); ctx.ellipse(0, r*0.2, r*1.3, r*1.0, 0, 0, Math.PI*2); ctx.fill();
+
+            // Curled Body (Kidney bean spine shape)
+            const bodyGrad = ctx.createRadialGradient(-r*0.2, -r*0.2, r*0.1, 0, 0, r*1.2);
+            bodyGrad.addColorStop(0, furLight);
+            bodyGrad.addColorStop(0.7, furMid);
+            bodyGrad.addColorStop(1, furDark);
+            
+            ctx.fillStyle = bodyGrad;
+            ctx.beginPath();
+            ctx.moveTo(r*0.5, -r*0.8);
+            ctx.bezierCurveTo(r*1.5, -r*0.5, r*1.2, r*1.2, 0, r*1.1);
+            ctx.bezierCurveTo(-r*1.5, r*1.0, -r*1.2, -r*0.5, -r*0.5, -r*0.8);
+            ctx.fill();
+
+            // Realistic Tabby Stripes (Curved shapes instead of lines)
+            ctx.fillStyle = furDark;
+            ctx.globalAlpha = 0.6;
+            ctx.beginPath(); ctx.moveTo(-r*0.8, -r*0.5); ctx.quadraticCurveTo(-r*0.4, -r*0.2, -r*0.6, 0); ctx.quadraticCurveTo(-r*0.9, -r*0.2, -r*1.0, -r*0.4); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(-r*0.5, r*0.6); ctx.quadraticCurveTo(-r*0.2, r*0.2, 0, r*0.4); ctx.quadraticCurveTo(-r*0.1, r*0.7, -r*0.4, r*0.9); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(r*0.5, r*0.8); ctx.quadraticCurveTo(r*0.2, r*0.4, r*0.4, r*0.2); ctx.quadraticCurveTo(r*0.7, r*0.5, r*0.8, r*0.6); ctx.fill();
+            ctx.globalAlpha = 1.0;
+
+            // Tail wrapping snugly around body
+            ctx.lineWidth = r*0.6;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = furDark;
+            ctx.beginPath(); ctx.arc(0, 0, r*0.9, Math.PI*0.1, Math.PI*1.4); ctx.stroke();
+            ctx.lineWidth = r*0.45;
+            ctx.strokeStyle = furMid;
+            ctx.stroke();
+
+            // Head Setup
+            const hx = r * 0.4, hy = -r * 0.4, hr = r * 0.75;
+            
+            // Relaxed / Folded Ears
+            const drawSleepyEar = (side) => {
+                ctx.fillStyle = furDark;
+                ctx.beginPath(); ctx.moveTo(hx+side*hr*0.3, hy-hr*0.4); ctx.lineTo(hx+side*hr*0.9, hy-hr*1.0); ctx.lineTo(hx+side*hr*0.7, hy-hr*0.1); ctx.fill();
+                ctx.fillStyle = furMid;
+                ctx.beginPath(); ctx.moveTo(hx+side*hr*0.35, hy-hr*0.4); ctx.lineTo(hx+side*hr*0.8, hy-hr*0.9); ctx.lineTo(hx+side*hr*0.6, hy-hr*0.1); ctx.fill();
+                ctx.fillStyle = earColor;
+                ctx.beginPath(); ctx.moveTo(hx+side*hr*0.4, hy-hr*0.3); ctx.lineTo(hx+side*hr*0.7, hy-hr*0.8); ctx.lineTo(hx+side*hr*0.5, hy-hr*0.2); ctx.fill();
+            };
+            drawSleepyEar(-1); drawSleepyEar(1);
+
+            // Head Base with Gradient
+            const headGrad = ctx.createRadialGradient(hx, hy-hr*0.2, hr*0.2, hx, hy, hr);
+            headGrad.addColorStop(0, furLight);
+            headGrad.addColorStop(1, furDark);
+            ctx.fillStyle = headGrad;
+            ctx.beginPath(); ctx.arc(hx, hy, hr, 0, Math.PI * 2); ctx.fill();
+
+            // Muzzle / Snout (White)
+            ctx.fillStyle = furWhite;
+            ctx.beginPath(); ctx.ellipse(hx, hy+hr*0.3, hr*0.5, hr*0.35, 0, 0, Math.PI*2); ctx.fill();
+
+            // Cute Nose
+            ctx.fillStyle = noseColor;
+            ctx.beginPath(); ctx.moveTo(hx-hr*0.15, hy+hr*0.15); ctx.lineTo(hx+hr*0.15, hy+hr*0.15); ctx.lineTo(hx, hy+hr*0.3); ctx.fill();
+            
+            // Peaceful sleepy mouth
+            ctx.strokeStyle = '#331a00'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(hx-hr*0.2, hy+hr*0.4); ctx.quadraticCurveTo(hx, hy+hr*0.5, hx+hr*0.2, hy+hr*0.4); ctx.stroke();
+
+            // Closed sleeping eyes
+            ctx.strokeStyle = '#331a00'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(hx - hr*0.6, hy - hr*0.05); ctx.quadraticCurveTo(hx - hr*0.3, hy + hr*0.2, hx - hr*0.1, hy - hr*0.05); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(hx + hr*0.1, hy - hr*0.05); ctx.quadraticCurveTo(hx + hr*0.3, hy + hr*0.2, hx + hr*0.6, hy - hr*0.05); ctx.stroke();
+            
+            // Relaxed Whiskers
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(hx-hr*0.3, hy+hr*0.2); ctx.quadraticCurveTo(hx-hr*0.8, hy+hr*0.3, hx-hr*1.2, hy+hr*0.4); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(hx-hr*0.3, hy+hr*0.3); ctx.quadraticCurveTo(hx-hr*0.8, hy+hr*0.4, hx-hr*1.1, hy+hr*0.6); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(hx+hr*0.3, hy+hr*0.2); ctx.quadraticCurveTo(hx+hr*0.8, hy+hr*0.3, hx+hr*1.2, hy+hr*0.4); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(hx+hr*0.3, hy+hr*0.3); ctx.quadraticCurveTo(hx+hr*0.8, hy+hr*0.4, hx+hr*1.1, hy+hr*0.6); ctx.stroke();
+
+            // White Paw tucked under chin
+            ctx.fillStyle = furWhite;
+            ctx.beginPath(); ctx.ellipse(hx - hr*0.4, hy + hr*0.7, hr*0.4, hr*0.25, -0.2, 0, Math.PI*2); ctx.fill();
+            // Toe line details
+            ctx.strokeStyle = '#e6ccb3'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(hx-hr*0.6, hy+hr*0.7); ctx.lineTo(hx-hr*0.4, hy+hr*0.65); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(hx-hr*0.5, hy+hr*0.8); ctx.lineTo(hx-hr*0.3, hy+hr*0.75); ctx.stroke();
+
+            drawTopper(hx, hy, hr, true); // Add hat
+
+            // Zzz Particles
+            const zTime = Date.now() / 800; ctx.fillStyle = '#ffffff'; ctx.globalAlpha = 1 - (zTime % 1);
+            ctx.font = `bold 14px Arial`; ctx.fillText('Z', hx + hr*0.2 + Math.sin(zTime * 2) * 5, hy - hr - (zTime % 1) * 30);
+            ctx.globalAlpha = 1.0;
+        }
+        ctx.restore();
+    }
+
+    function drawPowerBar() {
+        ctx.save(); ctx.translate(cannon.x, cannon.y); ctx.scale(scale, scale);
+        const barWidth = 100, barHeight = 15, x = -50, y = 40;
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(x, y, barWidth, barHeight);
+        
+        const fillPercent = ((cannon.power / scale) - MIN_POWER) / (MAX_POWER - MIN_POWER);
+        
+        ctx.fillStyle = `rgb(${Math.min(255, 168 * fillPercent + 50)}, ${Math.min(255, 255 * (1 - fillPercent))}, 255)`;
+        ctx.fillRect(x, y, barWidth * fillPercent, barHeight);
+        
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(x, y, barWidth, barHeight);
+        ctx.restore();
+    }
+
+    // New Confetti Effect
+    function createConfetti(x, y) {
+        const currentLevelData = getActiveLevelData();
+        const holeDir = currentLevelData.flipHole ? -1 : 1; 
+
+        const colors = ['#fde047', '#4ade80', '#60a5fa', '#c084fc', '#f472b6', '#fb923c'];
+        for (let i = 0; i < 60; i++) {
+            particles.push({
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 16 * scale,
+                vy: (Math.random() * -18 - 4) * scale * holeDir, // Blast straight out of the hole!
+                life: 1.0 + Math.random() * 0.5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: (Math.random() * 6 + 3) * scale,
+                rotation: Math.random() * Math.PI,
+                type: 'confetti'
+            });
+        }
+    }
+
+    function createExplosion(x, y, count, color) {
+        for (let i = 0; i < count; i++) {
+            particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 10 * scale, vy: (Math.random() - 0.5) * 10 * scale, life: 1.0, color: color, size: (Math.random() * 4 + 2) * scale, type: 'spark' });
+        }
+    }
+
+    function updateParticles() {
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i]; 
+            p.x += p.vx; 
+            p.y += p.vy; 
+            
+            // Confetti gets affected by gravity and spins
+            if (p.type === 'confetti') {
+                p.vy += GRAVITY * 0.6 * currentGravityDir; 
+                p.rotation += p.vx * 0.05;
+            }
+            
+            p.life -= 0.02;
+            if (p.life <= 0) particles.splice(i, 1);
+        }
+    }
+
+    function drawParticles() {
+        particles.forEach(p => { 
+            ctx.fillStyle = p.color; 
+            ctx.globalAlpha = Math.min(1, p.life); 
+            
+            if (p.type === 'confetti') {
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation);
+                ctx.fillRect(-p.size/2, -p.size, p.size, p.size * 2); // Draw little rectangles
+                ctx.restore();
+            } else {
+                ctx.beginPath(); 
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); 
+                ctx.fill(); 
+            }
+            
+            ctx.globalAlpha = 1.0; 
+        });
+    }
+
+    // Boot directly into the Start Menu
+    hideAllScreens();
+    screens.start.classList.remove('hidden');
+
+    function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
+    requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
