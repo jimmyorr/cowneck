@@ -412,7 +412,7 @@
             maxO2: 100,
             o2DepletionRate: 2,
             o2RefillRate: 30,
-            swimSpeed: 30,
+            swimSpeed: 12,
             drag: 5.0,
             inventoryItems: [
                 'titanium', 'copper', 'quartz', 'lead', 'silver', 'gold', 'lithium', 'diamond', 'rice',
@@ -890,6 +890,9 @@
         let yaw = 0;   // rotation around Y
 
         const keys = { w: false, a: false, s: false, d: false, space: false, shift: false };
+        const gamepadState = { axes: [0, 0, 0, 0], buttons: [] };
+        let lastStartButton = false;
+        let lastAButton = false;
 
         document.addEventListener('keydown', (e) => {
             switch (e.code) {
@@ -928,25 +931,101 @@
             }
         });
 
+        function updateGamepad() {
+            const gamepads = navigator.getGamepads();
+            const gp = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3];
+            
+            if (gp) {
+                // Stick Axes
+                gamepadState.axes = gp.axes; // 0: LX, 1: LY, 2: RX, 3: RY
+                
+                // Buttons
+                const b = gp.buttons;
+                
+                // LB (4) -> Ascend, RB (5) -> Descend
+                const lb = b[4]?.pressed;
+                const rb = b[5]?.pressed;
+                
+                // Map to keys for reuse in updateMovement
+                // We combine keyboard and gamepad state
+                // This will be handled inside updateMovement to avoid clobbering keys object
+                
+                // Interaction: A (0)
+                const aButton = b[0]?.pressed;
+                if (aButton && !lastAButton && document.pointerLockElement === document.body) {
+                    interact();
+                }
+                lastAButton = aButton;
+                
+                // Pause/Start: Menu (9)
+                const startButton = b[9]?.pressed;
+                if (startButton && !lastStartButton) {
+                    if (document.pointerLockElement === document.body) {
+                        document.exitPointerLock();
+                    } else if (state.isRunning && !state.isDead && !state.activeModal) {
+                        document.body.requestPointerLock();
+                    }
+                }
+                lastStartButton = startButton;
+
+                // Analog stick looking
+                if (document.pointerLockElement === document.body) {
+                    const stickSensitivity = 0.03;
+                    const deadzone = 0.1;
+                    
+                    let rx = gp.axes[2];
+                    let ry = gp.axes[3];
+                    
+                    if (Math.abs(rx) > deadzone) yaw -= rx * stickSensitivity;
+                    if (Math.abs(ry) > deadzone) pitch -= ry * stickSensitivity;
+                    
+                    const PI_2 = Math.PI / 2 - 0.01;
+                    pitch = Math.max(-PI_2, Math.min(PI_2, pitch));
+                    camera.rotation.set(pitch, yaw, 0);
+                }
+            }
+        }
+
         function updateMovement(delta) {
             // Apply drag (water resistance)
             velocity.x -= velocity.x * config.drag * delta;
             velocity.y -= velocity.y * config.drag * delta;
             velocity.z -= velocity.z * config.drag * delta;
 
-            direction.z = Number(keys.s) - Number(keys.w);
-            direction.x = Number(keys.d) - Number(keys.a);
-            direction.y = Number(keys.space) - Number(keys.shift);
-            direction.normalize(); // Ensure consistent speed in all directions
+            // Gather inputs (Keyboard + Gamepad)
+            const gamepads = navigator.getGamepads();
+            const gp = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3];
+            
+            let moveX = Number(keys.d) - Number(keys.a);
+            let moveZ = Number(keys.s) - Number(keys.w);
+            let moveY = Number(keys.space) - Number(keys.shift);
+            
+            if (gp) {
+                const deadzone = 0.15;
+                if (Math.abs(gp.axes[0]) > deadzone) moveX += gp.axes[0];
+                if (Math.abs(gp.axes[1]) > deadzone) moveZ += gp.axes[1];
+                
+                // LB (4) -> Up, RB (5) -> Down
+                if (gp.buttons[4]?.pressed) moveY += 1;
+                if (gp.buttons[5]?.pressed) moveY -= 1;
+            }
+
+            direction.z = moveZ;
+            direction.x = moveX;
+            direction.y = moveY;
+            
+            // Normalize if magnitude > 1, but allow analog precision for small movements
+            const mag = direction.length();
+            if (mag > 1) direction.normalize();
 
             // Base acceleration
             let speed = config.swimSpeed;
             if (state.upgrades.seaglide) speed *= 2.5;
             const acceleration = speed * delta;
 
-            if (keys.w || keys.s) velocity.z += direction.z * acceleration;
-            if (keys.a || keys.d) velocity.x += direction.x * acceleration;
-            if (keys.space || keys.shift) velocity.y += direction.y * acceleration;
+            if (moveZ !== 0) velocity.z += direction.z * acceleration;
+            if (moveX !== 0) velocity.x += direction.x * acceleration;
+            if (moveY !== 0) velocity.y += direction.y * acceleration;
 
             // Apply velocity relative to camera orientation
             // Create vectors pointing in the camera's local right and forward directions
@@ -1125,17 +1204,79 @@
                 currentInteractable = intersects[0].object;
                 promptEl.style.display = 'block';
 
+                const isGamepad = !!(navigator.getGamepads()[0] || navigator.getGamepads()[1]);
+                const interactKey = isGamepad ? "[A]" : "[Left Click]";
+
                 if (currentInteractable.userData.type === 'outcrop') {
-                    promptEl.innerText = "[Left Click] Break Limestone Outcrop";
+                    promptEl.innerText = `${interactKey} Break Limestone Outcrop`;
                 } else if (currentInteractable.userData.type === 'printer') {
-                    promptEl.innerText = "[Left Click] Open Hydraulic Printer";
+                    promptEl.innerText = `${interactKey} Open Hydraulic Printer`;
                 } else if (currentInteractable.userData.type === 'storage') {
-                    promptEl.innerText = "[Left Click] Open Storage";
+                    promptEl.innerText = `${interactKey} Open Storage`;
                 }
             } else {
                 currentInteractable = null;
                 promptEl.style.display = 'none';
             }
+        }
+
+        function interact() {
+            if (!currentInteractable) return;
+
+            const type = currentInteractable.userData.type;
+
+            if (type === 'outcrop' || type === 'item') {
+                scene.remove(currentInteractable);
+                interactables.splice(interactables.indexOf(currentInteractable), 1);
+
+                let loot = '';
+                const subType = currentInteractable.userData.subType;
+
+                if (type === 'item' && subType === 'rice') {
+                    state.inventory.rice++;
+                    loot = 'Sea Rice';
+                } else if (subType === 'Limestone Outcrop') {
+                    const roll = Math.random();
+                    if (roll < 0.6) { state.inventory.titanium++; loot = 'Titanium'; }
+                    else { state.inventory.copper++; loot = 'Copper'; }
+                } else if (subType === 'Sandstone Outcrop') {
+                    const roll = Math.random();
+                    if (roll < 0.4) { state.inventory.lead++; loot = 'Lead'; }
+                    else if (roll < 0.8) { state.inventory.silver++; loot = 'Silver'; }
+                    else { state.inventory.gold++; loot = 'Gold'; }
+                } else if (subType === 'Shale Outcrop') {
+                    const roll = Math.random();
+                    if (roll < 0.7) { state.inventory.lithium++; loot = 'Lithium'; }
+                    else { state.inventory.diamond++; loot = 'Diamond'; }
+                } else if (subType === 'Quartz Chunk') {
+                    state.inventory.quartz++;
+                    loot = 'Quartz';
+                }
+
+                updateInventoryUI();
+                saveGame(); // Auto-save on collection
+
+                promptEl.innerText = `Acquired: ${loot}`;
+                promptEl.style.display = 'block';
+                promptEl.style.color = '#0f0';
+                currentInteractable = null;
+
+                setTimeout(() => {
+                    promptEl.style.color = 'white';
+                    if (!currentInteractable) promptEl.style.display = 'none';
+                }, 1500);
+            } else if (type === 'printer') {
+                // Open printer UI
+                document.exitPointerLock();
+                document.getElementById('printer-modal').style.display = 'block';
+                state.activeModal = 'printer';
+            } else if (type === 'storage') {
+                // Open storage UI
+                document.exitPointerLock();
+                document.getElementById('storage-modal').style.display = 'block';
+                state.activeModal = 'storage';
+            }
+        }
 
             // Visual Effects based on depth
             // Make it darker as you go deeper
@@ -1172,7 +1313,9 @@
             const delta = Math.min(clock.getDelta(), 0.1); // Cap delta to prevent huge jumps on lag
             const time = clock.getElapsedTime();
 
-            if (!state.isDead && document.pointerLockElement === document.body) {
+            updateGamepad();
+
+            if (!state.isDead && (document.pointerLockElement === document.body || state.activeModal === null)) {
                 updateMovement(delta);
                 updateGameLogic(delta);
             }
@@ -1206,61 +1349,7 @@
         // Interaction Click Handler
         document.addEventListener('mousedown', (e) => {
             if (document.pointerLockElement === document.body && e.button === 0) {
-                if (currentInteractable) {
-                    const type = currentInteractable.userData.type;
-
-                    if (type === 'outcrop' || type === 'item') {
-                        scene.remove(currentInteractable);
-                        interactables.splice(interactables.indexOf(currentInteractable), 1);
-
-                        let loot = '';
-                        const subType = currentInteractable.userData.subType;
-
-                        if (type === 'item' && subType === 'rice') {
-                            state.inventory.rice++;
-                            loot = 'Sea Rice';
-                        } else if (subType === 'Limestone Outcrop') {
-                            const roll = Math.random();
-                            if (roll < 0.6) { state.inventory.titanium++; loot = 'Titanium'; }
-                            else { state.inventory.copper++; loot = 'Copper'; }
-                        } else if (subType === 'Sandstone Outcrop') {
-                            const roll = Math.random();
-                            if (roll < 0.4) { state.inventory.lead++; loot = 'Lead'; }
-                            else if (roll < 0.8) { state.inventory.silver++; loot = 'Silver'; }
-                            else { state.inventory.gold++; loot = 'Gold'; }
-                        } else if (subType === 'Shale Outcrop') {
-                            const roll = Math.random();
-                            if (roll < 0.7) { state.inventory.lithium++; loot = 'Lithium'; }
-                            else { state.inventory.diamond++; loot = 'Diamond'; }
-                        } else if (subType === 'Quartz Chunk') {
-                            state.inventory.quartz++;
-                            loot = 'Quartz';
-                        }
-
-                        updateInventoryUI();
-                        saveGame(); // Auto-save on collection
-
-                        promptEl.innerText = `Acquired: ${loot}`;
-                        promptEl.style.display = 'block';
-                        promptEl.style.color = '#0f0';
-                        currentInteractable = null;
-
-                        setTimeout(() => {
-                            promptEl.style.color = 'white';
-                            if (!currentInteractable) promptEl.style.display = 'none';
-                        }, 1500);
-                    } else if (type === 'printer') {
-                        // Open printer UI
-                        document.exitPointerLock();
-                        document.getElementById('printer-modal').style.display = 'block';
-                        state.activeModal = 'printer';
-                    } else if (type === 'storage') {
-                        // Open storage UI
-                        document.exitPointerLock();
-                        document.getElementById('storage-modal').style.display = 'block';
-                        state.activeModal = 'storage';
-                    }
-                }
+                interact();
             }
         });
 
