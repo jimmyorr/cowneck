@@ -390,6 +390,7 @@
     let autoNextLevel = false; // Track auto progression
     let currentCatSkin = 'orange'; // Track selected cat breed
     let devAimbot = false; // Track Aimbot status
+    let devMenuAlreadyUnlocked = false; // Track if dev menu has been unlocked to prevent repeated notifications
     
     // Map Maker Variables
     let isTestingLevel = false;
@@ -1644,10 +1645,19 @@
     document.getElementById('openSettingsBtn').addEventListener('click', () => {
         gameState = 'START';
         hideAllScreens();
+        // Reset the dev code input field
+        const devCodeInput = document.getElementById('devCodeInput');
+        devCodeInput.value = '';
+        // Show the input field if the dev menu hasn't been unlocked yet
+        if (!devMenuAlreadyUnlocked) {
+            devCodeInput.classList.remove('hidden');
+        }
         screens.settings.classList.remove('hidden');
     });
     document.getElementById('closeSettingsBtn').addEventListener('click', () => {
         gameState = 'START';
+        // Clear the dev code input field when closing settings
+        document.getElementById('devCodeInput').value = '';
         hideAllScreens();
         screens.start.classList.remove('hidden');
     });
@@ -1669,7 +1679,13 @@
         if (e.target.value === 'KirbyDirbyDoo') {
             document.getElementById('devMenu').classList.remove('hidden');
             e.target.classList.add('hidden'); // Hide the input after unlocking
-            showToast('Dev Menu Unlocked!', '🛠️');
+            // Only show the notification if this is the first time unlocking
+            if (!devMenuAlreadyUnlocked) {
+                showToast('Dev Menu Unlocked!', '🛠️');
+                devMenuAlreadyUnlocked = true;
+            }
+            // Clear the input field to prevent re-triggering
+            e.target.value = '';
         }
     });
 
