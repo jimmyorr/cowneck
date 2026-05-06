@@ -65,10 +65,10 @@
 <div id="game-container">
     <canvas id="gameCanvas"></canvas>
     
-    <!-- Toast Notification for Achievements -->
+    <!-- Toast Notification for Achievements / Coins -->
     <div id="toastNotification" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-6 py-3 rounded-full font-black shadow-[0_0_20px_#facc15] transition-all duration-300 z-[400] opacity-0 pointer-events-none translate-y-[-20px] flex items-center gap-3">
-        <span class="text-2xl">🏆</span>
-        <span id="toastText">Achievement Unlocked!</span>
+        <span id="toastIcon" class="text-2xl">🪙</span>
+        <span id="toastText">Coins Added!</span>
     </div>
 
     <!-- Tutorial / Start Screen -->
@@ -96,8 +96,8 @@
                 <button id="openImportBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl">
                     ENTER CODE
                 </button>
-                <button id="openAchievementsBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl flex items-center justify-center gap-2">
-                    <span>🏆</span> ACHIEVEMENTS
+                <button id="openShopBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl flex items-center justify-center gap-2">
+                    <span>🛒</span> SHOP
                 </button>
             </div>
         </div>
@@ -171,23 +171,45 @@
                 </div>
             </div>
 
+            <!-- Secret Dev Menu Input -->
+            <input type="password" id="devCodeInput" class="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-2 mb-6 text-center text-white/30 focus:text-white focus:bg-white/10 outline-none transition placeholder-white/20 text-xs tracking-widest" placeholder="...">
+            
+            <div id="devMenu" class="hidden flex flex-col gap-4 bg-red-900/40 p-4 rounded-xl mb-6 border border-red-500/50 text-left">
+                <span class="text-red-400 text-xl font-black text-center border-b border-red-500/30 pb-2">🛠️ DEV MENU</span>
+                <div class="flex items-center justify-between">
+                    <span class="text-white font-bold text-sm">Aimbot (Never Miss)</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="devAimbotToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                    </label>
+                </div>
+                <div class="flex gap-2">
+                    <input type="number" id="devCoinAmount" value="10000" class="w-24 bg-black/50 text-white px-2 py-1 rounded border border-white/20 font-mono text-center outline-none focus:border-red-500">
+                    <button id="devAddCoinsBtn" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold rounded transition shadow-lg text-sm">Get Coins</button>
+                </div>
+            </div>
+
             <button id="closeSettingsBtn" class="px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full transition border border-white/10 w-full">
                 BACK
             </button>
         </div>
     </div>
 
-    <!-- Achievements Menu -->
-    <div id="achievementsScreen" class="overlay tutorial-bg hidden z-[150]">
+    <!-- Shop Menu -->
+    <div id="shopScreen" class="overlay tutorial-bg hidden z-[150]">
         <div class="glass-panel p-8 rounded-3xl max-w-2xl w-11/12 text-center max-h-[90vh] overflow-y-auto flex flex-col">
-            <h2 class="text-4xl font-black mb-2 text-white uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 drop-shadow-md">Achievements</h2>
-            <p class="text-white/80 mb-6 font-medium">Complete challenges to unlock new hats!</p>
+            <h2 class="text-4xl font-black mb-2 text-white uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 drop-shadow-md">Hat Shop</h2>
             
-            <div id="achievementsList" class="flex flex-col gap-3 overflow-y-auto pr-2">
-                <!-- Achievement rows generated dynamically by JS -->
+            <div class="bg-black/50 border border-yellow-500/50 rounded-full px-6 py-2 mx-auto mb-6 inline-flex items-center gap-2 shadow-lg">
+                <span class="text-2xl">🪙</span>
+                <span id="shopCoinBalance" class="text-2xl font-black text-yellow-400">0</span>
+            </div>
+            
+            <div id="shopList" class="flex flex-col gap-3 overflow-y-auto pr-2">
+                <!-- Shop rows generated dynamically by JS -->
             </div>
 
-            <button id="closeAchievementsBtn" class="mt-6 px-8 py-3 bg-white/10 hover:bg-red-500 text-white font-bold rounded-full transition border border-white/20 w-full md:w-auto self-center">
+            <button id="closeShopBtn" class="mt-6 px-8 py-3 bg-white/10 hover:bg-red-500 text-white font-bold rounded-full transition border border-white/20 w-full md:w-auto self-center">
                 BACK TO MENU
             </button>
         </div>
@@ -295,51 +317,52 @@
         ui: document.getElementById('gameUI'),
         settings: document.getElementById('settingsScreen'),
         editor: document.getElementById('editorUI'),
-        achievements: document.getElementById('achievementsScreen')
+        shop: document.getElementById('shopScreen')
     };
     const levelDisplay = document.getElementById('levelDisplay');
     const levelGrid = document.getElementById('levelGrid');
 
-    // Stats & Achievements
-    let stats = JSON.parse(localStorage.getItem('catCannonStats')) || { gamesPlayed: 0, bounces: 0, orbsUsed: 0, levelsBeaten: 0, customPlayed: 0 };
+    // Stats, Coins & Unlocks
+    let coins = parseInt(localStorage.getItem('catCannonCoins')) || 0;
     let previouslyUnlocked = JSON.parse(localStorage.getItem('catCannonUnlockedHats')) || ['none'];
     let currentHat = localStorage.getItem('catCannonHat') || 'none';
     let toastTimer = null;
+    
+    // Flight Trackers (For tricks and swishes)
+    let flightBounces = 0;
+    let flightOrbs = 0;
 
     const hats = {
-        none: { name: 'No Hat', condition: 'Default', icon: '❌', check: () => true },
-        tophat: { name: 'Top Hat', condition: 'Play 1 game', icon: '🎩', check: () => stats.gamesPlayed >= 1 },
-        cap: { name: 'Baseball Cap', condition: 'Bounce off 50 walls/floors', icon: '🧢', check: () => stats.bounces >= 50 },
-        beanie: { name: 'Propeller Beanie', condition: 'Use 10 Magic Orbs', icon: '🚁', check: () => stats.orbsUsed >= 10 },
-        crown: { name: 'Royal Crown', condition: 'Beat 10 levels', icon: '👑', check: () => stats.levelsBeaten >= 10 },
-        wizard: { name: 'Wizard Hat', condition: 'Beat a Custom Level', icon: '🧙', check: () => stats.customPlayed >= 1 },
-        party: { name: 'Party Hat', condition: 'Play 10 games', icon: '🥳', check: () => stats.gamesPlayed >= 10 },
-        chef: { name: 'Chef Hat', condition: 'Bounce 100 times', icon: '🧑‍🍳', check: () => stats.bounces >= 100 },
-        headband: { name: 'Ninja Headband', condition: 'Use 25 Orbs', icon: '🥷', check: () => stats.orbsUsed >= 25 },
-        sombrero: { name: 'Sombrero', condition: 'Beat 20 levels', icon: '👒', check: () => stats.levelsBeaten >= 20 },
-        halo: { name: 'Glowing Halo', condition: 'Play 5 Custom Levels', icon: '😇', check: () => stats.customPlayed >= 5 }
+        none: { name: 'No Hat', cost: 0, icon: '❌' },
+        tophat: { name: 'Top Hat', cost: 50, icon: '🎩' },
+        cap: { name: 'Baseball Cap', cost: 100, icon: '🧢' },
+        beanie: { name: 'Propeller Beanie', cost: 200, icon: '🚁' },
+        crown: { name: 'Royal Crown', cost: 500, icon: '👑' },
+        wizard: { name: 'Wizard Hat', cost: 750, icon: '🧙' },
+        party: { name: 'Party Hat', cost: 1000, icon: '🥳' },
+        flower: { name: 'Flower Crown', cost: 1200, icon: '🌸' },
+        chef: { name: 'Chef Hat', cost: 1500, icon: '🧑‍🍳' },
+        headband: { name: 'Ninja Headband', cost: 2000, icon: '🥷' },
+        santa: { name: 'Santa Hat', cost: 2500, icon: '🎅' },
+        sombrero: { name: 'Sombrero', cost: 3000, icon: '👒' },
+        bunny: { name: 'Bunny Ears', cost: 4000, icon: '🐰' },
+        halo: { name: 'Glowing Halo', cost: 5000, icon: '😇' },
+        viking: { name: 'Viking Helmet', cost: 7500, icon: '🪖' },
+        astro: { name: 'Space Helmet', cost: 10000, icon: '🧑‍🚀' }
     };
 
-    function updateStat(key, amount = 1) {
-        stats[key] += amount;
-        localStorage.setItem('catCannonStats', JSON.stringify(stats));
-        checkUnlocks();
+    function addCoins(amount, reason) {
+        coins += amount;
+        localStorage.setItem('catCannonCoins', coins);
+        showToast(`+${amount} 🪙 ${reason ? '(' + reason + ')' : ''}`, '🪙');
+        const shopBal = document.getElementById('shopCoinBalance');
+        if (shopBal) shopBal.innerText = coins;
     }
 
-    function checkUnlocks() {
-        Object.keys(hats).forEach(key => {
-            if (!previouslyUnlocked.includes(key) && hats[key].check()) {
-                previouslyUnlocked.push(key);
-                localStorage.setItem('catCannonUnlockedHats', JSON.stringify(previouslyUnlocked));
-                showToast(`Unlocked: ${hats[key].name}!`);
-                initHatSelector(); // Refresh UI to show the new hat
-            }
-        });
-    }
-
-    function showToast(msg) {
+    function showToast(msg, icon = '🪙') {
         const toast = document.getElementById('toastNotification');
         document.getElementById('toastText').innerText = msg;
+        document.getElementById('toastIcon').innerText = icon;
         toast.classList.remove('opacity-0', 'translate-y-[-20px]');
         toast.classList.add('opacity-100', 'translate-y-0');
         clearTimeout(toastTimer);
@@ -366,6 +389,7 @@
     let currentLevelPage = 0; // Added to track level pages
     let autoNextLevel = false; // Track auto progression
     let currentCatSkin = 'orange'; // Track selected cat breed
+    let devAimbot = false; // Track Aimbot status
     
     // Map Maker Variables
     let isTestingLevel = false;
@@ -411,6 +435,7 @@
     let platforms = [];
     let particles = [];
     let orbs = [];
+    let mapHoles = []; // NEW: Tracks permanent holes punched into the level!
 
     const catSkins = {
         orange: { name: 'Orange Tabby', dark: '#b35900', mid: '#e67300', light: '#ff9933', white: '#fff3e6', eye: '#2ecc71', nose: '#ff6666', ear: '#e6b3b3' },
@@ -478,10 +503,11 @@
         });
     }
 
-    function initHatSelector() {
-        const selector = document.getElementById('achievementsList');
+    function initShopList() {
+        const selector = document.getElementById('shopList');
         if (!selector) return;
         selector.innerHTML = '';
+        document.getElementById('shopCoinBalance').innerText = coins;
 
         Object.keys(hats).forEach(key => {
             const hat = hats[key];
@@ -503,8 +529,8 @@
             titleSpan.className = `font-black text-xl tracking-wide ${isUnlocked ? 'text-white' : 'text-white/50'}`;
             titleSpan.innerText = hat.name;
             const descSpan = document.createElement('div');
-            descSpan.className = `text-sm font-medium ${isUnlocked ? 'text-green-400' : 'text-yellow-200/60'}`;
-            descSpan.innerText = isUnlocked ? (key === 'none' ? 'Default' : 'Unlocked!') : `Unlock: ${hat.condition}`;
+            descSpan.className = `text-sm font-medium ${isUnlocked ? 'text-green-400' : 'text-yellow-400 font-bold'}`;
+            descSpan.innerText = isUnlocked ? (key === 'none' ? 'Default' : 'Purchased!') : `${hat.cost} 🪙`;
             
             textDiv.appendChild(titleSpan);
             textDiv.appendChild(descSpan);
@@ -513,8 +539,30 @@
 
             const equipBtn = document.createElement('button');
             if (!isUnlocked) {
-                equipBtn.className = 'px-6 py-2 bg-black/40 text-white/30 font-bold rounded-xl border border-white/5 cursor-not-allowed w-full sm:w-auto';
-                equipBtn.innerText = 'Locked';
+                if (coins >= hat.cost) {
+                    equipBtn.className = 'px-6 py-2 bg-green-500 hover:bg-green-400 text-white font-bold rounded-xl transition border border-white/20 shadow-lg w-full sm:w-auto';
+                    equipBtn.innerText = `Buy (${hat.cost})`;
+                } else {
+                    equipBtn.className = 'px-6 py-2 bg-black/40 text-white/30 font-bold rounded-xl border border-white/5 cursor-not-allowed w-full sm:w-auto';
+                    equipBtn.innerText = `Cost: ${hat.cost}`;
+                }
+                equipBtn.onclick = () => {
+                    if (coins >= hat.cost) {
+                        coins -= hat.cost;
+                        localStorage.setItem('catCannonCoins', coins);
+                        previouslyUnlocked.push(key);
+                        localStorage.setItem('catCannonUnlockedHats', JSON.stringify(previouslyUnlocked));
+                        currentHat = key;
+                        localStorage.setItem('catCannonHat', currentHat);
+                        initShopList();
+                        showToast(`Bought ${hat.name}!`, '🛒');
+                    } else {
+                        equipBtn.classList.replace('bg-black/40', 'bg-red-500');
+                        equipBtn.classList.replace('text-white/30', 'text-white');
+                        equipBtn.innerText = 'Not Enough!';
+                        setTimeout(() => initShopList(), 1000);
+                    }
+                };
             } else if (isActive) {
                 equipBtn.className = 'px-6 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-black rounded-xl shadow-[0_0_10px_#facc15] w-full sm:w-auto';
                 equipBtn.innerText = 'Equipped';
@@ -524,7 +572,7 @@
                 equipBtn.onclick = () => {
                     currentHat = key;
                     localStorage.setItem('catCannonHat', currentHat);
-                    initHatSelector(); // re-render
+                    initShopList(); // re-render
                 };
             }
 
@@ -1051,8 +1099,7 @@
     resizeCanvas();
     initLevelGrid();
     initSkinSelector();
-    initHatSelector();
-    checkUnlocks(); // Verify initial unlocks on load
+    initShopList();
 
     function loadLevel(idx) {
         const levels = getLevels(canvas.width, canvas.height, scale);
@@ -1074,6 +1121,7 @@
         currentGravityDir = 1;
         resetCatToCannon();
         particles = [];
+        mapHoles = []; // Clear destroyed terrain on map load
         gameState = 'AIMING';
         
         // Display EASY 1 vs LEVEL 1
@@ -1084,8 +1132,10 @@
     }
 
     function resetCatToCannon() {
-        cat = { x: cannon.x, y: cannon.y, vx: 0, vy: 0, rotation: 0, isMoving: false };
+        cat = { x: cannon.x, y: cannon.y, vx: 0, vy: 0, rotation: 0, isMoving: false, flightFrames: 0 };
         idleFrames = 0;
+        flightBounces = 0;
+        flightOrbs = 0;
     }
 
     function hideAllScreens() {
@@ -1265,7 +1315,7 @@
                             createExplosion(orb.x, orb.y, 25, '#fde047'); // Yellow particles
                         }
                         orb.active = false;
-                        updateStat('orbsUsed', 1); // Track achievement
+                        flightOrbs++; // Track orb collection for tricks
                         shakeTime = 8;
                         break; // Only activate one orb per tap
                     }
@@ -1312,13 +1362,15 @@
     function fireCannon() {
         gameState = 'FLYING';
         cat.isMoving = true;
+        cat.flightFrames = 0; // Reset aimbot flight tracking
+        flightBounces = 0; // Reset tricks for the new flight
+        flightOrbs = 0; // Reset tricks for the new flight
         const speed = cannon.power; 
         cat.vx = Math.cos(cannon.angle) * speed;
         cat.vy = Math.sin(cannon.angle) * speed;
         cat.x = cannon.x + Math.cos(cannon.angle) * (60 * scale);
         cat.y = cannon.y + Math.sin(cannon.angle) * (60 * scale);
         createExplosion(cat.x, cat.y, 15, '#A855F7'); 
-        updateStat('gamesPlayed', 1); // Track achievement
     }
 
     window.addEventListener('keydown', handleInputDown);
@@ -1348,6 +1400,7 @@
     document.getElementById('openEditorBtn').addEventListener('click', () => {
         gameState = 'EDITOR';
         isTestingLevel = false;
+        mapHoles = []; // Clear destroyed terrain when opening editor
         hideAllScreens();
         screens.editor.classList.remove('hidden');
         document.getElementById('editorBouncyToggle').checked = customLevel.bouncyEdges;
@@ -1394,6 +1447,7 @@
 
     document.getElementById('editorExitBtn').addEventListener('click', () => {
         gameState = 'START';
+        mapHoles = []; // Clear destroyed terrain when exiting editor
         hideAllScreens();
         screens.start.classList.remove('hidden');
     });
@@ -1446,6 +1500,7 @@
         currentGravityDir = 1;
         resetCatToCannon();
         particles = [];
+        mapHoles = []; // Clear destroyed terrain on custom map load
         
         // Fix: Clean up screens and reset state to aiming after restarting a custom map
         gameState = 'AIMING';
@@ -1508,6 +1563,7 @@
         if (isTestingLevel) {
             isTestingLevel = false;
             gameState = 'EDITOR';
+            mapHoles = []; // Clear destroyed terrain when returning to editor
             hideAllScreens();
             screens.editor.classList.remove('hidden');
             document.getElementById('levelDisplay').parentNode.style.display = '';
@@ -1517,6 +1573,7 @@
         } else if (isPlayingImported) {
             isPlayingImported = false;
             gameState = 'START';
+            mapHoles = []; // Clear destroyed terrain when returning to menu
             hideAllScreens();
             screens.start.classList.remove('hidden');
             document.getElementById('levelDisplay').parentNode.style.display = '';
@@ -1524,14 +1581,14 @@
             exitBtn.innerText = 'EXIT';
             exitBtn.classList.replace('bg-red-600', 'bg-white/10');
         } else {
-            gameState = 'START'; hideAllScreens(); screens.start.classList.remove('hidden'); 
+            gameState = 'START'; mapHoles = []; hideAllScreens(); screens.start.classList.remove('hidden'); 
         }
     });
     document.getElementById('menuFromWinBtn').addEventListener('click', () => { 
         if (isTestingLevel || isPlayingImported) {
             document.getElementById('inGameMenuBtn').click(); // Reuse logic
         } else {
-            gameState = 'START'; hideAllScreens(); screens.start.classList.remove('hidden'); 
+            gameState = 'START'; mapHoles = []; hideAllScreens(); screens.start.classList.remove('hidden'); 
         }
     });
 
@@ -1607,14 +1664,33 @@
         }
     });
 
-    // Achievements Events
-    document.getElementById('openAchievementsBtn').addEventListener('click', () => {
+    // --- DEV MENU EVENTS ---
+    document.getElementById('devCodeInput').addEventListener('input', (e) => {
+        if (e.target.value === 'KirbyDirbyDoo') {
+            document.getElementById('devMenu').classList.remove('hidden');
+            e.target.classList.add('hidden'); // Hide the input after unlocking
+            showToast('Dev Menu Unlocked!', '🛠️');
+        }
+    });
+
+    document.getElementById('devAimbotToggle').addEventListener('change', (e) => {
+        devAimbot = e.target.checked;
+        if (devAimbot) showToast('Aimbot Activated!', '🎯');
+    });
+
+    document.getElementById('devAddCoinsBtn').addEventListener('click', () => {
+        let amt = parseInt(document.getElementById('devCoinAmount').value) || 0;
+        addCoins(amt, 'Dev Cheats');
+    });
+
+    // Shop Events
+    document.getElementById('openShopBtn').addEventListener('click', () => {
         gameState = 'START';
         hideAllScreens();
-        initHatSelector(); // Ensure UI is updated
-        screens.achievements.classList.remove('hidden');
+        initShopList(); // Ensure UI is updated
+        screens.shop.classList.remove('hidden');
     });
-    document.getElementById('closeAchievementsBtn').addEventListener('click', () => {
+    document.getElementById('closeShopBtn').addEventListener('click', () => {
         gameState = 'START';
         hideAllScreens();
         screens.start.classList.remove('hidden');
@@ -1673,24 +1749,112 @@
             if (cannon.power < MIN_POWER * scale) { cannon.power = MIN_POWER * scale; cannon.powerDir = 1; }
         }
         else if (gameState === 'FLYING' || gameState === 'LEVEL_COMPLETE') {
-            cat.vy += GRAVITY * currentGravityDir; // Apply directional gravity!
+            if (devAimbot && gameState === 'FLYING') {
+                cat.flightFrames = (cat.flightFrames || 0) + 1;
+                
+                // For the first few frames, apply normal gravity so the arc starts naturally
+                if (cat.flightFrames < 20) {
+                    cat.vy += GRAVITY * currentGravityDir;
+                }
 
-            if (gameState === 'LEVEL_COMPLETE') {
-                // Swish Physics! Pull heavily towards gravity direction
-                cat.vy += GRAVITY * 1.5 * currentGravityDir; 
-                cat.vx *= 0.7; // Kill horizontal speed
-                cat.x += (hole.x - cat.x) * 0.25; // Magnetize perfectly to the center
-                cat.rotation += 0.5; // Rapid spin as he falls
+                // Heatseeker Homing Missile Logic (Simple & Unstoppable)
+                let targetY = hole.y + (hole.radius * 0.15 * (getActiveLevelData().flipHole ? -1 : 1));
+                let dx = hole.x - cat.x;
+                let dy = targetY - cat.y;
+                let dist = Math.sqrt(dx*dx + dy*dy); 
+                let currentAngle = Math.atan2(cat.vy, cat.vx);
+                let targetAngle = Math.atan2(dy, dx);
+                let currentSpeed = Math.sqrt(cat.vx*cat.vx + cat.vy*cat.vy);
+
+                // Smoothly steer towards the target, turning faster the longer it flies
+                let turnStrength = Math.min(0.15, cat.flightFrames * 0.003);
+                let aimSpeed = Math.max(currentSpeed, Math.min(24 * scale, currentSpeed + 0.5 * scale));
+
+                if (dist < 200 * scale) {
+                    // Orbital Decay! Force it to spiral into the center
+                    turnStrength = 0.6; 
+                    aimSpeed *= 0.90;   
+                }
+
+                let angleDiff = targetAngle - currentAngle;
+                
+                // Normalize angle difference
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+                let newAngle = currentAngle + angleDiff * turnStrength;
+                
+                cat.vx = Math.cos(newAngle) * aimSpeed;
+                cat.vy = Math.sin(newAngle) * aimSpeed;
+                cat.rotation += 0.4;
+                
+                // Rainbow Trail
+                if (cat.flightFrames > 10 && Math.random() > 0.2) {
+                    particles.push({ x: cat.x, y: cat.y, vx: 0, vy: 0, life: 1.0, color: `hsl(${Date.now() % 360}, 100%, 60%)`, size: 5 * scale, type: 'spark' });
+                }
+                
+                cat.x += cat.vx;
+                cat.y += cat.vy;
+
+                // --- IMPROVED WALL SMASHING EFFECT & MAP DESTRUCTION ---
+                let isSmashing = false;
+                for (let p of platforms) {
+                    let minX = Math.min(cat.x, cat.x - cat.vx) - CAT_RADIUS;
+                    let maxX = Math.max(cat.x, cat.x - cat.vx) + CAT_RADIUS;
+                    let minY = Math.min(cat.y, cat.y - cat.vy) - CAT_RADIUS;
+                    let maxY = Math.max(cat.y, cat.y - cat.vy) + CAT_RADIUS;
+
+                    if (maxX > p.x && minX < p.x + p.w && maxY > p.y && minY < p.y + p.h) {
+                        isSmashing = true;
+                        
+                        // Create a persistent hole in the map!
+                        let lastHole = mapHoles[mapHoles.length - 1];
+                        let distToLast = lastHole ? Math.sqrt((cat.x - lastHole.x)**2 + (cat.y - lastHole.y)**2) : 999;
+                        if (distToLast > 12 * scale) { // Space holes out so we don't crash the renderer
+                            mapHoles.push({x: cat.x, y: cat.y, radius: 24 * scale});
+                        }
+
+                        for(let i=0; i<3; i++) { 
+                            particles.push({
+                                x: cat.x + (Math.random() - 0.5) * 20 * scale,
+                                y: cat.y + (Math.random() - 0.5) * 20 * scale,
+                                // Blast chunks forward with the cat's velocity!
+                                vx: (cat.vx * (0.4 + Math.random() * 0.4)) + (Math.random() - 0.5) * 15 * scale,
+                                vy: (cat.vy * (0.4 + Math.random() * 0.4)) + (Math.random() - 0.5) * 15 * scale,
+                                life: 1.0 + Math.random() * 0.5,
+                                color: Math.random() > 0.5 ? '#a855f7' : '#ffffff', // Bright neon purple and white chunks
+                                size: (Math.random() * 12 + 4) * scale,
+                                type: 'debris'
+                            });
+                        }
+                    }
+                }
+                
+                if (isSmashing) {
+                    shakeTime = Math.max(shakeTime, 5); // Constant screen shake while drilling through walls!
+                }
+                
+                checkWinLoss(); // Ignore collisions entirely so it ghosts through!
             } else {
-                cat.vx *= FRICTION;
-                cat.vy *= FRICTION;
-                cat.rotation += cat.vx * 0.05;
-                checkCollisions();
-                checkWinLoss();
+                cat.vy += GRAVITY * currentGravityDir; // Apply directional gravity!
+
+                if (gameState === 'LEVEL_COMPLETE') {
+                    // Swish Physics! Pull heavily towards gravity direction
+                    cat.vy += GRAVITY * 1.5 * currentGravityDir; 
+                    cat.vx *= 0.7; // Kill horizontal speed
+                    cat.x += (hole.x - cat.x) * 0.25; // Magnetize perfectly to the center
+                    cat.rotation += 0.5; // Rapid spin as he falls
+                } else {
+                    cat.vx *= FRICTION;
+                    cat.vy *= FRICTION;
+                    cat.rotation += cat.vx * 0.05;
+                    checkCollisions();
+                    checkWinLoss();
+                }
+                
+                cat.x += cat.vx;
+                cat.y += cat.vy;
             }
-            
-            cat.x += cat.vx;
-            cat.y += cat.vy;
         }
         updateParticles();
     }
@@ -1704,11 +1868,11 @@
             if (cat.x - CAT_RADIUS < 0) {
                 cat.x = CAT_RADIUS;
                 cat.vx = Math.abs(cat.vx) * CAT_BOUNCE;
-                if (Math.abs(cat.vx) > 2 * scale) updateStat('bounces', 1); // Track achievement
+                if (Math.abs(cat.vx) > 2 * scale) flightBounces++; // Track bounce
             } else if (cat.x + CAT_RADIUS > canvas.width * maxW) {
                 cat.x = canvas.width * maxW - CAT_RADIUS;
                 cat.vx = -Math.abs(cat.vx) * CAT_BOUNCE;
-                if (Math.abs(cat.vx) > 2 * scale) updateStat('bounces', 1); // Track achievement
+                if (Math.abs(cat.vx) > 2 * scale) flightBounces++; // Track bounce
             }
         }
 
@@ -1719,6 +1883,19 @@
             let distY = cat.y - closestY;
             let distance = Math.sqrt((distX*distX) + (distY*distY));
             if (distance < CAT_RADIUS) {
+                
+                // NEW: Ignore collision if the cat is inside a busted hole!
+                let inHole = false;
+                for (let h of mapHoles) {
+                    let dhx = cat.x - h.x;
+                    let dhy = cat.y - h.y;
+                    if (Math.sqrt(dhx*dhx + dhy*dhy) < h.radius) {
+                        inHole = true;
+                        break;
+                    }
+                }
+                if (inHole) continue; // Skip physical collision, letting the cat fall through the tunnel!
+                
                 let overlap = CAT_RADIUS - distance;
                 if (distance === 0) { distY = -1; distance = 1; }
                 let nx = distX / distance;
@@ -1732,7 +1909,7 @@
                 cat.vx = (cat.vx - 2 * dot * nx) * CAT_BOUNCE;
                 cat.vy = (cat.vy - 2 * dot * ny) * CAT_BOUNCE;
                 
-                if (speedBefore > 2 * scale) updateStat('bounces', 1); // Track achievement
+                if (speedBefore > 2 * scale) flightBounces++; // Track bounce
                 
                 // Aggressively kill micro-bounces on floors (taking flipped gravity into account)
                 let isFloor = (currentGravityDir === 1 && ny < -0.5) || (currentGravityDir === -1 && ny > 0.5);
@@ -1759,18 +1936,31 @@
         let distToHole = Math.sqrt(distHoleX*distHoleX + distHoleY*distHoleY);
         
         // Falling into hole means moving in same direction as gravity (or sliding flat!)
-        let isFallingIntoHole = (currentGravityDir === 1 && cat.vy >= -0.5) || (currentGravityDir === -1 && cat.vy <= 0.5);
+        // DevAimbot overrides falling logic to let the homing missile enter from any angle
+        let isFallingIntoHole = devAimbot || ((currentGravityDir === 1 && cat.vy >= -0.5) || (currentGravityDir === -1 && cat.vy <= 0.5));
         
         if (distToHole < hole.radius * 0.8 && isFallingIntoHole && gameState !== 'LEVEL_COMPLETE') {
             cat.vx *= 0.1; 
             cat.vy = Math.max(Math.abs(cat.vy), 6 * scale) * currentGravityDir; // Pull into hole
             gameState = 'LEVEL_COMPLETE';
             
-            // Achievement Hooks
-            if (isTestingLevel || isPlayingImported) {
-                updateStat('customPlayed', 1);
+            // Coin Reward Hooks
+            if (isTestingLevel) {
+                // Testing your own level gives 0 coins to prevent farming
             } else {
-                updateStat('levelsBeaten', 1);
+                let reward = 10;
+                let reasons = [];
+                
+                if (isPlayingImported) {
+                    // Imported custom maps give a flat 5 coins
+                    reward = 5;
+                    reasons.push("Custom Map");
+                } else {
+                    // Main levels
+                    if (flightBounces === 0) { reward += 15; reasons.push("Swish!"); }
+                    if (flightOrbs > 0) { reward += flightOrbs * 5; reasons.push(`${flightOrbs}x Orb`); }
+                }
+                addCoins(reward, reasons.join(' + '));
             }
 
             winTime = Date.now(); // Track when we won for animations
@@ -1799,7 +1989,7 @@
         let outOfBoundsY = (currentGravityDir === 1 && cat.y > canvas.height * maxH + 100) || (currentGravityDir === -1 && cat.y < -100);
         
         if (outOfBoundsY || outOfBoundsX) {
-            if (gameState !== 'GAME_OVER') {
+            if (!devAimbot && gameState !== 'GAME_OVER') { // Aimbot ignores Game Over boundary constraints!
                 gameState = 'GAME_OVER';
                 screens.gameOver.classList.remove('hidden');
                 setTimeout(() => {
@@ -1948,6 +2138,19 @@
             ctx.lineWidth = 1 * scale;
             ctx.strokeRect(p.x, p.y, p.w, p.h);
         });
+
+        // Visually punch the destruction holes through the rendered platforms!
+        if (mapHoles && mapHoles.length > 0) {
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'black'; 
+            ctx.beginPath();
+            mapHoles.forEach(h => {
+                ctx.moveTo(h.x + h.radius, h.y);
+                ctx.arc(h.x, h.y, h.radius, 0, Math.PI * 2);
+            });
+            ctx.fill();
+            ctx.globalCompositeOperation = 'source-over'; // Return to normal drawing
+        }
     }
 
     function drawHole() {
@@ -2147,6 +2350,56 @@
             ctx.shadowBlur = hr*0.4;
             // Halo ring magically floating above
             ctx.beginPath(); ctx.ellipse(0, hatY - hr*0.6, hr*0.7, hr*0.2, 0, 0, Math.PI*2); ctx.stroke();
+        } else if (currentHat === 'flower') {
+            const bandY = hatY + hr*0.5;
+            for(let i=0; i<5; i++) {
+                ctx.fillStyle = i%2===0 ? '#ffb7b2' : '#ffffff';
+                ctx.beginPath();
+                ctx.arc(-hr*0.8 + i*hr*0.4, bandY, hr*0.25, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = '#fdfd96'; // Yellow center
+                ctx.beginPath();
+                ctx.arc(-hr*0.8 + i*hr*0.4, bandY, hr*0.1, 0, Math.PI*2);
+                ctx.fill();
+            }
+        } else if (currentHat === 'santa') {
+            ctx.fillStyle = '#d62828';
+            ctx.beginPath(); ctx.moveTo(-hr*0.8, hatY); ctx.lineTo(hr*0.6, hatY); ctx.lineTo(hr*0.8, hatY - hr*1.2); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(hr*0.8, hatY - hr*1.2); ctx.lineTo(hr*1.2, hatY - hr*0.5); ctx.lineTo(hr*0.5, hatY - hr*0.2); ctx.fill(); // Flop
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(-hr*0.9, hatY - hr*0.2, hr*1.6, hr*0.4); // Trim
+            ctx.beginPath(); ctx.arc(hr*1.2, hatY - hr*0.5, hr*0.3, 0, Math.PI*2); ctx.fill(); // Pom pom
+        } else if (currentHat === 'bunny') {
+            // Left ear
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.ellipse(-hr*0.4, hatY - hr*0.8, hr*0.25, hr*1.2, -0.2, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffb7b2';
+            ctx.beginPath(); ctx.ellipse(-hr*0.4, hatY - hr*0.8, hr*0.12, hr*0.8, -0.2, 0, Math.PI*2); ctx.fill();
+            // Right ear
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.ellipse(hr*0.4, hatY - hr*0.8, hr*0.25, hr*1.2, 0.2, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffb7b2';
+            ctx.beginPath(); ctx.ellipse(hr*0.4, hatY - hr*0.8, hr*0.12, hr*0.8, 0.2, 0, Math.PI*2); ctx.fill();
+        } else if (currentHat === 'viking') {
+            ctx.fillStyle = '#6c757d'; // Iron dome
+            ctx.beginPath(); ctx.arc(0, hatY, hr*0.8, Math.PI, 0); ctx.fill();
+            ctx.fillStyle = '#495057'; // Trim
+            ctx.fillRect(-hr*0.9, hatY - hr*0.2, hr*1.8, hr*0.2);
+            // Horns
+            ctx.fillStyle = '#f8f9fa';
+            ctx.beginPath(); ctx.moveTo(-hr*0.7, hatY - hr*0.3); ctx.quadraticCurveTo(-hr*1.5, hatY - hr*1.0, -hr*1.2, hatY - hr*1.5); ctx.quadraticCurveTo(-hr*0.5, hatY - hr*1.0, -hr*0.3, hatY - hr*0.5); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(hr*0.7, hatY - hr*0.3); ctx.quadraticCurveTo(hr*1.5, hatY - hr*1.0, hr*1.2, hatY - hr*1.5); ctx.quadraticCurveTo(hr*0.5, hatY - hr*1.0, hr*0.3, hatY - hr*0.5); ctx.fill();
+        } else if (currentHat === 'astro') {
+            const bandY = hatY + hr*0.3;
+            // Base ring
+            ctx.fillStyle = '#ced4da';
+            ctx.fillRect(-hr*1.1, bandY, hr*2.2, hr*0.3);
+            // Glass dome
+            ctx.fillStyle = 'rgba(144, 224, 239, 0.4)';
+            ctx.beginPath(); ctx.arc(0, hatY - hr*0.1, hr*1.2, 0, Math.PI*2); ctx.fill();
+            // Reflection
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.beginPath(); ctx.ellipse(hr*0.4, hatY - hr*0.6, hr*0.2, hr*0.4, 0.5, 0, Math.PI*2); ctx.fill();
         }
         ctx.restore();
     }
@@ -2472,6 +2725,9 @@
             if (p.type === 'confetti') {
                 p.vy += GRAVITY * 0.6 * currentGravityDir; 
                 p.rotation += p.vx * 0.05;
+            } else if (p.type === 'debris') {
+                p.vy += GRAVITY * 1.5 * currentGravityDir; // Debris chunks fall down fast
+                p.vx *= 0.96; // Air friction to make the blast look more explosive
             }
             
             p.life -= 0.02;
@@ -2490,6 +2746,9 @@
                 ctx.rotate(p.rotation);
                 ctx.fillRect(-p.size/2, -p.size, p.size, p.size * 2); // Draw little rectangles
                 ctx.restore();
+            } else if (p.type === 'debris') {
+                // Draw square wall chunks
+                ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
             } else {
                 ctx.beginPath(); 
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); 
