@@ -1113,7 +1113,7 @@
         orbs.forEach(orb => orb.active = true); // Ensure they start active
         
         // Easy mode defaults to significantly larger hole (60 vs 40)
-        let defaultRadius = currentMode === 'easy' ? 60 * scale : 40 * scale;
+        let defaultRadius = 60 * scale;
         hole = { ...levelData.hole, radius: levelData.hole.radius || defaultRadius };
         
         cannon = { x: levelData.cannonPos.x, y: levelData.cannonPos.y, angle: -Math.PI/4, angleDir: 1, power: 0, powerDir: 1 };
