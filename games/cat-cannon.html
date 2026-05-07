@@ -2098,11 +2098,24 @@
                 cat.vy += GRAVITY * currentGravityDir; // Apply directional gravity!
 
                 if (gameState === 'LEVEL_COMPLETE') {
-                    // Swish Physics! Pull heavily towards gravity direction
-                    cat.vy += GRAVITY * 1.5 * currentGravityDir; 
-                    cat.vx *= 0.7; // Kill horizontal speed
-                    cat.x += (hole.x - cat.x) * 0.25; // Magnetize perfectly to the center
+                    // Pull the cat towards the hole center
+                    cat.x += (hole.x - cat.x) * 0.15;
+                    cat.y += (hole.y - cat.y) * 0.15;
                     cat.rotation += 0.5; // Rapid spin as he falls
+                    // Check if cat has reached the hole
+                    let distHoleX = cat.x - hole.x;
+                    let distHoleY = cat.y - hole.y;
+                    let distToHole = Math.sqrt(distHoleX*distHoleX + distHoleY*distHoleY);
+                    if (distToHole < hole.radius * 0.3) {
+                        // Cat has entered the hole - level complete
+                        setTimeout(() => {
+                            if (autoNextLevel) {
+                                loadNextLevel();
+                            } else {
+                                showLevelCompleteScreen();
+                            }
+                        }, 300);
+                    }
                 } else {
                     cat.vx *= FRICTION;
                     cat.vy *= FRICTION;
@@ -2326,7 +2339,6 @@
         drawCannon();
         drawOrbs();
         if (gameState !== 'START' && gameState !== 'LEVEL_SELECT' && gameState !== 'EDITOR') drawCat();
-        drawHoleFront(); // Draws the front rim of the portal over the cat!
         if (gameState === 'CHARGING') drawPowerBar();
         drawParticles();
         
