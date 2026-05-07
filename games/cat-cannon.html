@@ -44,6 +44,15 @@
         .tutorial-bg {
             background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #1e3a8a 100%);
         }
+        .tutorial-bg-easy {
+            background: linear-gradient(135deg, #0f5132 0%, #059669 50%, #065f46 100%);
+        }
+        .tutorial-bg-normal {
+            background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #1e3a8a 100%);
+        }
+        .tutorial-bg-expert {
+            background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #991b1b 100%);
+        }
         .glass-panel {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -78,18 +87,24 @@
             <h1 class="text-6xl md:text-8xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-300 drop-shadow-[0_5px_5px_rgba(0,0,0,0.5)]">
                 CAT CANNON
             </h1>
-            <p class="text-xl md:text-2xl mb-12 text-blue-200 font-medium">Bounce the sleepy kitty into the goal!</p>
+            <p class="text-xl md:text-2xl mb-8 text-blue-200 font-medium">Bounce the sleepy kitty into the goal!</p>
+            
+            <!-- Mode Selector -->
+            <div class="flex items-center justify-center gap-6 mb-8">
+                <button id="prevModeBtn" class="text-4xl text-white/60 hover:text-white transition hover:scale-110">⬅️</button>
+                <div class="text-center">
+                    <div id="modeDisplay" class="text-2xl md:text-3xl font-black text-white mb-2">NORMAL MODE</div>
+                    <div id="modeDescription" class="text-lg text-white/80">30 levels of challenge</div>
+                </div>
+                <button id="nextModeBtn" class="text-4xl text-white/60 hover:text-white transition hover:scale-110">➡️</button>
+            </div>
+            
+            <!-- Big Play Button -->
+            <button id="startGameBtn" class="btn-glow px-16 py-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-black rounded-full text-3xl md:text-4xl transition transform hover:scale-105 shadow-2xl mb-8">
+                PLAY
+            </button>
             
             <div class="flex flex-col md:flex-row gap-4 justify-center flex-wrap">
-                <button id="startEasyBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl">
-                    PLAY EASY
-                </button>
-                <button id="startNormalBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl">
-                    PLAY NORMAL
-                </button>
-                <button id="startExpertBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl">
-                    PLAY EXPERT
-                </button>
                 <button id="openLevelSelectBtn" class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full text-xl md:text-2xl transition border border-white/20 backdrop-blur-sm">
                     LEVELS
                 </button>
@@ -403,6 +418,36 @@
     let isEditorDragging = false; 
     let isDraggingObject = null; // NEW: Smart drag tracking
     let editorDragStart = null;
+    
+    // Menu Mode Selection
+    let menuModeIndex = 1; // 0 = easy, 1 = normal, 2 = expert
+    const menuModes = [
+        { id: 'easy', name: 'EASY MODE', description: '15 levels for beginners', bg: 'tutorial-bg-easy' },
+        { id: 'normal', name: 'NORMAL MODE', description: '30 levels of challenge', bg: 'tutorial-bg-normal' },
+        { id: 'expert', name: 'EXPERT MODE', description: '15 levels of mastery', bg: 'tutorial-bg-expert' }
+    ];
+
+    function updateMenuMode() {
+        const mode = menuModes[menuModeIndex];
+        document.getElementById('modeDisplay').innerText = mode.name;
+        document.getElementById('modeDescription').innerText = mode.description;
+        
+        // Update background
+        const startScreen = document.getElementById('startScreen');
+        const isHidden = startScreen.classList.contains('hidden');
+        startScreen.className = `overlay ${mode.bg}`;
+        if (isHidden) startScreen.classList.add('hidden');
+        
+        // Update play button colors
+        const playBtn = document.getElementById('startGameBtn');
+        if (mode.id === 'easy') {
+            playBtn.className = 'btn-glow px-16 py-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black rounded-full text-3xl md:text-4xl transition transform hover:scale-105 shadow-2xl mb-8';
+        } else if (mode.id === 'normal') {
+            playBtn.className = 'btn-glow px-16 py-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-black rounded-full text-3xl md:text-4xl transition transform hover:scale-105 shadow-2xl mb-8';
+        } else if (mode.id === 'expert') {
+            playBtn.className = 'btn-glow px-16 py-6 bg-gradient-to-r from-red-600 to-red-800 text-white font-black rounded-full text-3xl md:text-4xl transition transform hover:scale-105 shadow-2xl mb-8';
+        }
+    }
     let editorCurrentMouse = {x: 0, y: 0};
     
     // Camera Variables
@@ -1628,9 +1673,39 @@
     }, {passive: false});
 
     // Button Events
-    document.getElementById('startEasyBtn').addEventListener('click', () => { currentMode = 'easy'; loadLevel(0); });
-    document.getElementById('startNormalBtn').addEventListener('click', () => { currentMode = 'normal'; loadLevel(0); });
-    document.getElementById('startExpertBtn').addEventListener('click', () => { currentMode = 'expert'; loadLevel(0); });
+    document.getElementById('prevModeBtn').addEventListener('click', () => {
+        menuModeIndex = (menuModeIndex - 1 + menuModes.length) % menuModes.length;
+        updateMenuMode();
+    });
+    
+    document.getElementById('nextModeBtn').addEventListener('click', () => {
+        menuModeIndex = (menuModeIndex + 1) % menuModes.length;
+        updateMenuMode();
+    });
+    
+    document.getElementById('startGameBtn').addEventListener('click', () => { 
+        currentMode = menuModes[menuModeIndex].id; 
+        loadLevel(0); 
+    });
+    
+    // Keyboard navigation for mode selection
+    document.addEventListener('keydown', (e) => {
+        if (gameState === 'START') {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                menuModeIndex = (menuModeIndex - 1 + menuModes.length) % menuModes.length;
+                updateMenuMode();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                menuModeIndex = (menuModeIndex + 1) % menuModes.length;
+                updateMenuMode();
+            } else if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                currentMode = menuModes[menuModeIndex].id;
+                loadLevel(0);
+            }
+        }
+    });
     
     // Editor Events
     document.getElementById('openEditorBtn').addEventListener('click', () => {
@@ -3041,6 +3116,7 @@
     // Boot directly into the Start Menu
     hideAllScreens();
     screens.start.classList.remove('hidden');
+    updateMenuMode();
 
     function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
     requestAnimationFrame(gameLoop);
