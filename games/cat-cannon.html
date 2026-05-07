@@ -252,6 +252,13 @@
     <div id="editorUI" class="fixed top-0 left-0 w-full pointer-events-none hidden z-[200]">
         <div class="pointer-events-auto bg-[#0f172a]/95 backdrop-blur-md border-b border-white/20 p-2 md:px-4 md:py-3 flex flex-col items-center justify-center gap-2 shadow-2xl max-h-[60vh] overflow-y-auto">
             
+            <!-- Color Picker Button (Top Right) -->
+            <div class="absolute top-2 right-2">
+                <button id="editorColorPicker" class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 via-purple-500 to-pink-500 hover:scale-110 transition transform shadow-lg border-2 border-white/30" title="Change Block Color">
+                    <span class="text-2xl">🌈</span>
+                </button>
+            </div>
+            
             <!-- First Row: Build Tools -->
             <div class="flex flex-wrap items-center justify-center gap-1.5 md:gap-2 w-full">
                 <button class="editor-tool border-2 border-white px-2 py-1.5 md:px-3 md:py-1.5 bg-purple-600 hover:bg-purple-500 rounded-md text-white font-bold transition text-xs md:text-sm shadow-md" data-tool="platform">Platform</button>
@@ -418,6 +425,19 @@
     let isEditorDragging = false; 
     let isDraggingObject = null; // NEW: Smart drag tracking
     let editorDragStart = null;
+    
+    // Platform Color System
+    let platformColors = [
+        { name: 'purple', base: '#1e1b4b', accent: '#6d28d9', border: '#a855f7' },
+        { name: 'blue', base: '#1e3a8a', accent: '#3b82f6', border: '#60a5fa' },
+        { name: 'green', base: '#14532d', accent: '#16a34a', border: '#4ade80' },
+        { name: 'red', base: '#7f1d1d', accent: '#dc2626', border: '#f87171' },
+        { name: 'orange', base: '#9a3412', accent: '#ea580c', border: '#fb923c' },
+        { name: 'pink', base: '#831843', accent: '#db2777', border: '#f472b6' },
+        { name: 'gray', base: '#374151', accent: '#6b7280', border: '#9ca3af' },
+        { name: 'cyan', base: '#164e63', accent: '#0891b2', border: '#22d3ee' }
+    ];
+    let currentPlatformColorIndex = 0;
     
     // Menu Mode Selection
     let menuModeIndex = 1; // 0 = easy, 1 = normal, 2 = expert
@@ -1626,7 +1646,10 @@
                 let h = Math.abs(py - editorDragStart.y);
                 
                 if (w > 0.01 && h > 0.01) {
-                    customLevel.platforms.push({x, y, w, h});
+                    customLevel.platforms.push({
+                        x, y, w, h, 
+                        color: platformColors[currentPlatformColorIndex].name
+                    });
                     saveCustomLevel();
                 }
                 editorDragStart = null;
@@ -1717,6 +1740,11 @@
         document.getElementById('editorBouncyToggle').checked = customLevel.bouncyEdges;
         document.getElementById('editorValW').innerText = customLevel.width || 1;
         document.getElementById('editorValH').innerText = customLevel.height || 1;
+        
+        // Initialize color picker
+        const color = platformColors[currentPlatformColorIndex];
+        const button = document.getElementById('editorColorPicker');
+        button.style.background = `linear-gradient(45deg, ${color.base}, ${color.accent})`;
     });
 
     // Make tool selection strictly bulletproof so clicking anywhere on the button works
@@ -1754,6 +1782,15 @@
             customLevel.orbs = [];
             saveCustomLevel();
         }
+    });
+    
+    // Color Picker
+    document.getElementById('editorColorPicker').addEventListener('click', () => {
+        currentPlatformColorIndex = (currentPlatformColorIndex + 1) % platformColors.length;
+        // Visual feedback - update the button's gradient to show current color
+        const button = document.getElementById('editorColorPicker');
+        const color = platformColors[currentPlatformColorIndex];
+        button.style.background = `linear-gradient(45deg, ${color.base}, ${color.accent})`;
     });
 
     document.getElementById('editorExitBtn').addEventListener('click', () => {
@@ -1803,7 +1840,7 @@
 
     function loadCustomLevelToEngine() {
         let w = canvas.width, h = canvas.height;
-        platforms = customLevel.platforms.map(p => ({ x: p.x*w, y: p.y*h, w: p.w*w, h: p.h*h }));
+        platforms = customLevel.platforms.map(p => ({ x: p.x*w, y: p.y*h, w: p.w*w, h: p.h*h, color: p.color }));
         orbs = (customLevel.orbs || []).map(o => ({ x: o.x*w, y: o.y*h, radius: 15*scale, type: o.type, active: true }));
         hole = { x: customLevel.hole.x*w, y: customLevel.hole.y*h, radius: (customLevel.hole.radius || 40)*scale };
         cannon = { x: customLevel.cannonPos.x*w, y: customLevel.cannonPos.y*h, angle: -Math.PI/4, angleDir: 1, power: 0, powerDir: 1 };
@@ -2051,7 +2088,7 @@
             
             // Live sync custom level to canvas variables so they draw correctly in editor
             let w = canvas.width, h = canvas.height;
-            platforms = customLevel.platforms.map(p => ({ x: p.x*w, y: p.y*h, w: p.w*w, h: p.h*h }));
+            platforms = customLevel.platforms.map(p => ({ x: p.x*w, y: p.y*h, w: p.w*w, h: p.h*h, color: p.color }));
             orbs = customLevel.orbs.map(o => ({ x: o.x*w, y: o.y*h, radius: 15*scale, type: o.type, active: true }));
             hole = { x: customLevel.hole.x*w, y: customLevel.hole.y*h, radius: customLevel.hole.radius*scale };
             cannon.x = customLevel.cannonPos.x * w;
@@ -2484,11 +2521,14 @@
 
     function drawPlatforms() {
         platforms.forEach(p => {
-            ctx.fillStyle = '#1e1b4b'; 
+            // Get platform color, default to purple if not set
+            let colorData = platformColors.find(c => c.name === (p.color || 'purple')) || platformColors[0];
+            
+            ctx.fillStyle = colorData.base; 
             ctx.fillRect(p.x, p.y, p.w, p.h);
-            ctx.fillStyle = '#6d28d9'; 
+            ctx.fillStyle = colorData.accent; 
             ctx.fillRect(p.x, p.y, p.w, Math.min(8 * scale, p.h));
-            ctx.strokeStyle = '#a855f7'; 
+            ctx.strokeStyle = colorData.border; 
             ctx.lineWidth = 1 * scale;
             ctx.strokeRect(p.x, p.y, p.w, p.h);
         });
