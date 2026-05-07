@@ -87,6 +87,9 @@
                 <button id="startNormalBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl">
                     PLAY NORMAL
                 </button>
+                <button id="startExpertBtn" class="btn-glow px-8 py-4 bg-gradient-to-r from-red-600 to-red-800 text-white font-black rounded-full text-xl md:text-2xl transition transform hover:scale-105 shadow-xl">
+                    PLAY EXPERT
+                </button>
                 <button id="openLevelSelectBtn" class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-full text-xl md:text-2xl transition border border-white/20 backdrop-blur-sm">
                     LEVELS
                 </button>
@@ -112,6 +115,7 @@
             <div class="flex justify-center gap-4 mb-6">
                 <button id="tabEasy" class="px-6 py-2 rounded-full font-bold bg-white/20 text-white transition border border-white/20 hover:bg-white/30">EASY MODE</button>
                 <button id="tabNormal" class="px-6 py-2 rounded-full font-bold bg-purple-500 text-white transition transform hover:scale-105 shadow-lg">NORMAL MODE</button>
+                <button id="tabExpert" class="px-6 py-2 rounded-full font-bold bg-red-500 text-white transition transform hover:scale-105 shadow-lg">EXPERT MODE</button>
             </div>
 
             <div id="levelGrid" class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
@@ -1022,13 +1026,243 @@
             }
         ];
 
-        return currentMode === 'easy' ? easyLevels : normalLevels;
+        const expertLevels = [
+            { // Expert 1: Precision Bounce
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.1, h: h * 0.1},
+                    {x: w * 0.2, y: h * 0.75, w: w * 0.05, h: h * 0.03},
+                    {x: w * 0.35, y: h * 0.6, w: w * 0.05, h: h * 0.03},
+                    {x: w * 0.5, y: h * 0.45, w: w * 0.05, h: h * 0.03},
+                    {x: w * 0.65, y: h * 0.3, w: w * 0.05, h: h * 0.03},
+                    {x: w * 0.8, y: h * 0.15, w: w * 0.2, h: h * 0.05}
+                ],
+                hole: {x: w * 0.9, y: h * 0.15}
+            },
+            { // Expert 2: The Maze
+                cannonPos: {x: w * 0.05, y: h * 0.5},
+                platforms: [
+                    {x: 0, y: h * 0.55, w: w * 0.15, h: h * 0.05},
+                    {x: w * 0.15, y: h * 0.3, w: w * 0.05, h: h * 0.5},
+                    {x: w * 0.2, y: h * 0.25, w: w * 0.3, h: h * 0.05},
+                    {x: w * 0.5, y: h * 0.55, w: w * 0.05, h: h * 0.3},
+                    {x: w * 0.55, y: h * 0.5, w: w * 0.3, h: h * 0.05},
+                    {x: w * 0.85, y: h * 0.55, w: w * 0.15, h: h * 0.45}
+                ],
+                hole: {x: w * 0.92, y: h * 0.55}
+            },
+            { // Expert 3: Ceiling Run
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.1, h: h * 0.1},
+                    {x: w * 0.1, y: h * 0.1, w: w * 0.8, h: h * 0.05},
+                    {x: w * 0.9, y: h * 0.15, w: w * 0.1, h: h * 0.85}
+                ],
+                hole: {x: w * 0.95, y: h * 0.1}
+            },
+            { // Expert 4: Bouncy Chaos
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.5, y: h * 0.5},
+                platforms: [
+                    {x: w * 0.45, y: h * 0.55, w: w * 0.1, h: h * 0.03},
+                    {x: w * 0.2, y: h * 0.4, w: w * 0.1, h: h * 0.03},
+                    {x: w * 0.7, y: h * 0.3, w: w * 0.1, h: h * 0.03},
+                    {x: w * 0.3, y: h * 0.2, w: w * 0.1, h: h * 0.03},
+                    {x: w * 0.6, y: h * 0.1, w: w * 0.1, h: h * 0.03},
+                    {x: 0, y: h * 0.91, w: w * 0.3, h: h * 0.1},
+                    {x: w * 0.7, y: h * 0.91, w: w * 0.3, h: h * 0.1}
+                ],
+                hole: {x: w * 0.5, y: h * 0.91}
+            },
+            { // Expert 5: The Narrow Path
+                cannonPos: {x: w * 0.05, y: h * 0.2},
+                platforms: [
+                    {x: 0, y: h * 0.25, w: w * 0.1, h: h * 0.05},
+                    {x: w * 0.1, y: h * 0.4, w: w * 0.05, h: h * 0.6},
+                    {x: w * 0.15, y: h * 0.35, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.2, y: h * 0.5, w: w * 0.05, h: h * 0.4},
+                    {x: w * 0.25, y: h * 0.45, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.3, y: h * 0.6, w: w * 0.05, h: h * 0.3},
+                    {x: w * 0.35, y: h * 0.55, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.4, y: h * 0.7, w: w * 0.05, h: h * 0.2},
+                    {x: w * 0.45, y: h * 0.65, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.5, y: h * 0.8, w: w * 0.05, h: h * 0.1},
+                    {x: w * 0.55, y: h * 0.75, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.6, y: h * 0.9, w: w * 0.4, h: h * 0.1}
+                ],
+                hole: {x: w * 0.8, y: h * 0.9}
+            },
+            { // Expert 6: Gravity Flip Expert
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.1, h: h * 0.1},
+                    {x: w * 0.1, y: h * 0.1, w: w * 0.05, h: h * 0.9},
+                    {x: w * 0.15, y: h * 0.05, w: w * 0.7, h: h * 0.05},
+                    {x: w * 0.85, y: h * 0.1, w: w * 0.15, h: h * 0.9}
+                ],
+                orbs: [{x: w * 0.5, y: h * 0.5, radius: 15 * s, type: 'green'}],
+                hole: {x: w * 0.9, y: h * 0.05, radius: w * 0.1},
+                flipHole: true
+            },
+            { // Expert 7: The Spike Room
+                cannonPos: {x: w * 0.5, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w, h: h * 0.1},
+                    {x: w * 0.2, y: h * 0.5, w: w * 0.05, h: h * 0.4},
+                    {x: w * 0.4, y: h * 0.3, w: w * 0.05, h: h * 0.6},
+                    {x: w * 0.6, y: h * 0.4, w: w * 0.05, h: h * 0.5},
+                    {x: w * 0.8, y: h * 0.2, w: w * 0.05, h: h * 0.7}
+                ],
+                hole: {x: w * 0.5, y: h * 0.91}
+            },
+            { // Expert 8: Double Bounce
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.1, h: h * 0.1},
+                    {x: w * 0.1, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.15, y: h * 0.05, w: w * 0.7, h: h * 0.05},
+                    {x: w * 0.85, y: h * 0.1, w: w * 0.15, h: h * 0.8},
+                    {x: w * 0.2, y: h * 0.5, w: w * 0.05, h: h * 0.4},
+                    {x: w * 0.7, y: h * 0.6, w: w * 0.05, h: h * 0.3}
+                ],
+                orbs: [{x: w * 0.3, y: h * 0.4, radius: 15 * s, type: 'yellow'}, {x: w * 0.8, y: h * 0.5, radius: 15 * s, type: 'yellow'}],
+                hole: {x: w * 0.9, y: h * 0.05},
+                flipHole: true
+            },
+            { // Expert 9: The Gauntlet
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.05, y: h * 0.1},
+                platforms: [
+                    {x: 0, y: h * 0.15, w: w * 0.1, h: h * 0.03},
+                    {x: w * 0.1, y: h * 0.3, w: w * 0.05, h: h * 0.03},
+                    {x: w * 0.15, y: h * 0.45, w: w * 0.05, h: h * 0.03},
+                    {x: w * 0.2, y: h * 0.6, w: w * 0.05, h: h * 0.03},
+                    {x: w * 0.25, y: h * 0.75, w: w * 0.05, h: h * 0.03},
+                    {x: w * 0.3, y: h * 0.9, w: w * 0.7, h: h * 0.1}
+                ],
+                hole: {x: w * 0.65, y: h * 0.9}
+            },
+            { // Expert 10: Precision Landing
+                cannonPos: {x: w * 0.05, y: h * 0.5},
+                platforms: [
+                    {x: 0, y: h * 0.55, w: w * 0.1, h: h * 0.05},
+                    {x: w * 0.1, y: h * 0.1, w: w * 0.05, h: h * 0.5},
+                    {x: w * 0.15, y: h * 0.05, w: w * 0.7, h: h * 0.05},
+                    {x: w * 0.85, y: h * 0.1, w: w * 0.15, h: h * 0.8},
+                    {x: w * 0.3, y: h * 0.3, w: w * 0.05, h: h * 0.6},
+                    {x: w * 0.6, y: h * 0.4, w: w * 0.05, h: h * 0.5}
+                ],
+                orbs: [{x: w * 0.4, y: h * 0.2, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.9, y: h * 0.05},
+                flipHole: true
+            },
+            { // Expert 11: The Labyrinth
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.1, h: h * 0.1},
+                    {x: w * 0.1, y: h * 0.1, w: w * 0.05, h: h * 0.9},
+                    {x: w * 0.15, y: h * 0.05, w: w * 0.2, h: h * 0.05},
+                    {x: w * 0.35, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.4, y: h * 0.85, w: w * 0.2, h: h * 0.05},
+                    {x: w * 0.6, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.65, y: h * 0.85, w: w * 0.2, h: h * 0.05},
+                    {x: w * 0.85, y: h * 0.1, w: w * 0.15, h: h * 0.9}
+                ],
+                hole: {x: w * 0.9, y: h * 0.05},
+                flipHole: true
+            },
+            { // Expert 12: Bouncy Expert
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.5, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w, h: h * 0.1},
+                    {x: w * 0.1, y: h * 0.5, w: w * 0.05, h: h * 0.4},
+                    {x: w * 0.3, y: h * 0.3, w: w * 0.05, h: h * 0.6},
+                    {x: w * 0.5, y: h * 0.4, w: w * 0.05, h: h * 0.5},
+                    {x: w * 0.7, y: h * 0.2, w: w * 0.05, h: h * 0.7},
+                    {x: w * 0.9, y: h * 0.1, w: w * 0.1, h: h * 0.8}
+                ],
+                orbs: [{x: w * 0.2, y: h * 0.4, radius: 15 * s, type: 'pink'}, {x: w * 0.8, y: h * 0.3, radius: 15 * s, type: 'yellow'}],
+                hole: {x: w * 0.95, y: h * 0.1}
+            },
+            { // Expert 13: The Ultimate Challenge
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.05, h: h * 0.1},
+                    {x: w * 0.05, y: h * 0.1, w: w * 0.05, h: h * 0.9},
+                    {x: w * 0.1, y: h * 0.05, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.15, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.2, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.25, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.3, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.35, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.4, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.45, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.5, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.55, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.6, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.65, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.7, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.75, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.8, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.85, y: h * 0.1, w: w * 0.15, h: h * 0.9}
+                ],
+                orbs: [{x: w * 0.6, y: h * 0.5, radius: 15 * s, type: 'green'}],
+                hole: {x: w * 0.9, y: h * 0.05},
+                flipHole: true
+            },
+            { // Expert 14: Speed Demon
+                bouncyEdges: true,
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.05, h: h * 0.1},
+                    {x: w * 0.05, y: h * 0.1, w: w * 0.05, h: h * 0.9},
+                    {x: w * 0.1, y: h * 0.05, w: w * 0.8, h: h * 0.05},
+                    {x: w * 0.9, y: h * 0.1, w: w * 0.1, h: h * 0.8},
+                    {x: w * 0.2, y: h * 0.2, w: w * 0.05, h: h * 0.7},
+                    {x: w * 0.4, y: h * 0.3, w: w * 0.05, h: h * 0.6},
+                    {x: w * 0.6, y: h * 0.4, w: w * 0.05, h: h * 0.5},
+                    {x: w * 0.8, y: h * 0.5, w: w * 0.05, h: h * 0.4}
+                ],
+                orbs: [{x: w * 0.3, y: h * 0.15, radius: 15 * s, type: 'yellow'}, {x: w * 0.7, y: h * 0.25, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.95, y: h * 0.05},
+                flipHole: true
+            },
+            { // Expert 15: The Final Test
+                cannonPos: {x: w * 0.05, y: h * 0.86},
+                platforms: [
+                    {x: 0, y: h * 0.91, w: w * 0.05, h: h * 0.1},
+                    {x: w * 0.05, y: h * 0.1, w: w * 0.05, h: h * 0.9},
+                    {x: w * 0.1, y: h * 0.05, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.15, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.2, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.25, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.3, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.35, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.4, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.45, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.5, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.55, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.6, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.65, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.7, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.75, y: h * 0.1, w: w * 0.05, h: h * 0.8},
+                    {x: w * 0.8, y: h * 0.85, w: w * 0.05, h: h * 0.05},
+                    {x: w * 0.85, y: h * 0.1, w: w * 0.15, h: h * 0.9}
+                ],
+                orbs: [{x: w * 0.2, y: h * 0.5, radius: 15 * s, type: 'green'}, {x: w * 0.6, y: h * 0.3, radius: 15 * s, type: 'yellow'}, {x: w * 0.8, y: h * 0.6, radius: 15 * s, type: 'pink'}],
+                hole: {x: w * 0.9, y: h * 0.05},
+                flipHole: true
+            }
+        ];
+
+        return currentMode === 'easy' ? easyLevels : currentMode === 'expert' ? expertLevels : normalLevels;
     }
 
     // --- UI LOGIC ---
     function initLevelGrid() {
         levelGrid.innerHTML = '';
-        const totalLevels = currentMode === 'easy' ? 15 : 30;
+        const totalLevels = (currentMode === 'easy' || currentMode === 'expert') ? 15 : 30;
         const levelsPerPage = 10;
         const totalPages = Math.ceil(totalLevels / levelsPerPage);
         
@@ -1396,6 +1630,7 @@
     // Button Events
     document.getElementById('startEasyBtn').addEventListener('click', () => { currentMode = 'easy'; loadLevel(0); });
     document.getElementById('startNormalBtn').addEventListener('click', () => { currentMode = 'normal'; loadLevel(0); });
+    document.getElementById('startExpertBtn').addEventListener('click', () => { currentMode = 'expert'; loadLevel(0); });
     
     // Editor Events
     document.getElementById('openEditorBtn').addEventListener('click', () => {
@@ -1596,19 +1831,27 @@
     // Tab toggles in level menu
     const tabEasy = document.getElementById('tabEasy');
     const tabNormal = document.getElementById('tabNormal');
+    const tabExpert = document.getElementById('tabExpert');
 
     function updateTabs() {
         if (currentMode === 'easy') {
             tabEasy.className = "px-6 py-2 rounded-full font-bold bg-green-500 text-white transition transform hover:scale-105 shadow-lg";
             tabNormal.className = "px-6 py-2 rounded-full font-bold bg-white/20 text-white transition border border-white/20 hover:bg-white/30";
-        } else {
+            tabExpert.className = "px-6 py-2 rounded-full font-bold bg-white/20 text-white transition border border-white/20 hover:bg-white/30";
+        } else if (currentMode === 'normal') {
             tabNormal.className = "px-6 py-2 rounded-full font-bold bg-purple-500 text-white transition transform hover:scale-105 shadow-lg";
             tabEasy.className = "px-6 py-2 rounded-full font-bold bg-white/20 text-white transition border border-white/20 hover:bg-white/30";
+            tabExpert.className = "px-6 py-2 rounded-full font-bold bg-white/20 text-white transition border border-white/20 hover:bg-white/30";
+        } else if (currentMode === 'expert') {
+            tabExpert.className = "px-6 py-2 rounded-full font-bold bg-red-500 text-white transition transform hover:scale-105 shadow-lg";
+            tabEasy.className = "px-6 py-2 rounded-full font-bold bg-white/20 text-white transition border border-white/20 hover:bg-white/30";
+            tabNormal.className = "px-6 py-2 rounded-full font-bold bg-white/20 text-white transition border border-white/20 hover:bg-white/30";
         }
     }
 
     tabEasy.addEventListener('click', () => { currentMode = 'easy'; currentLevelPage = 0; updateTabs(); initLevelGrid(); });
     tabNormal.addEventListener('click', () => { currentMode = 'normal'; currentLevelPage = 0; updateTabs(); initLevelGrid(); });
+    tabExpert.addEventListener('click', () => { currentMode = 'expert'; currentLevelPage = 0; updateTabs(); initLevelGrid(); });
 
     document.getElementById('openLevelSelectBtn').addEventListener('click', () => {
         hideAllScreens();
