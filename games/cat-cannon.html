@@ -1864,12 +1864,20 @@
                     cat.vx *= FRICTION;
                     cat.vy *= FRICTION;
                     cat.rotation += cat.vx * 0.05;
-                    checkCollisions();
-                    checkWinLoss();
+                    
+                    // Prevent tunneling at high speeds by moving in sub-steps
+                    let moveDist = Math.sqrt(cat.vx * cat.vx + cat.vy * cat.vy);
+                    let steps = Math.max(1, Math.ceil(moveDist / (CAT_RADIUS * 0.5)));
+                    let dx = cat.vx / steps;
+                    let dy = cat.vy / steps;
+                    
+                    for (let i = 0; i < steps; i++) {
+                        cat.x += dx;
+                        cat.y += dy;
+                        checkCollisions();
+                        checkWinLoss();
+                    }
                 }
-                
-                cat.x += cat.vx;
-                cat.y += cat.vy;
             }
         }
         updateParticles();
