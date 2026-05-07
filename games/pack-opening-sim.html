@@ -123,7 +123,7 @@
         <div class="bg-slate-900 border border-slate-700 p-6 rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-black text-emerald-400 uppercase tracking-tighter">🛒 Global Market</h2>
-                <button onclick="toggleShop()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none">&times;</button>
+                <button type="button" onclick="toggleShop()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none">&times;</button>
             </div>
             <div class="overflow-y-auto pr-2 flex-1 space-y-8" id="shop-items-container">
                 <!-- Shop items categories injected here -->
@@ -136,7 +136,7 @@
         <div class="bg-slate-900 border border-slate-700 p-6 rounded-2xl w-full max-w-sm m-4">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-black text-sky-400 uppercase tracking-tighter">Settings</h2>
-                <button onclick="toggleSettings()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none">&times;</button>
+                <button type="button" onclick="toggleSettings()" class="text-slate-400 hover:text-white text-2xl font-bold leading-none">&times;</button>
             </div>
             <div class="flex items-center justify-between bg-slate-800 p-4 rounded-xl border border-slate-700">
                 <div>
@@ -165,8 +165,8 @@
                 <div class="text-xl font-black leading-tight" id="packs-stat">0</div>
             </div>
             <div class="flex gap-1">
-                <button onclick="toggleShop()" class="p-2 bg-slate-800/80 hover:bg-emerald-500/20 hover:text-emerald-400 rounded-xl transition-all border border-slate-700 text-lg">🛒</button>
-                <button onclick="toggleSettings()" class="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 text-lg">⚙️</button>
+                <button type="button" onclick="toggleShop()" class="p-2 bg-slate-800/80 hover:bg-emerald-500/20 hover:text-emerald-400 rounded-xl transition-all border border-slate-700 text-lg">🛒</button>
+                <button type="button" onclick="toggleSettings()" class="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-xl transition-all border border-slate-700 text-lg">⚙️</button>
             </div>
         </div>
     </header>
@@ -189,19 +189,19 @@
         <!-- Controls -->
         <div class="flex flex-col gap-3 w-full max-w-md">
             <div class="grid grid-cols-3 gap-2">
-                <button onclick="openPack(1)" class="open-btn bg-sky-600 hover:bg-sky-500 text-white font-black py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-sky-900/20 disabled:opacity-50">1 PACK</button>
-                <button onclick="openPack(5)" class="open-btn bg-indigo-600 hover:bg-indigo-500 text-white font-black py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-indigo-900/20 disabled:opacity-50">5 PACKS</button>
-                <button onclick="openPack(10)" class="open-btn bg-purple-600 hover:bg-purple-500 text-white font-black py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-purple-900/20 disabled:opacity-50">10 PACKS</button>
+                <button type="button" onclick="openPack(1)" class="open-btn bg-sky-600 hover:bg-sky-500 text-white font-black py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-sky-900/20 disabled:opacity-50">1 PACK</button>
+                <button type="button" onclick="openPack(5)" class="open-btn bg-indigo-600 hover:bg-indigo-500 text-white font-black py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-indigo-900/20 disabled:opacity-50">5 PACKS</button>
+                <button type="button" onclick="openPack(10)" class="open-btn bg-purple-600 hover:bg-purple-500 text-white font-black py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-purple-900/20 disabled:opacity-50">10 PACKS</button>
             </div>
 
             <div class="flex gap-2">
                 <input id="custom-amount" type="number" placeholder="Custom" min="1" max="100000" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 font-black focus:outline-none focus:border-emerald-500 transition-colors text-center text-sm" value="50">
-                <button onclick="openCustom()" class="open-btn bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-900/20 disabled:opacity-50 text-xs">OPEN MASS</button>
+                <button type="button" onclick="openCustom()" class="open-btn bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-emerald-900/20 disabled:opacity-50 text-xs">OPEN MASS</button>
             </div>
             
             <div class="grid grid-cols-2 gap-2 mt-2">
-                <button onclick="sellAll('Common')" class="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-black py-3 rounded-xl transition-colors uppercase tracking-widest">Sell Commons</button>
-                <button onclick="sellAll('all')" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-[10px] font-black py-3 rounded-xl transition-colors border border-rose-500/20 uppercase tracking-widest">Sell Duplicates</button>
+                <button type="button" onclick="sellAll('Common')" class="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-black py-3 rounded-xl transition-colors uppercase tracking-widest">Sell Commons</button>
+                <button type="button" onclick="sellAll('all')" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-[10px] font-black py-3 rounded-xl transition-colors border border-rose-500/20 uppercase tracking-widest">Sell Duplicates</button>
             </div>
         </div>
 
