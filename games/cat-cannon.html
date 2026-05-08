@@ -2994,12 +2994,11 @@
 
         ctx.translate(cat.x, cat.y);
         
-        // Satisfying Shrink & Fade if in the hole!
+        // Satisfying Fade if in the hole!
         if (gameState === 'LEVEL_COMPLETE') {
             let elapsed = Date.now() - winTime;
-            let shrink = Math.max(0, 1 - (elapsed / 600)); // Shrink to nothing over 600ms
-            ctx.scale(scale * shrink, scale * shrink);
-            ctx.globalAlpha = shrink;
+            let fade = Math.max(0, 1 - (elapsed / 600)); // Fade to nothing over 600ms
+            ctx.globalAlpha = fade;
         } else {
             // Flip the cat upside down visually if gravity is inverted!
             if (currentGravityDir === -1) {
