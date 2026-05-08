@@ -222,32 +222,340 @@
     </main>
 
     <script>
+        // Game data
+        const collectibles = {
+            common: [
+                { name: "Fluffy Kitten", emoji: "🐱", value: 1 },
+                { name: "Basic Puppy", emoji: "🐶", value: 1 },
+                { name: "Simple Bird", emoji: "🐦", value: 1 },
+                { name: "Plain Fish", emoji: "🐟", value: 1 },
+            ],
+            uncommon: [
+                { name: "Spotted Cat", emoji: "🐈", value: 5 },
+                { name: "Golden Puppy", emoji: "🐕", value: 5 },
+                { name: "Colorful Bird", emoji: "🦜", value: 5 },
+                { name: "Tropical Fish", emoji: "🐠", value: 5 },
+            ],
+            rare: [
+                { name: "Rare Tiger", emoji: "🐯", value: 20 },
+                { name: "Rare Wolf", emoji: "🐺", value: 20 },
+                { name: "Rare Eagle", emoji: "🦅", value: 20 },
+                { name: "Rare Shark", emoji: "🦈", value: 20 },
+            ],
+            epic: [
+                { name: "Epic Dragon", emoji: "🐉", value: 100 },
+                { name: "Epic Phoenix", emoji: "🔥", value: 100 },
+                { name: "Epic Unicorn", emoji: "🦄", value: 100 },
+                { name: "Epic Mermaid", emoji: "🧜", value: 100 },
+            ],
+            legendary: [
+                { name: "Legendary Griffin", emoji: "🦅", value: 500 },
+                { name: "Legendary Kraken", emoji: "🐙", value: 500 },
+                { name: "Legendary Pegasus", emoji: "🦄", value: 500 },
+                { name: "Legendary Leviathan", emoji: "🐋", value: 500 },
+            ],
+            mythic: [
+                { name: "Mythic Chimera", emoji: "🐉", value: 2000 },
+                { name: "Mythic Basilisk", emoji: "🐍", value: 2000 },
+                { name: "Mythic Hydra", emoji: "🐉", value: 2000 },
+                { name: "Mythic Sphinx", emoji: "🦁", value: 2000 },
+            ],
+            exotic: [
+                { name: "Exotic Alien", emoji: "👽", value: 5000 },
+                { name: "Exotic Robot", emoji: "🤖", value: 5000 },
+                { name: "Exotic Ghost", emoji: "👻", value: 5000 },
+                { name: "Exotic Demon", emoji: "👹", value: 5000 },
+            ],
+            divine: [
+                { name: "Divine Angel", emoji: "👼", value: 10000 },
+                { name: "Divine God", emoji: "👑", value: 10000 },
+                { name: "Divine Goddess", emoji: "👸", value: 10000 },
+                { name: "Divine Spirit", emoji: "🕊️", value: 10000 },
+            ],
+            transcendent: [
+                { name: "Transcendent Void", emoji: "🌀", value: 50000 },
+                { name: "Transcendent Cosmos", emoji: "🌌", value: 50000 },
+                { name: "Transcendent Eternity", emoji: "♾️", value: 50000 },
+                { name: "Transcendent Infinity", emoji: "∞", value: 50000 },
+            ],
+            eternal: [
+                { name: "Eternal Time", emoji: "⏳", value: 100000 },
+                { name: "Eternal Space", emoji: "🌌", value: 100000 },
+                { name: "Eternal Life", emoji: "🌱", value: 100000 },
+                { name: "Eternal Death", emoji: "💀", value: 100000 },
+            ],
+            secret: [
+                { name: "Secret Mystery", emoji: "❓", value: 200000 },
+                { name: "Secret Enigma", emoji: "🔮", value: 200000 },
+                { name: "Secret Riddle", emoji: "🧩", value: 200000 },
+                { name: "Secret Code", emoji: "🔐", value: 200000 },
+            ],
+            infinity: [
+                { name: "Infinity Loop", emoji: "🔄", value: 500000 },
+                { name: "Infinity Paradox", emoji: "🤯", value: 500000 },
+                { name: "Infinity Dimension", emoji: "🌐", value: 500000 },
+                { name: "Infinity Essence", emoji: "✨", value: 500000 },
+            ],
+        };
+
+        const rarityWeights = {
+            common: 50,
+            uncommon: 25,
+            rare: 15,
+            epic: 7,
+            legendary: 2,
+            mythic: 0.5,
+            exotic: 0.3,
+            divine: 0.1,
+            transcendent: 0.05,
+            eternal: 0.03,
+            secret: 0.02,
+            infinity: 0.01
+        };
+
+        const packCost = 10; // coins per pack
+
         // Game state
         const gameState = {
             coins: 100,
             inventory: [],
             totalOpened: 0,
-            creativeMode: false,
-            collectibles: []
+            creativeMode: false
         };
 
+        function getRandomRarity() {
+            const total = Object.values(rarityWeights).reduce((a, b) => a + b, 0);
+            let rand = Math.random() * total;
+            for (const [rarity, weight] of Object.entries(rarityWeights)) {
+                rand -= weight;
+                if (rand <= 0) return rarity;
+            }
+            return 'common';
+        }
+
+        function getRandomCollectible(rarity) {
+            const list = collectibles[rarity];
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
         function openPack(amount) {
-            console.log(`Opening ${amount} pack(s)`);
+            if (!gameState.creativeMode && gameState.coins < amount * packCost) {
+                showToast('Not enough coins!', 'error');
+                return;
+            }
+            if (!gameState.creativeMode) {
+                gameState.coins -= amount * packCost;
+                updateCoins();
+            }
+            gameState.totalOpened += amount;
+            updatePacks();
+            const newItems = [];
+            for (let i = 0; i < amount; i++) {
+                const rarity = getRandomRarity();
+                const item = getRandomCollectible(rarity);
+                gameState.inventory.push(item);
+                newItems.push(item);
+            }
+            updateInventory();
+            updateDisplayCase();
+            if (amount === 1) {
+                animateCarousel(newItems[0]);
+            } else {
+                showToast(`Opened ${amount} packs!`, 'success');
+            }
+        }
+
+        function animateCarousel(winningItem) {
+            const reel = document.getElementById('carousel-reel');
+            const items = [];
+            for (let i = 0; i < 50; i++) {
+                const rarity = getRandomRarity();
+                const item = getRandomCollectible(rarity);
+                items.push(item);
+            }
+            items.splice(25, 0, winningItem);
+            reel.innerHTML = '';
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `carousel-item rarity-${item.rarity}`;
+                div.innerHTML = `
+                    <div class="text-4xl">${item.emoji}</div>
+                    <div class="mt-1 font-black text-xs text-center uppercase tracking-tighter">${item.name}</div>
+                `;
+                reel.appendChild(div);
+            });
+            const itemWidth = 140;
+            const targetPosition = - (25 * itemWidth) + (reel.parentElement.offsetWidth / 2) - (itemWidth / 2);
+            reel.style.transform = `translateX(${targetPosition}px)`;
+            addSparkles();
+            setTimeout(() => {
+                showToast(`You got ${winningItem.name}!`, 'success');
+            }, 5000);
+        }
+
+        function addSparkles() {
+            const container = document.getElementById('sparkle-container');
+            container.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 0.8 + 's';
+                container.appendChild(sparkle);
+            }
         }
 
         function openCustom() {
             const amount = parseInt(document.getElementById('custom-amount').value);
-            openPack(amount);
+            if (amount > 0) openPack(amount);
         }
 
-        function sellAll(rarity) {
-            console.log(`Selling all ${rarity} items`);
+        function sellAll(type) {
+            if (type === 'Common') {
+                const commons = gameState.inventory.filter(item => item.rarity === 'common');
+                const value = commons.reduce((sum, item) => sum + item.value, 0);
+                gameState.inventory = gameState.inventory.filter(item => item.rarity !== 'common');
+                gameState.coins += value;
+                updateCoins();
+                updateInventory();
+                updateDisplayCase();
+                showToast(`Sold ${commons.length} commons for ${value}🪙`, 'success');
+            } else if (type === 'all') {
+                const counts = {};
+                gameState.inventory.forEach(item => {
+                    counts[item.name] = (counts[item.name] || 0) + 1;
+                });
+                let sold = 0;
+                let value = 0;
+                const newInv = [];
+                gameState.inventory.forEach(item => {
+                    if (counts[item.name] > 1) {
+                        sold++;
+                        value += item.value;
+                        counts[item.name]--;
+                    } else {
+                        newInv.push(item);
+                    }
+                });
+                gameState.inventory = newInv;
+                gameState.coins += value;
+                updateCoins();
+                updateInventory();
+                updateDisplayCase();
+                showToast(`Sold ${sold} duplicates for ${value}🪙`, 'success');
+            }
+        }
+
+        function sellItem(name) {
+            const index = gameState.inventory.findIndex(item => item.name === name);
+            if (index !== -1) {
+                const item = gameState.inventory.splice(index, 1)[0];
+                gameState.coins += item.value;
+                updateCoins();
+                updateInventory();
+                updateDisplayCase();
+                showToast(`Sold ${item.name} for ${item.value}🪙`, 'success');
+            }
+        }
+
+        function updateCoins() {
+            document.getElementById('coins').textContent = gameState.coins;
+        }
+
+        function updatePacks() {
+            document.getElementById('packs-stat').textContent = gameState.totalOpened;
+        }
+
+        function updateInventory() {
+            const inv = document.getElementById('inventory');
+            inv.innerHTML = '';
+            const grouped = {};
+            gameState.inventory.forEach(item => {
+                if (!grouped[item.name]) grouped[item.name] = { ...item, count: 0 };
+                grouped[item.name].count++;
+            });
+            Object.values(grouped).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'bg-slate-800/50 border border-slate-700 p-3 rounded-xl flex items-center justify-between';
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="text-2xl">${item.emoji}</div>
+                        <div>
+                            <div class="font-black text-sm">${item.name}</div>
+                            <div class="text-xs text-slate-400">${item.count}x • ${item.rarity} • ${item.value}🪙</div>
+                        </div>
+                    </div>
+                    <button onclick="sellItem('${item.name}')" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 text-xs font-black py-1 px-2 rounded transition-colors">SELL</button>
+                `;
+                inv.appendChild(div);
+            });
+            document.getElementById('inv-count').textContent = `${gameState.inventory.length} ITEMS`;
+        }
+
+        function updateDisplayCase() {
+            const display = document.getElementById('display-case');
+            const rareItems = gameState.inventory.filter(item => ['legendary', 'mythic', 'exotic', 'divine', 'transcendent', 'eternal', 'secret', 'infinity'].includes(item.rarity));
+            const uniqueRare = [...new Set(rareItems.map(item => item.name))].map(name => rareItems.find(item => item.name === name));
+            display.innerHTML = '';
+            uniqueRare.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `rarity-${item.rarity} p-2 rounded-lg text-center`;
+                div.innerHTML = `
+                    <div class="text-lg">${item.emoji}</div>
+                    <div class="text-[8px] font-black uppercase tracking-tighter mt-1">${item.name.split(' ')[0]}</div>
+                `;
+                display.appendChild(div);
+            });
+            document.getElementById('display-case-section').classList.toggle('hidden', uniqueRare.length === 0);
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `p-3 rounded-xl font-black text-sm pointer-events-auto ${type === 'success' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20' : type === 'error' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/20' : 'bg-sky-500/20 text-sky-400 border border-sky-500/20'}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
         }
 
         function toggleShop() {
             const modal = document.getElementById('shop-modal');
             modal.classList.toggle('hidden');
             modal.classList.toggle('flex');
+            if (!modal.classList.contains('hidden')) {
+                populateShop();
+            }
+        }
+
+        function populateShop() {
+            const container = document.getElementById('shop-items-container');
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-xl">
+                        <div class="font-black text-emerald-400 mb-2">Pack Deals</div>
+                        <div class="space-y-2">
+                            <button onclick="buyPacks(1)" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-black py-2 rounded-lg transition-all">1 Pack - 10🪙</button>
+                            <button onclick="buyPacks(5)" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-2 rounded-lg transition-all">5 Packs - 45🪙</button>
+                            <button onclick="buyPacks(10)" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-black py-2 rounded-lg transition-all">10 Packs - 80🪙</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buyPacks(amount) {
+            const cost = amount === 1 ? 10 : amount === 5 ? 45 : 80;
+            if (gameState.coins < cost) {
+                showToast('Not enough coins!', 'error');
+                return;
+            }
+            gameState.coins -= cost;
+            updateCoins();
+            openPack(amount);
+            toggleShop();
         }
 
         function toggleSettings() {
@@ -260,14 +568,21 @@
             gameState.creativeMode = enabled;
             if (enabled) {
                 gameState.coins = 999999;
-                document.getElementById('coins').textContent = '999999';
+                updateCoins();
+                showToast('Creative Mode Enabled!', 'success');
+            } else {
+                gameState.coins = Math.min(gameState.coins, 100);
+                updateCoins();
+                showToast('Creative Mode Disabled', 'info');
             }
         }
 
         // Initialize on load
         window.addEventListener('load', () => {
-            document.getElementById('coins').textContent = gameState.coins;
-            document.getElementById('packs-stat').textContent = '0';
+            updateCoins();
+            updatePacks();
+            updateInventory();
+            updateDisplayCase();
             document.getElementById('loading').style.display = 'none';
         });
     </script>
