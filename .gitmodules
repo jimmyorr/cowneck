@@ -1,15 +1,20 @@
 [submodule "games/chill-flight"]
 	path = games/chill-flight
 	url = https://github.com/jimmyorr/chill-flight.git
+	ignore = all
 [submodule "birds"]
 	path = birds
 	url = https://github.com/jimmyorr/birds.git
+	ignore = all
 [submodule "dislikes"]
 	path = dislikes
 	url = https://github.com/jimmyorr/dislikes.git
+	ignore = all
 [submodule "paumanok"]
 	path = paumanok
 	url = https://github.com/jimmyorr/paumanok
+	ignore = all
 [submodule "kid-li"]
 	path = kid-li
 	url = https://github.com/jimmyorr/kid-li
+	ignore = all
