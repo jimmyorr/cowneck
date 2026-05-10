@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Calculus of Dysfunction</title>
+    <meta name="description" content="The wild, petty, and brilliant history of the Bernoulli family and Leonhard Euler.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b1120;
+            --text-color: #f8fafc;
+            --accent-color: #6366f1;
+            --glass-bg: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(244, 114, 182, 0.15) 0%, transparent 50%);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            line-height: 1.8;
+            font-size: 1.125rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 3rem 1rem;
+        }
+
+        .container {
+            max-width: 680px;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            margin-bottom: 1.6rem;
+            color: #cbd5e1; /* High contrast gray */
+            font-weight: 400;
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        p:first-of-type {
+            font-size: 1.25rem;
+            color: #f8fafc; /* Even higher contrast for intro */
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        em {
+            color: #f1f5f9;
+            font-style: italic;
+        }
+
+        .accent-text {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        /* Micro-interactions */
+        p {
+            transition: color 0.2s ease;
+        }
+
+        p:hover {
+            color: #f1f5f9;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem 0.75rem;
+                font-size: 1.05rem;
+            }
+            .container {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+            h1 {
+                font-size: 2.25rem;
+                margin-bottom: 1.5rem;
+            }
+            p:first-of-type {
+                font-size: 1.15rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <article class="container">
+        <h1>The Calculus of Dysfunction</h1>
+        
+        <p>If you have ever sat through a Thanksgiving dinner where the tension was so thick you could cut it with a carving knife because your uncle keeps bringing up the election, you should take a moment to thank your lucky stars you were not born into the <span class="accent-text">Bernoulli family</span>.</p>
+
+        <p>The Bernoullis were a dynasty of Swiss mathematicians in the 17th and 18th centuries who possessed two distinct genetic traits: a supernatural ability to understand calculus, and a complete inability to get along with one another. They were, without a doubt, the most important family in the history of mathematics. They were also, quite possibly, the worst family in the history of families.</p>
+
+        <p>To understand the Bernoullis, you have to go to Basel, Switzerland. It was here that <strong>Jacob Bernoulli</strong> (the older brother) and <strong>Johann Bernoulli</strong> (the younger brother) decided to take the brand-new, slightly terrifying invention of Calculus—which Isaac Newton and Gottfried Leibniz had just finished fighting over—and figure out what it was actually good for.</p>
+
+        <p>Jacob was the first to dive in. He was brilliant, diligent, and by most accounts, a bit of a pill. He took his younger brother Johann under his wing to teach him the mysteries of mathematics. This was his first mistake. Johann, it turned out, was not just a quick study; he was an arrogant prodigy who realized quite rapidly that he was faster and sharper than his teacher.</p>
+
+        <p>What followed was a decades-long public feud that makes the Gallagher brothers of Oasis look like a model of conflict resolution. They didn't just argue at the dinner table; they argued in the academic journals of Europe. They set problems for the public to solve, specifically designed to stump the other brother.</p>
+
+        <p>The most famous of these was the <strong>"Brachistochrone problem"</strong> of 1696. The challenge was to find the curve down which a bead will slide under gravity in the shortest amount of time. It sounds like the sort of thing you’d worry about if you were extremely bored in a bead factory, but it was actually deep mathematics. Johann solved it. He then publicly challenged the world to solve it, mostly to humiliate Jacob.</p>
+
+        <p>Jacob did solve it, but the solution was harder than he expected. When Newton (who was old and cranky by then) heard about the problem, he stayed up all night, solved it anonymously, and mailed it back. Johann, upon seeing the solution, famously said, <em>"I recognize the lion by his claw,"</em> which is a very cool thing to say about a math problem. But regarding his brother? Johann was less poetic. He essentially told everyone Jacob was an idiot. Jacob retaliated by creating the "Isoperimetric problem," which was designed specifically to be a trap for Johann. Johann fell for it, published a wrong solution, and Jacob spent the rest of his life gleefully pointing out the error.</p>
+
+        <p>But the dysfunction didn't stop with the brothers. Johann eventually had a son named <strong>Daniel</strong>.</p>
+
+        <p>You might know Daniel Bernoulli. If you have ever flown in an airplane and wondered why the wings don't fall off, or why your shower curtain sucks inward when you turn the water on, you have Daniel to thank. He formulated <strong>Bernoulli’s Principle</strong>, which deals with fluid dynamics. He was a lovely man—kind, brilliant, and eager to please his father.</p>
+
+        <p>Johann repaid this kindness with a level of pettiness that is almost impressive in its scope. In 1734, both Daniel and his father Johann submitted entries for the prestigious Grand Prize of the Paris Academy of Sciences. The judges, thinking it would be a delightful family moment, awarded the prize jointly to father and son.</p>
+
+        <p>Johann did not find it delightful. He found it insulting that he, the great Johann Bernoulli, should be placed on the same level as his own offspring. In a fit of jealousy that surely requires some sort of clinical diagnosis, Johann kicked Daniel out of the house. He literally banned his son from the family home for being too good at math. Later, Johann published a book on hydraulics that was suspiciously similar to Daniel’s work, and he even backdated it to make it look like he had discovered it first. It was plagiarism powered by paternal insecurity.</p>
+
+        <p>Into this vipers' nest of genius and bile stepped a young man named <strong>Leonhard Euler</strong>.</p>
+
+        <p>Euler (pronounced "Oiler," like a mechanic from Brooklyn) was a student of Johann Bernoulli. In a twist that no one saw coming, Johann was actually quite nice to Euler. Perhaps he had used up all his hatred on his brother and son, or perhaps he simply recognized that Euler was in a category of his own.</p>
+
+        <p>Euler is, without hyperbole, the most prolific mathematician who ever lived. He wrote mathematics the way most of us breathe—constantly, effortlessly, and without making a fuss about it. While the Bernoullis were busy writing hate mail to each other, Euler was busy fixing the universe. He gave us the symbol for pi (\(\pi\)), the letter e for the base of the natural logarithm, and the symbol i for the square root of -1. Essentially, if you have ever used a calculator, you are using Euler’s interface.</p>
+
+        <p>Euler was a friend of Daniel Bernoulli—they worked together in St. Petersburg, Russia, far away from Daniel's angry father. They were the dynamic duo of the 18th century. Daniel explained how the physical world moved (fluids, vibrations), and Euler provided the rigorous analytical framework to prove it.</p>
+
+        <p>The most endearing thing about Euler, especially compared to the prickly Bernoullis, was his temperament. He was startlingly normal. He had thirteen children, and he would often write his groundbreaking papers with a baby on his lap and children playing around his feet. He didn't need silence; he just needed a quill.</p>
+
+        <p>Later in life, Euler went blind in his right eye. When asked about it, he reportedly said, <em>"Now I will have fewer distractions."</em> When he eventually went blind in the other eye, he simply kept working, dictating his formulas to scribes. He actually became more productive after going completely blind, which is just showing off, really.</p>
+
+        <p>Between the lot of them, they built the modern world. The Bernoullis gave us the tools to understand probability, risk, and physics, while Euler gave us the language to describe... well, everything else.</p>
+
+        <p>It is a strange comfort to know that the people who unraveled the very fabric of the universe were just as flawed, petty, and ridiculous as the rest of us. Though, to be fair, when I have a fight with my brother, we usually just stop texting for a week; we don't invent a new branch of calculus just to prove the other one wrong. But then again, we aren't the Bernoullis.</p>
+    </article>
+</body>
+</html>
