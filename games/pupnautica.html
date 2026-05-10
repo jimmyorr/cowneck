@@ -1218,6 +1218,12 @@
                 currentInteractable = null;
                 promptEl.style.display = 'none';
             }
+
+            // Visual Effects based on depth
+            // Make it darker as you go deeper
+            const depthFactor = Math.min(1, depth / 100);
+            scene.fog.density = 0.015 + (depthFactor * 0.02); // Thicker fog
+            ambientLight.intensity = 0.6 - (depthFactor * 0.4); // Darker
         }
 
         function interact() {
@@ -1278,12 +1284,7 @@
             }
         }
 
-            // Visual Effects based on depth
-            // Make it darker as you go deeper
-            const depthFactor = Math.min(1, depth / 100);
-            scene.fog.density = 0.015 + (depthFactor * 0.02); // Thicker fog
-            ambientLight.intensity = 0.6 - (depthFactor * 0.4); // Darker
-        }
+
 
         function die() {
             state.isDead = true;
