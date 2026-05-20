@@ -517,19 +517,60 @@
             return num.toLocaleString('en-US');
         }
 
-        // Calculate Dashboard Stats Card values
+        // Stats Animation State
+        const statsState = {
+            watchedCount: 0,
+            percentage: 0,
+            boxOffice: 0,
+            budget: 0,
+            profit: 0,
+            roi: 0,
+            imdb: 0
+        };
+
+        // Map to keep track of active animation frames for cancellation
+        const activeTickers = new Map();
+
+        // High-performance numeric ticker animation
+        function animateNumber(element, start, end, duration = 500, formatter = (val) => val) {
+            if (!element) return;
+            
+            // If already animating this element, cancel the previous frame
+            if (activeTickers.has(element)) {
+                cancelAnimationFrame(activeTickers.get(element));
+            }
+            
+            const startTime = performance.now();
+            
+            function tick(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Out-cubic easing
+                const ease = 1 - Math.pow(1 - progress, 3);
+                const currentVal = start + (end - start) * ease;
+                
+                element.innerText = formatter(currentVal);
+                
+                if (progress < 1) {
+                    activeTickers.set(element, requestAnimationFrame(tick));
+                } else {
+                    element.innerText = formatter(end);
+                    activeTickers.delete(element);
+                }
+            }
+            
+            activeTickers.set(element, requestAnimationFrame(tick));
+        }
+
+        // Calculate Dashboard Stats Card values and animate change
         function calculateStatistics() {
             const totalMovies = state.movies.length;
             const watchedMovies = state.movies.filter(m => m.watched);
             const watchedCount = watchedMovies.length;
-            
-            // Progress Bar Calculation
-            DOM.statsProgressText.innerText = `${watchedCount} / ${totalMovies}`;
             const percentage = totalMovies > 0 ? Math.round((watchedCount / totalMovies) * 100) : 0;
-            DOM.statsPercentageText.innerText = `${percentage}% Completed`;
-            DOM.statsProgressFill.style.width = `${percentage}%`;
 
-            // Box Office & Budget
+            // Box Office & Budget sums
             let totalBudget = 0;
             let totalBoxOffice = 0;
             let ratedMoviesCount = 0;
@@ -544,28 +585,48 @@
                 }
             });
 
-            // Format stats box office
-            if (totalBoxOffice >= 1000) {
-                DOM.statsBoxOfficeText.innerText = `$${(totalBoxOffice / 1000).toFixed(2)}B`;
-            } else {
-                DOM.statsBoxOfficeText.innerText = `$${totalBoxOffice}M`;
-            }
-            DOM.statsBudgetText.innerText = `Cost: $${totalBudget}M Budget`;
-
-            // ROI & Net profit calculation
             const profit = totalBoxOffice - totalBudget;
-            if (profit >= 1000) {
-                DOM.statsProfitText.innerText = `Profit: +$${(profit / 1000).toFixed(2)}B`;
-            } else {
-                DOM.statsProfitText.innerText = `Profit: +$${profit}M`;
-            }
-
             const roi = totalBudget > 0 ? (totalBoxOffice / totalBudget) : 0;
-            DOM.statsRoiText.innerText = `${roi.toFixed(1)}x`;
+            const avgImdb = ratedMoviesCount > 0 ? (totalImdbScore / ratedMoviesCount) : 0;
 
-            // IMDb calculation
-            const avgImdb = ratedMoviesCount > 0 ? (totalImdbScore / ratedMoviesCount).toFixed(1) : "0.0";
-            DOM.statsImdbText.innerText = avgImdb;
+            // Trigger animations from previous values to newly calculated ones
+            animateNumber(DOM.statsProgressText, statsState.watchedCount, watchedCount, 500, (v) => `${Math.round(v)} / ${totalMovies}`);
+            animateNumber(DOM.statsPercentageText, statsState.percentage, percentage, 500, (v) => `${Math.round(v)}% Completed`);
+            
+            // Stats progress bar width transition (CSS handle native transitions beautifully)
+            DOM.statsProgressFill.style.width = `${percentage}%`;
+
+            animateNumber(DOM.statsBoxOfficeText, statsState.boxOffice, totalBoxOffice, 550, (v) => {
+                if (v >= 1000) {
+                    return `$${(v / 1000).toFixed(2)}B`;
+                } else {
+                    return `$${Math.round(v)}M`;
+                }
+            });
+
+            animateNumber(DOM.statsBudgetText, statsState.budget, totalBudget, 550, (v) => `Cost: $${Math.round(v)}M Budget`);
+
+            animateNumber(DOM.statsProfitText, statsState.profit, profit, 550, (v) => {
+                const sign = v >= 0 ? "+" : "-";
+                const absVal = Math.abs(v);
+                if (absVal >= 1000) {
+                    return `Profit: ${sign}$${(absVal / 1000).toFixed(2)}B`;
+                } else {
+                    return `Profit: ${sign}$${Math.round(absVal)}M`;
+                }
+            });
+
+            animateNumber(DOM.statsRoiText, statsState.roi, roi, 550, (v) => `${v.toFixed(1)}x`);
+            animateNumber(DOM.statsImdbText, statsState.imdb, avgImdb, 500, (v) => v > 0 ? v.toFixed(1) : "0.0");
+
+            // Save calculated values in state to serve as the baseline for the next animation
+            statsState.watchedCount = watchedCount;
+            statsState.percentage = percentage;
+            statsState.boxOffice = totalBoxOffice;
+            statsState.budget = totalBudget;
+            statsState.profit = profit;
+            statsState.roi = roi;
+            statsState.imdb = avgImdb;
         }
 
         // Handle Checkbox Selection Changes
