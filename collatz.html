@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Collatz Conjecture Visualizer</title>
+    <style>
+      :root {
+        --bg-color: #0f172a;
+        --card-bg: #1e293b;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --accent: #38bdf8;
+        --accent-gradient: linear-gradient(135deg, #38bdf8, #818cf8);
+        --success: #34d399;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      .container {
+        max-width: 1000px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      header h1 {
+        font-size: 2.25rem;
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+      }
+
+      header p {
+        color: var(--text-muted);
+      }
+
+      .dashboard {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 1.5rem;
+      }
+
+      @media (max-width: 850px) {
+        .dashboard {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid #334155;
+      }
+
+      .controls-ui {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      label {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+
+      input[type="number"] {
+        background: #0f172a;
+        border: 1px solid #475569;
+        padding: 0.75rem;
+        border-radius: 6px;
+        color: white;
+        font-size: 1.1rem;
+        width: 100%;
+      }
+
+      input[type="number"]:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+
+      .btn {
+        background: var(--accent-gradient);
+        color: white;
+        border: none;
+        padding: 0.75rem;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        font-size: 1rem;
+      }
+
+      .btn:hover {
+        opacity: 0.9;
+      }
+
+      .presets {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .btn-preset {
+        background: #334155;
+        color: var(--text-main);
+        border: none;
+        padding: 0.4rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        flex: 1;
+      }
+
+      .btn-preset:hover {
+        background: #475569;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .stat-box {
+        background: #0f172a;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid #334155;
+      }
+
+      .stat-val {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--accent);
+        margin-top: 0.25rem;
+      }
+
+      .canvas-container {
+        width: 100%;
+        height: 380px;
+        background: #0f172a;
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #334155;
+      }
+
+      canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .sequence-log {
+        height: 100%;
+        max-height: 540px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .log-items {
+        overflow-y: auto;
+        flex-grow: 1;
+        background: #0f172a;
+        border-radius: 6px;
+        padding: 0.75rem;
+        font-family: monospace;
+        font-size: 0.9rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        border: 1px solid #334155;
+      }
+
+      .log-row {
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 0.25rem;
+        border-bottom: 1px solid #1e293b;
+      }
+
+      .log-step {
+        color: var(--text-muted);
+      }
+      .log-val.even {
+        color: #60a5fa;
+      }
+      .log-val.odd {
+        color: #f43f5e;
+      }
+      .log-val.done {
+        color: var(--success);
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>The Hailstone Visualizer</h1>
+        <p>
+          Watch how any positive integer climbs and plummets back to 1 via the
+          Collatz sequence.
+        </p>
+      </header>
+
+      <div class="dashboard">
+        <!-- Main Panel: Graph & Live Stats -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem">
+          <div class="card">
+            <div class="stats-grid">
+              <div class="stat-box">
+                <label>Current Value</label>
+                <div class="stat-val" id="stat-current">-</div>
+              </div>
+              <div class="stat-box">
+                <label>Steps</label>
+                <div class="stat-val" id="stat-steps">0</div>
+              </div>
+              <div class="stat-box">
+                <label>Peak Height</label>
+                <div class="stat-val" id="stat-peak">-</div>
+              </div>
+            </div>
+
+            <div class="canvas-container">
+              <canvas id="graphCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar Panel: Inputs & Logs -->
+        <div class="controls-ui">
+          <div class="card">
+            <div class="input-group" style="margin-bottom: 1rem">
+              <label for="seedInput">Starting Number (Seed)</label>
+              <input type="number" id="seedInput" value="27" min="1" step="1" />
+            </div>
+
+            <div class="input-group" style="margin-bottom: 1.25rem">
+              <label>Presets</label>
+              <div class="presets">
+                <button class="btn-preset" onclick="setPreset(7)">7</button>
+                <button class="btn-preset" onclick="setPreset(27)">27</button>
+                <button class="btn-preset" onclick="setPreset(871)">871</button>
+              </div>
+            </div>
+
+            <button class="btn" id="startBtn" style="width: 100%">
+              Run Sequence
+            </button>
+          </div>
+
+          <div class="card sequence-log">
+            <label style="margin-bottom: 0.5rem; display: block"
+              >Sequence Path</label
+            >
+            <div class="log-items" id="logItems">
+              <!-- Log entries populate here dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("graphCanvas");
+      const ctx = canvas.getContext("2d");
+      const seedInput = document.getElementById("seedInput");
+      const startBtn = document.getElementById("startBtn");
+      const logItems = document.getElementById("logItems");
+
+      const statCurrent = document.getElementById("stat-current");
+      const statSteps = document.getElementById("stat-steps");
+      const statPeak = document.getElementById("stat-peak");
+
+      let animationId = null;
+      let sequenceData = [];
+      let currentIdx = 0;
+      let peakValue = 0;
+
+      // Handle high-DPI canvas scaling
+      function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        drawGraph();
+      }
+
+      window.addEventListener("resize", resizeCanvas);
+      setTimeout(resizeCanvas, 100);
+
+      function setPreset(val) {
+        seedInput.value = val;
+        startSimulation();
+      }
+
+      function calculateCollatz(n) {
+        const sequence = [n];
+        while (n > 1) {
+          if (n % 2 === 0) {
+            n = n / 2;
+          } else {
+            n = 3 * n + 1;
+          }
+          sequence.push(n);
+        }
+        return sequence;
+      }
+
+      function startSimulation() {
+        if (animationId) cancelAnimationFrame(animationId);
+
+        let startVal = parseInt(seedInput.value);
+        if (isNaN(startVal) || startVal < 1) startVal = 1;
+        seedInput.value = startVal;
+
+        sequenceData = calculateCollatz(startVal);
+        currentIdx = 0;
+        peakValue = startVal;
+        logItems.innerHTML = "";
+
+        animate();
+      }
+
+      function animate() {
+        if (currentIdx >= sequenceData.length) {
+          return;
+        }
+
+        const val = sequenceData[currentIdx];
+        if (val > peakValue) peakValue = val;
+
+        // Update stats metrics UI
+        statCurrent.innerText = val.toLocaleString();
+        statSteps.innerText = currentIdx;
+        statPeak.innerText = peakValue.toLocaleString();
+
+        // Update sequence text log
+        const row = document.createElement("div");
+        row.className = "log-row";
+
+        let valClass = val % 2 === 0 ? "even" : "odd";
+        let typeStr =
+          val === 1 ? "End" : val % 2 === 0 ? "Even (÷2)" : "Odd (3n+1)";
+        if (val === 1) valClass = "done";
+
+        row.innerHTML = `
+            <span class="log-step">#${currentIdx}</span>
+            <span>${typeStr}</span>
+            <span class="log-val ${valClass}">${val.toLocaleString()}</span>
+        `;
+        logItems.appendChild(row);
+        logItems.scrollTop = logItems.scrollHeight;
+
+        drawGraph();
+
+        currentIdx++;
+        // Limit frame execution speed to make tracking visual
+        setTimeout(() => {
+          animationId = requestAnimationFrame(animate);
+        }, 60);
+      }
+
+      function drawGraph() {
+        const w = canvas.width / (window.devicePixelRatio || 1);
+        const h = canvas.height / (window.devicePixelRatio || 1);
+        ctx.clearRect(0, 0, w, h);
+
+        if (currentIdx === 0) return;
+
+        const padding = 30;
+        const graphW = w - padding * 2;
+        const graphH = h - padding * 2;
+
+        // Determine bounds based on what has been animated so far
+        const visiblePoints = sequenceData.slice(0, currentIdx);
+        const totalPoints = sequenceData.length;
+
+        const xMax = Math.max(totalPoints - 1, 1);
+        const yMax = peakValue;
+
+        ctx.strokeStyle = "rgba(71, 85, 105, 0.3)";
+        ctx.lineWidth = 1;
+
+        // Draw standard reference gridline at 1
+        ctx.beginPath();
+        ctx.moveTo(padding, h - padding);
+        ctx.lineTo(w - padding, h - padding);
+        ctx.stroke();
+
+        // Generate line path coordinates using a logarithmic scale to elegantly capture spikes
+        ctx.beginPath();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = "#38bdf8";
+
+        visiblePoints.forEach((val, index) => {
+          const x = padding + (index / xMax) * graphW;
+          // Using log scale for aesthetic curve control over dramatic linear scaling issues
+          const y =
+            h - padding - (Math.log10(val) / Math.log10(yMax || 10)) * graphH;
+
+          if (index === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        ctx.stroke();
+
+        // Draw node pulse tracking over the current running node location
+        if (visiblePoints.length > 0) {
+          const lastIdx = visiblePoints.length - 1;
+          const lastVal = visiblePoints[lastIdx];
+          const lastX = padding + (lastIdx / xMax) * graphW;
+          const lastY =
+            h -
+            padding -
+            (Math.log10(lastVal) / Math.log10(yMax || 10)) * graphH;
+
+          ctx.beginPath();
+          ctx.arc(lastX, lastY, 5, 0, 2 * Math.PI);
+          ctx.fillStyle = lastVal === 1 ? "#34d399" : "#818cf8";
+          ctx.fill();
+        }
+      }
+
+      startBtn.addEventListener("click", startSimulation);
+    </script>
+  </body>
+</html>
