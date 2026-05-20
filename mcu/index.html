@@ -4,157 +4,921 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCU Checklist</title>
-    <!-- Google tag (gtag.js) -->
+    <meta name="description" content="Track your progress through the Marvel Cinematic Universe with the ultimate, interactive MCU Checklist and analytics tracker.">
+    <title>MCU Checklist & Analytics Tracker</title>
+    
+    <!-- Google Tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-6RNVL7JZVJ');
     </script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-        }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            cursor: pointer;
-            background-color: #f4f4f4;
-        }
-
-        .sortable.asc::after {
-            content: " \25B2";
-        }
-
-        .sortable.desc::after {
-            content: " \25BC";
-        }
-    </style>
+    <!-- Google Fonts & Stylesheet -->
+    <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
-    <h1>MCU Checklist</h1>
-    <table id="mcu-table">
-        <thead>
-            <tr>
-                <th>Watched</th>
-                <th onclick="sortTable(1)" class="sortable">Movie</th>
-                <th onclick="sortTable(2)" class="sortable">Release date</th>
-                <th onclick="sortTable(3)" class="sortable">Phase</th>
-                <th onclick="sortTable(4)" class="sortable">Budget (M$)</th>
-                <th onclick="sortTable(5)" class="sortable">Box office (M$)</th>
-                <th onclick="sortTable(6)" class="sortable">IMDb</th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
-        </tbody>
-    </table>
+    <div class="app-container">
+        <!-- Header Hero Section -->
+        <header class="header-section">
+            <div class="header-title-container">
+                <div class="marvel-badge">MARVEL</div>
+                <h1 class="sub-title">Cinematic Universe Tracker</h1>
+            </div>
+        </header>
+
+        <!-- Stats Dashboard Widgets -->
+        <section class="dashboard-grid">
+            <!-- Progress Card -->
+            <div class="stat-card stat-red" id="stat-progress-card">
+                <div class="stat-header">
+                    <span>MCU Checklist Progress</span>
+                    <span>📈</span>
+                </div>
+                <div>
+                    <div class="stat-value" id="stats-progress-text">0 / 0</div>
+                    <div class="stat-sub" id="stats-percentage-text">0% Complete</div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="stats-progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Box Office Earnings -->
+            <div class="stat-card stat-gold">
+                <div class="stat-header">
+                    <span>Watched Box Office Value</span>
+                    <span>💰</span>
+                </div>
+                <div>
+                    <div class="stat-value" id="stats-boxoffice-text">$0</div>
+                    <div class="stat-sub" id="stats-budget-text">Cost: $0M Budget</div>
+                </div>
+            </div>
+
+            <!-- Profit Multiplier -->
+            <div class="stat-card stat-green">
+                <div class="stat-header">
+                    <span>Estimated ROI Multiplier</span>
+                    <span>⚡</span>
+                </div>
+                <div>
+                    <div class="stat-value" id="stats-roi-text">0.0x</div>
+                    <div class="stat-sub" id="stats-profit-text">Net Profit: $0</div>
+                </div>
+            </div>
+
+            <!-- Average Rating -->
+            <div class="stat-card stat-blue">
+                <div class="stat-header">
+                    <span>Average IMDb Rating</span>
+                    <span>⭐</span>
+                </div>
+                <div>
+                    <div class="stat-value" id="stats-imdb-text">0.0</div>
+                    <div class="stat-sub">Based on your checked movies</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Control Bar & Search -->
+        <section class="control-panel">
+            <!-- Real-time Search Box -->
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search MCU movies..." autocomplete="off">
+                <button class="clear-btn" id="clear-search-btn" aria-label="Clear search">✕</button>
+            </div>
+
+            <!-- Watched Status Filter -->
+            <div class="filter-group">
+                <button class="filter-btn active" data-checklist="all" id="filter-all-btn">All Movies</button>
+                <button class="filter-btn" data-checklist="watched" id="filter-watched-btn">Watched</button>
+                <button class="filter-btn" data-checklist="unwatched" id="filter-unwatched-btn">Unwatched</button>
+            </div>
+
+            <!-- View Switcher Tabs -->
+            <div class="view-switcher">
+                <button class="view-btn active" data-view="grid" id="view-grid-btn">
+                    <span>🎴</span> Grid
+                </button>
+                <button class="view-btn" data-view="table" id="view-table-btn">
+                    <span>📋</span> Table
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-group">
+                <button class="action-btn btn-roulette" id="roulette-trigger-btn">🎲 Randomizer</button>
+                <button class="action-btn" id="action-more-btn">⚙️ Actions</button>
+            </div>
+        </section>
+
+        <!-- Phase Selector Tag Row -->
+        <section class="phase-panel" id="phase-selectors">
+            <button class="phase-tag active" data-phase="all">All Phases</button>
+            <button class="phase-tag" data-phase="1">Phase 1</button>
+            <button class="phase-tag" data-phase="2">Phase 2</button>
+            <button class="phase-tag" data-phase="3">Phase 3</button>
+            <button class="phase-tag" data-phase="4">Phase 4</button>
+            <button class="phase-tag" data-phase="5">Phase 5</button>
+            <button class="phase-tag" data-phase="6">Phase 6</button>
+        </section>
+
+        <!-- Content Area -->
+        <main>
+            <!-- Grid Layout -->
+            <div class="movies-grid" id="movies-grid-view">
+                <!-- Dynamically generated movie cards will go here -->
+            </div>
+
+            <!-- Table Layout -->
+            <div class="table-container hidden" id="movies-table-view">
+                <table class="mcu-table" id="mcu-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Watched</th>
+                            <th onclick="handleTableSort(1)" class="sortable">Title</th>
+                            <th onclick="handleTableSort(2)" class="sortable desc">Release Date</th>
+                            <th onclick="handleTableSort(3)" class="sortable">Phase</th>
+                            <th onclick="handleTableSort(4)" class="sortable">Budget</th>
+                            <th onclick="handleTableSort(5)" class="sortable">Box Office</th>
+                            <th onclick="handleTableSort(6)" class="sortable">IMDb</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mcu-table-body">
+                        <!-- Dynamically generated rows will go here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state hidden" id="empty-state-view">
+                <div class="empty-state-icon">🛡️</div>
+                <div class="empty-state-title">No Movies Found</div>
+                <p>Adjust your search filters or checklist status to find MCU movies.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Randomizer / Suggest Watch Modal -->
+    <div class="modal-overlay" id="roulette-modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal-btn" aria-label="Close modal">✕</button>
+            <div class="roulette-title">Deciding your next MCU watch...</div>
+            
+            <!-- Spinner Slot Machine -->
+            <div class="spinner-container">
+                <div class="spinner-track" id="spinner-track">
+                    <!-- Dynamic spinner items -->
+                </div>
+            </div>
+
+            <!-- Selected Movie Result Detail -->
+            <div class="result-card" id="roulette-result-card">
+                <span class="result-tag" id="result-phase-badge">Phase X</span>
+                <h3 class="result-movie-name" id="result-movie-name">Movie Title</h3>
+                
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-primary" id="modal-watch-btn">Mark as Watched</button>
+                    <button class="modal-btn modal-btn-secondary" id="modal-spin-again-btn">🔄 Spin Again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dropdown / Popup Actions Menu Overlay -->
+    <div class="modal-overlay" id="actions-overlay">
+        <div class="modal-content" style="max-width: 400px; padding: 2rem;">
+            <button class="close-modal" id="close-actions-btn" aria-label="Close dialog">✕</button>
+            <h3 style="font-size: 1.5rem; margin-bottom: 1.5rem; color: #FFF; font-weight: 700;">Checklist Actions</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.8rem; text-align: left; margin-bottom: 1rem;">
+                <button class="modal-btn modal-btn-secondary" id="action-all-watched" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Mark All as Watched</span>
+                    <span>✔️</span>
+                </button>
+                <button class="modal-btn modal-btn-secondary" id="action-clear-all" style="display: flex; justify-content: space-between; align-items: center; color: var(--primary);">
+                    <span>Reset Checklist Progress</span>
+                    <span>🗑️</span>
+                </button>
+                <hr style="border: 0; height: 1px; background: rgba(255,255,255,0.08); margin: 0.5rem 0;">
+                <button class="modal-btn modal-btn-secondary" id="action-export" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Export Progress File</span>
+                    <span>📤</span>
+                </button>
+                <button class="modal-btn modal-btn-secondary" id="action-import" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Import Progress File</span>
+                    <span>📥</span>
+                </button>
+            </div>
+            
+            <input type="file" id="import-file-input" accept=".json" style="display: none;">
+        </div>
+    </div>
+
+    <!-- Interactive Toast Messages -->
+    <div class="toast" id="toast-notification">
+        <span class="toast-icon">🛡️</span>
+        <span id="toast-message">Checklist progress saved!</span>
+    </div>
+
+    <!-- Scripts -->
     <script>
-        function sortTable(n) {
-            let table = document.getElementById("mcu-table");
-            let rows = Array.from(table.querySelector("tbody").rows);
-            let header = table.querySelector("thead").rows[0].cells[n];
-            let currentSortDir = header.classList.contains("asc") ? "asc" : "desc";
-            let newSortDir = currentSortDir === "asc" ? "desc" : "asc";
+        // Central Application State
+        const state = {
+            movies: [],
+            filters: {
+                search: "",
+                checklist: "all",
+                phase: "all"
+            },
+            viewMode: "grid",
+            sort: {
+                column: 2, // Default sorted by Release Date (column index 2)
+                direction: "desc" // Default newest first
+            }
+        };
 
-            // Remove existing sort classes from all headers
-            table.querySelectorAll("th").forEach(th => {
-                th.classList.remove("asc", "desc");
-            });
+        // DOM Element Cache
+        const DOM = {
+            moviesGridView: document.getElementById("movies-grid-view"),
+            moviesTableView: document.getElementById("movies-table-view"),
+            tableBody: document.getElementById("mcu-table-body"),
+            table: document.getElementById("mcu-table"),
+            emptyState: document.getElementById("empty-state-view"),
+            
+            searchInput: document.getElementById("search-input"),
+            clearSearchBtn: document.getElementById("clear-search-btn"),
+            
+            filterAllBtn: document.getElementById("filter-all-btn"),
+            filterWatchedBtn: document.getElementById("filter-watched-btn"),
+            filterUnwatchedBtn: document.getElementById("filter-unwatched-btn"),
+            
+            viewGridBtn: document.getElementById("view-grid-btn"),
+            viewTableBtn: document.getElementById("view-table-btn"),
+            
+            phaseSelectors: document.getElementById("phase-selectors"),
+            rouletteTriggerBtn: document.getElementById("roulette-trigger-btn"),
+            actionMoreBtn: document.getElementById("action-more-btn"),
+            
+            // Stats
+            statsProgressText: document.getElementById("stats-progress-text"),
+            statsPercentageText: document.getElementById("stats-percentage-text"),
+            statsProgressFill: document.getElementById("stats-progress-fill"),
+            statsBoxOfficeText: document.getElementById("stats-boxoffice-text"),
+            statsBudgetText: document.getElementById("stats-budget-text"),
+            statsRoiText: document.getElementById("stats-roi-text"),
+            statsProfitText: document.getElementById("stats-profit-text"),
+            statsImdbText: document.getElementById("stats-imdb-text"),
+            
+            // Modal Elements
+            rouletteModal: document.getElementById("roulette-modal"),
+            closeModalBtn: document.getElementById("close-modal-btn"),
+            spinnerTrack: document.getElementById("spinner-track"),
+            rouletteResultCard: document.getElementById("roulette-result-card"),
+            resultPhaseBadge: document.getElementById("result-phase-badge"),
+            resultMovieName: document.getElementById("result-movie-name"),
+            modalWatchBtn: document.getElementById("modal-watch-btn"),
+            modalSpinAgainBtn: document.getElementById("modal-spin-again-btn"),
+            
+            // Actions Modal
+            actionsOverlay: document.getElementById("actions-overlay"),
+            closeActionsBtn: document.getElementById("close-actions-btn"),
+            actionAllWatchedBtn: document.getElementById("action-all-watched"),
+            actionClearAllBtn: document.getElementById("action-clear-all"),
+            actionExportBtn: document.getElementById("action-export"),
+            actionImportBtn: document.getElementById("action-import"),
+            importFileInput: document.getElementById("import-file-input"),
+            
+            // Toast
+            toast: document.getElementById("toast-notification"),
+            toastMessage: document.getElementById("toast-message")
+        };
 
-            // Add new sort class to the clicked header
-            header.classList.add(newSortDir);
-
-            rows.sort((a, b) => {
-                let x = a.cells[n].innerText;
-                let y = b.cells[n].innerText;
-
-                // Handle date sorting
-                if (n === 2) { // Assuming Release Date is the 3rd column (index 2)
-                    x = new Date(x);
-                    y = new Date(y);
-                }
-                // Handle numeric sorting for Budget, Box Office, IMDb Score
-                else if (n === 3 || n === 4 || n === 5 || n === 6) {
-                    x = parseFloat(x.replace(/[^0-9.-]+/g, ""));
-                    y = parseFloat(y.replace(/[^0-9.-]+/g, ""));
-                    // Handle N/A values for numeric columns
-                    x = isNaN(x) ? (newSortDir === "asc" ? -Infinity : Infinity) : x;
-                    y = isNaN(y) ? (newSortDir === "asc" ? -Infinity : Infinity) : y;
-                }
-
-                if (newSortDir === "asc") {
-                    return x > y ? 1 : -1;
-                } else {
-                    return x < y ? 1 : -1;
-                }
-            });
-
-            rows.forEach(row => table.querySelector("tbody").appendChild(row));
-        }
-
-        document.addEventListener("DOMContentLoaded", function () {
-            const tableBody = document.getElementById("table-body");
-
-            // Delegate change events to checkboxes within the table body
-            tableBody.addEventListener("change", function (event) {
-                if (event.target.matches("input[type='checkbox']")) {
-                    localStorage.setItem(event.target.id, event.target.checked);
-                }
-            });
+        // Initial Data Fetch
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch('mcu.json')
+                .then(response => response.json())
+                .then(data => {
+                    state.movies = data;
+                    initializeChecklistStates();
+                    render();
+                    setupEventListeners();
+                })
+                .catch(error => {
+                    console.error('Error loading movie database:', error);
+                    showToast("⚠️ Failed to load MCU movie database.", "red");
+                });
         });
 
-        let movies = [];
+        // Initialize state of checklist from LocalStorage
+        function initializeChecklistStates() {
+            state.movies.forEach(movie => {
+                const storedValue = localStorage.getItem(movie.id);
+                // Assign boolean status based on localstorage
+                movie.watched = storedValue === "true";
+            });
+        }
 
-        fetch('mcu.json')
-            .then(response => response.json())
-            .then(data => {
-                movies = data;
-                populateTable();
-            })
-            .catch(error => console.error('Error loading movie data:', error));
+        // Render everything based on state
+        function render() {
+            // Get filtered and sorted list of movies
+            const processedMovies = getFilteredAndSortedMovies();
 
-        function populateTable() {
-            const tableBody = document.getElementById("table-body");
-            tableBody.innerHTML = "";
+            // Calculate Dashboard Stats
+            calculateStatistics();
 
-            let rowsHtml = [];
-            movies.forEach(movie => {
-                const row = `<tr>
-                    <td><input type="checkbox" id="${movie.id}" ${localStorage.getItem(movie.id) === "true" ? "checked" : ""}></td>
-                    <td>${movie.name}</td>
-                    <td>${movie.releaseDate}</td>
-                    <td>${movie.phase}</td>
-                    <td>${movie.budget !== null ? movie.budget : "N/A"}</td>
-                    <td>${movie.boxOffice !== null ? movie.boxOffice : "N/A"}</td>
+            // Update View Modes Visibility
+            if (processedMovies.length === 0) {
+                DOM.moviesGridView.classList.add("hidden");
+                DOM.moviesTableView.classList.add("hidden");
+                DOM.emptyState.classList.remove("hidden");
+            } else {
+                DOM.emptyState.classList.add("hidden");
+                
+                if (state.viewMode === "grid") {
+                    DOM.moviesGridView.classList.remove("hidden");
+                    DOM.moviesTableView.classList.add("hidden");
+                    renderGridView(processedMovies);
+                } else {
+                    DOM.moviesGridView.classList.add("hidden");
+                    DOM.moviesTableView.classList.remove("hidden");
+                    renderTableView(processedMovies);
+                }
+            }
+        }
+
+        // Apply filters (search, phase, watched) and sorting
+        function getFilteredAndSortedMovies() {
+            let result = [...state.movies];
+
+            // 1. Search Query Filter
+            if (state.filters.search) {
+                const q = state.filters.search.toLowerCase();
+                result = result.filter(m => m.name.toLowerCase().includes(q));
+            }
+
+            // 2. Checklist Status Filter
+            if (state.filters.checklist === "watched") {
+                result = result.filter(m => m.watched);
+            } else if (state.filters.checklist === "unwatched") {
+                result = result.filter(m => !m.watched);
+            }
+
+            // 3. Phase Filter
+            if (state.filters.phase !== "all") {
+                const p = parseInt(state.filters.phase, 10);
+                result = result.filter(m => m.phase === p);
+            }
+
+            // 4. Sorting logic
+            result.sort((a, b) => {
+                let valA, valB;
+                
+                switch(state.sort.column) {
+                    case 1: // Title
+                        valA = a.name.toLowerCase();
+                        valB = b.name.toLowerCase();
+                        break;
+                    case 2: // Release Date
+                        valA = new Date(a.releaseDate);
+                        valB = new Date(b.releaseDate);
+                        break;
+                    case 3: // Phase
+                        valA = a.phase;
+                        valB = b.phase;
+                        break;
+                    case 4: // Budget
+                        valA = a.budget !== null ? a.budget : (state.sort.direction === "asc" ? Infinity : -Infinity);
+                        valB = b.budget !== null ? b.budget : (state.sort.direction === "asc" ? Infinity : -Infinity);
+                        break;
+                    case 5: // Box Office
+                        valA = a.boxOffice !== null ? a.boxOffice : (state.sort.direction === "asc" ? Infinity : -Infinity);
+                        valB = b.boxOffice !== null ? b.boxOffice : (state.sort.direction === "asc" ? Infinity : -Infinity);
+                        break;
+                    case 6: // IMDb
+                        valA = a.imdbScore !== null ? a.imdbScore : (state.sort.direction === "asc" ? Infinity : -Infinity);
+                        valB = b.imdbScore !== null ? b.imdbScore : (state.sort.direction === "asc" ? Infinity : -Infinity);
+                        break;
+                    default:
+                        valA = new Date(a.releaseDate);
+                        valB = new Date(b.releaseDate);
+                }
+
+                if (valA < valB) return state.sort.direction === "asc" ? -1 : 1;
+                if (valA > valB) return state.sort.direction === "asc" ? 1 : -1;
+                return 0;
+            });
+
+            return result;
+        }
+
+        // Render Card/Grid view
+        function renderGridView(moviesList) {
+            DOM.moviesGridView.innerHTML = "";
+            
+            moviesList.forEach(movie => {
+                const card = document.createElement("div");
+                card.className = `movie-card ${movie.watched ? 'watched' : ''}`;
+                card.id = `card-${movie.id}`;
+                
+                // Construct inner structure
+                card.innerHTML = `
+                    <div class="card-badge-row">
+                        <span class="phase-badge phase-${movie.phase}">Phase ${movie.phase}</span>
+                        <label class="checkbox-wrapper" title="${movie.watched ? 'Mark as unwatched' : 'Mark as watched'}">
+                            <input type="checkbox" data-movie-id="${movie.id}" ${movie.watched ? 'checked' : ''}>
+                            <span class="checkbox-custom"></span>
+                        </label>
+                    </div>
+                    
+                    <h3 class="movie-title" title="${movie.name}">${movie.name}</h3>
+                    
+                    <div class="movie-release">
+                        <span>📅</span> ${formatDisplayDate(movie.releaseDate)}
+                    </div>
+                    
+                    <div class="card-stats-grid">
+                        <div class="card-stat">
+                            <span class="card-stat-label">Budget</span>
+                            <span class="card-stat-value">${movie.budget !== null ? '$' + movie.budget + 'M' : 'N/A'}</span>
+                        </div>
+                        <div class="card-stat">
+                            <span class="card-stat-label">Gross</span>
+                            <span class="card-stat-value">${movie.boxOffice !== null ? '$' + formatNumber(movie.boxOffice) + 'M' : 'N/A'}</span>
+                        </div>
+                        <div class="card-stat">
+                            <span class="card-stat-label">IMDb</span>
+                            <span class="card-stat-value value-imdb">${movie.imdbScore !== null ? movie.imdbScore.toFixed(1) : 'N/A'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <a href="https://www.imdb.com/title/${movie.imdbId}" class="imdb-link" target="_blank" rel="noopener noreferrer">
+                            <span class="imdb-badge">IMDb</span>
+                            <span>View Details ↗</span>
+                        </a>
+                    </div>
+                `;
+                
+                DOM.moviesGridView.appendChild(card);
+            });
+        }
+
+        // Render Table view
+        function renderTableView(moviesList) {
+            DOM.tableBody.innerHTML = "";
+
+            moviesList.forEach(movie => {
+                const row = document.createElement("tr");
+                row.className = movie.watched ? 'row-watched' : '';
+                row.id = `row-${movie.id}`;
+
+                row.innerHTML = `
                     <td>
-                        <a href="https://www.imdb.com/title/${movie.imdbId}" target="_blank" rel="noopener noreferrer">
-                            ${movie.imdbScore !== null ? movie.imdbScore.toFixed(1) : "N/A"}
+                        <label class="checkbox-wrapper" style="margin: 0 auto; display: block; width: fit-content;">
+                            <input type="checkbox" data-movie-id="${movie.id}" ${movie.watched ? 'checked' : ''}>
+                            <span class="checkbox-custom"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <span class="table-movie-title">${movie.name}</span>
+                    </td>
+                    <td>${formatDisplayDate(movie.releaseDate)}</td>
+                    <td>
+                        <span class="phase-badge phase-${movie.phase}">Phase ${movie.phase}</span>
+                    </td>
+                    <td>${movie.budget !== null ? '$' + movie.budget + 'M' : 'N/A'}</td>
+                    <td>${movie.boxOffice !== null ? '$' + formatNumber(movie.boxOffice) + 'M' : 'N/A'}</td>
+                    <td>
+                        <a href="https://www.imdb.com/title/${movie.imdbId}" target="_blank" rel="noopener noreferrer" style="color: var(--gold); text-decoration: none; font-weight: 600;">
+                            ⭐ ${movie.imdbScore !== null ? movie.imdbScore.toFixed(1) : 'N/A'}
                         </a>
                     </td>
-                    </tr>`;
-                rowsHtml.push(row);
+                `;
+
+                DOM.tableBody.appendChild(row);
             });
-            tableBody.innerHTML = rowsHtml.join('');
+        }
+
+        // Helper: Format Dates to elegant localized format
+        function formatDisplayDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+        }
+
+        // Helper: Format massive box office earnings
+        function formatNumber(num) {
+            return num.toLocaleString('en-US');
+        }
+
+        // Calculate Dashboard Stats Card values
+        function calculateStatistics() {
+            const totalMovies = state.movies.length;
+            const watchedMovies = state.movies.filter(m => m.watched);
+            const watchedCount = watchedMovies.length;
+            
+            // Progress Bar Calculation
+            DOM.statsProgressText.innerText = `${watchedCount} / ${totalMovies}`;
+            const percentage = totalMovies > 0 ? Math.round((watchedCount / totalMovies) * 100) : 0;
+            DOM.statsPercentageText.innerText = `${percentage}% Completed`;
+            DOM.statsProgressFill.style.width = `${percentage}%`;
+
+            // Box Office & Budget
+            let totalBudget = 0;
+            let totalBoxOffice = 0;
+            let ratedMoviesCount = 0;
+            let totalImdbScore = 0;
+
+            watchedMovies.forEach(m => {
+                if (m.budget !== null) totalBudget += m.budget;
+                if (m.boxOffice !== null) totalBoxOffice += m.boxOffice;
+                if (m.imdbScore !== null) {
+                    ratedMoviesCount++;
+                    totalImdbScore += m.imdbScore;
+                }
+            });
+
+            // Format stats box office
+            if (totalBoxOffice >= 1000) {
+                DOM.statsBoxOfficeText.innerText = `$${(totalBoxOffice / 1000).toFixed(2)}B`;
+            } else {
+                DOM.statsBoxOfficeText.innerText = `$${totalBoxOffice}M`;
+            }
+            DOM.statsBudgetText.innerText = `Cost: $${totalBudget}M Budget`;
+
+            // ROI & Net profit calculation
+            const profit = totalBoxOffice - totalBudget;
+            if (profit >= 1000) {
+                DOM.statsProfitText.innerText = `Profit: +$${(profit / 1000).toFixed(2)}B`;
+            } else {
+                DOM.statsProfitText.innerText = `Profit: +$${profit}M`;
+            }
+
+            const roi = totalBudget > 0 ? (totalBoxOffice / totalBudget) : 0;
+            DOM.statsRoiText.innerText = `${roi.toFixed(1)}x`;
+
+            // IMDb calculation
+            const avgImdb = ratedMoviesCount > 0 ? (totalImdbScore / ratedMoviesCount).toFixed(1) : "0.0";
+            DOM.statsImdbText.innerText = avgImdb;
+        }
+
+        // Handle Checkbox Selection Changes
+        function handleCheckToggle(movieId, isChecked) {
+            // Find movie in local list and toggle state
+            const movieIndex = state.movies.findIndex(m => m.id === movieId);
+            if (movieIndex !== -1) {
+                state.movies[movieIndex].watched = isChecked;
+                localStorage.setItem(movieId, isChecked);
+
+                // Instantly play a tiny visual animation feedback on checked element
+                const cardEl = document.getElementById(`card-${movieId}`);
+                const rowEl = document.getElementById(`row-${movieId}`);
+                
+                if (isChecked) {
+                    if (cardEl) cardEl.classList.add("watched");
+                    if (rowEl) rowEl.classList.add("row-watched");
+                    showToast(`🛡️ Added "${state.movies[movieIndex].name}" to your watched list!`);
+                } else {
+                    if (cardEl) cardEl.classList.remove("watched");
+                    if (rowEl) rowEl.classList.remove("row-watched");
+                }
+
+                // Recalculate stats without fully re-rendering lists
+                calculateStatistics();
+            }
+        }
+
+        // Table Column Header Sort Trigger
+        function handleTableSort(colIndex) {
+            // If already sorting by this column, flip direction
+            if (state.sort.column === colIndex) {
+                state.sort.direction = state.sort.direction === "asc" ? "desc" : "asc";
+            } else {
+                state.sort.column = colIndex;
+                state.sort.direction = "asc"; // Reset to ascending
+            }
+
+            // Sync visual sorts classes in the th
+            const headers = DOM.table.querySelectorAll("th");
+            headers.forEach((th, idx) => {
+                th.classList.remove("asc", "desc");
+                if (idx === colIndex) {
+                    th.classList.add(state.sort.direction);
+                }
+            });
+
+            render();
+        }
+
+        // Setup UI & Control Event Listeners
+        function setupEventListeners() {
+            // Checkbox event delegation for both table and grid views
+            document.addEventListener("change", (e) => {
+                if (e.target.matches("input[type='checkbox'][data-movie-id]")) {
+                    const movieId = e.target.dataset.movieId;
+                    handleCheckToggle(movieId, e.target.checked);
+                    
+                    // Keep checkboxes in sync if both views exist in DOM
+                    const syncBoxes = document.querySelectorAll(`input[type='checkbox'][data-movie-id='${movieId}']`);
+                    syncBoxes.forEach(box => {
+                        box.checked = e.target.checked;
+                    });
+                }
+            });
+
+            // Live Search Bar Input
+            DOM.searchInput.addEventListener("input", (e) => {
+                state.filters.search = e.target.value;
+                render();
+            });
+
+            // Clear Search Button
+            DOM.clearSearchBtn.addEventListener("click", () => {
+                DOM.searchInput.value = "";
+                state.filters.search = "";
+                render();
+                DOM.searchInput.focus();
+            });
+
+            // Checklist Filter Buttons
+            const filterBtns = [DOM.filterAllBtn, DOM.filterWatchedBtn, DOM.filterUnwatchedBtn];
+            filterBtns.forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    filterBtns.forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    state.filters.checklist = btn.dataset.checklist;
+                    render();
+                });
+            });
+
+            // Phase Click Filter Selector Panels
+            DOM.phaseSelectors.addEventListener("click", (e) => {
+                const tag = e.target.closest(".phase-tag");
+                if (tag) {
+                    DOM.phaseSelectors.querySelectorAll(".phase-tag").forEach(t => t.classList.remove("active"));
+                    tag.classList.add("active");
+                    state.filters.phase = tag.dataset.phase;
+                    render();
+                }
+            });
+
+            // Interactive Phase Card Click
+            // Clicking "Progress Tracker" filters unwatched, "Box office/roi" filters watched.
+            document.getElementById("stat-progress-card").addEventListener("click", () => {
+                DOM.filterWatchedBtn.click();
+            });
+
+            // View Switcher (Grid / Table toggle)
+            DOM.viewGridBtn.addEventListener("click", () => {
+                DOM.viewGridBtn.classList.add("active");
+                DOM.viewTableBtn.classList.remove("active");
+                state.viewMode = "grid";
+                render();
+            });
+
+            DOM.viewTableBtn.addEventListener("click", () => {
+                DOM.viewTableBtn.classList.add("active");
+                DOM.viewGridBtn.classList.remove("active");
+                state.viewMode = "table";
+                render();
+            });
+
+            // Roulette Selector Trigger
+            DOM.rouletteTriggerBtn.addEventListener("click", () => {
+                openRouletteWheel();
+            });
+
+            DOM.modalSpinAgainBtn.addEventListener("click", () => {
+                openRouletteWheel();
+            });
+
+            DOM.closeModalBtn.addEventListener("click", () => {
+                DOM.rouletteModal.classList.remove("active");
+            });
+
+            // More Actions Trigger
+            DOM.actionMoreBtn.addEventListener("click", () => {
+                DOM.actionsOverlay.classList.add("active");
+            });
+
+            DOM.closeActionsBtn.addEventListener("click", () => {
+                DOM.actionsOverlay.classList.remove("active");
+            });
+
+            // Bulk actions inside overlay
+            DOM.actionAllWatchedBtn.addEventListener("click", () => {
+                if (confirm("Are you sure you want to mark ALL MCU movies as watched?")) {
+                    state.movies.forEach(m => {
+                        m.watched = true;
+                        localStorage.setItem(m.id, "true");
+                    });
+                    render();
+                    DOM.actionsOverlay.classList.remove("active");
+                    showToast("🦸 Incredible! You marked all films as watched!");
+                }
+            });
+
+            DOM.actionClearAllBtn.addEventListener("click", () => {
+                if (confirm("Reset checklist? This clears all your watched progress.")) {
+                    state.movies.forEach(m => {
+                        m.watched = false;
+                        localStorage.removeItem(m.id);
+                    });
+                    render();
+                    DOM.actionsOverlay.classList.remove("active");
+                    showToast("🔄 MCU progress reset successfully.");
+                }
+            });
+
+            // Export local progress config
+            DOM.actionExportBtn.addEventListener("click", () => {
+                const checkedStates = {};
+                state.movies.forEach(m => {
+                    checkedStates[m.id] = m.watched;
+                });
+                
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(checkedStates, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", "mcu-checklist-progress.json");
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+                
+                showToast("📥 Exported checklist config file!");
+                DOM.actionsOverlay.classList.remove("active");
+            });
+
+            // Trigger hidden input selector
+            DOM.actionImportBtn.addEventListener("click", () => {
+                DOM.importFileInput.click();
+            });
+
+            DOM.importFileInput.addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const fileReader = new FileReader();
+                fileReader.onload = function(evt) {
+                    try {
+                        const parsedData = JSON.parse(evt.target.result);
+                        Object.keys(parsedData).forEach(key => {
+                            const isWatched = parsedData[key] === true;
+                            localStorage.setItem(key, isWatched);
+                            
+                            const match = state.movies.find(m => m.id === key);
+                            if (match) match.watched = isWatched;
+                        });
+                        
+                        render();
+                        showToast("🎉 Checklist imported successfully!");
+                        DOM.actionsOverlay.classList.remove("active");
+                    } catch(err) {
+                        alert("Error parsing file. Make sure it is a valid checklist export JSON.");
+                    }
+                };
+                fileReader.readAsText(file);
+            });
+        }
+
+        // Open Random Suggest Watch Roulette Overlay
+        let currentSuggestedMovieId = null;
+
+        function openRouletteWheel() {
+            // Find possible movies (prioritize unwatched)
+            let eligibleMovies = state.movies.filter(m => !m.watched);
+            let isAllWatched = false;
+
+            if (eligibleMovies.length === 0) {
+                // If everything is watched, choose from any movie
+                eligibleMovies = [...state.movies];
+                isAllWatched = true;
+            }
+
+            if (eligibleMovies.length === 0) {
+                showToast("⚠️ MCU database is empty.", "red");
+                return;
+            }
+
+            // Select a random movie
+            const chosenMovie = eligibleMovies[Math.floor(Math.random() * eligibleMovies.length)];
+            currentSuggestedMovieId = chosenMovie.id;
+
+            // Reset layout
+            DOM.rouletteResultCard.classList.remove("show");
+            DOM.spinnerTrack.innerHTML = "";
+            DOM.spinnerTrack.style.transition = "none";
+            DOM.spinnerTrack.style.top = "0px";
+            
+            // Generate list item values to scroll through (20 items, landing on 18th)
+            const listSize = 20;
+            const chosenLandingIndex = 17; // zero-indexed 18th position
+            
+            const wheelList = [];
+            for (let i = 0; i < listSize; i++) {
+                if (i === chosenLandingIndex) {
+                    wheelList.push(chosenMovie);
+                } else {
+                    // Pick a random alternative movie
+                    const randomAlt = state.movies[Math.floor(Math.random() * state.movies.length)];
+                    wheelList.push(randomAlt);
+                }
+            }
+
+            // Fill Spinner elements
+            wheelList.forEach((movie, index) => {
+                const item = document.createElement("div");
+                item.className = `spinner-item ${index === chosenLandingIndex ? 'chosen' : ''}`;
+                item.innerText = movie.name;
+                DOM.spinnerTrack.appendChild(item);
+            });
+
+            // Open Modal Overlay
+            DOM.rouletteModal.classList.add("active");
+
+            // Trigger animation thread next tick
+            setTimeout(() => {
+                DOM.spinnerTrack.style.transition = "top 3.5s cubic-bezier(0.1, 0.8, 0.1, 1)";
+                // Each item is 60px high, we want to center the 18th element (index 17).
+                // Container height is 120px, so 30px offset gives perfect middle alignment:
+                DOM.spinnerTrack.style.top = `${-chosenLandingIndex * 60 + 30}px`;
+            }, 50);
+
+            // Animate reveal of result card details
+            setTimeout(() => {
+                DOM.resultPhaseBadge.innerText = `Phase ${chosenMovie.phase}`;
+                DOM.resultPhaseBadge.className = `result-tag phase-${chosenMovie.phase}`;
+                DOM.resultMovieName.innerText = chosenMovie.name;
+                
+                // Show modal options
+                DOM.rouletteResultCard.classList.add("show");
+                
+                // Set text on modal watched button
+                if (chosenMovie.watched) {
+                    DOM.modalWatchBtn.innerText = "Watched (Click to toggle)";
+                    DOM.modalWatchBtn.style.background = "var(--green)";
+                } else {
+                    DOM.modalWatchBtn.innerText = "Mark as Watched";
+                    DOM.modalWatchBtn.style.background = "var(--primary)";
+                }
+            }, 3600);
+        }
+
+        // Watch Toggle Button Inside Modal Result Detail
+        DOM.modalWatchBtn.addEventListener("click", () => {
+            if (!currentSuggestedMovieId) return;
+
+            const movie = state.movies.find(m => m.id === currentSuggestedMovieId);
+            if (movie) {
+                const newStatus = !movie.watched;
+                handleCheckToggle(currentSuggestedMovieId, newStatus);
+                
+                // Synchronize lists in DOM
+                const syncBoxes = document.querySelectorAll(`input[type='checkbox'][data-movie-id='${currentSuggestedMovieId}']`);
+                syncBoxes.forEach(box => box.checked = newStatus);
+
+                // Update modal watched button appearance
+                if (newStatus) {
+                    DOM.modalWatchBtn.innerText = "Watched ✔️";
+                    DOM.modalWatchBtn.style.background = "var(--green)";
+                    DOM.modalWatchBtn.style.boxShadow = "0 4px 12px var(--green-glow)";
+                } else {
+                    DOM.modalWatchBtn.innerText = "Mark as Watched";
+                    DOM.modalWatchBtn.style.background = "var(--primary)";
+                    DOM.modalWatchBtn.style.boxShadow = "0 4px 12px var(--primary-glow)";
+                }
+                
+                // Keep progress calculations in sync
+                calculateStatistics();
+            }
+        });
+
+        // Flash message Toast
+        let toastTimeout = null;
+        function showToast(message, variant = "default") {
+            DOM.toastMessage.innerText = message;
+            DOM.toast.className = "toast show";
+            
+            if (variant === "red") {
+                DOM.toast.style.borderColor = "var(--primary)";
+                DOM.toast.style.boxShadow = "var(--shadow-lg), 0 0 20px rgba(226, 54, 54, 0.4)";
+            } else {
+                DOM.toast.style.borderColor = "var(--green)";
+                DOM.toast.style.boxShadow = "var(--shadow-lg), 0 0 20px rgba(74, 222, 128, 0.4)";
+            }
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                DOM.toast.classList.remove("show");
+            }, 3000);
         }
     </script>
-
 </body>
 
 </html>
