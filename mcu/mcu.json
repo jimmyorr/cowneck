@@ -351,12 +351,12 @@
     },
     {
         "id": "thunderbolts",
-        "name": "Thunderbolts",
+        "name": "Thunderbolts*",
         "releaseDate": "2025-05-02",
         "phase": 5,
         "budget": 180,
-        "boxOffice": 353,
-        "imdbScore": 7.6,
+        "boxOffice": 382.4,
+        "imdbScore": 7.8,
         "imdbId": "tt20969586"
     },
     {
@@ -365,8 +365,38 @@
         "releaseDate": "2025-07-25",
         "phase": 6,
         "budget": 200,
-        "boxOffice": 521.4,
+        "boxOffice": 520.6,
         "imdbScore": 6.5,
         "imdbId": "tt10676052"
+    },
+    {
+        "id": "spider-man-brand-new-day",
+        "name": "Spider-Man: Brand New Day",
+        "releaseDate": "2026-07-31",
+        "phase": 6,
+        "budget": null,
+        "boxOffice": null,
+        "imdbScore": null,
+        "imdbId": null
+    },
+    {
+        "id": "avengers-doomsday",
+        "name": "Avengers: Doomsday",
+        "releaseDate": "2026-12-18",
+        "phase": 6,
+        "budget": null,
+        "boxOffice": null,
+        "imdbScore": null,
+        "imdbId": "tt21650376"
+    },
+    {
+        "id": "avengers-secret-wars",
+        "name": "Avengers: Secret Wars",
+        "releaseDate": "2027-12-17",
+        "phase": 6,
+        "budget": null,
+        "boxOffice": null,
+        "imdbScore": null,
+        "imdbId": "tt11813216"
     }
 ]
