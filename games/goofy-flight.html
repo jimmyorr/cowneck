@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Goofy Flight: Goofland Carnival Edition</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #111;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif;
+            user-select: none;
+            touch-action: none;
+        }
+
+        #game-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+            color: white;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px 25px;
+            border-radius: 20px;
+            border: 3px solid white;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(5px);
+        }
+
+        #info-box {
+            font-size: 16px;
+            color: #FFF;
+            margin-top: 10px;
+        }
+
+        #score {
+            font-size: 32px;
+            font-weight: bold;
+            color: #00FFCC;
+        }
+
+        #health {
+            font-size: 24px;
+            color: #FF69B4;
+            margin-top: 10px;
+        }
+
+        .nitro-container {
+            width: 300px;
+            background: #333;
+            border-radius: 15px;
+            border: 3px solid #FFF;
+            height: 30px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 15px #FF00FF;
+        }
+
+        #nitro-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff);
+            background-size: 400% 400%;
+            animation: gradientBG 2s ease infinite;
+            transition: width 0.1s linear;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .nitro-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 2px black;
+            font-size: 18px;
+            letter-spacing: 1px;
+            width: 100%;
+            text-align: center;
+        }
+
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 4px dotted rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: spin 4s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            color: white;
+            text-align: center;
+            backdrop-filter: blur(8px);
+        }
+
+        h1 {
+            font-size: 72px;
+            color: #00FFCC;
+            text-shadow: 5px 5px 0px #FF00FF, 10px 10px 0px #000;
+            margin-bottom: 5px;
+            transform: rotate(-3deg);
+        }
+
+        h2 {
+            color: #FFD700;
+            margin-top: 0;
+            text-shadow: 3px 3px 0px #000;
+        }
+
+        .instructions {
+            font-size: 22px;
+            margin: 20px;
+            max-width: 650px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 25px;
+            border-radius: 15px;
+            border: 3px dashed #FFF;
+        }
+
+        button {
+            font-family: inherit;
+            font-size: 32px;
+            padding: 15px 50px;
+            background: #FF00FF;
+            color: white;
+            border: 3px solid #FFF;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #8B008B, 0 15px 25px rgba(0, 0, 0, 0.5);
+            transition: all 0.1s;
+            margin-top: 10px;
+        }
+
+        button:active {
+            transform: translateY(8px);
+            box-shadow: 0 0px 0 #8B008B, 0 5px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #game-over-screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(200, 0, 0, 0.6);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .hit-flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: red;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 50;
+            transition: opacity 0.1s;
+        }
+    </style>
+    <!-- Include Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+
+    <div id="game-container"></div>
+    <div class="hit-flash" id="hit-flash"></div>
+
+    <div id="ui-layer" style="display: none;">
+        <div class="hud-top">
+            <div class="stat-box">
+                <div id="score">Score: 0</div>
+                <div id="health">Hull: 100%</div>
+                <div id="info-box">Plane: 1 | Cam: Classic | Biome: Carnival</div>
+            </div>
+            <div class="stat-box">
+                <div class="nitro-container">
+                    <div id="nitro-bar"></div>
+                    <div class="nitro-label">NITRO [SPACEBAR]</div>
+                </div>
+            </div>
+        </div>
+        <div id="crosshair"></div>
+    </div>
+
+    <div id="start-screen">
+        <h1>GOOFY FLIGHT</h1>
+        <h2>Goofland Carnival Edition</h2>
+        <div class="instructions">
+            <p>✈️ Help <b>Goofy Paws the Orange Cat</b> navigate above the world!</p>
+            <p>🐁 <b>Steer:</b> Move Mouse | 🔫 <b>Shoot:</b> Click</p>
+            <p>🚀 <b>Nitro:</b> SPACEBAR | 📷 <b>Camera:</b> C key</p>
+            <p>🛩️ <b>Change Plane:</b> P key</p>
+        </div>
+        <button id="start-btn">TAKE OFF!</button>
+    </div>
+
+    <div id="game-over-screen">
+        <h1 style="color: #FFF; text-shadow: 4px 4px 0px #000;">CRASHED!</h1>
+        <h2 id="final-score" style="font-size: 48px; text-shadow: 2px 2px 0px #000;">Score: 0</h2>
+        <button id="restart-btn">Try Again, Goofball!</button>
+    </div>
+
+    <script>
+        // --- Global Variables ---
+        let scene, camera, renderer;
+        let planes = [];
+        let activePlaneIndex = 0;
+        let plane, propeller;
+        let goofyPawsHead; // Reference for animation
+        let catGroup; // Keep track of Goofy Paws
+        let swirlMat; // Background shader material
+        let gameActive = false;
+        let groundMesh;
+
+        // Camera & Biomes
+        let currentCameraIndex = 0;
+        let currentBiomeIndex = 0;
+        let biomeTimer = 0;
+        const biomes = [
+            { name: "Carnival", color: 0x228822 },
+            { name: "Winter", color: 0xeeeeee },
+            { name: "Desert", color: 0xedc9af },
+            { name: "Ocean", color: 0x1e90ff }
+        ];
+
+        // Game State
+        let score = 0;
+        let health = 100;
+        let nitro = 100;
+        let isNitroActive = false;
+        let baseSpeed = 100;
+        let currentSpeed = baseSpeed;
+
+        // Entities
+        const projectiles = [];
+        const enemies = [];
+        const particles = [];
+        const clouds = [];
+        const sceneryObjects = [];
+        let sceneryPrefabs = [];
+
+        // Input
+        const mouse = new THREE.Vector2();
+        const targetPlanePos = new THREE.Vector3(0, 0, 0);
+        let isShooting = false;
+        let lastShootTime = 0;
+
+        // DOM Elements
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const uiLayer = document.getElementById('ui-layer');
+        const scoreEl = document.getElementById('score');
+        const healthEl = document.getElementById('health');
+        const infoBox = document.getElementById('info-box');
+        const nitroBar = document.getElementById('nitro-bar');
+        const hitFlash = document.getElementById('hit-flash');
+        const clock = new THREE.Clock();
+
+        // --- Initialization ---
+        function init() {
+            // Scene setup
+            scene = new THREE.Scene();
+
+            // High Quality Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            document.getElementById('game-container').appendChild(renderer.domElement);
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 8, 35);
+            camera.lookAt(0, 0, -100);
+
+            // Add Ground Plane for Biomes
+            const groundGeo = new THREE.PlaneGeometry(4000, 4000);
+            const groundMat = new THREE.MeshStandardMaterial({ color: biomes[0].color, roughness: 0.9, metalness: 0.1 });
+            groundMesh = new THREE.Mesh(groundGeo, groundMat);
+            groundMesh.rotation.x = -Math.PI / 2;
+            groundMesh.position.y = -80;
+            groundMesh.receiveShadow = true;
+            scene.add(groundMesh);
+
+            // Swirling Color Background Shader
+            createSwirlBackground();
+
+            // Advanced Lighting
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+            hemiLight.position.set(0, 200, 0);
+            scene.add(hemiLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            dirLight.position.set(100, 150, 50);
+            dirLight.castShadow = true;
+            dirLight.shadow.camera.top = 200;
+            dirLight.shadow.camera.bottom = -200;
+            dirLight.shadow.camera.left = -200;
+            dirLight.shadow.camera.right = 200;
+            dirLight.shadow.camera.far = 1000;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            scene.add(dirLight);
+
+            // Build the World
+            catGroup = createGoofyPaws();
+            createPlanes();
+            createEnvironment();
+            buildSceneryPrefabs();
+            createScenery();
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onMouseMove, false);
+            document.addEventListener('mousedown', () => isShooting = true);
+            document.addEventListener('mouseup', () => isShooting = false);
+
+            // Touch support
+            document.addEventListener('touchmove', (e) => {
+                if (e.touches.length > 0) {
+                    const touch = e.touches[0];
+                    mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
+                }
+            }, { passive: false });
+            document.addEventListener('touchstart', () => isShooting = true, { passive: false });
+            document.addEventListener('touchend', () => isShooting = false);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' && nitro > 0) isNitroActive = true;
+                if (e.code === 'KeyC') switchCamera();
+                if (e.code === 'KeyP') switchPlane();
+            });
+            document.addEventListener('keyup', (e) => {
+                if (e.code === 'Space') isNitroActive = false;
+            });
+
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('restart-btn').addEventListener('click', resetGame);
+
+            // Start Loop
+            animate();
+        }
+
+        function createSwirlBackground() {
+            swirlMat = new THREE.ShaderMaterial({
+                uniforms: { time: { value: 0 } },
+                vertexShader: `
+                varying vec3 vPos;
+                void main() {
+                    vPos = position;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+                fragmentShader: `
+                uniform float time;
+                varying vec3 vPos;
+                void main() {
+                    vec3 p = normalize(vPos);
+                    float a = atan(p.z, p.x); // Angle around Y
+                    float y = p.y;
+                    // Create massive looping swirls
+                    float swirl = a + y * 4.0 + time * 1.2;
+                    vec3 color1 = vec3(1.0, 0.2, 0.6); // Hot Pink
+                    vec3 color2 = vec3(0.0, 1.0, 0.8); // Cyan
+                    vec3 color3 = vec3(0.5, 0.0, 1.0); // Purple
+                    
+                    float mixVal = sin(swirl) * 0.5 + 0.5;
+                    float mixVal2 = cos(swirl * 0.5 - time) * 0.5 + 0.5;
+                    
+                    vec3 finalColor = mix(mix(color1, color2, mixVal), color3, mixVal2);
+                    
+                    // Dim slightly for background contrast
+                    gl_FragColor = vec4(finalColor * 0.7, 1.0);
+                }
+            `,
+                side: THREE.BackSide,
+                depthWrite: false
+            });
+
+            const skyGeo = new THREE.SphereGeometry(900, 32, 32);
+            const sky = new THREE.Mesh(skyGeo, swirlMat);
+            scene.add(sky);
+        }
+
+        // --- Entity Creation ---
+
+        function createGoofyPaws() {
+            const catGroup = new THREE.Group();
+
+            // Materials (Slightly emissive to be seen behind glass)
+            const furMat = new THREE.MeshStandardMaterial({ color: 0xff8c00, roughness: 0.8, emissive: 0xff4500, emissiveIntensity: 0.2 });
+            const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, emissive: 0x444444 });
+            const pinkMat = new THREE.MeshStandardMaterial({ color: 0xff69b4, roughness: 0.4 });
+            const blackMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+            const goggleMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.2 });
+
+            // Head Group (So we can rotate it together)
+            const headGroup = new THREE.Group();
+            headGroup.position.y = 1.0;
+            catGroup.add(headGroup);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 16, 16), furMat);
+            headGroup.add(head);
+
+            // Muzzle
+            const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 16), whiteMat);
+            muzzle.position.set(0, -0.1, -0.6);
+            muzzle.scale.set(1.2, 0.8, 1);
+            headGroup.add(muzzle);
+
+            // Nose
+            const nose = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), pinkMat);
+            nose.position.set(0, 0.05, -0.85);
+            headGroup.add(nose);
+
+            // Eyes
+            const eyeG = new THREE.SphereGeometry(0.12, 8, 8);
+            const eyeL = new THREE.Mesh(eyeG, blackMat); eyeL.position.set(-0.3, 0.2, -0.6);
+            const eyeR = new THREE.Mesh(eyeG, blackMat); eyeR.position.set(0.3, 0.2, -0.6);
+            headGroup.add(eyeL, eyeR);
+
+            // Ears
+            const earG = new THREE.ConeGeometry(0.25, 0.6, 8);
+            const earL = new THREE.Mesh(earG, furMat); earL.position.set(-0.5, 0.5, -0.1); earL.rotation.z = 0.3; earL.rotation.x = -0.2;
+            const earR = new THREE.Mesh(earG, furMat); earR.position.set(0.5, 0.5, -0.1); earR.rotation.z = -0.3; earR.rotation.x = -0.2;
+            headGroup.add(earL, earR);
+
+            // Pilot Goggles (On forehead)
+            const goggleG = new THREE.CylinderGeometry(0.2, 0.2, 0.15, 16);
+            goggleG.rotateZ(Math.PI / 2);
+            const goggleL = new THREE.Mesh(goggleG, goggleMat); goggleL.position.set(-0.3, 0.5, -0.65); goggleL.rotation.x = -0.3;
+            const goggleR = new THREE.Mesh(goggleG, goggleMat); goggleR.position.set(0.3, 0.5, -0.65); goggleR.rotation.x = -0.3;
+            const strap = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.05, 8, 16), goggleMat);
+            strap.position.y = 0.4; strap.rotation.x = Math.PI / 2; strap.rotation.y = -0.2;
+            headGroup.add(goggleL, goggleR, strap);
+
+            // Body
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.7, 1.0, 16), furMat);
+            body.position.y = 0.3;
+            catGroup.add(body);
+
+            // Red Scarf
+            const scarfMat = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+            const scarf = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.15, 8, 16), scarfMat);
+            scarf.position.y = 0.75; scarf.rotation.x = Math.PI / 2;
+            catGroup.add(scarf);
+
+            // Tail (Sticking up in back)
+            const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.8, 8), furMat);
+            tail.position.set(0, 0.5, 0.6); tail.rotation.x = -0.5;
+            catGroup.add(tail);
+
+            // Save reference for head tracking
+            goofyPawsHead = headGroup;
+
+            // Cat looks forward (-Z)
+            return catGroup;
+        }
+
+        function switchCamera() {
+            currentCameraIndex = (currentCameraIndex + 1) % 4;
+            updateInfoUI();
+        }
+
+        function switchPlane() {
+            planes[activePlaneIndex].remove(catGroup); // Remove cat from old
+            scene.remove(planes[activePlaneIndex]); // Hide old
+
+            activePlaneIndex = (activePlaneIndex + 1) % planes.length;
+
+            plane = planes[activePlaneIndex]; // Update reference
+            plane.add(catGroup); // Add cat to new
+            // Find propeller of new plane
+            propeller = plane.children.find(c => c.userData.isPropeller);
+            if (!propeller) propeller = new THREE.Group(); // Fallback
+
+            plane.position.copy(targetPlanePos);
+            plane.rotation.set(0, 0, 0);
+            scene.add(plane);
+            updateInfoUI();
+        }
+
+        function createPlanes() {
+            // --- Plane 1: Classic Goofy Plane (Fixed facing direction) ---
+            const p1 = new THREE.Group();
+            const bodyMat1 = new THREE.MeshStandardMaterial({ color: 0xFF1493, roughness: 0.3, metalness: 0.4 });
+            const wingMat1 = new THREE.MeshStandardMaterial({ color: 0x00FFFF, roughness: 0.3, metalness: 0.4 });
+            const propMat1 = new THREE.MeshStandardMaterial({ color: 0xFFFF00, roughness: 0.2, metalness: 0.6 });
+            const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.9, opacity: 1, transparent: true, roughness: 0.05, ior: 1.2 });
+
+            const body1 = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1, 9, 16), bodyMat1);
+            body1.rotateX(Math.PI / 2);
+            body1.castShadow = true; p1.add(body1);
+
+            const cockpit1 = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 16), glassMat);
+            cockpit1.position.set(0, 1.2, -0.5); // Moved back slightly to fit cat facing -Z
+            cockpit1.scale.set(1, 0.85, 1.6);
+            p1.add(cockpit1);
+
+            const wing1 = new THREE.Mesh(new THREE.BoxGeometry(13, 0.4, 3), wingMat1);
+            wing1.position.set(0, 0, -1); wing1.castShadow = true; p1.add(wing1);
+
+            const tail1 = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.3, 1.8), wingMat1);
+            tail1.position.set(0, 0, 4); tail1.castShadow = true; p1.add(tail1); // Tail at +Z (towards camera)
+
+            const rudder1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2.5, 1.8), wingMat1);
+            rudder1.position.set(0, 1.2, 4); rudder1.castShadow = true; p1.add(rudder1);
+
+            const propGroup1 = new THREE.Group();
+            propGroup1.userData.isPropeller = true;
+            const propCenter1 = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), bodyMat1);
+            const blade1 = new THREE.Mesh(new THREE.BoxGeometry(7, 0.2, 0.5), propMat1);
+            propGroup1.add(propCenter1, blade1);
+            propGroup1.position.set(0, 0, -4.6); // Propeller at -Z (away from camera)
+            p1.add(propGroup1);
+
+            // --- Plane 2: The Double Decker ---
+            const p2 = new THREE.Group();
+            const matRed = new THREE.MeshStandardMaterial({ color: 0xFF0000 });
+            const matWhite = new THREE.MeshStandardMaterial({ color: 0xFFFFFF });
+            const body2 = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.5, 8), matRed);
+            p2.add(body2);
+            const wingTop = new THREE.Mesh(new THREE.BoxGeometry(14, 0.2, 3), matWhite); wingTop.position.set(0, 2, -1); p2.add(wingTop);
+            const wingBot = new THREE.Mesh(new THREE.BoxGeometry(14, 0.2, 3), matWhite); wingBot.position.set(0, -1, -1); p2.add(wingBot);
+            const tail2 = new THREE.Mesh(new THREE.BoxGeometry(5, 0.2, 2), matWhite); tail2.position.set(0, 0, 3.5); p2.add(tail2);
+            const rudder2 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2, 2), matRed); rudder2.position.set(0, 1, 3.5); p2.add(rudder2);
+            const propGroup2 = new THREE.Group(); propGroup2.userData.isPropeller = true;
+            const blade2 = new THREE.Mesh(new THREE.BoxGeometry(6, 0.3, 0.2), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+            propGroup2.add(blade2); propGroup2.position.set(0, 0, -4.2); p2.add(propGroup2);
+
+            // --- Plane 3: UFO ---
+            const p3 = new THREE.Group();
+            const matSilver = new THREE.MeshStandardMaterial({ color: 0xAAAAAA, metalness: 0.9, roughness: 0.1 });
+            const matGlow = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
+            const saucer = new THREE.Mesh(new THREE.SphereGeometry(4, 32, 16), matSilver);
+            saucer.scale.set(1, 0.2, 1); p3.add(saucer);
+            const dome = new THREE.Mesh(new THREE.SphereGeometry(1.8, 16, 16), glassMat);
+            dome.position.y = 0.8; p3.add(dome);
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(3.8, 0.2, 8, 32), matGlow);
+            p3.add(ring);
+            const propGroup3 = new THREE.Group(); propGroup3.userData.isPropeller = true; // Invisible spinner for logic
+            p3.add(propGroup3);
+
+            // --- Plane 4: Cardboard Box ---
+            const p4 = new THREE.Group();
+            const matCardboard = new THREE.MeshStandardMaterial({ color: 0xcd853f, roughness: 0.9 }); // Tan
+            const box = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 6), matCardboard); p4.add(box);
+            const bWing = new THREE.Mesh(new THREE.BoxGeometry(10, 0.1, 2), matCardboard); bWing.position.set(0, 0, -1); p4.add(bWing);
+            const bTail = new THREE.Mesh(new THREE.BoxGeometry(4, 0.1, 1.5), matCardboard); bTail.position.set(0, 0.5, 2.5); p4.add(bTail);
+            const propGroup4 = new THREE.Group(); propGroup4.userData.isPropeller = true;
+            const blade4 = new THREE.Mesh(new THREE.BoxGeometry(4, 0.5, 0.1), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+            propGroup4.add(blade4); propGroup4.position.set(0, 0, -3.2); p4.add(propGroup4);
+
+            // Setup Arrays and Defaults
+            planes = [p1, p2, p3, p4];
+
+            // Add Cannons to all planes so they look cool
+            const cannonMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8, roughness: 0.2 });
+            planes.forEach(pl => {
+                const cannon1 = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 1.5, 8).rotateX(Math.PI / 2), cannonMat);
+                cannon1.position.set(2.5, -0.4, -2.5);
+                const cannon2 = cannon1.clone(); cannon2.position.set(-2.5, -0.4, -2.5);
+                pl.add(cannon1, cannon2);
+            });
+
+            // Add Cat to first plane
+            catGroup.position.set(0, 0.5, -0.5); // Adjusted position for forward view
+            plane = planes[0];
+            plane.add(catGroup);
+            propeller = plane.children.find(c => c.userData.isPropeller);
+            scene.add(plane);
+        }
+
+        function buildSceneryPrefabs() {
+            // Carnival (0)
+            const carnival = new THREE.Group();
+            const baseC = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, 3, 16), new THREE.MeshStandardMaterial({ color: 0xFF00FF }));
+            const roofC = new THREE.Mesh(new THREE.ConeGeometry(17, 15, 16), new THREE.MeshStandardMaterial({ color: 0x3333FF }));
+            roofC.position.y = 10;
+            carnival.add(baseC, roofC);
+            sceneryPrefabs[0] = carnival;
+
+            // Winter (1)
+            const winter = new THREE.Group();
+            const wMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.9 });
+            const b1 = new THREE.Mesh(new THREE.SphereGeometry(8, 16, 16), wMat); b1.position.y = 4;
+            const b2 = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 16), wMat); b2.position.y = 14;
+            const b3 = new THREE.Mesh(new THREE.SphereGeometry(3, 16, 16), wMat); b3.position.y = 20;
+            winter.add(b1, b2, b3);
+            sceneryPrefabs[1] = winter;
+
+            // Desert (2)
+            const desert = new THREE.Group();
+            const dMat = new THREE.MeshStandardMaterial({ color: 0xE6C280, roughness: 1.0 }); // Pyramid
+            const pyr = new THREE.Mesh(new THREE.ConeGeometry(25, 30, 4), dMat);
+            pyr.position.y = 15; pyr.rotation.y = Math.PI / 4;
+            desert.add(pyr);
+            sceneryPrefabs[2] = desert;
+
+            // Ocean (3)
+            const ocean = new THREE.Group();
+            const oMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 }); // Boat
+            const hull = new THREE.Mesh(new THREE.BoxGeometry(10, 5, 20), oMat); hull.position.y = 2.5;
+            const sail = new THREE.Mesh(new THREE.BoxGeometry(1, 15, 10), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+            sail.position.y = 12;
+            ocean.add(hull, sail);
+            sceneryPrefabs[3] = ocean;
+        }
+
+        function createScenery() {
+            for (let i = 0; i < 20; i++) {
+                const wrap = new THREE.Group();
+                resetScenery(wrap, true);
+                scene.add(wrap);
+                sceneryObjects.push(wrap);
+            }
+        }
+
+        function resetScenery(obj, initial = false) {
+            // Remove old children
+            while (obj.children.length > 0) { obj.remove(obj.children[0]); }
+
+            // Add new prefab clone based on current biome
+            const clone = sceneryPrefabs[currentBiomeIndex].clone();
+
+            // Randomize slightly
+            clone.scale.setScalar(1 + Math.random());
+            clone.rotation.y = Math.random() * Math.PI * 2;
+            obj.add(clone);
+
+            obj.position.x = (Math.random() - 0.5) * 400;
+            obj.position.y = -80;
+            obj.position.z = initial ? (Math.random() * -1000 - 100) : -1200 - Math.random() * 300;
+        }
+
+        function createEnvironment() {
+            // High altitude fluffy clouds
+            const cloudGeo = new THREE.DodecahedronGeometry(5, 1);
+            const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true, roughness: 1.0 });
+
+            for (let i = 0; i < 30; i++) {
+                const cloud = new THREE.Mesh(cloudGeo, cloudMat);
+                for (let j = 0; j < 3; j++) {
+                    const puff = new THREE.Mesh(new THREE.DodecahedronGeometry(3 + Math.random() * 3, 1), cloudMat);
+                    puff.position.set(Math.random() * 5 - 2.5, Math.random() * 3 - 1.5, Math.random() * 5 - 2.5);
+                    cloud.add(puff);
+                }
+                cloud.position.x = (Math.random() - 0.5) * 300;
+                cloud.position.y = (Math.random() - 0.5) * 80 + 30; // Above carnival, around plane
+                cloud.position.z = (Math.random() * -800);
+                cloud.scale.setScalar(1 + Math.random() * 1.5);
+                cloud.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+                scene.add(cloud);
+                clouds.push(cloud);
+            }
+        }
+
+        function spawnEnemy() {
+            if (!gameActive) return;
+
+            // GOOFY JELLY (Obstacle / Target for Nitro)
+            const jellyGeo = new THREE.IcosahedronGeometry(4 + Math.random() * 2, 2);
+            const jellyMat = new THREE.MeshPhysicalMaterial({
+                color: Math.random() > 0.5 ? 0x00FF00 : 0xFF00FF, // Green or Magenta
+                transparent: true, opacity: 0.85, roughness: 0.1, transmission: 0.5,
+                flatShading: true, emissive: 0x222222
+            });
+            const jelly = new THREE.Mesh(jellyGeo, jellyMat);
+            jelly.type = 'jelly';
+            jelly.radius = jelly.geometry.parameters.radius;
+            jelly.wobbleSpeed = 2 + Math.random() * 3;
+            jelly.seed = Math.random() * 100;
+
+            // Spawn position ahead
+            jelly.position.set(
+                (Math.random() - 0.5) * 100,
+                (Math.random() - 0.5) * 70 + 10,
+                -400
+            );
+
+            scene.add(jelly);
+            enemies.push(jelly);
+
+            // Schedule next spawn based on speed
+            const spawnDelay = isNitroActive ? 250 : 600;
+            setTimeout(spawnEnemy, spawnDelay + Math.random() * 400);
+        }
+
+        function fireSillyString() {
+            const time = performance.now();
+            if (time - lastShootTime < 90) return; // Fire rate
+            lastShootTime = time;
+
+            const colors = [0xFF00FF, 0x00FFFF, 0xFFFF00, 0x00FF00, 0xFF4500];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+
+            // Squiggly neon string
+            const stringGroup = new THREE.Group();
+            const mat = new THREE.MeshBasicMaterial({ color: color }); // Glow effect
+            const geo = new THREE.SphereGeometry(0.35, 8, 8);
+
+            for (let i = 0; i < 6; i++) {
+                const blob = new THREE.Mesh(geo, mat);
+                blob.position.set(
+                    Math.sin(i * 1.5) * 0.5,
+                    Math.cos(i * 1.5) * 0.5,
+                    -i * 0.9
+                );
+                stringGroup.add(blob);
+            }
+
+            // Spawn from cannons
+            const offsets = [[2.5, -0.4, -2.5], [-2.5, -0.4, -2.5]];
+
+            offsets.forEach(offset => {
+                const proj = stringGroup.clone();
+                proj.position.copy(plane.position);
+                proj.position.x += offset[0];
+                proj.position.y += offset[1];
+                proj.position.z += offset[2];
+
+                proj.userData = { velocity: new THREE.Vector3(0, 0, -200 - currentSpeed) };
+
+                scene.add(proj);
+                projectiles.push(proj);
+            });
+
+            createParticles(plane.position, color, 6, 0.6); // muzzle flash
+        }
+
+        function createParticles(position, color, count, speed) {
+            const pGeo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+            const pMat = new THREE.MeshBasicMaterial({ color: color, transparent: true });
+
+            for (let i = 0; i < count; i++) {
+                const particle = new THREE.Mesh(pGeo, pMat);
+                particle.position.copy(position);
+                particle.position.x += (Math.random() - 0.5) * 3;
+                particle.position.y += (Math.random() - 0.5) * 3;
+                particle.position.z += (Math.random() - 0.5) * 3;
+
+                const velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * speed,
+                    (Math.random() - 0.5) * speed,
+                    (Math.random() - 0.5) * speed
+                );
+
+                scene.add(particle);
+                particles.push({ mesh: particle, velocity: velocity, life: 1.0 });
+            }
+        }
+
+        // --- Game Logic ---
+
+        function onMouseMove(event) {
+            // Normalize mouse coordinates (-1 to +1)
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            uiLayer.style.display = 'flex';
+            resetStats();
+            gameActive = true;
+            spawnEnemy();
+        }
+
+        function resetGame() {
+            gameOverScreen.style.display = 'none';
+
+            // Clear entities
+            enemies.forEach(e => scene.remove(e));
+            enemies.length = 0;
+            projectiles.forEach(p => scene.remove(p));
+            projectiles.length = 0;
+
+            resetStats();
+            plane.position.set(0, 0, 0);
+            plane.rotation.set(0, 0, 0);
+            gameActive = true;
+            spawnEnemy();
+        }
+
+        function resetStats() {
+            score = 0;
+            health = 100;
+            nitro = 100;
+            updateUI();
+            updateInfoUI();
+        }
+
+        function updateUI() {
+            scoreEl.innerText = `Score: ${score}`;
+            healthEl.innerText = `Hull: ${health}%`;
+            healthEl.style.color = health > 50 ? '#FF69B4' : '#FF0000';
+            nitroBar.style.width = `${nitro}%`;
+        }
+
+        function updateInfoUI() {
+            if (!infoBox) return;
+            const camNames = ["Classic", "Cockpit", "Top-Down", "Side View"];
+            infoBox.innerText = `Plane: ${activePlaneIndex + 1} | Cam: ${camNames[currentCameraIndex]} | Biome: ${biomes[currentBiomeIndex].name}`;
+        }
+
+        function takeDamage(amount) {
+            health -= amount;
+            hitFlash.style.opacity = '0.4';
+            setTimeout(() => hitFlash.style.opacity = '0', 100);
+
+            if (health <= 0) {
+                health = 0;
+                gameOver();
+            }
+            updateUI();
+        }
+
+        function gameOver() {
+            gameActive = false;
+            createParticles(plane.position, 0xFF4500, 60, 3); // Big explosion
+            plane.position.y = -1000; // hide plane
+            gameOverScreen.style.display = 'flex';
+            document.getElementById('final-score').innerText = `Score: ${score}`;
+        }
+
+        // --- Main Loop ---
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const dt = clock.getDelta();
+            const time = clock.getElapsedTime();
+
+            // Update Shader Background
+            if (swirlMat) swirlMat.uniforms.time.value = time;
+
+            if (gameActive) {
+                // -- Biome Logic --
+                biomeTimer += dt;
+                if (biomeTimer > 15) { // Switch biome every 15 seconds
+                    biomeTimer = 0;
+                    currentBiomeIndex = (currentBiomeIndex + 1) % biomes.length;
+                    updateInfoUI();
+                }
+                // Smoothly transition ground color
+                groundMesh.material.color.lerp(new THREE.Color(biomes[currentBiomeIndex].color), 0.015);
+
+                // -- Nitro Logic --
+                if (isNitroActive && nitro > 0) {
+                    nitro -= dt * 25; // Drain nitro
+                    currentSpeed = THREE.MathUtils.lerp(currentSpeed, baseSpeed * 3, 0.1);
+                    camera.fov = THREE.MathUtils.lerp(camera.fov, 95, 0.1);
+
+                    // Goofy Nitro Trail
+                    if (Math.random() > 0.4) createParticles(plane.position, Math.random() * 0xffffff, 2, 0.2);
+                } else {
+                    isNitroActive = false;
+                    currentSpeed = THREE.MathUtils.lerp(currentSpeed, baseSpeed, 0.1);
+                    // Base FOV depends on camera
+                    let targetFov = currentCameraIndex === 1 ? 85 : 65;
+                    camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 0.1);
+                }
+                camera.updateProjectionMatrix();
+
+                // -- Plane Movement --
+                // Target area is roughly 50 units wide/high
+                targetPlanePos.x = mouse.x * 40;
+                targetPlanePos.y = mouse.y * 30 + 10; // Keep slightly elevated
+
+                plane.position.lerp(targetPlanePos, 0.1);
+
+                // Bank and Pitch (Inverted steering visually to match fixing the plane facing backwards)
+                const targetBank = (targetPlanePos.x - plane.position.x) * 0.08;
+                const targetPitch = (plane.position.y - targetPlanePos.y) * 0.08;
+
+                plane.rotation.z = THREE.MathUtils.lerp(plane.rotation.z, targetBank, 0.1);
+                plane.rotation.x = THREE.MathUtils.lerp(plane.rotation.x, targetPitch, 0.1);
+
+                // Wobble
+                plane.position.y += Math.sin(time * 5) * 0.05;
+
+                // Propeller
+                if (propeller) propeller.rotation.z += 25 * dt * (currentSpeed / baseSpeed);
+
+                // Animate Goofy Paws Head to look where you are flying!
+                if (goofyPawsHead) {
+                    // He faces -Z natively.
+                    goofyPawsHead.rotation.y = -mouse.x * 1.2; // Look left/right
+                    goofyPawsHead.rotation.x = mouse.y * 0.8; // Look up/down
+                }
+
+                // -- Camera Logic --
+                const camOffsets = [
+                    new THREE.Vector3(0, 8, 35),   // 0: Classic Third Person
+                    new THREE.Vector3(0, 2, 0.5),  // 1: Cockpit First Person
+                    new THREE.Vector3(0, 60, 5),   // 2: Top Down
+                    new THREE.Vector3(30, 5, 0)    // 3: Cinematic Side
+                ];
+
+                // For cockpit, we want it attached exactly to the plane's transformation
+                if (currentCameraIndex === 1) {
+                    const localCamPos = new THREE.Vector3(0, 1.8, -0.2); // Just behind cat
+                    const worldCamPos = localCamPos.applyMatrix4(plane.matrixWorld);
+                    camera.position.copy(worldCamPos);
+
+                    // Look forward from the plane
+                    const lookForward = new THREE.Vector3(0, 0, -100).applyMatrix4(plane.matrixWorld);
+                    camera.lookAt(lookForward);
+                } else {
+                    // Smooth follow for other cameras
+                    const targetCamPos = plane.position.clone().add(camOffsets[currentCameraIndex]);
+                    camera.position.lerp(targetCamPos, 0.1);
+
+                    if (currentCameraIndex === 2) {
+                        camera.lookAt(plane.position.clone().add(new THREE.Vector3(0, 0, -50))); // Look slightly ahead
+                    } else if (currentCameraIndex === 3) {
+                        camera.lookAt(plane.position);
+                    } else {
+                        camera.lookAt(0, 0, -100);
+                    }
+                }
+
+                // -- Shooting --
+                if (isShooting) fireSillyString();
+
+                // -- Update Projectiles --
+                for (let i = projectiles.length - 1; i >= 0; i--) {
+                    const p = projectiles[i];
+                    p.position.addScaledVector(p.userData.velocity, dt);
+                    p.rotation.z += 15 * dt;
+
+                    if (p.position.z < -500) {
+                        scene.remove(p);
+                        projectiles.splice(i, 1);
+                    }
+                }
+
+                // -- Update Enemies (Jellies) & Collisions --
+                for (let i = enemies.length - 1; i >= 0; i--) {
+                    const e = enemies[i];
+                    e.position.z += currentSpeed * dt;
+
+                    // Jelly Animation
+                    const s = 1 + Math.sin(time * e.wobbleSpeed + e.seed) * 0.25;
+                    e.scale.set(s, s, s);
+                    e.rotation.x += dt * 1.5;
+                    e.rotation.y += dt * 1.5;
+
+                    // Collision with Plane
+                    if (e.position.distanceTo(plane.position) < e.radius + 3) {
+                        takeDamage(25);
+                        createParticles(e.position, e.material.color.getHex(), 40, 2);
+                        scene.remove(e);
+                        enemies.splice(i, 1);
+                        continue;
+                    }
+
+                    // Collision with Projectiles
+                    let hit = false;
+                    for (let j = projectiles.length - 1; j >= 0; j--) {
+                        if (projectiles[j].position.distanceTo(e.position) < e.radius + 1.5) {
+                            hit = true;
+                            scene.remove(projectiles[j]);
+                            projectiles.splice(j, 1);
+                            break;
+                        }
+                    }
+
+                    if (hit) {
+                        score += 50;
+                        nitro = Math.min(100, nitro + 15); // Re-fill nitro!
+                        createParticles(e.position, e.material.color.getHex(), 20, 1.5);
+                        scene.remove(e);
+                        enemies.splice(i, 1);
+                        updateUI();
+                        continue;
+                    }
+
+                    // Remove if past camera
+                    if (e.position.z > 30) {
+                        scene.remove(e);
+                        enemies.splice(i, 1);
+                    }
+                }
+
+                score += Math.floor(dt * (isNitroActive ? 80 : 15));
+                if (Math.floor(time * 10) % 5 === 0) updateUI(); // UI throttle
+            }
+
+            // -- Update Scenery (Ground loop) --
+            sceneryObjects.forEach(obj => {
+                obj.position.z += currentSpeed * dt * 0.9;
+                if (obj.position.z > 150) resetScenery(obj, false);
+
+                // Simple rotation animation for all scenery
+                if (obj.children.length > 0) obj.children[0].rotation.y -= dt * 0.5;
+            });
+
+            // -- Update Clouds --
+            clouds.forEach(cloud => {
+                cloud.position.z += currentSpeed * dt * 0.7;
+                if (cloud.position.z > 50) {
+                    cloud.position.x = (Math.random() - 0.5) * 300;
+                    cloud.position.y = (Math.random() - 0.5) * 80 + 30;
+                    cloud.position.z = -800;
+                }
+            });
+
+            // -- Update Particles --
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.mesh.position.addScaledVector(p.velocity, dt);
+                p.life -= dt * 2.5;
+                p.mesh.material.opacity = p.life;
+                p.mesh.scale.setScalar(p.life);
+                if (p.life <= 0) {
+                    scene.remove(p.mesh);
+                    particles.splice(i, 1);
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // -- Robust Initialization --
+        function initApp() {
+            if (window.gameInitialized) return;
+            window.gameInitialized = true;
+            init();
+        }
+
+        // Attempt immediate init if DOM is ready, otherwise wait.
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            initApp();
+        } else {
+            document.addEventListener('DOMContentLoaded', initApp);
+            // Fallback for tricky environments
+            window.onload = initApp;
+        }
+    </script>
+</body>
+
+</html>
