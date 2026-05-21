@@ -2,420 +2,185 @@
 <html lang="en">
 
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-6RNVL7JZVJ');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stand Clear - Audio Game</title>
+    <title>Stand Clear - MTA Audio Voice Mimicry Game</title>
+    <meta name="description" content="Listen to the MTA subway chime, then hold to record and match the chime's audio amplitude envelope and pitch to see if you can voice the announcement perfectly!">
+
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- React and Dependencies via Import Map -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom": "https://esm.sh/react-dom@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.263.1?external=react"
+      }
+    }
+    </script>
+
+    <!-- Babel Standalone to compile JSX on the fly -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: white;
+            background-color: #171717; /* neutral-900 */
+            color: #f5f5f5; /* neutral-100 */
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        .recording-pulse {
-            animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        #root {
+            min-height: 100vh;
         }
 
-        @keyframes pulse-ring {
-            0% {
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-            }
-
-            100% {
-                box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);
-            }
+        /* Smooth fade-in for the app */
+        .app-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
         }
 
-        #drop-zone.dragover {
-            border-color: #3b82f6;
-            background-color: rgba(59, 130, 246, 0.1);
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
+<body>
+    <a href="jimmy.html" class="fixed top-6 left-6 z-50 text-neutral-500 hover:text-neutral-200 transition-colors flex items-center gap-2 font-medium text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to Games
+    </a>
 
-    <div class="max-w-md w-full bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border border-slate-700">
-
-        <!-- Header -->
-        <div class="p-6 text-center border-b border-slate-700 bg-slate-800/50">
-            <h1
-                class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 tracking-tight">
-                Stand Clear</h1>
-            <p class="text-slate-400 mt-2 text-sm">Listen, then hold to imitate the sound!</p>
-        </div>
-
-        <div class="p-6 space-y-6">
-
-            <!-- Custom Audio Dropzone -->
-            <div id="drop-zone"
-                class="border-2 border-dashed border-slate-600 rounded-xl p-4 text-center transition-colors duration-200">
-                <p class="text-sm text-slate-300 mb-2">Currently loaded: <span id="current-sound-name"
-                        class="font-semibold text-emerald-400">Subway Chime (Default)</span></p>
-                <p class="text-xs text-slate-500">Drag & Drop an MP3/WAV here to change the sound</p>
-                <input type="file" id="file-input" accept="audio/*" class="hidden">
-            </div>
-
-            <!-- Visualization Canvas -->
-            <div
-                class="bg-slate-900 rounded-xl p-4 aspect-video relative flex items-center justify-center border border-slate-700 overflow-hidden">
-                <canvas id="waveform" class="absolute inset-0 w-full h-full"></canvas>
-                <div id="status-overlay"
-                    class="absolute z-10 text-2xl font-bold opacity-0 transition-opacity duration-300">
-                    <span id="score-display" class="text-emerald-400 drop-shadow-md"></span>
+    <div id="root">
+        <!-- Initial Splash / Loader -->
+        <div class="flex flex-col items-center justify-center min-h-screen gap-6 bg-neutral-900 text-white">
+            <div class="relative flex items-center justify-center">
+                <!-- Outer glowing pulsing ring -->
+                <div class="absolute w-24 h-24 rounded-full bg-orange-500/20 animate-ping duration-1000"></div>
+                <!-- Subway logo / icon container -->
+                <div class="relative w-20 h-20 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-lg border border-orange-400/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-white animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <rect x="4" y="3" width="16" height="14" rx="2" />
+                        <path d="M12 17v4M8 21h8M18 7v4M6 7v4" />
+                    </svg>
                 </div>
             </div>
-
-            <!-- Controls -->
-            <div class="flex flex-col gap-4">
-                <button id="btn-play-ref"
-                    class="w-full py-3 px-4 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                            clip-rule="evenodd" fill-rule="evenodd"></path>
-                    </svg>
-                    Play Reference Sound
-                </button>
-
-                <button id="btn-record"
-                    class="w-full py-4 px-4 bg-red-500 hover:bg-red-400 text-white rounded-xl font-bold text-lg transition-all select-none flex items-center justify-center gap-2 transform active:scale-95 touch-none">
-                    <div id="record-icon" class="w-4 h-4 bg-white rounded-full"></div>
-                    <span id="record-text">Hold to Record</span>
-                </button>
+            <div class="flex flex-col items-center gap-3 text-center px-4">
+                <h1 class="text-3xl font-display font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500 uppercase">STAND CLEAR</h1>
+                <div class="h-1 w-20 bg-gradient-to-r from-orange-500 to-red-600 rounded-full"></div>
+                <p class="text-sm font-medium text-neutral-400 tracking-wide animate-pulse">Initializing audio engines & loading MTA chimes...</p>
             </div>
-
-            <p class="text-center text-xs text-slate-500">Algorithm: Amplitude Envelope Matching</p>
         </div>
     </div>
 
-    <script>
-        // State variables
-        let audioCtx;
-        let referenceBuffer = null;
-        let userBuffer = null;
+    <!-- Application Mounting Logic -->
+    <script type="text/babel" data-type="module">
+        import React from 'react';
+        import { createRoot } from 'react-dom/client';
 
-        // Recording state
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
+        /**
+         * Dynamic Loader for the React component in stand-clear.jsx
+         * This handles the JSX transformation and module resolution at runtime.
+         */
+        async function mountApp() {
+            const rootElement = document.getElementById('root');
 
-        // Visualization state
-        let analyser;
-        let animationId;
-
-        // DOM Elements
-        const canvas = document.getElementById('waveform');
-        const canvasCtx = canvas.getContext('2d');
-        const btnPlayRef = document.getElementById('btn-play-ref');
-        const btnRecord = document.getElementById('btn-record');
-        const recordText = document.getElementById('record-text');
-        const recordIcon = document.getElementById('record-icon');
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-        const currentSoundName = document.getElementById('current-sound-name');
-        const statusOverlay = document.getElementById('status-overlay');
-        const scoreDisplay = document.getElementById('score-display');
-
-        // Resize canvas to match display size
-        function resizeCanvas() {
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        // Initialize Audio Context on first interaction (browser policy requirement)
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                generateDefaultChime(); // Generate default sound
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-
-        // Generate a synthetic "Subway Chime" (E5 -> C5) so the app works immediately
-        async function generateDefaultChime() {
-            const sampleRate = audioCtx.sampleRate;
-            const duration = 1.5; // seconds
-            const offlineCtx = new OfflineAudioContext(1, sampleRate * duration, sampleRate);
-
-            const osc = offlineCtx.createOscillator();
-            const gainNode = offlineCtx.createGain();
-
-            osc.type = 'sine';
-            osc.connect(gainNode);
-            gainNode.connect(offlineCtx.destination);
-
-            // Note 1: E5
-            osc.frequency.setValueAtTime(659.25, offlineCtx.currentTime);
-            gainNode.gain.setValueAtTime(0, offlineCtx.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.8, offlineCtx.currentTime + 0.05);
-            gainNode.gain.exponentialRampToValueAtTime(0.1, offlineCtx.currentTime + 0.5);
-
-            // Note 2: C5
-            osc.frequency.setValueAtTime(523.25, offlineCtx.currentTime + 0.6);
-            gainNode.gain.setValueAtTime(0, offlineCtx.currentTime + 0.6);
-            gainNode.gain.linearRampToValueAtTime(0.8, offlineCtx.currentTime + 0.65);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, offlineCtx.currentTime + 1.4);
-
-            osc.start(0);
-            osc.stop(duration);
-
-            referenceBuffer = await offlineCtx.startRendering();
-            drawStaticWaveform(referenceBuffer, '#3b82f6');
-        }
-
-        // File Drag & Drop Logic
-        dropZone.addEventListener('click', () => { initAudio(); fileInput.click(); });
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('dragover');
-            initAudio();
-            if (e.dataTransfer.files.length) {
-                processFile(e.dataTransfer.files[0]);
-            }
-        });
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) {
-                processFile(e.target.files[0]);
-            }
-        });
-
-        function processFile(file) {
-            currentSoundName.textContent = file.name;
-            currentSoundName.classList.remove('text-emerald-400');
-            currentSoundName.classList.add('text-blue-400');
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const arrayBuffer = e.target.result;
-                try {
-                    referenceBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                    drawStaticWaveform(referenceBuffer, '#3b82f6'); // Draw the loaded sound in blue
-                    showMessage("Sound Loaded!");
-                } catch (err) {
-                    showMessage("Error loading audio file.", true);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        // Play Reference Audio
-        btnPlayRef.addEventListener('click', () => {
-            initAudio();
-            if (!referenceBuffer) return;
-
-            const source = audioCtx.createBufferSource();
-            source.buffer = referenceBuffer;
-            source.connect(audioCtx.destination);
-            source.start();
-
-            // Visual feedback for playing
-            btnPlayRef.classList.add('bg-blue-600');
-            setTimeout(() => btnPlayRef.classList.remove('bg-blue-600'), referenceBuffer.duration * 1000);
-        });
-
-        // Setup Microphone and Recording
-        async function setupRecording() {
-            if (mediaRecorder) return;
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
+                // 1. Fetch the user's stand-clear.jsx source
+                const response = await fetch('stand-clear.jsx');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const source = await response.text();
 
-                // Setup visualizer node
-                const source = audioCtx.createMediaStreamSource(stream);
-                analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 2048;
-                source.connect(analyser);
+                // 2. Transform the source with Babel
+                const result = Babel.transform(source, {
+                    presets: ['react'],
+                    // Ensure imports are preserved as ESM
+                    sourceMaps: false,
+                    compact: false
+                });
 
-                mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-                mediaRecorder.onstop = processRecording;
-            } catch (err) {
-                showMessage("Microphone access denied.", true);
+                if (!result || !result.code) throw new Error("Failed to transform stand-clear.jsx");
+
+                // 3. Create a blob for the transformed module wrapped in a URL
+                const blob = new Blob([result.code], { type: 'application/javascript' });
+                const moduleUrl = URL.createObjectURL(blob);
+
+                // 4. Dynamic import of the transformed code
+                const module = await import(moduleUrl);
+                const App = module.default;
+
+                if (!App) throw new Error("stand-clear.jsx does not have a default export. Ensure it has 'export default function App()'.");
+
+                // 5. Render the application
+                const root = createRoot(rootElement);
+                root.render(
+                    <div className="app-fade-in h-full">
+                        <App />
+                    </div>
+                );
+
+                // Cleanup the object URL
+                URL.revokeObjectURL(moduleUrl);
+
+            } catch (error) {
+                console.error("Stand Clear Initialization Error:", error);
+                rootElement.innerHTML = `
+                    <div class="min-h-screen flex items-center justify-center p-6 bg-neutral-950 text-white">
+                        <div class="max-w-md w-full bg-neutral-900 p-8 rounded-3xl shadow-2xl border border-red-950 flex flex-col items-center text-center gap-4">
+                            <div class="w-16 h-16 bg-red-950/50 text-red-500 rounded-full flex items-center justify-center mb-2 border border-red-900/30">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            </div>
+                            <h2 class="text-2xl font-display font-bold text-white">Subway Delay!</h2>
+                            <p class="text-neutral-400 text-sm leading-relaxed">
+                                We encountered an error while trying to compile and run your code. 
+                                Make sure <strong>stand-clear.jsx</strong> is in the same directory and contains valid React code.
+                            </p>
+                            <div class="w-full p-4 bg-neutral-950 rounded-xl text-left overflow-auto max-h-32 border border-neutral-800">
+                                <code class="text-xs text-red-500 font-mono">${error.message}</code>
+                            </div>
+                            <button onclick="window.location.reload()" class="mt-4 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl font-bold hover:brightness-110 active:scale-95 transition-all">
+                                Try Again
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
         }
 
-        // Record Interaction Events (Mouse and Touch)
-        const startRecording = async (e) => {
-            if (e) e.preventDefault(); // Prevent text selection/scrolling on touch
-            initAudio();
-            await setupRecording();
-            if (!mediaRecorder || isRecording) return;
-
-            isRecording = true;
-            audioChunks = [];
-            mediaRecorder.start();
-
-            // UI Updates
-            btnRecord.classList.replace('bg-red-500', 'bg-red-600');
-            btnRecord.classList.add('recording-pulse');
-            recordText.textContent = "Recording... Release to Stop";
-            recordIcon.classList.replace('bg-white', 'bg-red-200');
-            statusOverlay.style.opacity = '0'; // Hide score
-
-            drawLiveWaveform();
-        };
-
-        const stopRecording = (e) => {
-            if (e) e.preventDefault();
-            if (!isRecording || !mediaRecorder) return;
-
-            isRecording = false;
-            mediaRecorder.stop();
-            cancelAnimationFrame(animationId);
-
-            // UI Updates
-            btnRecord.classList.replace('bg-red-600', 'bg-red-500');
-            btnRecord.classList.remove('recording-pulse');
-            recordText.textContent = "Hold to Record";
-            recordIcon.classList.replace('bg-red-200', 'bg-white');
-        };
-
-        // Attach events for holding
-        btnRecord.addEventListener('mousedown', startRecording);
-        btnRecord.addEventListener('touchstart', startRecording);
-
-        window.addEventListener('mouseup', stopRecording);
-        window.addEventListener('touchend', stopRecording);
-
-        // Process the audio after release
-        async function processRecording() {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm;codecs=opus' });
-            const arrayBuffer = await audioBlob.arrayBuffer();
-            userBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-
-            drawStaticWaveform(userBuffer, '#ef4444'); // Draw user waveform in red
-            compareAudio();
-        }
-
-        // Live Waveform Visualizer (while recording)
-        function drawLiveWaveform() {
-            if (!isRecording) return;
-            animationId = requestAnimationFrame(drawLiveWaveform);
-
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            analyser.getByteTimeDomainData(dataArray);
-
-            canvasCtx.fillStyle = '#0f172a';
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-            canvasCtx.lineWidth = 2;
-            canvasCtx.strokeStyle = '#ef4444';
-            canvasCtx.beginPath();
-
-            const sliceWidth = canvas.width * 1.0 / bufferLength;
-            let x = 0;
-
-            for (let i = 0; i < bufferLength; i++) {
-                const v = dataArray[i] / 128.0;
-                const y = v * canvas.height / 2;
-                if (i === 0) canvasCtx.moveTo(x, y);
-                else canvasCtx.lineTo(x, y);
-                x += sliceWidth;
-            }
-            canvasCtx.lineTo(canvas.width, canvas.height / 2);
-            canvasCtx.stroke();
-        }
-
-        // Static Waveform Renderer (for loaded file or finished recording)
-        function drawStaticWaveform(buffer, color) {
-            canvasCtx.fillStyle = '#0f172a';
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-            const rawData = buffer.getChannelData(0);
-            const step = Math.ceil(rawData.length / canvas.width);
-            const amp = canvas.height / 2;
-
-            canvasCtx.fillStyle = color;
-            for (let i = 0; i < canvas.width; i++) {
-                let min = 1.0;
-                let max = -1.0;
-                for (let j = 0; j < step; j++) {
-                    const datum = rawData[(i * step) + j];
-                    if (datum < min) min = datum;
-                    if (datum > max) max = datum;
-                }
-                const y = (1 + min) * amp;
-                const height = Math.max(1, (max - min) * amp);
-                canvasCtx.fillRect(i, y, 1, height);
-            }
-        }
-
-        // Calculate the Amplitude Envelope (volume shape over time)
-        function getEnvelope(buffer, buckets = 100) {
-            const rawData = buffer.getChannelData(0);
-            const step = Math.floor(rawData.length / buckets);
-            const envelope = new Float32Array(buckets);
-            let maxVal = 0;
-
-            for (let i = 0; i < buckets; i++) {
-                let sum = 0;
-                for (let j = 0; j < step; j++) {
-                    sum += Math.abs(rawData[i * step + j]); // Rectify audio
-                }
-                envelope[i] = sum / step; // Average volume for this chunk
-                if (envelope[i] > maxVal) maxVal = envelope[i];
-            }
-
-            // Normalize so highest peak is 1.0
-            if (maxVal > 0) {
-                for (let i = 0; i < buckets; i++) envelope[i] /= maxVal;
-            }
-            return envelope;
-        }
-
-        // Compare two audio buffers and give a percentage score
-        function compareAudio() {
-            if (!referenceBuffer || !userBuffer) return;
-
-            const numBuckets = 100;
-            const refEnvelope = getEnvelope(referenceBuffer, numBuckets);
-            const userEnvelope = getEnvelope(userBuffer, numBuckets);
-
-            // Calculate Mean Absolute Error
-            let totalDifference = 0;
-            for (let i = 0; i < numBuckets; i++) {
-                totalDifference += Math.abs(refEnvelope[i] - userEnvelope[i]);
-            }
-
-            // Average difference per bucket
-            const avgDiff = totalDifference / numBuckets;
-
-            // Convert to a forgiving percentage score (0-100)
-            // If avgDiff is 0, score is 100%. If avgDiff is large, score goes down.
-            let score = Math.max(0, 100 - (avgDiff * 250)); // Multiplier tunes the difficulty
-
-            showScore(Math.round(score));
-        }
-
-        function showScore(score) {
-            scoreDisplay.textContent = `${score}% Match!`;
-
-            // Change color based on score
-            if (score > 80) scoreDisplay.className = "text-emerald-400 drop-shadow-md";
-            else if (score > 50) scoreDisplay.className = "text-yellow-400 drop-shadow-md";
-            else scoreDisplay.className = "text-red-400 drop-shadow-md";
-
-            statusOverlay.style.opacity = '1';
-        }
-
-        function showMessage(msg, isError = false) {
-            scoreDisplay.textContent = msg;
-            scoreDisplay.className = (isError ? "text-red-500" : "text-blue-400") + " drop-shadow-md text-xl";
-            statusOverlay.style.opacity = '1';
-            setTimeout(() => statusOverlay.style.opacity = '0', 2000);
-        }
-
+        // Execute the mount
+        mountApp();
     </script>
 </body>
 
