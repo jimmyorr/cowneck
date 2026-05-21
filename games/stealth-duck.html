@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stealth Duck 3D</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none;
+            /* Prevent scroll/zoom on mobile */
+        }
+
+        #game-canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* --- UI Overlay --- */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            /* Let gameplay clicks pass through */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .modal {
+            pointer-events: auto;
+            /* Re-enable clicks for modals */
+            background: rgba(30, 40, 50, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            border: 4px solid #ffcc00;
+            max-width: 80%;
+        }
+
+        .modal h1 {
+            margin-top: 0;
+            color: #ffcc00;
+            font-size: 36px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .modal p {
+            font-size: 18px;
+            color: #ddd;
+        }
+
+        .modal button {
+            margin-top: 25px;
+            padding: 12px 35px;
+            font-size: 20px;
+            font-weight: bold;
+            background: #ffcc00;
+            color: #111;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .modal button:hover {
+            background: #ffe066;
+            transform: scale(1.05);
+        }
+
+        /* --- Virtual Joystick --- */
+        #joystick-zone {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: none;
+            /* Shown via JS if touch enabled */
+            touch-action: none;
+            z-index: 10;
+        }
+
+        #joystick-knob {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 204, 0, 0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 600px) {
+            .modal {
+                padding: 25px 15px;
+            }
+
+            .modal h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+    <!-- Include Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+
+    <canvas id="game-canvas"></canvas>
+
+    <div id="joystick-zone">
+        <div id="joystick-knob"></div>
+    </div>
+
+    <div id="ui-layer">
+        <div id="ui-start" class="modal">
+            <h1>Stealth Duck</h1>
+            <p>Use WASD, Arrow Keys, or the D-Pad to move.</p>
+            <p>Sneak past the guards and reach the blue pond!</p>
+            <button onclick="startGame()">Start Game</button>
+        </div>
+        <div id="ui-over" class="modal" style="display:none;">
+            <h1 style="color: #ff4444; border-color: #ff4444;">Spotted!</h1>
+            <p>The guards caught you. Quack...</p>
+            <button onclick="retryLevel()" style="background: #ff4444; color: white;">Try Again</button>
+        </div>
+        <div id="ui-next" class="modal" style="display:none;">
+            <h1 style="color: #44ff44;">Level Complete!</h1>
+            <p>Ready for the next challenge?</p>
+            <button onclick="nextLevel()" style="background: #44ff44; color: #111;">Next Level</button>
+        </div>
+        <div id="ui-win" class="modal" style="display:none;">
+            <h1 style="color: #44ff44;">Quack-tastic!</h1>
+            <p>You reached the pond safely!</p>
+            <button onclick="startGame()" style="background: #44ff44; color: #111;">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Setup & Variables ---
+        let scene, camera, renderer, clock;
+        let duck, goal, raycaster;
+        let walls = [];
+        let enemies = [];
+        let startPosition = new THREE.Vector3();
+        let gameState = 'START'; // START, PLAY, OVER, WIN, NEXT
+
+        let currentLevel = 0;
+        let floorMesh;
+
+        const blockSize = 2;
+        const keys = { up: false, down: false, left: false, right: false };
+        const joystick = { x: 0, y: 0, active: false };
+
+        // --- Levels & Themes ---
+        const levels = [
+            {
+                // Level 1: Classic Park
+                theme: { sky: 0x87CEEB, floor: 0x2e8b57, wall: 0x8b4513, pond: 0x1e90ff },
+                map: [
+                    "WWWWWWWWWWWWWW",
+                    "W            W",
+                    "W S  WWWW    W",
+                    "W    W E     W",
+                    "WWWW W WWWWWWW",
+                    "W    W    E  W",
+                    "W  WWWWW     W",
+                    "W  W  E   WWWW",
+                    "W  W         W",
+                    "W  E WWWWW   W",
+                    "W      W G   W",
+                    "WWWWWWWWWWWWWW"
+                ]
+            },
+            {
+                // Level 2: Winter Ice Maze
+                theme: { sky: 0x001f3f, floor: 0xcde6e6, wall: 0x87cefa, pond: 0x00008b },
+                map: [
+                    "WWWWWWWWWWWWWW",
+                    "W S   W      W",
+                    "WWWWW W E WW W",
+                    "W   E W   W  W",
+                    "W WWWWW WWWW W",
+                    "W      E     W",
+                    "W WWWW WWWWW W",
+                    "W W    W   E W",
+                    "W W E  W W   W",
+                    "W WWWWWW WWWWW",
+                    "W   E      G W",
+                    "WWWWWWWWWWWWWW"
+                ]
+            },
+            {
+                // Level 3: Desert Ruins
+                theme: { sky: 0xffa07a, floor: 0xf4a460, wall: 0xcd853f, pond: 0x00ced1 },
+                map: [
+                    "WWWWWWWWWWWWWW",
+                    "W S          W",
+                    "W   E   E    W",
+                    "W    WWWW    W",
+                    "W E  W  W  E W",
+                    "WWWW W  WWWW W",
+                    "W    W       W",
+                    "W  E W  E    W",
+                    "W    WWWWWWWWW",
+                    "W E          W",
+                    "W     E    G W",
+                    "WWWWWWWWWWWWWW"
+                ]
+            }
+        ];
+
+        // --- Initialize Engine ---
+        function init() {
+            const canvas = document.getElementById('game-canvas');
+
+            // 1. Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB); // Sky blue
+            clock = new THREE.Clock();
+            raycaster = new THREE.Raycaster();
+
+            // 2. Camera setup (Isometric / Top-Down angle)
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 15, 15);
+
+            // 3. Renderer setup
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // 4. Lighting
+            const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambient);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(15, 30, 15);
+            dirLight.castShadow = true;
+            dirLight.shadow.camera.left = -20;
+            dirLight.shadow.camera.right = 20;
+            dirLight.shadow.camera.top = 20;
+            dirLight.shadow.camera.bottom = -20;
+            dirLight.shadow.camera.near = 0.5;
+            dirLight.shadow.camera.far = 60;
+            scene.add(dirLight);
+
+            // 5. Floor
+            const floorGeo = new THREE.PlaneGeometry(60, 60);
+            const floorMat = new THREE.MeshLambertMaterial({ color: 0x2e8b57 });
+            floorMesh = new THREE.Mesh(floorGeo, floorMat);
+            floorMesh.rotation.x = -Math.PI / 2;
+            floorMesh.receiveShadow = true;
+            scene.add(floorMesh);
+
+            // 6. Build Level & Entities
+            buildLevel();
+
+            // 7. Event Listeners
+            window.addEventListener('resize', onWindowResize, false);
+            setupControls();
+
+            // 8. Start Loop
+            animate();
+        }
+
+        // --- Entity Creation ---
+        function createDuck() {
+            const duckGroup = new THREE.Group();
+
+            const yellowMat = new THREE.MeshLambertMaterial({ color: 0xffd700 });
+            const orangeMat = new THREE.MeshLambertMaterial({ color: 0xff8c00 });
+            const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+
+            // Body
+            const bodyGeo = new THREE.BoxGeometry(0.9, 0.7, 1.1);
+            const body = new THREE.Mesh(bodyGeo, yellowMat);
+            body.position.y = 0.45;
+            body.castShadow = true;
+            body.name = "duckBody";
+            duckGroup.add(body);
+
+            // Head
+            const headGeo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
+            const head = new THREE.Mesh(headGeo, yellowMat);
+            head.position.set(0, 1.1, 0.4);
+            head.castShadow = true;
+            head.name = "duckHead";
+            duckGroup.add(head);
+
+            // Beak
+            const beakGeo = new THREE.ConeGeometry(0.25, 0.4, 4);
+            beakGeo.rotateX(Math.PI / 2); // Point forward
+            const beak = new THREE.Mesh(beakGeo, orangeMat);
+            beak.position.set(0, 1.0, 0.85);
+            beak.castShadow = true;
+            duckGroup.add(beak);
+
+            // Eyes
+            const eyeGeo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+            const leftEye = new THREE.Mesh(eyeGeo, blackMat);
+            leftEye.position.set(-0.2, 1.25, 0.75);
+            const rightEye = new THREE.Mesh(eyeGeo, blackMat);
+            rightEye.position.set(0.2, 1.25, 0.75);
+            duckGroup.add(leftEye, rightEye);
+
+            scene.add(duckGroup);
+            return duckGroup;
+        }
+
+        function createEnemy(x, z) {
+            const enemyGroup = new THREE.Group();
+
+            const redMat = new THREE.MeshLambertMaterial({ color: 0xd32f2f });
+            const whiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+            // Body
+            const bodyGeo = new THREE.BoxGeometry(1.2, 1.8, 1.2);
+            const body = new THREE.Mesh(bodyGeo, redMat);
+            body.position.y = 0.9;
+            body.castShadow = true;
+            enemyGroup.add(body);
+
+            // Eyes (indicate forward direction)
+            const eyeGeo = new THREE.BoxGeometry(0.25, 0.25, 0.1);
+            const leftEye = new THREE.Mesh(eyeGeo, whiteMat);
+            leftEye.position.set(-0.3, 1.4, 0.65);
+            const rightEye = new THREE.Mesh(eyeGeo, whiteMat);
+            rightEye.position.set(0.3, 1.4, 0.65);
+            enemyGroup.add(leftEye, rightEye);
+
+            // Vision Cone (Transparent Spotlight representation)
+            const coneGeo = new THREE.ConeGeometry(4.5, 12, 16);
+            coneGeo.translate(0, -6, 0); // Move apex to origin
+            coneGeo.rotateX(-Math.PI / 2); // Point forward along +Z
+            const coneMat = new THREE.MeshBasicMaterial({
+                color: 0xffff00,
+                transparent: true,
+                opacity: 0.25,
+                depthWrite: false,
+                side: THREE.DoubleSide
+            });
+            const cone = new THREE.Mesh(coneGeo, coneMat);
+            cone.position.y = 1.4; // Eye level
+            enemyGroup.add(cone);
+
+            enemyGroup.position.set(x, 0, z);
+            scene.add(enemyGroup);
+            enemies.push(enemyGroup);
+        }
+
+        function clearLevel() {
+            walls.forEach(w => scene.remove(w));
+            enemies.forEach(e => scene.remove(e));
+            if (goal) scene.remove(goal);
+            if (duck) scene.remove(duck);
+            walls = [];
+            enemies = [];
+            goal = null;
+            duck = null;
+        }
+
+        function buildLevel() {
+            clearLevel();
+
+            const levelData = levels[currentLevel];
+            const map = levelData.map;
+            const theme = levelData.theme;
+
+            // Apply Theme
+            scene.background.setHex(theme.sky);
+            if (floorMesh) floorMesh.material.color.setHex(theme.floor);
+
+            const wallGeo = new THREE.BoxGeometry(blockSize, blockSize * 1.5, blockSize);
+            const wallMat = new THREE.MeshLambertMaterial({ color: theme.wall });
+
+            const pondGeo = new THREE.CylinderGeometry(1.8, 1.8, 0.1, 16);
+            const pondMat = new THREE.MeshLambertMaterial({ color: theme.pond });
+
+            const mapWidth = map[0].length * blockSize;
+            const mapHeight = map.length * blockSize;
+
+            for (let i = 0; i < map.length; i++) {
+                for (let j = 0; j < map[i].length; j++) {
+                    const char = map[i][j];
+
+                    // Center the map around (0,0,0)
+                    const x = j * blockSize - mapWidth / 2 + blockSize / 2;
+                    const z = i * blockSize - mapHeight / 2 + blockSize / 2;
+
+                    if (char === 'W') {
+                        const wall = new THREE.Mesh(wallGeo, wallMat);
+                        wall.position.set(x, blockSize * 0.75, z);
+                        wall.castShadow = true;
+                        wall.receiveShadow = true;
+                        wall.name = "wall";
+                        scene.add(wall);
+                        walls.push(wall);
+                    } else if (char === 'E') {
+                        createEnemy(x, z);
+                    } else if (char === 'G') {
+                        goal = new THREE.Mesh(pondGeo, pondMat);
+                        goal.position.set(x, 0.05, z);
+                        goal.receiveShadow = true;
+                        scene.add(goal);
+                    } else if (char === 'S') {
+                        startPosition.set(x, 0, z);
+                    }
+                }
+            }
+
+            duck = createDuck();
+            duck.position.copy(startPosition);
+        }
+
+        // --- Input Controls ---
+        function setupControls() {
+            // Keyboard
+            window.addEventListener('keydown', (e) => {
+                switch (e.key.toLowerCase()) {
+                    case 'w': case 'arrowup': keys.up = true; break;
+                    case 's': case 'arrowdown': keys.down = true; break;
+                    case 'a': case 'arrowleft': keys.left = true; break;
+                    case 'd': case 'arrowright': keys.right = true; break;
+                }
+            });
+            window.addEventListener('keyup', (e) => {
+                switch (e.key.toLowerCase()) {
+                    case 'w': case 'arrowup': keys.up = false; break;
+                    case 's': case 'arrowdown': keys.down = false; break;
+                    case 'a': case 'arrowleft': keys.left = false; break;
+                    case 'd': case 'arrowright': keys.right = false; break;
+                }
+            });
+
+            // Virtual Joystick Logic
+            const zone = document.getElementById('joystick-zone');
+            const knob = document.getElementById('joystick-knob');
+            const maxRadius = 40;
+
+            // Show joystick on devices that support touch
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                zone.style.display = 'block';
+            }
+
+            const resetJoystick = () => {
+                joystick.active = false;
+                joystick.x = 0;
+                joystick.y = 0;
+                knob.style.transform = `translate(-50%, -50%)`;
+            };
+
+            const handlePointer = (e) => {
+                if (!joystick.active && e.type !== 'pointerdown') return;
+                e.preventDefault();
+
+                const rect = zone.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                let dx = e.clientX - centerX;
+                let dy = e.clientY - centerY;
+
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance > maxRadius) {
+                    dx = (dx / distance) * maxRadius;
+                    dy = (dy / distance) * maxRadius;
+                }
+
+                knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+
+                joystick.x = dx / maxRadius;
+                joystick.y = dy / maxRadius;
+            };
+
+            zone.addEventListener('pointerdown', (e) => {
+                joystick.active = true;
+                zone.setPointerCapture(e.pointerId);
+                handlePointer(e);
+            });
+
+            zone.addEventListener('pointermove', handlePointer);
+
+            zone.addEventListener('pointerup', (e) => {
+                zone.releasePointerCapture(e.pointerId);
+                resetJoystick();
+            });
+            zone.addEventListener('pointercancel', resetJoystick);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Game Logic ---
+        function resetGame() {
+            duck.position.copy(startPosition);
+            duck.rotation.set(0, 0, 0);
+
+            enemies.forEach(e => {
+                // Reset vision cone color to yellow
+                e.children.find(child => child.type === "Mesh" && child.material.transparent).material.color.setHex(0xffff00);
+            });
+        }
+
+        // Global functions for UI Buttons
+        window.startGame = function () {
+            currentLevel = 0;
+            buildLevel();
+            resetGame();
+            gameState = 'PLAY';
+            document.getElementById('ui-start').style.display = 'none';
+            document.getElementById('ui-over').style.display = 'none';
+            document.getElementById('ui-win').style.display = 'none';
+            document.getElementById('ui-next').style.display = 'none';
+        };
+
+        window.retryLevel = function () {
+            resetGame();
+            gameState = 'PLAY';
+            document.getElementById('ui-over').style.display = 'none';
+        };
+
+        window.nextLevel = function () {
+            currentLevel++;
+            buildLevel();
+            resetGame();
+            gameState = 'PLAY';
+            document.getElementById('ui-next').style.display = 'none';
+        };
+
+        function triggerGameOver() {
+            gameState = 'OVER';
+            document.getElementById('ui-over').style.display = 'flex';
+        }
+
+        function triggerNextLevel() {
+            gameState = 'NEXT';
+            document.getElementById('ui-next').style.display = 'flex';
+        }
+
+        function triggerWin() {
+            gameState = 'WIN';
+            document.getElementById('ui-win').style.display = 'flex';
+        }
+
+        function checkCollisions(x, z) {
+            const duckRadius = 0.45;
+            for (let i = 0; i < walls.length; i++) {
+                const wall = walls[i];
+                const halfW = blockSize / 2;
+
+                // AABB Collision check
+                const minX = wall.position.x - halfW - duckRadius;
+                const maxX = wall.position.x + halfW + duckRadius;
+                const minZ = wall.position.z - halfW - duckRadius;
+                const maxZ = wall.position.z + halfW + duckRadius;
+
+                if (x > minX && x < maxX && z > minZ && z < maxZ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // --- Main Game Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = Math.min(clock.getDelta(), 0.1); // Cap delta to prevent huge jumps on lag
+
+            if (gameState === 'PLAY') {
+                // 1. Handle Movement
+                const moveSpeed = 6 * delta;
+                let moved = false;
+                const moveDir = new THREE.Vector3(0, 0, 0);
+
+                if (keys.up) moveDir.z -= 1;
+                if (keys.down) moveDir.z += 1;
+                if (keys.left) moveDir.x -= 1;
+                if (keys.right) moveDir.x += 1;
+
+                if (moveDir.lengthSq() > 0) {
+                    moveDir.normalize();
+                    moved = true;
+                } else if (Math.abs(joystick.x) > 0.05 || Math.abs(joystick.y) > 0.05) {
+                    moveDir.x = joystick.x;
+                    moveDir.z = joystick.y;
+                    if (moveDir.length() > 1) moveDir.normalize(); // Clamp max speed
+                    moved = true;
+                }
+
+                if (moved) {
+                    moveDir.multiplyScalar(moveSpeed);
+
+                    // X-axis collision
+                    if (!checkCollisions(duck.position.x + moveDir.x, duck.position.z)) {
+                        duck.position.x += moveDir.x;
+                    }
+                    // Z-axis collision
+                    if (!checkCollisions(duck.position.x, duck.position.z + moveDir.z)) {
+                        duck.position.z += moveDir.z;
+                    }
+
+                    // Rotate Duck
+                    const targetAngle = Math.atan2(moveDir.x, moveDir.z);
+                    // Smooth rotation interpolation
+                    let diff = targetAngle - duck.rotation.y;
+                    // Normalize angle
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    duck.rotation.y += diff * 10 * delta;
+
+                    // Waddle animation
+                    duck.rotation.z = Math.sin(clock.getElapsedTime() * 15) * 0.15;
+                } else {
+                    duck.rotation.z = 0; // Stand straight
+                }
+
+                // 2. Enemy Logic (Rotation and Vision)
+                enemies.forEach((enemy, index) => {
+                    // Constant 360 sweeping patrol (Alternate directions based on index)
+                    const rotSpeed = 1.2 * delta * (index % 2 === 0 ? 1 : -1);
+                    enemy.rotation.y += rotSpeed;
+
+                    // Vision Check
+                    const distToDuck = enemy.position.distanceTo(duck.position);
+                    if (distToDuck < 12) { // Max vision range
+                        // Vector from enemy eye to duck body
+                        const origin = enemy.position.clone().setY(1.4); // Eye level
+                        const target = duck.position.clone().setY(0.45); // Body level
+                        const dirToDuck = new THREE.Vector3().subVectors(target, origin).normalize();
+
+                        // Enemy Forward Vector
+                        const enemyForward = new THREE.Vector3(0, 0, 1).applyQuaternion(enemy.quaternion);
+
+                        // Check if inside cone angle
+                        const angle = dirToDuck.angleTo(enemyForward);
+                        if (angle < Math.PI / 4) { // 45 degree half-angle
+
+                            // Raycast for obstacles
+                            raycaster.set(origin, dirToDuck);
+                            const intersects = raycaster.intersectObjects(scene.children, true);
+
+                            // Find the first relevant object hit (ignoring the enemy's own body/cone/floor)
+                            const hit = intersects.find(hit =>
+                                hit.object.name === "wall" ||
+                                hit.object.name === "duckBody" ||
+                                hit.object.name === "duckHead"
+                            );
+
+                            if (hit && (hit.object.name === "duckBody" || hit.object.name === "duckHead")) {
+                                // Duck is spotted!
+                                // Find cone and turn it red
+                                const coneMesh = enemy.children.find(c => c.geometry.type === "ConeGeometry");
+                                if (coneMesh) coneMesh.material.color.setHex(0xff0000);
+
+                                triggerGameOver();
+                            }
+                        }
+                    }
+                });
+
+                // 3. Win Condition Check
+                if (goal && duck.position.distanceTo(goal.position) < 1.8) {
+                    if (currentLevel < levels.length - 1) {
+                        triggerNextLevel();
+                    } else {
+                        triggerWin();
+                    }
+                }
+
+            } else if (gameState === 'OVER') {
+                // Duck falls over
+                if (duck) duck.rotation.x = THREE.MathUtils.lerp(duck.rotation.x, -Math.PI / 2, 0.1);
+            } else if (gameState === 'WIN' || gameState === 'NEXT') {
+                // Happy spin
+                if (duck) {
+                    duck.rotation.y += delta * 5;
+                    duck.position.y = Math.sin(clock.getElapsedTime() * 10) * 0.5 + 0.5; // Jump
+                }
+            }
+
+            // 4. Update Camera (Smooth follow)
+            if (duck) {
+                const cameraTarget = duck.position.clone().add(new THREE.Vector3(0, 14, 12));
+                camera.position.lerp(cameraTarget, 5 * delta);
+                camera.lookAt(duck.position);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Start
+        window.onload = init;
+
+    </script>
+</body>
+
+</html>
