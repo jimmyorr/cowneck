@@ -20,7 +20,7 @@ const {
     createInitialPlayers,
     getNextTurn,
     resolveAuction
-} = require('./high-society-logic.js');
+} = require('./js/logic.js');
 
 test('sumArray', (t) => {
     assert.strictEqual(sumArray([]), 0, 'Empty array should sum to 0');
