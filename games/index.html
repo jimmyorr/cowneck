@@ -280,6 +280,42 @@
             box-shadow: 0 4px 10px rgba(118, 75, 162, 0.15);
         }
 
+        /* Featured Cards & Badges */
+        .featured-badge {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+            color: #0b0b0f;
+            box-shadow: 0 4px 10px rgba(255, 165, 0, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 2;
+        }
+
+        .game-card.featured {
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.04);
+            background: linear-gradient(135deg, rgba(38, 38, 58, 0.45) 0%, rgba(20, 20, 30, 0.45) 100%);
+        }
+
+        .game-card.featured h2 {
+            margin-top: 32px; /* push down to clear the featured badge */
+        }
+
+        .game-card.featured:hover {
+            border-color: rgba(255, 215, 0, 0.45);
+            box-shadow: 0 20px 40px rgba(255, 215, 0, 0.08);
+            transform: translateY(-8px) scale(1.02);
+        }
+
         /* Card Content */
         .game-card h2 {
             font-family: 'Outfit', sans-serif;
@@ -442,7 +478,32 @@
     <main>
         <div class="games-container" id="games-grid">
             
-            <!-- KIRBY'S GAMES (9) -->
+            <!-- FEATURED GAMES (1 from each creator) -->
+            <div class="game-card fade-in featured" data-creator="jimmy">
+                <span class="featured-badge">★ Featured</span>
+                <span class="creator-badge badge-jimmy">Jimmy</span>
+                <h2>🛩️ Chill Flight</h2>
+                <p>A peaceful, beautiful 3D flight experience. Soar at your own pace through endless, procedurally generated mountains and valleys.</p>
+                <a href="chill-flight.html" class="btn">PLAY NOW <span>→</span></a>
+            </div>
+
+            <div class="game-card fade-in featured" data-creator="miles">
+                <span class="featured-badge">★ Featured</span>
+                <span class="creator-badge badge-miles">Miles</span>
+                <h2>🐾 Goofy Paws</h2>
+                <p>The owners are absolutely furious. Survive household chaos, collect weapons, and battle major bosses like the Vacuum King!</p>
+                <a href="goofy-paws.html" class="btn">PLAY NOW <span>→</span></a>
+            </div>
+
+            <div class="game-card fade-in featured" data-creator="kirby">
+                <span class="featured-badge">★ Featured</span>
+                <span class="creator-badge badge-kirby">Kirby</span>
+                <h2>Cat Cannon 🎯</h2>
+                <p>Aim, power up, and launch silly cats directly at target bullseyes. Score points for precision landing using intuitive spacebar controls.</p>
+                <a href="cat-cannon.html" class="btn">PLAY NOW <span>→</span></a>
+            </div>
+
+            <!-- KIRBY'S GAMES -->
             <div class="game-card fade-in" data-creator="kirby">
                 <span class="creator-badge badge-kirby">Kirby</span>
                 <h2>Hypnotizer 🌀</h2>
@@ -499,14 +560,7 @@
                 <a href="pack-opening-sim.html" class="btn">PLAY NOW <span>→</span></a>
             </div>
 
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>Cat Cannon 🎯</h2>
-                <p>Aim, power up, and launch silly cats directly at target bullseyes. Score points for precision landing using intuitive spacebar controls.</p>
-                <a href="cat-cannon.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <!-- MILES'S GAMES (18) -->
+            <!-- MILES'S GAMES -->
             <div class="game-card fade-in" data-creator="miles">
                 <span class="creator-badge badge-miles">Miles</span>
                 <h2>🐈 The Golden Cat Treat</h2>
@@ -538,7 +592,7 @@
             <div class="game-card fade-in" data-creator="miles">
                 <span class="creator-badge badge-miles">Miles</span>
                 <h2>🍫 Cyberpup Returns</h2>
-                <p>The epic sequel is faster, tastier, and spookier. Battle ghost puppies and dodge chocolate rockets across three intense levels.</p>
+                <p>The epic sequel is faster, tastier, and spookier. Battle ghost puppies and chocolate rockets across three intense levels.</p>
                 <a href="cyberpup-returns.html" class="btn">PLAY NOW <span>→</span></a>
             </div>
 
@@ -547,13 +601,6 @@
                 <h2>😼 Meow Royale</h2>
                 <p>Ultimate battle of the kittens! Engage in 1v1 split-screen or test your skills against 12 AI bots with dynamic storm circles.</p>
                 <a href="meow-royale.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🐾 Goofy Paws</h2>
-                <p>The owners are absolutely furious. Survive household chaos, collect weapons, and battle major bosses like the Vacuum King!</p>
-                <a href="goofy-paws.html" class="btn">PLAY NOW <span>→</span></a>
             </div>
 
             <div class="game-card fade-in" data-creator="miles">
@@ -633,14 +680,7 @@
                 <a href="goofy-flight.html" class="btn">PLAY NOW <span>→</span></a>
             </div>
 
-            <!-- JIMMY'S GAMES (9) -->
-            <div class="game-card fade-in" data-creator="jimmy">
-                <span class="creator-badge badge-jimmy">Jimmy</span>
-                <h2>🛩️ Chill Flight</h2>
-                <p>A peaceful, beautiful 3D flight experience. Soar at your own pace through endless, procedurally generated mountains and valleys.</p>
-                <a href="chill-flight.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
+            <!-- JIMMY'S GAMES -->
             <div class="game-card fade-in" data-creator="jimmy">
                 <span class="creator-badge badge-jimmy">Jimmy</span>
                 <h2>⬢ Nonaga</h2>
