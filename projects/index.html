@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Projects | cowneck</title>
+    <meta name="description" content="A curated list of interactive web applications, data tools, guides, and creative projects by cowneck.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-6RNVL7JZVJ');
+    </script>
+
+    <style>
+        :root {
+            --bg-color: #080d1a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(15, 23, 42, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 45%),
+                radial-gradient(circle at 90% 85%, rgba(244, 114, 182, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.05) 0%, transparent 60%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 4rem 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 3.5rem;
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Back navigation */
+        .back-nav {
+            align-self: flex-start;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .back-link:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateX(-4px);
+        }
+
+        /* Header block */
+        header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            font-weight: 400;
+        }
+
+        /* Responsive Grid of Cards */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            width: 100%;
+        }
+
+        /* Glassmorphic Project Card */
+        .project-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.25rem;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 2rem;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Ambient Glow Effect behind card on hover */
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--hover-gradient, linear-gradient(135deg, #6366f1 0%, #a855f7 100%));
+            opacity: 0;
+            z-index: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .project-card-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .project-icon {
+            font-size: 2.25rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .project-title {
+            font-family: var(--font-heading);
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.01em;
+            transition: color 0.3s ease;
+        }
+
+        .project-description {
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.6;
+            transition: color 0.3s ease;
+        }
+
+        .project-footer {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Tech Tags list */
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tech-tag {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .project-link-arrow {
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .project-link-arrow svg {
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Hover States */
+        .project-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.18);
+            box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5), 
+                        0 0 25px -5px var(--glow-shadow, rgba(99, 102, 241, 0.15));
+        }
+
+        .project-card:hover .project-icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .project-card:hover .project-description {
+            color: #e2e8f0;
+        }
+
+        .project-card:hover .tech-tag {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+        }
+
+        .project-card:hover .project-link-arrow {
+            background: #ffffff;
+            color: #080d1a;
+            border-color: transparent;
+            transform: scale(1.1);
+        }
+
+        .project-card:hover .project-link-arrow svg {
+            transform: translateX(2px) rotate(-45deg);
+        }
+
+        /* Theme Gradients for Cards */
+        .card-birds {
+            --hover-gradient: linear-gradient(135deg, rgba(26, 71, 42, 0.25) 0%, rgba(45, 122, 74, 0.05) 100%);
+            --glow-shadow: rgba(45, 122, 74, 0.25);
+        }
+        .card-dislikes {
+            --hover-gradient: linear-gradient(135deg, rgba(67, 67, 67, 0.25) 0%, rgba(0, 0, 0, 0.05) 100%);
+            --glow-shadow: rgba(255, 255, 255, 0.08);
+        }
+        .card-paumanok {
+            --hover-gradient: linear-gradient(135deg, rgba(112, 161, 255, 0.25) 0%, rgba(30, 144, 255, 0.05) 100%);
+            --glow-shadow: rgba(30, 144, 255, 0.25);
+        }
+        .card-kidli {
+            --hover-gradient: linear-gradient(135deg, rgba(255, 107, 129, 0.22) 0%, rgba(255, 71, 87, 0.05) 100%);
+            --glow-shadow: rgba(255, 71, 87, 0.22);
+        }
+        .card-mcu {
+            --hover-gradient: linear-gradient(135deg, rgba(225, 29, 72, 0.25) 0%, rgba(159, 18, 57, 0.05) 100%);
+            --glow-shadow: rgba(225, 29, 72, 0.25);
+        }
+        .card-bernoulli {
+            --hover-gradient: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.05) 100%);
+            --glow-shadow: rgba(99, 102, 241, 0.25);
+        }
+        .card-collatz {
+            --hover-gradient: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(129, 140, 248, 0.05) 100%);
+            --glow-shadow: rgba(56, 189, 248, 0.25);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            border: 2px solid var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 768px) {
+            body {
+                padding: 3rem 1.5rem;
+            }
+            h1 {
+                font-size: 2.75rem;
+            }
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Back Link Navigation -->
+        <nav class="back-nav" aria-label="Back">
+            <a href="../" class="back-link" id="btn-back-home">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Home</span>
+            </a>
+        </nav>
+
+        <!-- Page Header -->
+        <header>
+            <h1 id="main-title">Projects</h1>
+            <p class="subtitle">A gallery of visual interactive applications, guides, history, and creative experiments.</p>
+        </header>
+
+        <!-- Projects Grid -->
+        <main class="projects-grid" role="list">
+            
+            <!-- Card: Birds -->
+            <a href="../birds/" class="project-card card-birds" id="project-card-birds" role="listitem">
+                <div class="project-card-content">
+                    <span class="project-icon" aria-hidden="true">🪶</span>
+                    <h2 class="project-title">Birds of PW</h2>
+                    <p class="project-description">A curated guide to the common and rare birds of Port Washington, NY. Learn about local avian habits, diets, and taxonomy in a vintage-naturalist aesthetic.</p>
+                </div>
+                <div class="project-footer">
+                    <div class="tech-tags">
+                        <span class="tech-tag">Naturalist Guide</span>
+                        <span class="tech-tag">Gallery</span>
+                    </div>
+                    <div class="project-link-arrow" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card: Dislikes -->
+            <a href="../dislikes/" class="project-card card-dislikes" id="project-card-dislikes" role="listitem">
+                <div class="project-card-content">
+                    <span class="project-icon" aria-hidden="true">👎</span>
+                    <h2 class="project-title">YouTube Dislikes</h2>
+                    <p class="project-description">A modern, fully local client-side tool to search, sort, filter, and archive your disliked (and liked) video history. Kept secure entirely inside your browser.</p>
+                </div>
+                <div class="project-footer">
+                    <div class="tech-tags">
+                        <span class="tech-tag">YouTube API</span>
+                        <span class="tech-tag">PWA</span>
+                    </div>
+                    <div class="project-link-arrow" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card: Paumanok -->
+            <a href="../paumanok/" class="project-card card-paumanok" id="project-card-paumanok" role="listitem">
+                <div class="project-card-content">
+                    <span class="project-icon" aria-hidden="true">🏞️</span>
+                    <h2 class="project-title">Paumanok</h2>
+                    <p class="project-description">A Long Island-themed reskin of the tactical card game 'Air, Land & Sea', featuring custom region cards, rules, and player decks styled after local landscapes.</p>
+                </div>
+                <div class="project-footer">
+                    <div class="tech-tags">
+                        <span class="tech-tag">Game Reskin</span>
+                        <span class="tech-tag">Gallery</span>
+                    </div>
+                    <div class="project-link-arrow" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card: King Is Dead Long Island -->
+            <a href="../kid-li/" class="project-card card-kidli" id="project-card-kidli" role="listitem">
+                <div class="project-card-content">
+                    <span class="project-icon" aria-hidden="true">👑</span>
+                    <h2 class="project-title">King Is Dead - LI</h2>
+                    <p class="project-description">A Long Island-themed reskin of the classic board game 'The King Is Dead', featuring custom region cards, stylized assets, and a customized map styled after local geography.</p>
+                </div>
+                <div class="project-footer">
+                    <div class="tech-tags">
+                        <span class="tech-tag">Game Reskin</span>
+                        <span class="tech-tag">Gallery</span>
+                    </div>
+                    <div class="project-link-arrow" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card: Bernoulli (Calculus of Dysfunction) -->
+            <a href="../math/bernoulli.html" class="project-card card-bernoulli" id="project-card-bernoulli" role="listitem">
+                <div class="project-card-content">
+                    <span class="project-icon" aria-hidden="true">📜</span>
+                    <h2 class="project-title">Calculus of Dysfunction</h2>
+                    <p class="project-description">The wild, petty, and brilliant history of the Bernoulli family dynasty, their bitter mathematical rivalries, and the prolific work of Leonhard Euler.</p>
+                </div>
+                <div class="project-footer">
+                    <div class="tech-tags">
+                        <span class="tech-tag">Math Biography</span>
+                        <span class="tech-tag">History</span>
+                    </div>
+                    <div class="project-link-arrow" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card: Collatz Visualizer -->
+            <a href="../math/collatz.html" class="project-card card-collatz" id="project-card-collatz" role="listitem">
+                <div class="project-card-content">
+                    <span class="project-icon" aria-hidden="true">📈</span>
+                    <h2 class="project-title">Hailstone Visualizer</h2>
+                    <p class="project-description">An interactive graph and sequence tracker plotting the dramatic peaks and valleys of the famous 3n+1 Collatz Conjecture.</p>
+                </div>
+                <div class="project-footer">
+                    <div class="tech-tags">
+                        <span class="tech-tag">Interactive Graph</span>
+                        <span class="tech-tag">Simulation</span>
+                    </div>
+                    <div class="project-link-arrow" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card: MCU Checklist -->
+            <a href="../mcu/" class="project-card card-mcu" id="project-card-mcu" role="listitem">
+                <div class="project-card-content">
+                    <span class="project-icon" aria-hidden="true">🛡️</span>
+                    <h2 class="project-title">MCU Checklist</h2>
+                    <p class="project-description">Follow your journey through the Marvel Cinematic Universe with a checklist tracker, detailed IMDb details, budgets, earnings, and box office profit metrics.</p>
+                </div>
+                <div class="project-footer">
+                    <div class="tech-tags">
+                        <span class="tech-tag">Dashboard</span>
+                        <span class="tech-tag">Analytics</span>
+                    </div>
+                    <div class="project-link-arrow" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
+        </main>
+    </div>
+</body>
+
+</html>
