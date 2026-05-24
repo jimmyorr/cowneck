@@ -384,6 +384,37 @@
         halo: { name: 'Glowing Halo', cost: 5000, icon: '😇' },
         viking: { name: 'Viking Helmet', cost: 7500, icon: '🪖' },
         astro: { name: 'Space Helmet', cost: 10000, icon: '🧑‍🚀' }
+        ,
+        // 30 new hats
+        fedora:      { name: 'Fedora', cost: 60, icon: '🪶' },
+        bowler:      { name: 'Bowler Hat', cost: 85, icon: '🎩' },
+        beret:       { name: 'Beret', cost: 120, icon: '🎓' },
+        sunhat:      { name: 'Sun Hat', cost: 140, icon: '👒' },
+        rainhat:     { name: 'Rain Hat', cost: 160, icon: '☔' },
+        trilby:      { name: 'Trilby', cost: 180, icon: '🎩' },
+        fez:         { name: 'Fez', cost: 220, icon: '🧿' },
+        cowboy:      { name: 'Cowboy Hat', cost: 250, icon: '🤠' },
+        bucket:      { name: 'Bucket Hat', cost: 300, icon: '🪣' },
+        pith:        { name: 'Pith Helmet', cost: 320, icon: '🪖' },
+        captain:     { name: 'Captain Cap', cost: 350, icon: '🧑‍✈️' },
+        sailor:      { name: 'Sailor Cap', cost: 360, icon: '⚓' },
+        pilotcap:    { name: 'Pilot Cap', cost: 400, icon: '🛩️' },
+        snapback:    { name: 'Snapback', cost: 420, icon: '🧢' },
+        knitted:     { name: 'Knit Beanie', cost: 450, icon: '🧶' },
+        metallic:    { name: 'Metal Cap', cost: 480, icon: '🛡️' },
+        studded:     { name: 'Studded Cap', cost: 520, icon: '🔩' },
+        crown_jr:    { name: 'Junior Crown', cost: 600, icon: '👑' },
+        tiara:       { name: 'Tiara', cost: 650, icon: '👸' },
+        samurai:     { name: 'Samurai Helmet', cost: 800, icon: '⚔️' },
+        gladiator:   { name: 'Gladiator Helm', cost: 900, icon: '🛡️' },
+        conquistador:{ name: 'Conquistador', cost: 1100, icon: '🪓' },
+        engineer:    { name: 'Engineer Hat', cost: 1300, icon: '🦺' },
+        fisherman:   { name: 'Fisherman Hat', cost: 1500, icon: '🐟' },
+        beekeeper:   { name: 'Beekeeper Mask', cost: 1700, icon: '🐝' },
+        plague:      { name: 'Plague Hood', cost: 2000, icon: '🦠' },
+        crown_deluxe: { name: 'Deluxe Crown', cost: 3000, icon: '👑' },
+        golden:      { name: 'Golden Helmet', cost: 5000, icon: '✨' },
+        legendary:   { name: 'Legendary Hat', cost: 10000, icon: '💫' }
     };
 
     function addCoins(amount, reason) {
@@ -2973,6 +3004,62 @@
             // Reflection
             ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
             ctx.beginPath(); ctx.ellipse(hr*0.4, hatY - hr*0.6, hr*0.2, hr*0.4, 0.5, 0, Math.PI*2); ctx.fill();
+        } else if (currentHat === 'fedora') {
+            // Fedora: narrow brim with dent in crown
+            ctx.fillStyle = '#2b2d42';
+            ctx.beginPath(); ctx.ellipse(0, hatY + hr*0.05, hr*1.1, hr*0.25, 0, 0, Math.PI*2); ctx.fill(); // brim
+            ctx.fillStyle = '#121212';
+            ctx.beginPath(); ctx.moveTo(-hr*0.4, hatY); ctx.quadraticCurveTo(0, hatY - hr*1.0, hr*0.6, hatY); ctx.lineTo(hr*0.6, hatY + hr*0.6); ctx.lineTo(-hr*0.4, hatY + hr*0.6); ctx.closePath(); ctx.fill();
+            // Band
+            ctx.fillStyle = '#e76f51'; ctx.fillRect(-hr*0.5, hatY + hr*0.15, hr*1.0, hr*0.12);
+        } else if (currentHat === 'cowboy') {
+            // Cowboy: exaggerated wide brim and crease
+            ctx.fillStyle = '#8b5e3c';
+            ctx.beginPath(); ctx.ellipse(0, hatY + hr*0.1, hr*1.6, hr*0.35, 0, 0, Math.PI*2); ctx.fill(); // brim
+            ctx.fillStyle = '#6b3f2f'; ctx.beginPath(); ctx.moveTo(-hr*0.7, hatY); ctx.quadraticCurveTo(0, hatY - hr*1.0, hr*0.7, hatY); ctx.lineTo(hr*0.7, hatY + hr*0.45); ctx.lineTo(-hr*0.7, hatY + hr*0.45); ctx.closePath(); ctx.fill();
+            // Star badge on band
+            ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.moveTo(0, hatY - hr*0.1); for(let i=0;i<5;i++){ ctx.lineTo(Math.cos(Math.PI*2*i/5)*hr*0.15, hatY - hr*0.1 + Math.sin(Math.PI*2*i/5)*hr*0.15);} ctx.closePath(); ctx.fill();
+        } else if (currentHat === 'fez') {
+            // Fez: small cylinder with tassel
+            ctx.fillStyle = '#b11226';
+            ctx.fillRect(-hr*0.5, hatY - hr*0.9, hr*1.0, hr*0.9);
+            ctx.fillStyle = '#2b2d42'; ctx.fillRect(-hr*0.5, hatY - hr*0.05, hr*1.0, hr*0.15);
+            // Tassel
+            ctx.strokeStyle = '#111'; ctx.lineWidth = hr*0.06; ctx.beginPath(); ctx.moveTo(hr*0.25, hatY - hr*0.9); ctx.lineTo(hr*0.45, hatY - hr*0.6); ctx.stroke();
+        } else if (currentHat === 'bucket') {
+            // Bucket hat: small overhang and shallow crown
+            ctx.fillStyle = '#5e6472';
+            ctx.beginPath(); ctx.ellipse(0, hatY + hr*0.05, hr*1.0, hr*0.32, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#3f4956'; ctx.beginPath(); ctx.rect(-hr*0.7, hatY - hr*0.6, hr*1.4, hr*0.55); ctx.fill();
+            // Stitching band
+            ctx.strokeStyle = '#9ca3af'; ctx.lineWidth = hr*0.03; ctx.beginPath(); ctx.moveTo(-hr*0.6, hatY - hr*0.2); ctx.lineTo(hr*0.6, hatY - hr*0.2); ctx.stroke();
+        } else if (currentHat === 'tiara') {
+            // Tiara: delicate jewels and thin band
+            ctx.fillStyle = '#ffd166';
+            ctx.beginPath(); ctx.moveTo(-hr*0.6, hatY + hr*0.2); ctx.lineTo(-hr*0.3, hatY - hr*0.2); ctx.lineTo(0, hatY - hr*0.45); ctx.lineTo(hr*0.3, hatY - hr*0.2); ctx.lineTo(hr*0.6, hatY + hr*0.2); ctx.closePath(); ctx.fill();
+            // Jewels
+            ctx.fillStyle = '#e63946'; ctx.beginPath(); ctx.arc(0, hatY - hr*0.45, hr*0.08, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#457b9d'; ctx.beginPath(); ctx.arc(-hr*0.3, hatY - hr*0.2, hr*0.06, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(hr*0.3, hatY - hr*0.2, hr*0.06, 0, Math.PI*2); ctx.fill();
+        } else if (currentHat === 'samurai') {
+            // Samurai helmet (kabuto) with frontal crest
+            ctx.fillStyle = '#2b2d42'; ctx.beginPath(); ctx.arc(0, hatY, hr*0.9, Math.PI, 0); ctx.fill();
+            ctx.fillStyle = '#b8860b'; ctx.fillRect(-hr*1.0, hatY - hr*0.15, hr*2.0, hr*0.25); // decorative band
+            // Crest
+            ctx.fillStyle = '#e76f51'; ctx.beginPath(); ctx.moveTo(0, hatY - hr*1.0); ctx.lineTo(-hr*0.9, hatY - hr*0.2); ctx.lineTo(hr*0.9, hatY - hr*0.2); ctx.closePath(); ctx.fill();
+        } else if (currentHat === 'golden') {
+            // Golden helmet: shiny reflective plating
+            ctx.fillStyle = '#ffd700'; ctx.beginPath(); ctx.arc(0, hatY, hr*0.9, Math.PI, 0); ctx.fill();
+            // Highlights
+            ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.beginPath(); ctx.ellipse(-hr*0.2, hatY - hr*0.3, hr*0.4, hr*0.15, -0.6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#f4d35e'; ctx.beginPath(); ctx.ellipse(hr*0.4, hatY - hr*0.05, hr*0.35, hr*0.12, 0.3, 0, Math.PI*2); ctx.fill();
+        } else if (currentHat === 'legendary') {
+            // Legendary: ornate floating crown with aura
+            // Aura glow
+            ctx.save(); ctx.shadowColor = '#9b5de5'; ctx.shadowBlur = hr*1.2; ctx.fillStyle = 'rgba(155,93,229,0.25)'; ctx.beginPath(); ctx.ellipse(0, hatY - hr*0.2, hr*1.6, hr*0.8, 0, 0, Math.PI*2); ctx.fill(); ctx.restore();
+            // Crown base
+            ctx.fillStyle = '#ffb703'; ctx.beginPath(); ctx.moveTo(-hr*0.8, hatY + hr*0.1); ctx.lineTo(-hr*0.9, hatY - hr*0.6); ctx.lineTo(-hr*0.3, hatY - hr*0.3); ctx.lineTo(0, hatY - hr*1.0); ctx.lineTo(hr*0.3, hatY - hr*0.3); ctx.lineTo(hr*0.9, hatY - hr*0.6); ctx.lineTo(hr*0.8, hatY + hr*0.1); ctx.fill();
+            // Floating gem
+            ctx.fillStyle = '#6a4c93'; ctx.beginPath(); ctx.ellipse(0, hatY - hr*0.85, hr*0.12, hr*0.18, 0, 0, Math.PI*2); ctx.fill();
         }
         ctx.restore();
     }
