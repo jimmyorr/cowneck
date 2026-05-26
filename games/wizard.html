@@ -185,6 +185,226 @@
             </div>
         );
 
+        // --- Rules Modal Component ---
+        const RulesModal = ({ isOpen, onClose }) => {
+            if (!isOpen) return null;
+            const [activeTab, setActiveTab] = useState('overview'); // overview, cards, trump
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (e.key === 'Escape') onClose();
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [onClose]);
+
+            return (
+                <div 
+                    onClick={onClose} 
+                    className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+                >
+                    <div 
+                        onClick={(e) => e.stopPropagation()} 
+                        className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+                    >
+                        {/* Header */}
+                        <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-800/40">
+                            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent flex items-center gap-2">
+                                🧙 Wizard Guide & Rules
+                            </h2>
+                            <button 
+                                onClick={onClose} 
+                                className="p-1.5 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors" 
+                                aria-label="Close rules"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Tabs */}
+                        <div className="flex border-b border-slate-800 bg-slate-900/60 p-2 gap-1">
+                            <button
+                                onClick={() => setActiveTab('overview')}
+                                className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'overview' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                            >
+                                📋 Overview & Play
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('cards')}
+                                className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'cards' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                            >
+                                🧙 Special Cards
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('trump')}
+                                className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'trump' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                            >
+                                🎺 Trump & Scoring
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 text-slate-300">
+                            {activeTab === 'overview' && (
+                                <div className="space-y-4 animate-in fade-in duration-150">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white mb-1">Objective</h3>
+                                        <p className="text-sm leading-relaxed text-slate-400">
+                                            Wizard is a game of prediction. Your goal is to bid <strong className="text-white">exactly</strong> how many tricks you think you will win in each round. If you guess correctly, you score points; otherwise, you lose points.
+                                        </p>
+                                    </div>
+                                    <div className="border-t border-slate-800/80 pt-4">
+                                        <h3 className="text-lg font-bold text-white mb-2">Round Progression</h3>
+                                        <p className="text-sm leading-relaxed text-slate-400 mb-2">
+                                            The game has 15 rounds. Each round, you are dealt a number of cards equal to the round number:
+                                        </p>
+                                        <div className="bg-slate-950/40 border border-slate-800 p-3 rounded-2xl flex justify-around text-center text-xs">
+                                            <div>
+                                                <span className="block text-slate-500 font-semibold">Round 1</span>
+                                                <span className="text-lg font-black text-blue-400">1 Card</span>
+                                            </div>
+                                            <div className="flex items-center text-slate-600 font-bold">➔</div>
+                                            <div>
+                                                <span className="block text-slate-500 font-semibold">Round 8</span>
+                                                <span className="text-lg font-black text-indigo-400">8 Cards</span>
+                                            </div>
+                                            <div className="flex items-center text-slate-600 font-bold">➔</div>
+                                            <div>
+                                                <span className="block text-slate-500 font-semibold">Round 15</span>
+                                                <span className="text-lg font-black text-purple-400">15 Cards</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="border-t border-slate-800/80 pt-4">
+                                        <h3 className="text-lg font-bold text-white mb-2">Trick Play</h3>
+                                        <ul className="text-sm space-y-2 list-disc pl-5 text-slate-400 leading-relaxed">
+                                            <li>The leading player plays any card.</li>
+                                            <li>Other players must <strong className="text-white">follow suit</strong> (play the same suit as the led card) if they have one in their hand.</li>
+                                            <li>If they do not have a card of the led suit, they can play any other card (including trump).</li>
+                                            <li><strong className="text-white">Exceptions:</strong> Wizards and Jesters can be played at any time, even if you have cards of the led suit!</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'cards' && (
+                                <div className="space-y-4 animate-in fade-in duration-150">
+                                    <div className="bg-slate-950/30 border border-slate-800 p-4 rounded-2xl flex gap-4 items-start">
+                                        <div className="w-16 h-24 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl border border-indigo-400 flex flex-col justify-between p-2 shadow-lg flex-shrink-0 select-none">
+                                            <span className="text-sm font-bold leading-none text-indigo-200">W</span>
+                                            <span className="text-3xl self-center leading-none">🧙</span>
+                                            <span className="text-sm font-bold leading-none rotate-180 text-indigo-200">W</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h4 className="text-base font-extrabold text-white flex items-center gap-1.5">
+                                                🧙 The Wizard <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">4 in Deck</span>
+                                            </h4>
+                                            <p className="text-xs text-slate-400 leading-relaxed">
+                                                The ultimate trick-winner. A Wizard beats all other cards, including high trump cards.
+                                            </p>
+                                            <ul className="text-xs list-disc pl-4 text-slate-400 space-y-1 pt-1">
+                                                <li>Can be played at any time, regardless of lead suit.</li>
+                                                <li>The <strong className="text-white">first Wizard</strong> played in a trick always wins that trick.</li>
+                                                <li>If a Wizard is led, players can play whatever card they want (no suit follow-rule applies).</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-slate-950/30 border border-slate-800 p-4 rounded-2xl flex gap-4 items-start">
+                                        <div className="w-16 h-24 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl border border-slate-600 flex flex-col justify-between p-2 shadow-lg flex-shrink-0 select-none">
+                                            <span className="text-sm font-bold leading-none text-slate-400">J</span>
+                                            <span className="text-3xl self-center leading-none">🤡</span>
+                                            <span className="text-sm font-bold leading-none rotate-180 text-slate-400">J</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h4 className="text-base font-extrabold text-white flex items-center gap-1.5">
+                                                🤡 The Jester <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-400 border border-slate-500/30">4 in Deck</span>
+                                            </h4>
+                                            <p className="text-xs text-slate-400 leading-relaxed">
+                                                The ultimate throw-away card. A Jester is essentially worth zero and cannot win, making it perfect for avoiding unwanted tricks.
+                                            </p>
+                                            <ul className="text-xs list-disc pl-4 text-slate-400 space-y-1 pt-1">
+                                                <li>Can be played at any time, regardless of lead suit.</li>
+                                                <li>A Jester <strong className="text-white">never wins</strong> a trick, unless the trick consists *entirely* of Jesters (in which case the first Jester wins).</li>
+                                                <li>If a Jester is led, the first non-Jester played after it determines the lead suit.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'trump' && (
+                                <div className="space-y-4 animate-in fade-in duration-150">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white mb-2">🎺 The Trump Suit</h3>
+                                        <p className="text-sm leading-relaxed text-slate-400 mb-3">
+                                            Trump cards are powerful game-changers. Any card of the Trump suit beats any card of the normal lead suit, regardless of their face values.
+                                        </p>
+                                        <div className="bg-slate-950/30 border border-slate-800 p-4 rounded-2xl space-y-3 text-xs">
+                                            <h4 className="font-extrabold text-white">How Trump is decided each round:</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                                                    <span className="font-bold text-red-400">♦/♥/♣/♠ Normal Card Flipped:</span>
+                                                    <p className="text-slate-400 mt-1">The flipped card's suit is the Trump suit for the entire round.</p>
+                                                </div>
+                                                <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                                                    <span className="font-bold text-blue-400">🧙 Wizard Flipped:</span>
+                                                    <p className="text-slate-400 mt-1">A random suit is chosen as the Trump suit.</p>
+                                                </div>
+                                                <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                                                    <span className="font-bold text-slate-400">🤡 Jester Flipped:</span>
+                                                    <p className="text-slate-400 mt-1">There is no Trump suit for this round (No Trump).</p>
+                                                </div>
+                                                <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                                                    <span className="font-bold text-purple-400">Round 15 (No Upcard):</span>
+                                                    <p className="text-slate-400 mt-1">Since all cards are dealt, no card is flipped and there is No Trump.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="border-t border-slate-800/80 pt-4">
+                                        <h3 className="text-lg font-bold text-white mb-2">💯 Scoring System</h3>
+                                        <p className="text-sm leading-relaxed text-slate-400 mb-3">
+                                            Scoring is based strictly on your ability to accurately estimate your trick count.
+                                        </p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="bg-emerald-950/20 border border-emerald-500/30 p-3.5 rounded-2xl">
+                                                <h4 className="text-emerald-400 font-extrabold text-sm mb-1">Correct Bid (Made it!)</h4>
+                                                <p className="text-xs text-slate-300">
+                                                    You receive <strong className="text-emerald-300">20 points</strong> base, plus <strong className="text-emerald-300">10 points</strong> for each trick you won.
+                                                </p>
+                                                <span className="inline-block mt-2 text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono">Example: Bid 2, Won 2 = +40 pts</span>
+                                            </div>
+                                            <div className="bg-rose-950/20 border border-rose-500/30 p-3.5 rounded-2xl">
+                                                <h4 className="text-rose-400 font-extrabold text-sm mb-1">Incorrect Bid (Over/Under)</h4>
+                                                <p className="text-xs text-slate-300">
+                                                    You lose <strong className="text-rose-300">10 points</strong> for each trick you were off (whether you won too many or too few).
+                                                </p>
+                                                <span className="inline-block mt-2 text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded font-mono">Example: Bid 2, Won 4 = -20 pts</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-4 border-t border-slate-800 bg-slate-900/60 flex justify-end">
+                            <button
+                                onClick={onClose}
+                                className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95 text-sm"
+                            >
+                                Let's Play!
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // --- Main App ---
 
         function App() {
@@ -206,6 +426,7 @@
             const [playerName, setPlayerName] = useState('You');
             const [selectedOpponents, setSelectedOpponents] = useState(BOT_NAMES.slice(0, 3));
             const [hoveredOpponent, setHoveredOpponent] = useState(null);
+            const [showRules, setShowRules] = useState(false);
 
             useEffect(() => {
                 const savedName = localStorage.getItem('wizard_playerName');
@@ -535,9 +756,14 @@
                                         </div>
                                     </div>
 
-                                    <button onClick={() => initGame(false)} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95">
-                                        Play
-                                    </button>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <button onClick={() => initGame(false)} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95">
+                                            Play
+                                        </button>
+                                        <button onClick={() => setShowRules(true)} className="w-full bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 py-3 rounded-2xl font-bold text-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+                                             Rules Guide 📖
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="border-t border-slate-700 my-8 pt-8">
@@ -596,7 +822,13 @@
                                         ))}
                                         {currentTrick.length === 0 && <p className="text-slate-600 italic">Play a card to start the trick</p>}
                                     </div>
-                                    <div className="absolute top-4 right-4 flex gap-2">
+                                    <div className="absolute top-4 right-4 flex gap-2 items-center">
+                                        <button 
+                                            onClick={() => setShowRules(true)} 
+                                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-full text-xs font-bold transition-all border border-slate-700"
+                                        >
+                                            Rules ℹ️
+                                        </button>
                                         {gameState === 'playing' && (
                                             <button onClick={() => setFastForward(!fastForward)} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${fastForward ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-300'}`}>
                                                 {fastForward ? '⏩ Fast mode' : '🐢 Normal speed'}
@@ -730,6 +962,8 @@
                             </div>
                         </div>
                     )}
+
+                    <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
                 </div>
             );
         }
