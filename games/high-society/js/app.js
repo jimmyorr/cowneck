@@ -22,6 +22,7 @@ function App() {
     const [hoveredOpponent, setHoveredOpponent] = useState(null);
     const [targetSimulations, setTargetSimulations] = useState(100);
     const [simulationResults, setSimulationResults] = useState({});
+    const [showRules, setShowRules] = useState(false);
 
     const isSimulatingRef = useRef(false);
     const simCountRef = useRef(0);
@@ -227,17 +228,39 @@ function App() {
                     playerName={playerName} setPlayerName={setPlayerName}
                     selectedOpponents={selectedOpponents} setSelectedOpponents={setSelectedOpponents}
                     hoveredOpponent={hoveredOpponent} setHoveredOpponent={setHoveredOpponent}
-                    startGame={startGame} targetSimulations={targetSimulations} setTargetSimulations={setTargetSimulations} startSimulation={startSimulation} />
+                    startGame={startGame} targetSimulations={targetSimulations} setTargetSimulations={setTargetSimulations} startSimulation={startSimulation}
+                    setShowRules={setShowRules} />
             )}
             {gameState === 'playing' && (
                 <GamePlayArea isSimulatingRef={isSimulatingRef} simCountRef={simCountRef} simTargetRef={simTargetRef}
                     players={players} turn={turn} deck={deck} revealedCard={revealedCard}
                     currentHighestBid={currentHighestBid} highestBidder={highestBidder}
                     fastForward={fastForward} setFastForward={setFastForward}
-                    humanPendingBid={humanPendingBid} handleHumanBid={handleHumanBid} executePass={executePass} toggleHumanPendingCard={toggleHumanPendingCard} />
+                    humanPendingBid={humanPendingBid} handleHumanBid={handleHumanBid} executePass={executePass} toggleHumanPendingCard={toggleHumanPendingCard}
+                    setShowRules={setShowRules} />
             )}
             {gameState === 'end' && <GameOverScreen players={players} startGame={startGame} setGameState={setGameState} />}
             {gameState === 'simulationEnd' && <GameSimulationEndScreen simTargetRef={simTargetRef} simulationResults={simulationResults} setGameState={setGameState} />}
+
+            {gameState === 'playing' && !isSimulatingRef.current && (
+                <div className="fixed top-4 right-4 z-50 flex gap-2">
+                    <button 
+                        onClick={() => setShowRules(true)} 
+                        className="bg-green-800/80 hover:bg-green-700 text-yellow-400 font-bold px-4 py-2 rounded-full shadow-lg border border-yellow-600/30 backdrop-blur transition-all active:scale-95 text-xs flex items-center justify-center gap-1"
+                    >
+                        Rules ℹ️
+                    </button>
+                    <button 
+                        onClick={() => setIsPaused(true)} 
+                        className="bg-green-800/80 hover:bg-green-700 text-yellow-400 p-2 rounded-full shadow-lg border border-yellow-600/30 backdrop-blur transition-all active:scale-95 text-xs"
+                        aria-label="Pause game"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                </div>
+            )}
 
             {gameState === 'playing' && !isSimulatingRef.current && (
                 <div className="fixed bottom-4 right-4 z-50">
@@ -264,6 +287,8 @@ function App() {
                     </div>
                 </div>
             )}
+
+            <RulesModal isOpen={showRules} onClose={() => setShowRules(false)} />
         </div>
     );
 }

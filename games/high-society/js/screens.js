@@ -4,7 +4,8 @@ function GameStartScreen({
     hoveredOpponent, setHoveredOpponent,
     startGame,
     targetSimulations, setTargetSimulations,
-    startSimulation
+    startSimulation,
+    setShowRules
 }) {
     const [showAdvanced, setShowAdvanced] = React.useState(false);
 
@@ -55,9 +56,14 @@ function GameStartScreen({
                         </div>
                     </div>
 
-                    <button onClick={() => startGame(false)}
-                        className="w-full bg-yellow-500 hover:bg-yellow-400 text-green-950 font-black py-3 rounded-2xl text-lg shadow-lg shadow-yellow-500/20 transition transform active:scale-95"
-                    >Play</button>
+                    <div className="grid grid-cols-2 gap-4">
+                        <button onClick={() => startGame(false)}
+                            className="w-full bg-yellow-500 hover:bg-yellow-400 text-green-950 font-black py-3 rounded-2xl text-base sm:text-lg shadow-lg shadow-yellow-500/20 transition transform active:scale-95"
+                        >Play</button>
+                        <button onClick={() => setShowRules(true)}
+                            className="w-full bg-green-950 border border-green-700 text-yellow-500 font-bold py-3 rounded-2xl text-base sm:text-lg hover:bg-green-900 transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                        >Rules Guide 📖</button>
+                    </div>
                 </div>
 
                 <div className="border-t border-green-700 my-6 pt-6">
@@ -334,6 +340,221 @@ function GamePlayArea({
     );
 }
 
-function sumArray(arr) {
-    return arr.reduce((a, b) => a + b, 0);
-}
+const RulesModal = ({ isOpen, onClose }) => {
+    if (!isOpen) return null;
+    const [activeTab, setActiveTab] = React.useState('overview'); // overview, cards, ruin
+
+    React.useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
+    return (
+        <div 
+            onClick={onClose} 
+            className="fixed inset-0 bg-black/85 backdrop-blur-md z-[300] flex items-center justify-center p-4 animate-in fade-in duration-200"
+        >
+            <div 
+                onClick={(e) => e.stopPropagation()} 
+                className="bg-emerald-950 border-2 border-yellow-500 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+            >
+                {/* Header */}
+                <div className="p-5 border-b border-green-800 flex justify-between items-center bg-green-900/60">
+                    <h2 className="text-2xl font-serif text-yellow-400 flex items-center gap-2">
+                        🥂 High Society Rules & Guide
+                    </h2>
+                    <button 
+                        onClick={onClose} 
+                        className="p-1.5 hover:bg-green-900 rounded-full text-yellow-500/80 hover:text-yellow-400 transition-colors" 
+                        aria-label="Close rules"
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex border-b border-green-850 bg-green-950/60 p-2 gap-1">
+                    <button
+                        onClick={() => setActiveTab('overview')}
+                        className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'overview' ? 'bg-yellow-500 text-green-950 shadow-lg shadow-yellow-500/20' : 'text-gray-400 hover:text-gray-200 hover:bg-green-900/50'}`}
+                    >
+                        📋 Overview & Bidding
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('cards')}
+                        className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'cards' ? 'bg-yellow-500 text-green-950 shadow-lg shadow-yellow-500/20' : 'text-gray-400 hover:text-gray-200 hover:bg-green-900/50'}`}
+                    >
+                        💎 Card Categories
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('ruin')}
+                        className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'ruin' ? 'bg-yellow-500 text-green-950 shadow-lg shadow-yellow-500/20' : 'text-gray-400 hover:text-gray-200 hover:bg-green-900/50'}`}
+                    >
+                        💀 The Ruin Rule
+                    </button>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 text-gray-200">
+                    {activeTab === 'overview' && (
+                        <div className="space-y-4 animate-in fade-in duration-150">
+                            <div>
+                                <h3 className="text-lg font-serif text-yellow-400 mb-1">Objective</h3>
+                                <p className="text-sm leading-relaxed text-gray-300">
+                                    In High Society, you act as a Gilded Age millionaire. Your goal is to bid on luxury items and prestige cards to accumulate the highest score. However, you must carefully budget: at the end of the game, <strong className="text-yellow-400">the poorest player is immediately eliminated</strong> from the game, regardless of their score!
+                                </p>
+                            </div>
+                            <div className="border-t border-green-800 pt-4">
+                                <h3 className="text-lg font-serif text-yellow-400 mb-2">💵 Money & Bidding Rules</h3>
+                                <ul className="text-sm space-y-2 list-disc pl-5 text-gray-300 leading-relaxed">
+                                    <li>Every player starts with the exact same set of 11 banknotes: <strong className="text-white">1k, 2k, 3k, 4k, 5k, 8k, 10k, 12k, 15k, 20k, 25k</strong> ($100k total capital).</li>
+                                    <li><strong className="text-yellow-400">No Change Can Be Made:</strong> When raising a bid, you must place additional banknotes from your hand. You cannot take back notes already on the table to make change!</li>
+                                    <li><strong className="text-yellow-400">Payment:</strong> The winner of the auction discards all their bid banknotes forever. All other players take their bid notes back into their hand.</li>
+                                </ul>
+                            </div>
+                            <div className="border-t border-green-800 pt-4">
+                                <h3 className="text-lg font-serif text-yellow-400 mb-2">⏱️ Game End Trigger</h3>
+                                <p className="text-sm leading-relaxed text-gray-300">
+                                    The deck contains <strong className="text-white">4 dark cards</strong> (3 Prestige x2 cards, and 1 Scandale /2 card). The game <strong className="text-red-400 font-bold">ends immediately</strong> the moment the 4th dark card is drawn from the deck. This 4th card is not auctioned, and final scoring begins.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'cards' && (
+                        <div className="space-y-4 animate-in fade-in duration-150">
+                            <div>
+                                <h3 className="text-lg font-serif text-yellow-400 mb-2">💎 Positive Cards (Bid to Win)</h3>
+                                <div className="space-y-3">
+                                    <div className="bg-green-900/40 border border-green-800 p-4 rounded-2xl flex gap-4 items-start">
+                                        <div className="w-14 h-20 bg-amber-50 rounded-lg border border-emerald-800 flex flex-col justify-center p-1 text-center flex-shrink-0 select-none">
+                                            <span className="text-[10px] font-bold text-emerald-950 font-serif leading-none">Luxury</span>
+                                            <span className="text-xl my-0.5">💎</span>
+                                            <span className="text-sm font-black text-emerald-950 leading-none">1-10</span>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-white">Luxury Cards (Values 1 to 10)</h4>
+                                            <p className="text-xs text-gray-300 leading-relaxed mt-1">
+                                                These cards represent various high-society luxuries (Parfum, Cuisine, Joaillerie). Each luxury card adds its value directly to your score. The highest bidder wins and pays.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-green-900/40 border border-green-800 p-4 rounded-2xl flex gap-4 items-start">
+                                        <div className="w-14 h-20 bg-emerald-950 rounded-lg border border-yellow-500 flex flex-col justify-center p-1 text-center flex-shrink-0 select-none">
+                                            <span className="text-[9px] font-bold text-yellow-400 font-serif leading-none">Prestige</span>
+                                            <span className="text-xl my-0.5">🃏</span>
+                                            <span className="text-sm font-black text-yellow-400 leading-none">x2</span>
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-white">Prestige Multipliers (x2) — <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">Dark Card</span></h4>
+                                            <p className="text-xs text-gray-300 leading-relaxed mt-1">
+                                                These double your overall final score! Multiple Prestige cards multiply your score repeatedly (e.g. two x2 cards quadruple your final points). Highest bidder wins and pays.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-green-800 pt-4">
+                                <h3 className="text-lg font-serif text-yellow-400 mb-2">💩 Disgrace Cards (Reverse Auction — Avoid!)</h3>
+                                <p className="text-xs text-gray-300 leading-relaxed mb-3">
+                                    Reverse auctions work differently: <strong className="text-yellow-400">The FIRST player to Pass takes the card but pays nothing</strong>! All other players must discard their active bids from their hand.
+                                </p>
+                                <div className="space-y-3">
+                                    <div className="bg-red-950/20 border border-red-900/40 p-3 rounded-xl flex items-center gap-3">
+                                        <span className="text-xl bg-red-950/50 p-2 rounded-lg border border-red-800">💩</span>
+                                        <div>
+                                            <h5 className="text-xs font-bold text-red-200">Faux Pas! (Drop / Discard)</h5>
+                                            <p className="text-[11px] text-gray-400 leading-relaxed mt-0.5">Forces you to discard your lowest-value Luxury card. If you own no luxury cards, the next one you win is immediately discarded instead.</p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-red-950/20 border border-red-900/40 p-3 rounded-xl flex items-center gap-3">
+                                        <span className="text-xl bg-red-950/50 p-2 rounded-lg border border-red-800">📉</span>
+                                        <div>
+                                            <h5 className="text-xs font-bold text-red-200">Passé! (-5 Points)</h5>
+                                            <p className="text-[11px] text-gray-400 leading-relaxed mt-0.5">Subtracts 5 points from your final score calculation.</p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-red-950/20 border border-red-900/40 p-3 rounded-xl flex items-center gap-3">
+                                        <span className="text-xl bg-red-950/50 p-2 rounded-lg border border-red-800">⚡</span>
+                                        <div>
+                                            <h5 className="text-xs font-bold text-red-200">Scandale! (/2 Division) — <span className="text-[10px] text-red-400 font-semibold uppercase tracking-tighter">Dark Card</span></h5>
+                                            <p className="text-[11px] text-gray-400 leading-relaxed mt-0.5">Cuts your final score in half (rounded up) at the end of the game.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'ruin' && (
+                        <div className="space-y-4 animate-in fade-in duration-150">
+                            <div>
+                                <h3 className="text-lg font-serif text-yellow-400 mb-2">💀 The Ruin Rule</h3>
+                                <p className="text-sm leading-relaxed text-gray-300">
+                                    Having the most prestigious collection is useless if you spent all your money to get it.
+                                </p>
+                                <div className="bg-rose-950/30 border border-rose-500/30 p-4 rounded-2xl mt-3 space-y-2">
+                                    <h4 className="text-rose-400 font-bold text-base flex items-center gap-1.5">
+                                        ⚠️ Instant Elimination!
+                                    </h4>
+                                    <p className="text-xs text-slate-200 leading-relaxed">
+                                        At the end of the game, players count the banknotes remaining in their hands. <strong className="text-rose-300">The player (or players) with the least remaining money is immediately disqualified</strong>. They cannot win, regardless of how many luxury points they have!
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-green-800 pt-4">
+                                <h3 className="text-lg font-serif text-yellow-400 mb-2">💯 Score Calculation</h3>
+                                <p className="text-sm leading-relaxed text-gray-300">
+                                    For all surviving (non-eliminated) players, score is calculated as follows:
+                                </p>
+                                <div className="bg-black/30 p-4 rounded-xl border border-green-800/60 font-serif space-y-2 mt-2">
+                                    <div className="flex justify-between items-center text-xs border-b border-green-900 pb-1 text-gray-400">
+                                        <span>Step</span>
+                                        <span>Calculation Method</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-400">1. Base Points</span>
+                                        <span className="text-white font-bold">Sum of Luxury Cards (1 to 10)</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-400">2. Subtract Penances</span>
+                                        <span className="text-red-400 font-bold">Minus 5 for each Passé! card</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-400">3. Apply Multipliers</span>
+                                        <span className="text-yellow-400 font-bold">Double (x2) for each Prestige card</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-400">4. Apply Divisors</span>
+                                        <span className="text-red-400 font-bold">Divide by 2 (rounded up) for each Scandale!</span>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                                    The surviving player with the highest final score wins! If there is a tie, the player with the most remaining money wins.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer */}
+                <div className="p-4 border-t border-green-800 bg-green-900/60 flex justify-end">
+                    <button
+                        onClick={onClose}
+                        className="bg-yellow-500 hover:bg-yellow-400 text-green-950 font-extrabold px-6 py-2.5 rounded-xl shadow-lg shadow-yellow-500/20 transition-all active:scale-95 text-sm"
+                    >
+                        Let's Auction!
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
