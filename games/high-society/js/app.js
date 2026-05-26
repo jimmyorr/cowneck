@@ -71,7 +71,7 @@ function App() {
         selectedOpponents.forEach(o => stats[o] = 0);
         simResultsRef.current = stats;
         setSimulationResults(stats);
-        startGame();
+        startGame(true);
     };
 
     const drawNextCard = (currentDeck = deck, currentPlayers = players, darkCount = darkCardsDrawn, nextTurn = turn) => {
@@ -116,7 +116,7 @@ function App() {
             setSimulationResults({ ...simResultsRef.current });
             if (simCountRef.current < simTargetRef.current) {
                 simCountRef.current += 1;
-                setTimeout(() => startGame(), SIM_DELAY);
+                setTimeout(() => startGame(true), SIM_DELAY);
             } else {
                 isSimulatingRef.current = false;
                 setGameState('simulationEnd');
