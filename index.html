@@ -62,12 +62,39 @@
             background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
             border-color: transparent;
         }
+
+        #chester-link {
+            display: inline-block;
+            width: 180px;
+            max-width: 220px;
+            transition: transform 0.2s ease;
+            margin: 0 auto;
+        }
+
+        #chester-link img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .bouncing-chester {
+            position: fixed;
+            width: 90px;
+            max-width: 90px;
+            height: auto;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            transform: translate(0, 0);
+            transition: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <a href="https://linktr.ee/jimmyorr">
+        <a id="chester-link" href="https://linktr.ee/jimmyorr">
             <img src="./chester.webp" alt="Chester" />
         </a>
         <div class="links">
@@ -75,6 +102,53 @@
             <a href="projects/" class="link-projects">projects</a>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chester = document.getElementById('chester-link');
+            if (!chester) return;
+
+            if (Math.random() >= 0.1) return;
+
+            chester.classList.add('bouncing-chester');
+            let x = 20;
+            let y = 20;
+            let vx = 3 + Math.random() * 2;
+            let vy = 3 + Math.random() * 2;
+            const padding = 12;
+
+            const update = () => {
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const rect = chester.getBoundingClientRect();
+                const imgWidth = rect.width;
+                const imgHeight = rect.height;
+
+                x += vx;
+                y += vy;
+
+                if (x <= padding) {
+                    x = padding;
+                    vx = Math.abs(vx);
+                } else if (x + imgWidth + padding >= viewportWidth) {
+                    x = viewportWidth - imgWidth - padding;
+                    vx = -Math.abs(vx);
+                }
+
+                if (y <= padding) {
+                    y = padding;
+                    vy = Math.abs(vy);
+                } else if (y + imgHeight + padding >= viewportHeight) {
+                    y = viewportHeight - imgHeight - padding;
+                    vy = -Math.abs(vy);
+                }
+
+                chester.style.transform = `translate(${x}px, ${y}px)`;
+                requestAnimationFrame(update);
+            };
+
+            requestAnimationFrame(update);
+        });
+    </script>
 </body>
 
 </html>
