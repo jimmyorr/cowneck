@@ -79,8 +79,8 @@
 
         .bouncing-chester {
             position: fixed;
-            width: 180px;
-            max-width: 180px;
+            width: 150px;
+            max-width: 150px;
             height: auto;
             top: 20px;
             left: 20px;
@@ -88,6 +88,33 @@
             transform: translate(0, 0);
             transition: none;
             cursor: pointer;
+        }
+
+        #drop-button {
+            position: fixed;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            padding: 14px 26px;
+            border: none;
+            border-radius: 999px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+            background: linear-gradient(135deg, #f43f5e, #fb7185, #facc15, #22c55e, #0ea5e9, #a855f7);
+            background-size: 300% 300%;
+            animation: rainbow-glow 3s ease infinite;
+            display: none;
+            z-index: 10000;
+        }
+
+        @keyframes rainbow-glow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
     </style>
 </head>
@@ -102,10 +129,12 @@
             <a href="projects/" class="link-projects">projects</a>
         </div>
     </div>
+    <button id="drop-button">DROP</button>
     <script>
         const initChesterBounce = () => {
             const chester = document.getElementById('chester-link');
-            if (!chester) return;
+            const dropButton = document.getElementById('drop-button');
+            if (!chester || !dropButton) return;
 
             const cleanup = () => {
                 if (chester._chesterRafId != null) {
@@ -119,6 +148,8 @@
                 chester.style.width = '';
                 chester.style.transform = '';
                 chester.style.pointerEvents = '';
+                dropButton.style.display = 'none';
+                dropButton.onclick = null;
             };
 
             cleanup();
@@ -129,68 +160,77 @@
             const rect = chester.getBoundingClientRect();
             if (rect.width === 0 || rect.height === 0) return;
 
-            const startX = rect.left;
-            const startY = rect.top;
-            const dropDistance = 120;
-            const duration = 650;
-            let startTime = null;
-            let x = startX;
-            let y = startY - dropDistance;
-            let vx = 3 + Math.random() * 2;
-            let vy = 3 + Math.random() * 2;
+            dropButton.style.display = 'block';
+            dropButton.onclick = () => {
+                dropButton.style.display = 'none';
+                startDvdAnimation();
+            };
 
-            chester.classList.add('bouncing-chester');
-            chester.style.position = 'fixed';
-            chester.style.left = `${startX}px`;
-            chester.style.top = `${y}px`;
-            chester.style.pointerEvents = 'auto';
+            const startDvdAnimation = () => {
+                const startX = rect.left;
+                const startY = rect.top;
+                const dropDistance = 120;
+                const duration = 500;
+                let startTime = null;
+                let x = startX;
+                let y = startY - dropDistance;
+                let vx = 4 + Math.random() * 2;
+                let vy = 4 + Math.random() * 2;
 
-            const easeOut = t => 1 - Math.pow(1 - t, 3);
+                chester.classList.add('bouncing-chester');
+                chester.style.position = 'fixed';
+                chester.style.left = `${startX}px`;
+                chester.style.top = `${y}px`;
+                chester.style.pointerEvents = 'auto';
 
-            const update = timestamp => {
-                if (chester._chesterRafId == null) return;
-                if (startTime === null) startTime = timestamp;
-                const elapsed = timestamp - startTime;
+                const easeOut = t => 1 - Math.pow(1 - t, 3);
 
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-                const rect = chester.getBoundingClientRect();
-                const imgWidth = rect.width;
-                const imgHeight = rect.height;
+                const update = timestamp => {
+                    if (chester._chesterRafId == null) return;
+                    if (startTime === null) startTime = timestamp;
+                    const elapsed = timestamp - startTime;
 
-                if (elapsed < duration) {
-                    const progress = easeOut(Math.min(elapsed / duration, 1));
-                    y = startY - dropDistance + progress * dropDistance;
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    const currentRect = chester.getBoundingClientRect();
+                    const imgWidth = currentRect.width;
+                    const imgHeight = currentRect.height;
+
+                    if (elapsed < duration) {
+                        const progress = easeOut(Math.min(elapsed / duration, 1));
+                        y = startY - dropDistance + progress * dropDistance;
+                        chester.style.top = `${y}px`;
+                        chester._chesterRafId = requestAnimationFrame(update);
+                        return;
+                    }
+
+                    x += vx;
+                    y += vy;
+
+                    if (x <= 0) {
+                        x = 0;
+                        vx = Math.abs(vx);
+                    } else if (x + imgWidth >= viewportWidth) {
+                        x = viewportWidth - imgWidth;
+                        vx = -Math.abs(vx);
+                    }
+
+                    if (y <= 0) {
+                        y = 0;
+                        vy = Math.abs(vy);
+                    } else if (y + imgHeight >= viewportHeight) {
+                        y = viewportHeight - imgHeight;
+                        vy = -Math.abs(vy);
+                    }
+
+                    chester.style.left = `${x}px`;
                     chester.style.top = `${y}px`;
                     chester._chesterRafId = requestAnimationFrame(update);
-                    return;
-                }
+                };
 
-                x += vx;
-                y += vy;
-
-                if (x <= 0) {
-                    x = 0;
-                    vx = Math.abs(vx);
-                } else if (x + imgWidth >= viewportWidth) {
-                    x = viewportWidth - imgWidth;
-                    vx = -Math.abs(vx);
-                }
-
-                if (y <= 0) {
-                    y = 0;
-                    vy = Math.abs(vy);
-                } else if (y + imgHeight >= viewportHeight) {
-                    y = viewportHeight - imgHeight;
-                    vy = -Math.abs(vy);
-                }
-
-                chester.style.left = `${x}px`;
-                chester.style.top = `${y}px`;
                 chester._chesterRafId = requestAnimationFrame(update);
             };
 
-            chester._chesterRafId = requestAnimationFrame(update);
             window.addEventListener('pagehide', cleanup, { once: true });
             window.addEventListener('beforeunload', cleanup, { once: true });
         };
