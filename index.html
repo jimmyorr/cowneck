@@ -103,18 +103,28 @@
         </div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        const initChesterBounce = () => {
             const chester = document.getElementById('chester-link');
             if (!chester) return;
 
-            if (Math.random() >= 0.1) return;
+            chester.classList.remove('bouncing-chester');
+            chester.style.position = '';
+            chester.style.top = '';
+            chester.style.left = '';
+            chester.style.width = '';
+            chester.style.transform = '';
+
+            const shouldBounce = Math.random() < 0.1;
+            if (!shouldBounce) return;
 
             chester.classList.add('bouncing-chester');
+            chester.style.position = 'fixed';
             let x = 20;
             let y = 20;
             let vx = 3 + Math.random() * 2;
             let vy = 3 + Math.random() * 2;
             const padding = 12;
+            let rafId = null;
 
             const update = () => {
                 const viewportWidth = window.innerWidth;
@@ -142,12 +152,32 @@
                     vy = -Math.abs(vy);
                 }
 
-                chester.style.transform = `translate(${x}px, ${y}px)`;
-                requestAnimationFrame(update);
+                chester.style.left = `${x}px`;
+                chester.style.top = `${y}px`;
+
+                rafId = requestAnimationFrame(update);
             };
 
-            requestAnimationFrame(update);
-        });
+            rafId = requestAnimationFrame(update);
+
+            const cleanup = () => {
+                if (rafId !== null) {
+                    cancelAnimationFrame(rafId);
+                    rafId = null;
+                }
+                chester.classList.remove('bouncing-chester');
+                chester.style.position = '';
+                chester.style.top = '';
+                chester.style.left = '';
+                chester.style.width = '';
+                chester.style.transform = '';
+            };
+
+            window.addEventListener('pagehide', cleanup, { once: true });
+            window.addEventListener('beforeunload', cleanup, { once: true });
+        };
+
+        window.addEventListener('pageshow', initChesterBounce);
     </script>
 </body>
 
