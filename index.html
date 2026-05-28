@@ -65,8 +65,8 @@
 
         #chester-link {
             display: inline-block;
-            width: 220px;
-            max-width: 220px;
+            width: 240px;
+            max-width: 240px;
             transition: transform 0.2s ease;
             margin: 0 auto;
         }
@@ -79,8 +79,8 @@
 
         .bouncing-chester {
             position: fixed;
-            width: 110px;
-            max-width: 110px;
+            width: 120px;
+            max-width: 120px;
             height: auto;
             top: 20px;
             left: 20px;
@@ -88,24 +88,6 @@
             transform: translate(0, 0);
             transition: none;
             cursor: pointer;
-        }
-
-        .chester-fall {
-            animation: chester-drop 0.85s ease-out forwards;
-        }
-
-        @keyframes chester-drop {
-            0% {
-                top: -180px;
-                opacity: 0;
-            }
-            40% {
-                opacity: 1;
-            }
-            100% {
-                top: 20px;
-                opacity: 1;
-            }
         }
     </style>
 </head>
@@ -135,27 +117,47 @@
             const shouldBounce = Math.random() < 0.1;
             if (!shouldBounce) return;
 
+            const rect = chester.getBoundingClientRect();
+            const startX = rect.left;
+            const startY = rect.top;
+            const dropDistance = 120;
+            const duration = 650;
+            let startTime = null;
+
             chester.classList.add('bouncing-chester');
             chester.style.position = 'fixed';
-            chester.style.top = '-180px';
-            chester.style.left = '20px';
-            chester.classList.add('chester-fall');
+            chester.style.left = `${startX}px`;
+            chester.style.top = `${startY}px`;
 
-            let x = 20;
-            let y = 20;
+            let x = startX;
+            let y = startY;
             let vx = 3 + Math.random() * 2;
             let vy = 3 + Math.random() * 2;
             const padding = 12;
             let rafId = null;
 
+            const easeOut = t => 1 - Math.pow(1 - t, 3);
+
             const startBounce = () => {
-                chester.classList.remove('chester-fall');
-                x = 20;
-                y = 20;
+                y = startY + dropDistance;
                 rafId = requestAnimationFrame(update);
             };
 
-            const update = () => {
+            const update = timestamp => {
+                if (startTime === null) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+
+                if (elapsed < duration) {
+                    const progress = easeOut(elapsed / duration);
+                    chester.style.top = `${startY + progress * dropDistance}px`;
+                    rafId = requestAnimationFrame(update);
+                    return;
+                }
+
+                if (y < startY + dropDistance) {
+                    y = startY + dropDistance;
+                }
+
                 const viewportWidth = window.innerWidth;
                 const viewportHeight = window.innerHeight;
                 const rect = chester.getBoundingClientRect();
@@ -183,11 +185,10 @@
 
                 chester.style.left = `${x}px`;
                 chester.style.top = `${y}px`;
-
                 rafId = requestAnimationFrame(update);
             };
 
-            chester.addEventListener('animationend', startBounce, { once: true });
+            rafId = requestAnimationFrame(update);
 
             const cleanup = () => {
                 if (rafId !== null) {
