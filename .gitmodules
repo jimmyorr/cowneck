@@ -13,3 +13,6 @@
 [submodule "kid-li"]
 	path = kid-li
 	url = https://github.com/jimmyorr/kid-li
+[submodule "counters"]
+	path = counters
+	url = https://github.com/jimmyorr/counters
