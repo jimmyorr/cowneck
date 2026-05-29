@@ -1,18 +1,24 @@
 [submodule "games/chill-flight"]
 	path = games/chill-flight
 	url = https://github.com/jimmyorr/chill-flight.git
+	branch = main
 [submodule "birds"]
 	path = birds
 	url = https://github.com/jimmyorr/birds.git
+	branch = main
 [submodule "dislikes"]
 	path = dislikes
 	url = https://github.com/jimmyorr/dislikes.git
+	branch = main
 [submodule "paumanok"]
 	path = paumanok
 	url = https://github.com/jimmyorr/paumanok
+	branch = main
 [submodule "kid-li"]
 	path = kid-li
 	url = https://github.com/jimmyorr/kid-li
+	branch = main
 [submodule "counters"]
 	path = counters
 	url = https://github.com/jimmyorr/counters
+	branch = main
