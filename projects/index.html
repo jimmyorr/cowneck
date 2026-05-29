@@ -302,6 +302,10 @@
             --hover-gradient: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(129, 140, 248, 0.05) 100%);
             --glow-shadow: rgba(56, 189, 248, 0.25);
         }
+        .card-counters {
+            --hover-gradient: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.05) 100%);
+            --glow-shadow: rgba(245, 158, 11, 0.25);
+        }
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
@@ -359,6 +363,27 @@
         <!-- Projects Grid -->
         <main class="projects-grid" role="list">
             
+            <!-- Card: Counters -->
+            <a href="../counters/" class="project-card card-counters" id="project-card-counters" role="listitem">
+                <div class="project-card-content">
+                    <span class="project-icon" aria-hidden="true">🔢</span>
+                    <h2 class="project-title">Counters</h2>
+                    <p class="project-description">A simple minimalist score keeping webapp. Track scores for multiple players or teams, with customizable colors and increment values.</p>
+                </div>
+                <div class="project-footer">
+                    <div class="tech-tags">
+                        <span class="tech-tag">Web App</span>
+                        <span class="tech-tag">Utility</span>
+                    </div>
+                    <div class="project-link-arrow" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                </div>
+            </a>
+
             <!-- Card: Birds -->
             <a href="../birds/" class="project-card card-birds" id="project-card-birds" role="listitem">
                 <div class="project-card-content">
