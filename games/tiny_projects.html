@@ -228,6 +228,66 @@
                 <div class="text-5xl mb-3">❓</div>
                 <h2 class="text-lg font-bold text-slate-700">Mini Quiz</h2>
             </div>
+            <div onclick="openApp('roman')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🪙</div>
+                <h2 class="text-lg font-bold text-slate-700">Roman Numerals</h2>
+            </div>
+            <div onclick="openApp('caesar')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🔐</div>
+                <h2 class="text-lg font-bold text-slate-700">Caesar Cipher</h2>
+            </div>
+            <div onclick="openApp('morse')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">📡</div>
+                <h2 class="text-lg font-bold text-slate-700">Morse Code</h2>
+            </div>
+            <div onclick="openApp('tipcalc')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">💵</div>
+                <h2 class="text-lg font-bold text-slate-700">Tip Calculator</h2>
+            </div>
+            <div onclick="openApp('agecalc')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🎂</div>
+                <h2 class="text-lg font-bold text-slate-700">Age Calculator</h2>
+            </div>
+            <div onclick="openApp('binary')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🔢</div>
+                <h2 class="text-lg font-bold text-slate-700">Binary Translator</h2>
+            </div>
+            <div onclick="openApp('username')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">👾</div>
+                <h2 class="text-lg font-bold text-slate-700">Username Generator</h2>
+            </div>
+            <div onclick="openApp('numfact')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🔎</div>
+                <h2 class="text-lg font-bold text-slate-700">Number Fact</h2>
+            </div>
+            <div onclick="openApp('recipe')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🥗</div>
+                <h2 class="text-lg font-bold text-slate-700">Recipe Idea</h2>
+            </div>
+            <div onclick="openApp('emojibanner')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">📣</div>
+                <h2 class="text-lg font-bold text-slate-700">Emoji Banner</h2>
+            </div>
+            <div onclick="openApp('shades')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🎨</div>
+                <h2 class="text-lg font-bold text-slate-700">Color Shades</h2>
+            </div>
+            <div onclick="openApp('quotebuilder')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🧱</div>
+                <h2 class="text-lg font-bold text-slate-700">Quote Builder</h2>
+            </div>
+            <div onclick="openApp('teamup')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">👥</div>
+                <h2 class="text-lg font-bold text-slate-700">Random Team</h2>
+            </div>
+            <div onclick="openApp('dailygoal')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🎯</div>
+                <h2 class="text-lg font-bold text-slate-700">Daily Goal</h2>
+            </div>
+            <div onclick="openApp('spinwheel')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🎡</div>
+                <h2 class="text-lg font-bold text-slate-700">Spin Wheel</h2>
+            </div>
         </div>
 
         <footer class="mt-16 pb-8 text-center text-slate-400 text-sm">
@@ -697,6 +757,143 @@
                     <button onclick="loadQuizQuestion()" class="flex-1 bg-slate-300 hover:bg-slate-400 text-slate-900 text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">Next Question</button>
                 </div>
                 <div id="quiz-answer" class="text-2xl font-bold text-slate-700">Answer will appear here.</div>
+            </div>
+
+            <!-- 43. Roman Numerals -->
+            <div id="app-roman" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🪙</div>
+                <h2 class="text-3xl font-bold mb-6">Roman Numerals</h2>
+                <input id="roman-input" type="number" min="1" max="3999" placeholder="Enter a number" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400">
+                <button onclick="convertRoman()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Convert</button>
+                <div id="roman-output" class="text-4xl font-bold text-slate-800">Roman numeral appears here.</div>
+            </div>
+
+            <!-- 44. Caesar Cipher -->
+            <div id="app-caesar" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🔐</div>
+                <h2 class="text-3xl font-bold mb-6">Caesar Cipher</h2>
+                <textarea id="caesar-input" class="w-full h-28 p-4 rounded-3xl border-2 border-slate-200 mb-4 focus:outline-none focus:border-indigo-400" placeholder="Enter text to encode"></textarea>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <input id="caesar-shift" type="number" min="1" max="25" value="3" class="w-full p-4 rounded-3xl border-2 border-slate-200 focus:outline-none focus:border-indigo-400" placeholder="Shift">
+                    <button onclick="encodeCaesar()" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">Encode</button>
+                </div>
+                <div id="caesar-output" class="text-2xl font-bold text-slate-700">Encoded text will appear here.</div>
+            </div>
+
+            <!-- 45. Morse Code -->
+            <div id="app-morse" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">📡</div>
+                <h2 class="text-3xl font-bold mb-6">Morse Code</h2>
+                <input id="morse-input" type="text" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400" placeholder="Enter text to translate">
+                <button onclick="convertMorse()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Translate</button>
+                <div id="morse-output" class="text-2xl font-bold text-slate-700">Morse translation appears here.</div>
+            </div>
+
+            <!-- 46. Tip Calculator -->
+            <div id="app-tipcalc" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">💵</div>
+                <h2 class="text-3xl font-bold mb-6">Tip Calculator</h2>
+                <input id="tip-bill" type="number" min="0" step="0.01" placeholder="Bill amount" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-4 focus:outline-none focus:border-indigo-400">
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <input id="tip-percent" type="number" min="0" max="100" value="15" class="w-full p-4 rounded-3xl border-2 border-slate-200 focus:outline-none focus:border-indigo-400" placeholder="Tip %">
+                    <input id="tip-split" type="number" min="1" value="1" class="w-full p-4 rounded-3xl border-2 border-slate-200 focus:outline-none focus:border-indigo-400" placeholder="Split">
+                </div>
+                <button onclick="calculateTip()" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Calculate</button>
+                <div id="tip-output" class="text-2xl font-bold text-slate-700">Tip result appears here.</div>
+            </div>
+
+            <!-- 47. Age Calculator -->
+            <div id="app-agecalc" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🎂</div>
+                <h2 class="text-3xl font-bold mb-6">Age Calculator</h2>
+                <input id="age-birth" type="date" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400">
+                <button onclick="calculateAge()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Calculate Age</button>
+                <div id="age-output" class="text-2xl font-bold text-slate-700">Age will appear here.</div>
+            </div>
+
+            <!-- 48. Binary Translator -->
+            <div id="app-binary" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🔢</div>
+                <h2 class="text-3xl font-bold mb-6">Binary Translator</h2>
+                <input id="binary-input" type="text" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400" placeholder="Enter text to convert">
+                <button onclick="textToBinary()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Convert</button>
+                <div id="binary-output" class="text-base font-bold text-slate-700 break-words">Binary output appears here.</div>
+            </div>
+
+            <!-- 49. Username Generator -->
+            <div id="app-username" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">👾</div>
+                <h2 class="text-3xl font-bold mb-6">Username Generator</h2>
+                <div id="username-output" class="min-h-[120px] p-8 rounded-3xl bg-slate-100 border-2 border-slate-200 text-3xl font-bold text-slate-800 mb-8">Generate a username.</div>
+                <button onclick="generateUsername()" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Generate</button>
+            </div>
+
+            <!-- 50. Number Fact -->
+            <div id="app-numfact" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🔎</div>
+                <h2 class="text-3xl font-bold mb-6">Number Fact</h2>
+                <div id="numfact-output" class="min-h-[140px] p-8 rounded-3xl bg-amber-50 border-2 border-amber-100 text-slate-800 text-xl font-medium mb-8">A neat number fact awaits.</div>
+                <button onclick="getNumberFact()" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">New Fact</button>
+            </div>
+
+            <!-- 51. Recipe Idea -->
+            <div id="app-recipe" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🥗</div>
+                <h2 class="text-3xl font-bold mb-6">Recipe Idea</h2>
+                <div id="recipe-output" class="min-h-[140px] p-8 rounded-3xl bg-emerald-50 border-2 border-emerald-100 text-slate-800 text-xl font-medium mb-8">Get a cooking idea in one tap.</div>
+                <button onclick="getRecipeIdea()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Inspire Me</button>
+            </div>
+
+            <!-- 52. Emoji Banner -->
+            <div id="app-emojibanner" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">📣</div>
+                <h2 class="text-3xl font-bold mb-6">Emoji Banner</h2>
+                <input id="banner-input" type="text" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400" placeholder="Enter a word">
+                <button onclick="createEmojiBanner()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Create Banner</button>
+                <div id="banner-output" class="text-3xl font-bold text-slate-800 break-words">Banner output appears here.</div>
+            </div>
+
+            <!-- 53. Color Shades -->
+            <div id="app-shades" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🎨</div>
+                <h2 class="text-3xl font-bold mb-6">Color Shades</h2>
+                <input id="shades-color" type="color" value="#6366f1" class="w-full h-16 rounded-3xl border-2 border-slate-200 mb-6">
+                <button onclick="showShades()" class="w-full bg-violet-600 hover:bg-violet-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Show Shades</button>
+                <div id="shades-output" class="grid grid-cols-2 gap-4 text-slate-800"></div>
+            </div>
+
+            <!-- 54. Quote Builder -->
+            <div id="app-quotebuilder" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🧱</div>
+                <h2 class="text-3xl font-bold mb-6">Quote Builder</h2>
+                <div id="quote-builder-output" class="min-h-[140px] p-8 rounded-3xl bg-slate-100 border-2 border-slate-200 text-slate-800 text-xl font-medium mb-8">Build a new quote one tap at a time.</div>
+                <button onclick="buildQuote()" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Build Quote</button>
+            </div>
+
+            <!-- 55. Random Team -->
+            <div id="app-teamup" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">👥</div>
+                <h2 class="text-3xl font-bold mb-6">Random Team</h2>
+                <textarea id="team-input" class="w-full h-28 p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400" placeholder="Enter names separated by commas"></textarea>
+                <button onclick="makeTeams()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Split Teams</button>
+                <div id="team-output" class="text-left text-slate-800 font-bold"></div>
+            </div>
+
+            <!-- 56. Daily Goal -->
+            <div id="app-dailygoal" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🎯</div>
+                <h2 class="text-3xl font-bold mb-6">Daily Goal</h2>
+                <div id="dailygoal-output" class="min-h-[140px] p-8 rounded-3xl bg-amber-50 border-2 border-amber-100 text-slate-800 text-xl font-medium mb-8">Tap for a goal to tackle today.</div>
+                <button onclick="getDailyGoal()" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">New Goal</button>
+            </div>
+
+            <!-- 57. Spin Wheel -->
+            <div id="app-spinwheel" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🎡</div>
+                <h2 class="text-3xl font-bold mb-6">Spin Wheel</h2>
+                <input id="spin-input" type="text" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400" placeholder="Enter options separated by commas">
+                <button onclick="spinWheel()" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Spin</button>
+                <div id="spin-output" class="text-3xl font-bold text-slate-700">Result appears here.</div>
             </div>
         </div>
     </div>
@@ -1502,6 +1699,195 @@
 
         function revealQuizAnswer() {
             document.getElementById('quiz-answer').innerText = quizQuestions[currentQuizIndex].a;
+        }
+
+        // 43. Roman Numerals
+        function convertRoman() {
+            const num = parseInt(document.getElementById('roman-input').value, 10);
+            if (!Number.isFinite(num) || num < 1 || num > 3999) {
+                document.getElementById('roman-output').innerText = 'Enter a number between 1 and 3999.';
+                return;
+            }
+            const romanPairs = [
+                [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+                [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+                [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']
+            ];
+            let result = '';
+            let value = num;
+            for (const [n, sym] of romanPairs) {
+                while (value >= n) {
+                    result += sym;
+                    value -= n;
+                }
+            }
+            document.getElementById('roman-output').innerText = result;
+        }
+
+        // 44. Caesar Cipher
+        function encodeCaesar() {
+            const text = document.getElementById('caesar-input').value;
+            const shift = parseInt(document.getElementById('caesar-shift').value, 10) || 0;
+            const output = text.split('').map(ch => {
+                const lower = ch.toLowerCase();
+                if (lower >= 'a' && lower <= 'z') {
+                    const code = ((lower.charCodeAt(0) - 97 + shift) % 26 + 26) % 26 + 97;
+                    return String.fromCharCode(code);
+                }
+                return ch;
+            }).join('');
+            document.getElementById('caesar-output').innerText = output;
+        }
+
+        // 45. Morse Code
+        function convertMorse() {
+            const map = {
+                'a': '.-', 'b': '-...', 'c': '-.-.', 'd': '-..', 'e': '.',
+                'f': '..-.', 'g': '--.', 'h': '....', 'i': '..', 'j': '.---',
+                'k': '-.-', 'l': '.-..', 'm': '--', 'n': '-.', 'o': '---',
+                'p': '.--.', 'q': '--.-', 'r': '.-.', 's': '...', 't': '-',
+                'u': '..-', 'v': '...-', 'w': '.--', 'x': '-..-', 'y': '-.-',
+                'z': '--..', '0': '-----', '1': '.----', '2': '..---', '3': '...--',
+                '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..',
+                '9': '----.'
+            };
+            const text = document.getElementById('morse-input').value.toLowerCase();
+            const transformed = text.split('').map(ch => map[ch] || (ch === ' ' ? '/' : ch)).join(' ');
+            document.getElementById('morse-output').innerText = transformed;
+        }
+
+        // 46. Tip Calculator
+        function calculateTip() {
+            const bill = parseFloat(document.getElementById('tip-bill').value);
+            const percent = parseFloat(document.getElementById('tip-percent').value);
+            const split = parseInt(document.getElementById('tip-split').value, 10) || 1;
+            if (!Number.isFinite(bill) || bill < 0 || !Number.isFinite(percent) || percent < 0) {
+                document.getElementById('tip-output').innerText = 'Enter valid bill and tip values.';
+                return;
+            }
+            const tipAmount = bill * percent / 100;
+            const total = bill + tipAmount;
+            const perPerson = total / split;
+            document.getElementById('tip-output').innerText = `Tip: $${tipAmount.toFixed(2)} | Total: $${total.toFixed(2)} | Each: $${perPerson.toFixed(2)}`;
+        }
+
+        // 47. Age Calculator
+        function calculateAge() {
+            const birth = new Date(document.getElementById('age-birth').value);
+            if (isNaN(birth)) {
+                document.getElementById('age-output').innerText = 'Pick a valid birthdate.';
+                return;
+            }
+            const now = new Date();
+            const diff = now - birth;
+            const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            document.getElementById('age-output').innerText = `${years} years old (${days} days)`;
+        }
+
+        // 48. Binary Translator
+        function textToBinary() {
+            const text = document.getElementById('binary-input').value;
+            const binary = text.split('').map(ch => ch.charCodeAt(0).toString(2).padStart(8, '0')).join(' ');
+            document.getElementById('binary-output').innerText = binary || 'Enter text to convert.';
+        }
+
+        // 49. Username Generator
+        function generateUsername() {
+            const adjectives = ['neon', 'silent', 'cosmic', 'brave', 'swift', 'mighty', 'pixel', 'solar', 'ember', 'lucky'];
+            const nouns = ['tiger', 'rider', 'ninja', 'wizard', 'robot', 'panda', 'driver', 'pilot', 'spark', 'muse'];
+            const username = adjectives[Math.floor(Math.random() * adjectives.length)] + '_' + nouns[Math.floor(Math.random() * nouns.length)] + Math.floor(Math.random() * 99);
+            document.getElementById('username-output').innerText = username;
+        }
+
+        // 50. Number Fact
+        function getNumberFact() {
+            const facts = [
+                'Zero is the only number that can’t be represented in Roman numerals.',
+                'A palindrome number reads the same forwards and backwards.',
+                '1729 is known as the Ramanujan-Hardy number.',
+                'A googol is 1 followed by 100 zeros.',
+                '10 is the base of our number system.'
+            ];
+            document.getElementById('numfact-output').innerText = facts[Math.floor(Math.random() * facts.length)];
+        }
+
+        // 51. Recipe Idea
+        function getRecipeIdea() {
+            const ideas = [
+                'Avocado toast with chili flakes.',
+                'Peanut butter banana smoothie.',
+                'Tomato basil pasta with garlic.',
+                'Greek yogurt parfait with berries.',
+                'Stir-fried noodles with veggies.'
+            ];
+            document.getElementById('recipe-output').innerText = ideas[Math.floor(Math.random() * ideas.length)];
+        }
+
+        // 52. Emoji Banner
+        function createEmojiBanner() {
+            const text = (document.getElementById('banner-input').value.trim() || 'HELLO').toUpperCase();
+            const banner = text.split('').map(ch => ch === ' ' ? ' ' : '✨').join(' ');
+            document.getElementById('banner-output').innerText = `${banner}\n${text}\n${banner}`;
+        }
+
+        // 53. Color Shades
+        function showShades() {
+            const hex = document.getElementById('shades-color').value;
+            const values = hex.match(/[A-Fa-f0-9]{2}/g).map(x => parseInt(x, 16));
+            const shades = [0.7, 0.85, 1, 1.15, 1.3].map(factor => {
+                const shaded = values.map(channel => Math.min(255, Math.max(0, Math.round(channel * factor))));
+                return `#${shaded.map(v => v.toString(16).padStart(2, '0')).join('')}`;
+            });
+            const output = document.getElementById('shades-output');
+            output.innerHTML = shades.map(color => `<div class="rounded-3xl p-4 text-white font-bold" style="background:${color}">${color}</div>`).join('');
+        }
+
+        // 54. Quote Builder
+        function buildQuote() {
+            const starts = ['Believe in', 'Always remember', 'Never forget', 'Chase', 'Create'];
+            const middles = ['your dreams', 'the little things', 'the journey', 'what matters', 'your own path'];
+            const ends = ['and keep going.', 'with courage.', 'with joy.', 'each day.', 'without fear.'];
+            const quote = `${starts[Math.floor(Math.random() * starts.length)]} ${middles[Math.floor(Math.random() * middles.length)]} ${ends[Math.floor(Math.random() * ends.length)]}`;
+            document.getElementById('quote-builder-output').innerText = quote;
+        }
+
+        // 55. Random Team
+        function makeTeams() {
+            const input = document.getElementById('team-input').value;
+            const names = input.split(',').map(name => name.trim()).filter(name => name);
+            if (names.length < 2) {
+                document.getElementById('team-output').innerText = 'Enter at least two names.';
+                return;
+            }
+            const shuffled = names.sort(() => Math.random() - 0.5);
+            const midpoint = Math.ceil(shuffled.length / 2);
+            const teamA = shuffled.slice(0, midpoint);
+            const teamB = shuffled.slice(midpoint);
+            document.getElementById('team-output').innerHTML = `<strong>Team A:</strong> ${teamA.join(', ')}<br><strong>Team B:</strong> ${teamB.join(', ')}`;
+        }
+
+        // 56. Daily Goal
+        function getDailyGoal() {
+            const goals = [
+                'Write down one thing you accomplished today.',
+                'Take a 10-minute walk outside.',
+                'Read a page of a book.',
+                'Reach out to someone you appreciate.',
+                'Try a quick breathing exercise.'
+            ];
+            document.getElementById('dailygoal-output').innerText = goals[Math.floor(Math.random() * goals.length)];
+        }
+
+        // 57. Spin Wheel
+        function spinWheel() {
+            const input = document.getElementById('spin-input').value;
+            const options = input.split(',').map(opt => opt.trim()).filter(opt => opt);
+            if (!options.length) {
+                document.getElementById('spin-output').innerText = 'Enter some options first.';
+                return;
+            }
+            document.getElementById('spin-output').innerText = options[Math.floor(Math.random() * options.length)];
         }
 
         // 33. Name Generator
