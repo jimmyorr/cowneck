@@ -148,6 +148,46 @@
                 <div class="text-5xl mb-3">🖌️</div>
                 <h2 class="text-lg font-bold text-slate-700">Drawing</h2>
             </div>
+            <div onclick="openApp('namegen')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🧑‍💼</div>
+                <h2 class="text-lg font-bold text-slate-700">Name Generator</h2>
+            </div>
+            <div onclick="openApp('riddle')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🧩</div>
+                <h2 class="text-lg font-bold text-slate-700">Riddle Box</h2>
+            </div>
+            <div onclick="openApp('mood')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">😊</div>
+                <h2 class="text-lg font-bold text-slate-700">Mood Spinner</h2>
+            </div>
+            <div onclick="openApp('binaryclock')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🕒</div>
+                <h2 class="text-lg font-bold text-slate-700">Binary Clock</h2>
+            </div>
+            <div onclick="openApp('animalfact')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🐾</div>
+                <h2 class="text-lg font-bold text-slate-700">Animal Facts</h2>
+            </div>
+            <div onclick="openApp('calendar')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">📅</div>
+                <h2 class="text-lg font-bold text-slate-700">Mini Calendar</h2>
+            </div>
+            <div onclick="openApp('advice')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">💬</div>
+                <h2 class="text-lg font-bold text-slate-700">Advice</h2>
+            </div>
+            <div onclick="openApp('challenge')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🏁</div>
+                <h2 class="text-lg font-bold text-slate-700">Challenge</h2>
+            </div>
+            <div onclick="openApp('emojiart')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🎭</div>
+                <h2 class="text-lg font-bold text-slate-700">Emoji Art</h2>
+            </div>
+            <div onclick="openApp('minitimer')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">⏱️</div>
+                <h2 class="text-lg font-bold text-slate-700">Mini Timer</h2>
+            </div>
             <div onclick="openApp('palindrome')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
                 <div class="text-5xl mb-3">🔁</div>
                 <h2 class="text-lg font-bold text-slate-700">Palindrome Checker</h2>
@@ -468,7 +508,91 @@
                 <button onclick="clearCanvas()" class="w-full bg-slate-400 hover:bg-slate-500 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">Clear Canvas</button>
             </div>
 
-            <!-- 23. Palindrome Checker -->
+            <!-- 23. Name Generator -->
+            <div id="app-namegen" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🧑‍💼</div>
+                <h2 class="text-3xl font-bold mb-6">Name Generator</h2>
+                <div id="name-output" class="min-h-[120px] p-8 rounded-3xl bg-slate-100 border-2 border-slate-200 text-3xl font-bold text-slate-800 mb-8">Press the button to make a name.</div>
+                <button onclick="generateName()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Generate Name</button>
+            </div>
+
+            <!-- 24. Riddle Box -->
+            <div id="app-riddle" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🧩</div>
+                <h2 class="text-3xl font-bold mb-6">Riddle Box</h2>
+                <div id="riddle-question" class="min-h-[140px] p-8 rounded-3xl bg-amber-50 border-2 border-amber-100 text-slate-800 text-xl font-medium mb-4">Ready for a riddle?</div>
+                <div id="riddle-answer" class="text-slate-500 mb-8">Reveal the answer when you're ready.</div>
+                <div class="flex gap-4">
+                    <button onclick="showRiddleAnswer()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">Show Answer</button>
+                    <button onclick="loadRiddle()" class="flex-1 bg-slate-300 hover:bg-slate-400 text-slate-900 text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">New Riddle</button>
+                </div>
+            </div>
+
+            <!-- 25. Mood Spinner -->
+            <div id="app-mood" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">😊</div>
+                <h2 class="text-3xl font-bold mb-6">Mood Spinner</h2>
+                <div id="mood-output" class="min-h-[140px] p-8 rounded-3xl bg-emerald-50 border-2 border-emerald-100 text-slate-800 text-3xl font-bold mb-8">How are you feeling?</div>
+                <button onclick="spinMood()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Spin Mood</button>
+            </div>
+
+            <!-- 26. Binary Clock -->
+            <div id="app-binaryclock" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🕒</div>
+                <h2 class="text-3xl font-bold mb-6">Binary Clock</h2>
+                <div id="binary-time" class="text-5xl font-mono mb-4 text-slate-900">00:00:00</div>
+                <div id="binary-display" class="text-2xl font-mono text-slate-600">00000000 00000000 00000000</div>
+            </div>
+
+            <!-- 27. Animal Facts -->
+            <div id="app-animalfact" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🐾</div>
+                <h2 class="text-3xl font-bold mb-6">Animal Facts</h2>
+                <div id="animal-fact" class="min-h-[160px] p-8 rounded-3xl bg-slate-100 border-2 border-slate-200 text-slate-800 text-xl font-medium mb-8">Tap for an animal fact.</div>
+                <button onclick="getAnimalFact()" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">New Fact</button>
+            </div>
+
+            <!-- 28. Mini Calendar -->
+            <div id="app-calendar" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">📅</div>
+                <h2 class="text-3xl font-bold mb-6">Mini Calendar</h2>
+                <div id="calendar-output" class="min-h-[160px] p-8 rounded-3xl bg-indigo-50 border-2 border-indigo-100 text-slate-900 text-xl font-medium">Today's date appears here.</div>
+            </div>
+
+            <!-- 29. Advice -->
+            <div id="app-advice" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">💬</div>
+                <h2 class="text-3xl font-bold mb-6">Advice</h2>
+                <div id="advice-text" class="min-h-[160px] p-8 rounded-3xl bg-amber-50 border-2 border-amber-100 text-slate-800 text-xl font-medium mb-8">Need a quick tip? Tap below.</div>
+                <button onclick="getAdvice()" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Get Advice</button>
+            </div>
+
+            <!-- 30. Challenge -->
+            <div id="app-challenge" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🏁</div>
+                <h2 class="text-3xl font-bold mb-6">Challenge</h2>
+                <div id="challenge-text" class="min-h-[160px] p-8 rounded-3xl bg-slate-100 border-2 border-slate-200 text-slate-800 text-xl font-medium mb-8">Try a new challenge when you press the button.</div>
+                <button onclick="loadChallenge()" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">New Challenge</button>
+            </div>
+
+            <!-- 31. Emoji Art -->
+            <div id="app-emojiart" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🎭</div>
+                <h2 class="text-3xl font-bold mb-6">Emoji Art</h2>
+                <div id="emoji-art" class="min-h-[160px] p-8 rounded-3xl bg-emerald-50 border-2 border-emerald-100 text-5xl font-bold mb-8">Press mix to create art.</div>
+                <button onclick="createEmojiArt()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Mix Art</button>
+            </div>
+
+            <!-- 32. Mini Timer -->
+            <div id="app-minitimer" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">⏱️</div>
+                <h2 class="text-3xl font-bold mb-6">Mini Timer</h2>
+                <div id="minitimer-display" class="text-7xl font-mono font-bold text-slate-900 mb-8">00:10</div>
+                <button onclick="startMiniTimer()" id="minitimer-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-4">Start 10s Timer</button>
+                <button onclick="resetMiniTimer()" class="w-full bg-slate-300 hover:bg-slate-400 text-slate-900 text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">Reset</button>
+            </div>
+
+            <!-- 33. Palindrome Checker -->
             <div id="app-palindrome" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
                 <div class="text-5xl mb-4">🔁</div>
                 <h2 class="text-3xl font-bold mb-6">Palindrome Checker</h2>
@@ -641,6 +765,38 @@
                     break;
                 case 'countdown':
                     resetCountdown();
+                    break;
+                case 'namegen':
+                    generateName();
+                    break;
+                case 'riddle':
+                    loadRiddle();
+                    break;
+                case 'mood':
+                    spinMood();
+                    break;
+                case 'binaryclock':
+                    updateBinaryClock();
+                    if (window.binaryClockInterval) clearInterval(window.binaryClockInterval);
+                    window.binaryClockInterval = setInterval(updateBinaryClock, 1000);
+                    break;
+                case 'animalfact':
+                    getAnimalFact();
+                    break;
+                case 'calendar':
+                    showCalendar();
+                    break;
+                case 'advice':
+                    getAdvice();
+                    break;
+                case 'challenge':
+                    loadChallenge();
+                    break;
+                case 'emojiart':
+                    createEmojiArt();
+                    break;
+                case 'minitimer':
+                    resetMiniTimer();
                     break;
             }
         }
@@ -1346,6 +1502,143 @@
 
         function revealQuizAnswer() {
             document.getElementById('quiz-answer').innerText = quizQuestions[currentQuizIndex].a;
+        }
+
+        // 33. Name Generator
+        function generateName() {
+            const firstNames = ['Nova', 'Milo', 'Ava', 'Kai', 'Luna', 'Leo', 'Iris', 'Ezra', 'Zoe', 'Finn'];
+            const lastNames = ['Harper', 'Reed', 'Mason', 'Blake', 'Vale', 'Quinn', 'Rivers', 'Cole', 'Frost', 'Wilder'];
+            const name = firstNames[Math.floor(Math.random() * firstNames.length)] + ' ' + lastNames[Math.floor(Math.random() * lastNames.length)];
+            document.getElementById('name-output').innerText = name;
+        }
+
+        // 34. Riddle Box
+        const riddles = [
+            { q: 'What has keys but can’t open locks?', a: 'A piano.' },
+            { q: 'What gets wetter the more it dries?', a: 'A towel.' },
+            { q: 'What has a head and a tail but no body?', a: 'A coin.' },
+            { q: 'What can travel around the world while staying in a corner?', a: 'A stamp.' },
+            { q: 'What belongs to you but others use it more than you?', a: 'Your name.' }
+        ];
+        let currentRiddleIndex = 0;
+
+        function loadRiddle() {
+            currentRiddleIndex = Math.floor(Math.random() * riddles.length);
+            document.getElementById('riddle-question').innerText = riddles[currentRiddleIndex].q;
+            document.getElementById('riddle-answer').innerText = 'Reveal the answer when you’re ready.';
+        }
+
+        function showRiddleAnswer() {
+            document.getElementById('riddle-answer').innerText = riddles[currentRiddleIndex].a;
+        }
+
+        // 35. Mood Spinner
+        function spinMood() {
+            const moods = ['✨ Feeling bright', '🌿 Calm and collected', '🔥 Fired up', '🌧️ Chill and thoughtful', '🎉 Ready to celebrate', '💪 Motivated', '😌 Relaxed', '🤯 Inspired'];
+            document.getElementById('mood-output').innerText = moods[Math.floor(Math.random() * moods.length)];
+        }
+
+        // 36. Binary Clock
+        function updateBinaryClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+            const parts = timeString.split(':').map(p => String(p).padStart(2, '0'));
+            const binary = parts.map(part => Number(part).toString(2).padStart(8, '0')).join(' ');
+            document.getElementById('binary-time').innerText = timeString;
+            document.getElementById('binary-display').innerText = binary;
+        }
+
+        // 37. Animal Facts
+        const animalFacts = [
+            'A group of owls is called a parliament.',
+            'Dolphins have names for each other.',
+            'A snail can sleep for three years.',
+            'Octopuses can taste with their arms.',
+            'Elephants are pregnant for about 22 months.'
+        ];
+
+        function getAnimalFact() {
+            document.getElementById('animal-fact').innerText = animalFacts[Math.floor(Math.random() * animalFacts.length)];
+        }
+
+        // 38. Mini Calendar
+        function showCalendar() {
+            const now = new Date();
+            const formatted = now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
+            document.getElementById('calendar-output').innerText = `${formatted}\n${daysLeft} day(s) left in this month.`;
+        }
+
+        // 39. Advice
+        const adviceList = [
+            'Take a short break to refresh your mind.',
+            'Focus on one task and finish it well.',
+            'Ask questions when you need clarity.',
+            'Be kind to yourself today.',
+            'Try something new and stay curious.'
+        ];
+
+        function getAdvice() {
+            document.getElementById('advice-text').innerText = adviceList[Math.floor(Math.random() * adviceList.length)];
+        }
+
+        // 40. Challenge
+        const challenges = [
+            'Try a 5-minute stretch break.',
+            'Write down 3 things you are grateful for.',
+            'Solve a quick brain teaser.',
+            'Take a short walk outside.',
+            'Draw a quick sketch of something nearby.'
+        ];
+
+        function loadChallenge() {
+            document.getElementById('challenge-text').innerText = challenges[Math.floor(Math.random() * challenges.length)];
+        }
+
+        // 41. Emoji Art
+        function createEmojiArt() {
+            const emojis = ['😀','🐶','🌸','✨','🍕','🚀','🎈','🌟','🎮','🎵'];
+            const rows = [];
+            for (let row = 0; row < 3; row++) {
+                let line = '';
+                for (let col = 0; col < 3; col++) {
+                    line += emojis[Math.floor(Math.random() * emojis.length)];
+                }
+                rows.push(line);
+            }
+            document.getElementById('emoji-art').innerText = rows.join('\n');
+        }
+
+        // 42. Mini Timer
+        let miniTimerInterval = null;
+        let miniTimerRemaining = 10;
+
+        function resetMiniTimer() {
+            clearInterval(miniTimerInterval);
+            miniTimerRemaining = 10;
+            document.getElementById('minitimer-display').innerText = '00:10';
+            const btn = document.getElementById('minitimer-btn');
+            btn.disabled = false;
+            btn.innerText = 'Start 10s Timer';
+        }
+
+        function startMiniTimer() {
+            resetMiniTimer();
+            const btn = document.getElementById('minitimer-btn');
+            btn.disabled = true;
+            btn.innerText = 'Running...';
+            miniTimerInterval = setInterval(() => {
+                miniTimerRemaining -= 1;
+                const minutes = String(Math.floor(miniTimerRemaining / 60)).padStart(2, '0');
+                const seconds = String(miniTimerRemaining % 60).padStart(2, '0');
+                document.getElementById('minitimer-display').innerText = `${minutes}:${seconds}`;
+                if (miniTimerRemaining <= 0) {
+                    clearInterval(miniTimerInterval);
+                    document.getElementById('minitimer-display').innerText = 'Done!';
+                    btn.disabled = false;
+                    btn.innerText = 'Start 10s Timer';
+                }
+            }, 1000);
         }
 
         // Override initApp to add canvas setup
