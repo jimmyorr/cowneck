@@ -108,6 +108,46 @@
                 <div class="text-5xl mb-3">❌</div>
                 <h2 class="text-lg font-bold text-slate-700">Tic-Tac-Toe</h2>
             </div>
+            <div onclick="openApp('passgen')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🔑</div>
+                <h2 class="text-lg font-bold text-slate-700">PassGen</h2>
+            </div>
+            <div onclick="openApp('dice')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🎲</div>
+                <h2 class="text-lg font-bold text-slate-700">Dice Roller</h2>
+            </div>
+            <div onclick="openApp('coin')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🪙</div>
+                <h2 class="text-lg font-bold text-slate-700">Coin Flip</h2>
+            </div>
+            <div onclick="openApp('stopwatch')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">⏱️</div>
+                <h2 class="text-lg font-bold text-slate-700">Stopwatch</h2>
+            </div>
+            <div onclick="openApp('wordcount')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">📝</div>
+                <h2 class="text-lg font-bold text-slate-700">Word Counter</h2>
+            </div>
+            <div onclick="openApp('textutils')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🔄</div>
+                <h2 class="text-lg font-bold text-slate-700">Text Utils</h2>
+            </div>
+            <div onclick="openApp('quote')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">💬</div>
+                <h2 class="text-lg font-bold text-slate-700">Daily Quote</h2>
+            </div>
+            <div onclick="openApp('tally')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">➕</div>
+                <h2 class="text-lg font-bold text-slate-700">Tally Counter</h2>
+            </div>
+            <div onclick="openApp('converter')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🔢</div>
+                <h2 class="text-lg font-bold text-slate-700">Converter</h2>
+            </div>
+            <div onclick="openApp('draw')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🖌️</div>
+                <h2 class="text-lg font-bold text-slate-700">Drawing</h2>
+            </div>
         </div>
 
         <footer class="mt-16 pb-8 text-center text-slate-400 text-sm">
@@ -253,6 +293,139 @@
                 <div id="ttt-grid" class="grid grid-cols-3 gap-2 max-w-xs mx-auto mb-8"></div>
                 <div id="ttt-status" class="text-2xl font-bold text-slate-700 mb-4">Your turn (X)</div>
                 <button onclick="resetTTT()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">New Game</button>
+            </div>
+
+            <!-- 13. Password Generator -->
+            <div id="app-passgen" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🔑</div>
+                <h2 class="text-3xl font-bold mb-6">Password Generator</h2>
+                <div class="bg-slate-800 text-white p-6 rounded-2xl mb-6 border-4 border-slate-700">
+                    <div id="pg-output" class="text-xl font-mono break-all font-bold tracking-wider">Click Generate</div>
+                </div>
+                <div class="mb-6 px-2 text-left space-y-4">
+                    <label class="block font-bold text-slate-700">Length: <span id="pg-len-val" class="text-indigo-600">16</span></label>
+                    <input type="range" id="pg-len" min="6" max="32" value="16" class="w-full" oninput="document.getElementById('pg-len-val').innerText=this.value">
+                </div>
+                <button onclick="generatePassword()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Generate</button>
+            </div>
+
+            <!-- 14. Dice Roller -->
+            <div id="app-dice" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🎲</div>
+                <h2 class="text-3xl font-bold mb-6">Dice Roller</h2>
+                <div class="flex justify-center gap-4 mb-6">
+                    <button onclick="setDiceCount(1)" class="dice-cnt-btn px-4 py-2 rounded-xl bg-slate-800 text-white font-bold active:scale-95">1</button>
+                    <button onclick="setDiceCount(2)" class="dice-cnt-btn px-4 py-2 rounded-xl bg-slate-200 font-bold active:scale-95">2</button>
+                    <button onclick="setDiceCount(3)" class="dice-cnt-btn px-4 py-2 rounded-xl bg-slate-200 font-bold active:scale-95">3</button>
+                    <button onclick="setDiceCount(4)" class="dice-cnt-btn px-4 py-2 rounded-xl bg-slate-200 font-bold active:scale-95">4</button>
+                </div>
+                <div id="dice-result" class="text-5xl font-bold text-slate-700 mb-8">🎲</div>
+                <button onclick="rollDice()" class="w-full bg-rose-600 hover:bg-rose-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Roll Dice</button>
+            </div>
+
+            <!-- 15. Coin Flip -->
+            <div id="app-coin" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🪙</div>
+                <h2 class="text-3xl font-bold mb-12">Coin Flip</h2>
+                <div class="text-7xl font-bold mb-8 text-amber-600" id="coin-result">?</div>
+                <button onclick="flipCoin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Flip Coin</button>
+            </div>
+
+            <!-- 16. Stopwatch -->
+            <div id="app-stopwatch" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">⏱️</div>
+                <h2 class="text-3xl font-bold mb-8">Stopwatch</h2>
+                <div class="bg-slate-900 text-white p-8 rounded-3xl mb-8 border-4 border-slate-700">
+                    <div id="stopwatch-display" class="text-7xl font-mono font-bold tracking-tight">00:00:00</div>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="startStopwatch()" id="sw-start" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Start</button>
+                    <button onclick="stopStopwatch()" id="sw-stop" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Stop</button>
+                    <button onclick="resetStopwatch()" class="flex-1 bg-slate-400 hover:bg-slate-500 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Reset</button>
+                </div>
+            </div>
+
+            <!-- 17. Word Counter -->
+            <div id="app-wordcount" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">📝</div>
+                <h2 class="text-3xl font-bold mb-6">Word Counter</h2>
+                <textarea id="wc-input" oninput="updateWordCount()" class="w-full h-40 p-4 rounded-xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400 font-medium resize-none" placeholder="Type or paste text..."></textarea>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-indigo-50 p-4 rounded-2xl border-2 border-indigo-100"><div id="wc-words" class="text-3xl font-bold text-indigo-600">0</div><div class="text-sm font-bold text-indigo-400">Words</div></div>
+                    <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100"><div id="wc-chars" class="text-3xl font-bold text-emerald-600">0</div><div class="text-sm font-bold text-emerald-400">Chars</div></div>
+                    <div class="bg-amber-50 p-4 rounded-2xl border-2 border-amber-100"><div id="wc-lines" class="text-3xl font-bold text-amber-600">0</div><div class="text-sm font-bold text-amber-400">Lines</div></div>
+                </div>
+            </div>
+
+            <!-- 18. Text Utils -->
+            <div id="app-textutils" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🔄</div>
+                <h2 class="text-3xl font-bold mb-6">Text Utilities</h2>
+                <textarea id="tu-input" oninput="updateTextUtils()" class="w-full h-32 p-4 rounded-xl border-2 border-slate-200 mb-4 focus:outline-none focus:border-indigo-400 font-medium resize-none" placeholder="Type text..."></textarea>
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <button onclick="tuReverse()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold py-3 rounded-xl active:scale-95">Reverse</button>
+                    <button onclick="tuUppercase()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold py-3 rounded-xl active:scale-95">UPPERCASE</button>
+                    <button onclick="tuLowercase()" class="bg-amber-100 hover:bg-amber-200 text-amber-700 font-bold py-3 rounded-xl active:scale-95">lowercase</button>
+                    <button onclick="tuCapitalize()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold py-3 rounded-xl active:scale-95">Capitalize</button>
+                </div>
+                <textarea id="tu-output" readonly class="w-full h-32 p-4 rounded-xl border-2 border-indigo-200 bg-indigo-50 focus:outline-none font-mono font-bold text-indigo-800 resize-none" placeholder="Result..."></textarea>
+            </div>
+
+            <!-- 19. Daily Quote -->
+            <div id="app-quote" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">💬</div>
+                <h2 class="text-3xl font-bold mb-8">Daily Quote</h2>
+                <div class="bg-amber-50 p-8 rounded-3xl border-2 border-amber-100 mb-8 min-h-[200px] flex items-center justify-center flex-col shadow-inner">
+                    <div id="quote-text" class="text-2xl font-medium text-amber-900 mb-4 leading-relaxed italic">"Click button to get inspired..."</div>
+                    <div id="quote-author" class="text-lg text-amber-700 font-bold">- Quote Author</div>
+                </div>
+                <button onclick="getQuote()" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">New Quote</button>
+            </div>
+
+            <!-- 20. Tally Counter -->
+            <div id="app-tally" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">➕</div>
+                <h2 class="text-3xl font-bold mb-8">Tally Counter</h2>
+                <div class="bg-slate-900 text-white p-12 rounded-3xl mb-8 border-4 border-slate-700">
+                    <div id="tally-count" class="text-8xl font-bold tracking-tight">0</div>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="tallyDecrement()" class="flex-1 text-4xl bg-rose-600 hover:bg-rose-700 text-white font-bold py-6 rounded-2xl transition-all active:scale-95">−</button>
+                    <button onclick="tallyReset()" class="flex-1 bg-slate-400 hover:bg-slate-500 text-white text-xl font-bold py-6 rounded-2xl transition-all active:scale-95">Reset</button>
+                    <button onclick="tallyIncrement()" class="flex-1 text-4xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-6 rounded-2xl transition-all active:scale-95">+</button>
+                </div>
+            </div>
+
+            <!-- 21. Unit Converter -->
+            <div id="app-converter" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🔢</div>
+                <h2 class="text-3xl font-bold mb-6">Unit Converter</h2>
+                <select id="conv-type" onchange="updateConverter()" class="w-full p-3 rounded-xl border-2 border-slate-200 mb-4 font-bold text-slate-700 outline-none focus:border-indigo-400">
+                    <option value="temp">Temperature (°C to °F)</option>
+                    <option value="length">Length (km to mi)</option>
+                    <option value="weight">Weight (kg to lb)</option>
+                </select>
+                <input type="number" id="conv-input" oninput="updateConverter()" class="w-full text-center text-3xl font-bold p-4 rounded-xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-500" placeholder="Enter value">
+                <div id="conv-output" class="bg-indigo-50 p-8 rounded-2xl border-2 border-indigo-100">
+                    <div id="conv-result" class="text-4xl font-bold text-indigo-600">0</div>
+                    <div id="conv-label" class="text-sm font-bold text-indigo-400 mt-2">Result</div>
+                </div>
+            </div>
+
+            <!-- 22. Drawing Canvas -->
+            <div id="app-draw" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🖌️</div>
+                <h2 class="text-3xl font-bold mb-6">Drawing Canvas</h2>
+                <div class="flex justify-center gap-2 mb-4">
+                    <button onclick="setDrawColor('#000000')" class="w-6 h-6 rounded bg-black hover:scale-110"></button>
+                    <button onclick="setDrawColor('#ef4444')" class="w-6 h-6 rounded bg-red-500 hover:scale-110"></button>
+                    <button onclick="setDrawColor('#3b82f6')" class="w-6 h-6 rounded bg-blue-500 hover:scale-110"></button>
+                    <button onclick="setDrawColor('#10b981')" class="w-6 h-6 rounded bg-green-500 hover:scale-110"></button>
+                    <button onclick="setDrawColor('#f59e0b')" class="w-6 h-6 rounded bg-amber-500 hover:scale-110"></button>
+                    <button onclick="setDrawColor('#ffffff')" class="w-6 h-6 rounded bg-white border-2 border-slate-300 hover:scale-110"></button>
+                </div>
+                <canvas id="draw-canvas" width="400" height="300" class="w-full bg-white border-4 border-slate-200 rounded-3xl shadow-inner cursor-crosshair mb-4"></canvas>
+                <button onclick="clearCanvas()" class="w-full bg-slate-400 hover:bg-slate-500 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">Clear Canvas</button>
             </div>
         </div>
     </div>
@@ -580,6 +753,245 @@
             navigator.clipboard.writeText(text);
             alert('Copied!');
         }
+
+        // 13. Password Generator
+        function generatePassword() {
+            const length = parseInt(document.getElementById('pg-len').value);
+            const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+            document.getElementById('pg-output').innerText = password;
+        }
+
+        // 14. Dice Roller
+        let diceCount = 1;
+        function setDiceCount(num) {
+            diceCount = num;
+            document.querySelectorAll('.dice-cnt-btn').forEach((btn, i) => {
+                btn.classList.remove('bg-slate-800', 'text-white');
+                btn.classList.add('bg-slate-200');
+                if (i + 1 === num) {
+                    btn.classList.add('bg-slate-800', 'text-white');
+                    btn.classList.remove('bg-slate-200');
+                }
+            });
+        }
+
+        function rollDice() {
+            let total = 0;
+            let rolls = [];
+            for (let i = 0; i < diceCount; i++) {
+                rolls.push(Math.floor(Math.random() * 6) + 1);
+                total += rolls[i];
+            }
+            document.getElementById('dice-result').innerText = rolls.join(' + ') + ' = ' + total;
+        }
+
+        // 15. Coin Flip
+        function flipCoin() {
+            const result = Math.random() < 0.5 ? 'Heads' : 'Tails';
+            const emoji = result === 'Heads' ? '🪙' : '🪙';
+            document.getElementById('coin-result').innerText = result;
+        }
+
+        // 16. Stopwatch
+        let stopwatchRunning = false;
+        let stopwatchTime = 0;
+        let stopwatchInterval = null;
+
+        function startStopwatch() {
+            if (!stopwatchRunning) {
+                stopwatchRunning = true;
+                stopwatchInterval = setInterval(() => {
+                    stopwatchTime += 10;
+                    updateStopwatchDisplay();
+                }, 10);
+            }
+        }
+
+        function stopStopwatch() {
+            stopwatchRunning = false;
+            clearInterval(stopwatchInterval);
+        }
+
+        function resetStopwatch() {
+            stopwatchRunning = false;
+            clearInterval(stopwatchInterval);
+            stopwatchTime = 0;
+            updateStopwatchDisplay();
+        }
+
+        function updateStopwatchDisplay() {
+            const totalSeconds = Math.floor(stopwatchTime / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            const ms = Math.floor((stopwatchTime % 1000) / 10);
+            
+            document.getElementById('stopwatch-display').innerText = 
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+        }
+
+        // 17. Word Counter
+        function updateWordCount() {
+            const text = document.getElementById('wc-input').value;
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+            const chars = text.length;
+            const lines = text.split('\n').filter(l => l.trim().length > 0).length;
+            
+            document.getElementById('wc-words').innerText = words;
+            document.getElementById('wc-chars').innerText = chars;
+            document.getElementById('wc-lines').innerText = lines;
+        }
+
+        // 18. Text Utils
+        function updateTextUtils() {
+            const input = document.getElementById('tu-input').value;
+            document.getElementById('tu-output').value = input;
+        }
+
+        function tuReverse() {
+            const input = document.getElementById('tu-input').value;
+            document.getElementById('tu-output').value = input.split('').reverse().join('');
+        }
+
+        function tuUppercase() {
+            const input = document.getElementById('tu-input').value;
+            document.getElementById('tu-output').value = input.toUpperCase();
+        }
+
+        function tuLowercase() {
+            const input = document.getElementById('tu-input').value;
+            document.getElementById('tu-output').value = input.toLowerCase();
+        }
+
+        function tuCapitalize() {
+            const input = document.getElementById('tu-input').value;
+            document.getElementById('tu-output').value = input
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+        }
+
+        // 19. Daily Quote
+        const quotes = [
+            { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+            { text: "Innovation distinguishes between a leader and a follower.", author: "Steve Jobs" },
+            { text: "Life is what happens when you're busy making other plans.", author: "John Lennon" },
+            { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
+            { text: "It is during our darkest moments that we must focus to see the light.", author: "Aristotle" },
+            { text: "The only impossible journey is the one you never begin.", author: "Tony Robbins" },
+            { text: "Success is not final, failure is not fatal.", author: "Winston Churchill" },
+            { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+            { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+            { text: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" }
+        ];
+
+        function getQuote() {
+            const quote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('quote-text').innerText = '"' + quote.text + '"';
+            document.getElementById('quote-author').innerText = '— ' + quote.author;
+        }
+
+        // 20. Tally Counter
+        let tallyCount = 0;
+
+        function tallyIncrement() {
+            tallyCount++;
+            document.getElementById('tally-count').innerText = tallyCount;
+        }
+
+        function tallyDecrement() {
+            tallyCount--;
+            document.getElementById('tally-count').innerText = tallyCount;
+        }
+
+        function tallyReset() {
+            tallyCount = 0;
+            document.getElementById('tally-count').innerText = tallyCount;
+        }
+
+        // 21. Unit Converter
+        function updateConverter() {
+            const type = document.getElementById('conv-type').value;
+            const input = parseFloat(document.getElementById('conv-input').value) || 0;
+            let result, label;
+
+            if (type === 'temp') {
+                result = (input * 9/5) + 32;
+                label = '°F';
+            } else if (type === 'length') {
+                result = input * 0.621371;
+                label = 'miles';
+            } else if (type === 'weight') {
+                result = input * 2.20462;
+                label = 'lbs';
+            }
+
+            document.getElementById('conv-result').innerText = result.toFixed(2);
+            document.getElementById('conv-label').innerText = label;
+        }
+
+        // 22. Drawing Canvas
+        let isDrawing = false;
+        let drawColor = '#000000';
+
+        function setDrawColor(color) {
+            drawColor = color;
+        }
+
+        function initCanvas() {
+            const canvas = document.getElementById('draw-canvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+                const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDrawing) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+                const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+                ctx.strokeStyle = drawColor;
+                ctx.lineWidth = 2;
+                ctx.lineTo(x, y);
+                ctx.stroke();
+            });
+
+            canvas.addEventListener('mouseup', () => isDrawing = false);
+            canvas.addEventListener('mouseleave', () => isDrawing = false);
+        }
+
+        function clearCanvas() {
+            const canvas = document.getElementById('draw-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Override initApp to add canvas setup
+        const originalInitApp = initApp;
+        initApp = function(appId) {
+            originalInitApp(appId);
+            if (appId === 'draw') {
+                setTimeout(initCanvas, 100);
+            }
+        };
     </script>
 </body>
 </html>
