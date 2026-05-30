@@ -148,6 +148,46 @@
                 <div class="text-5xl mb-3">🖌️</div>
                 <h2 class="text-lg font-bold text-slate-700">Drawing</h2>
             </div>
+            <div onclick="openApp('palindrome')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🔁</div>
+                <h2 class="text-lg font-bold text-slate-700">Palindrome Checker</h2>
+            </div>
+            <div onclick="openApp('calculator')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🧮</div>
+                <h2 class="text-lg font-bold text-slate-700">Mini Calculator</h2>
+            </div>
+            <div onclick="openApp('wordscramble')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🔤</div>
+                <h2 class="text-lg font-bold text-slate-700">Word Scrambler</h2>
+            </div>
+            <div onclick="openApp('fortune')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🥠</div>
+                <h2 class="text-lg font-bold text-slate-700">Fortune Cookie</h2>
+            </div>
+            <div onclick="openApp('quickmath')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">➗</div>
+                <h2 class="text-lg font-bold text-slate-700">Quick Math</h2>
+            </div>
+            <div onclick="openApp('countdown')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">⏲️</div>
+                <h2 class="text-lg font-bold text-slate-700">Countdown Timer</h2>
+            </div>
+            <div onclick="openApp('emojimixer')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">😄</div>
+                <h2 class="text-lg font-bold text-slate-700">Emoji Mixer</h2>
+            </div>
+            <div onclick="openApp('colorblend')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🟦🟨</div>
+                <h2 class="text-lg font-bold text-slate-700">Color Blender</h2>
+            </div>
+            <div onclick="openApp('factoid')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">💡</div>
+                <h2 class="text-lg font-bold text-slate-700">Factoid</h2>
+            </div>
+            <div onclick="openApp('quiz')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">❓</div>
+                <h2 class="text-lg font-bold text-slate-700">Mini Quiz</h2>
+            </div>
         </div>
 
         <footer class="mt-16 pb-8 text-center text-slate-400 text-sm">
@@ -427,6 +467,113 @@
                 <canvas id="draw-canvas" width="400" height="300" class="w-full bg-white border-4 border-slate-200 rounded-3xl shadow-inner cursor-crosshair mb-4"></canvas>
                 <button onclick="clearCanvas()" class="w-full bg-slate-400 hover:bg-slate-500 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">Clear Canvas</button>
             </div>
+
+            <!-- 23. Palindrome Checker -->
+            <div id="app-palindrome" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🔁</div>
+                <h2 class="text-3xl font-bold mb-6">Palindrome Checker</h2>
+                <input id="pal-input" type="text" placeholder="Type text here" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400">
+                <button onclick="checkPalindrome()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Check Text</button>
+                <div id="pal-result" class="text-2xl font-bold text-slate-700">Enter text to see if it's a palindrome.</div>
+            </div>
+
+            <!-- 24. Mini Calculator -->
+            <div id="app-calculator" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🧮</div>
+                <h2 class="text-3xl font-bold mb-6">Mini Calculator</h2>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <input id="calc-a" type="number" placeholder="First number" class="p-4 rounded-3xl border-2 border-slate-200 focus:outline-none focus:border-indigo-400">
+                    <input id="calc-b" type="number" placeholder="Second number" class="p-4 rounded-3xl border-2 border-slate-200 focus:outline-none focus:border-indigo-400">
+                </div>
+                <select id="calc-op" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400">
+                    <option value="+">Add</option>
+                    <option value="-">Subtract</option>
+                    <option value="*">Multiply</option>
+                    <option value="/">Divide</option>
+                </select>
+                <button onclick="runCalculator()" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Calculate</button>
+                <div id="calc-result" class="text-3xl font-bold text-slate-700">Result: —</div>
+            </div>
+
+            <!-- 25. Word Scrambler -->
+            <div id="app-wordscramble" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🔤</div>
+                <h2 class="text-3xl font-bold mb-6">Word Scrambler</h2>
+                <input id="scramble-input" type="text" placeholder="Enter a word" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400">
+                <button onclick="scrambleWord()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Scramble</button>
+                <div id="scramble-output" class="text-3xl font-bold text-slate-700">Scrambled word appears here.</div>
+            </div>
+
+            <!-- 26. Fortune Cookie -->
+            <div id="app-fortune" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🥠</div>
+                <h2 class="text-3xl font-bold mb-6">Fortune Cookie</h2>
+                <div id="fortune-text" class="min-h-[140px] p-8 rounded-3xl bg-amber-50 border-2 border-amber-100 text-slate-700 text-xl font-medium mb-8">Your fortune awaits.</div>
+                <button onclick="getFortune()" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Open Cookie</button>
+            </div>
+
+            <!-- 27. Quick Math -->
+            <div id="app-quickmath" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">➗</div>
+                <h2 class="text-3xl font-bold mb-6">Quick Math</h2>
+                <div id="qmath-problem" class="text-4xl font-bold text-slate-800 mb-6">Ready?</div>
+                <input id="qmath-input" type="number" placeholder="Your answer" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400">
+                <button onclick="checkQuickMath()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-4">Check Answer</button>
+                <button onclick="generateQuickMath()" class="w-full bg-slate-300 hover:bg-slate-400 text-slate-800 text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">New Problem</button>
+                <div id="qmath-feedback" class="text-2xl font-bold text-slate-700 mt-6">Solve the problem above.</div>
+            </div>
+
+            <!-- 28. Countdown Timer -->
+            <div id="app-countdown" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">⏲️</div>
+                <h2 class="text-3xl font-bold mb-6">Countdown Timer</h2>
+                <input id="countdown-seconds" type="number" min="1" placeholder="Seconds" class="w-full p-4 rounded-3xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400">
+                <button onclick="startCountdown()" id="countdown-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Start Countdown</button>
+                <div id="countdown-display" class="text-6xl font-bold text-slate-800">00:00</div>
+            </div>
+
+            <!-- 29. Emoji Mixer -->
+            <div id="app-emojimixer" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">😄</div>
+                <h2 class="text-3xl font-bold mb-6">Emoji Mixer</h2>
+                <div id="emoji-output" class="min-h-[140px] p-8 rounded-3xl bg-slate-100 border-2 border-slate-200 text-5xl font-bold flex items-center justify-center mb-8">Mix some joy.</div>
+                <button onclick="mixEmojis()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Mix Emojis</button>
+            </div>
+
+            <!-- 30. Color Blender -->
+            <div id="app-colorblend" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🟦🟨</div>
+                <h2 class="text-3xl font-bold mb-6">Color Blender</h2>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <input id="blend-a" type="color" value="#6366f1" class="w-full h-16 rounded-3xl border-2 border-slate-200">
+                    <input id="blend-b" type="color" value="#f59e0b" class="w-full h-16 rounded-3xl border-2 border-slate-200">
+                </div>
+                <button onclick="blendColors()" class="w-full bg-violet-600 hover:bg-violet-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95 mb-6">Blend</button>
+                <div class="rounded-3xl p-8 border-2 border-slate-200 bg-slate-50">
+                    <div id="blend-result" class="h-24 rounded-3xl mb-4"></div>
+                    <div id="blend-hex" class="text-2xl font-bold text-slate-700">#000000</div>
+                </div>
+            </div>
+
+            <!-- 31. Factoid -->
+            <div id="app-factoid" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">💡</div>
+                <h2 class="text-3xl font-bold mb-6">Factoid</h2>
+                <div id="fact-text" class="min-h-[160px] p-8 rounded-3xl bg-indigo-50 border-2 border-indigo-100 text-slate-800 text-xl font-medium mb-8">Tap for a neat fact.</div>
+                <button onclick="getFact()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">New Fact</button>
+            </div>
+
+            <!-- 32. Mini Quiz -->
+            <div id="app-quiz" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">❓</div>
+                <h2 class="text-3xl font-bold mb-6">Mini Quiz</h2>
+                <div id="quiz-question" class="min-h-[160px] p-8 rounded-3xl bg-amber-50 border-2 border-amber-100 text-slate-800 text-xl font-medium mb-8">Ready for a question?</div>
+                <div class="flex gap-4 mb-6">
+                    <button onclick="revealQuizAnswer()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">Show Answer</button>
+                    <button onclick="loadQuizQuestion()" class="flex-1 bg-slate-300 hover:bg-slate-400 text-slate-900 text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">Next Question</button>
+                </div>
+                <div id="quiz-answer" class="text-2xl font-bold text-slate-700">Answer will appear here.</div>
+            </div>
         </div>
     </div>
 
@@ -471,11 +618,29 @@
                 case 'color':
                     generateColor();
                     break;
-                case 'memory':
+                    case 'memory':
                     startMemory();
                     break;
                 case 'tictactoe':
                     resetTTT();
+                    break;
+                case 'quickmath':
+                    generateQuickMath();
+                    break;
+                case 'factoid':
+                    getFact();
+                    break;
+                case 'fortune':
+                    getFortune();
+                    break;
+                case 'quiz':
+                    loadQuizQuestion();
+                    break;
+                case 'colorblend':
+                    blendColors();
+                    break;
+                case 'countdown':
+                    resetCountdown();
                     break;
             }
         }
@@ -982,6 +1147,205 @@
             const ctx = canvas.getContext('2d');
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 23. Palindrome Checker
+        function checkPalindrome() {
+            const text = document.getElementById('pal-input').value;
+            const normalized = text.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const reversed = normalized.split('').reverse().join('');
+            const result = normalized && normalized === reversed ? 'Yes — this is a palindrome!' : 'No — not a palindrome.';
+            document.getElementById('pal-result').innerText = result;
+        }
+
+        // 24. Mini Calculator
+        function runCalculator() {
+            const a = parseFloat(document.getElementById('calc-a').value);
+            const b = parseFloat(document.getElementById('calc-b').value);
+            const op = document.getElementById('calc-op').value;
+            let value = 'Invalid input';
+
+            if (!Number.isFinite(a) || !Number.isFinite(b)) {
+                document.getElementById('calc-result').innerText = 'Result: enter both numbers.';
+                return;
+            }
+
+            switch (op) {
+                case '+': value = a + b; break;
+                case '-': value = a - b; break;
+                case '*': value = a * b; break;
+                case '/': value = b === 0 ? 'Cannot divide by zero' : a / b; break;
+            }
+
+            document.getElementById('calc-result').innerText = 'Result: ' + value;
+        }
+
+        // 25. Word Scrambler
+        function scrambleWord() {
+            const word = document.getElementById('scramble-input').value.trim();
+            if (!word) {
+                document.getElementById('scramble-output').innerText = 'Enter a word to scramble.';
+                return;
+            }
+
+            const letters = word.split('');
+            for (let i = letters.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [letters[i], letters[j]] = [letters[j], letters[i]];
+            }
+
+            document.getElementById('scramble-output').innerText = letters.join('');
+        }
+
+        // 26. Fortune Cookie
+        const fortunes = [
+            'A fresh start will put you on your way.',
+            'Do more of what makes you happy.',
+            'Adventure can be real happiness.',
+            'Now is the time to try something new.',
+            'Small steps every day lead to big changes.',
+            'Today is a great day to learn something new.',
+            'Your creativity will lead you to success.',
+            'A new opportunity is around the corner.',
+            'Kindness is your superpower.',
+            'Good news will arrive soon.'
+        ];
+
+        function getFortune() {
+            const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+            document.getElementById('fortune-text').innerText = fortune;
+        }
+
+        // 27. Quick Math
+        let currentQuickMathAnswer = null;
+
+        function generateQuickMath() {
+            const operators = ['+', '-', '*'];
+            const a = Math.floor(Math.random() * 12) + 1;
+            const b = Math.floor(Math.random() * 12) + 1;
+            const op = operators[Math.floor(Math.random() * operators.length)];
+            document.getElementById('qmath-problem').innerText = `${a} ${op} ${b}`;
+            document.getElementById('qmath-input').value = '';
+            document.getElementById('qmath-feedback').innerText = 'Solve it!';
+
+            switch (op) {
+                case '+': currentQuickMathAnswer = a + b; break;
+                case '-': currentQuickMathAnswer = a - b; break;
+                case '*': currentQuickMathAnswer = a * b; break;
+            }
+        }
+
+        function checkQuickMath() {
+            const guess = parseFloat(document.getElementById('qmath-input').value);
+            if (!Number.isFinite(guess)) {
+                document.getElementById('qmath-feedback').innerText = 'Enter a number.';
+                return;
+            }
+            document.getElementById('qmath-feedback').innerText = guess === currentQuickMathAnswer ? 'Correct! Nice work.' : `Try again — answer is ${currentQuickMathAnswer}.`;
+        }
+
+        // 28. Countdown Timer
+        let countdownInterval = null;
+
+        function resetCountdown() {
+            clearInterval(countdownInterval);
+            document.getElementById('countdown-display').innerText = '00:00';
+            const btn = document.getElementById('countdown-btn');
+            btn.disabled = false;
+            btn.innerText = 'Start Countdown';
+        }
+
+        function startCountdown() {
+            const seconds = parseInt(document.getElementById('countdown-seconds').value, 10);
+            if (!Number.isFinite(seconds) || seconds <= 0) {
+                document.getElementById('countdown-display').innerText = 'Enter seconds.';
+                return;
+            }
+
+            let remaining = seconds;
+            const btn = document.getElementById('countdown-btn');
+            btn.disabled = true;
+            btn.innerText = 'Running...';
+            document.getElementById('countdown-display').innerText = `${remaining}s`;
+
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                remaining -= 1;
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('countdown-display').innerText = 'Done!';
+                    btn.disabled = false;
+                    btn.innerText = 'Start Countdown';
+                    return;
+                }
+                document.getElementById('countdown-display').innerText = `${remaining}s`;
+            }, 1000);
+        }
+
+        // 29. Emoji Mixer
+        const emojiSets = ['😀','🎉','🚀','🍕','🌈','🐶','🍦','🎮','✨','🌟','🍀','🎵'];
+
+        function mixEmojis() {
+            const mix = [];
+            for (let i = 0; i < 4; i++) {
+                mix.push(emojiSets[Math.floor(Math.random() * emojiSets.length)]);
+            }
+            document.getElementById('emoji-output').innerText = mix.join(' ');
+        }
+
+        // 30. Color Blender
+        function blendColors() {
+            const a = document.getElementById('blend-a').value;
+            const b = document.getElementById('blend-b').value;
+
+            const toRgb = (hex) => hex.match(/[A-Fa-f0-9]{2}/g).map(x => parseInt(x, 16));
+            const [r1,g1,b1] = toRgb(a.slice(1));
+            const [r2,g2,b2] = toRgb(b.slice(1));
+            const r = Math.round((r1 + r2) / 2);
+            const g = Math.round((g1 + g2) / 2);
+            const bl = Math.round((b1 + b2) / 2);
+            const hex = `#${[r,g,bl].map(v => v.toString(16).padStart(2, '0')).join('')}`;
+
+            document.getElementById('blend-result').style.backgroundColor = hex;
+            document.getElementById('blend-hex').innerText = hex;
+        }
+
+        // 31. Factoid
+        const facts = [
+            'Honey never spoils and can last forever.',
+            'Octopuses have three hearts.',
+            'Bananas are berries but strawberries are not.',
+            'A day on Venus is longer than a year on Venus.',
+            'The Eiffel Tower can be 15 cm taller in summer.',
+            'A group of flamingos is called a flamboyance.',
+            'The moon has moonquakes.',
+            'There are more stars in the universe than grains of sand on Earth.',
+            'Wombat poop is cube-shaped.',
+            'The first computer mouse was made of wood.'
+        ];
+
+        function getFact() {
+            document.getElementById('fact-text').innerText = facts[Math.floor(Math.random() * facts.length)];
+        }
+
+        // 32. Mini Quiz
+        const quizQuestions = [
+            { q: 'What planet is known as the Red Planet?', a: 'Mars' },
+            { q: 'What is 7 × 8?', a: '56' },
+            { q: 'Which ocean is the largest?', a: 'Pacific Ocean' },
+            { q: 'How many sides does a hexagon have?', a: '6' },
+            { q: 'What is the capital of Japan?', a: 'Tokyo' }
+        ];
+        let currentQuizIndex = 0;
+
+        function loadQuizQuestion() {
+            currentQuizIndex = Math.floor(Math.random() * quizQuestions.length);
+            document.getElementById('quiz-question').innerText = quizQuestions[currentQuizIndex].q;
+            document.getElementById('quiz-answer').innerText = 'Answer will appear here.';
+        }
+
+        function revealQuizAnswer() {
+            document.getElementById('quiz-answer').innerText = quizQuestions[currentQuizIndex].a;
         }
 
         // Override initApp to add canvas setup
