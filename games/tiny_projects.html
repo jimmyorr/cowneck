@@ -1,1243 +1,585 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nifty Little Things</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Space Grotesk', sans-serif;
-            background-color: #f8fafc;
-            transition: background-color 0.5s ease;
-            overscroll-behavior-y: none;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nifty Little Things</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #f8fafc;
+            transition: background-color 0.5s ease;
+            overscroll-behavior-y: none;
+        }
 
-        .gradient-text {
-            background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .gradient-text {
+            background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-        /* Menu Card Hover Effects */
-        .menu-card {
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
-        }
-        .menu-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border-color: #cbd5e1;
-        }
+        .menu-card {
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+        }
+        .menu-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #cbd5e1;
+        }
 
-        /* Carnival Effects */
-        .celebration-active #app-view { filter: brightness(0.4); transition: filter 0.5s ease; }
-        .celebration-active #app-billion { filter: brightness(2.5); z-index: 50; position: relative; transform: scale(1.05); transition: transform 0.5s ease; }
-        
-        .bulb { width: 12px; height: 12px; border-radius: 50%; background: #475569; transition: all 0.2s ease; }
-        .bulb-lit { background: #fbbf24; box-shadow: 0 0 15px #fbbf24, 0 0 5px #fbbf24; animation: flicker 0.2s infinite alternate; }
-        @keyframes flicker { from { opacity: 0.8; transform: scale(0.9); } to { opacity: 1; transform: scale(1.1); } }
-        .number-glow { color: #ca8a04; text-shadow: 0 0 20px rgba(234, 179, 8, 0.8); animation: pulse-glow 1s infinite; }
-        @keyframes pulse-glow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-        .number-spin { animation: pulse 0.1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } }
-
-        /* Toast */
-        .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 0.75rem 1.5rem; border-radius: 9999px; z-index: 100; display: none; }
-
-        /* Bubble Wrap */
-        .bubble { width: 100%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ffffff, #93c5fd); box-shadow: 0 2px 4px rgba(0,0,0,0.1), inset 0 -2px 4px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.1s; }
-        .bubble-popped { background: #e2e8f0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); transform: scale(0.95); cursor: default; }
-
-        /* Drawing Canvas */
-        #draw-canvas { touch-action: none; cursor: crosshair; }
-
-        /* Breathing Circle */
-        .breathe-circle { animation: breathe-anim 8s ease-in-out infinite; }
-        @keyframes breathe-anim {
-            0% { transform: scale(0.5); opacity: 0.5; }
-            40% { transform: scale(1.2); opacity: 1; } /* Inhale complete */
-            50% { transform: scale(1.2); opacity: 1; } /* Hold */
-            90% { transform: scale(0.5); opacity: 0.5; } /* Exhale complete */
-            100% { transform: scale(0.5); opacity: 0.5; } /* Pause */
-        }
-
-        /* Coin Flip */
-        .coin-inner { transition: transform 2s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
-        .coin-front, .coin-back { backface-visibility: hidden; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-        .coin-back { transform: rotateY(180deg); }
-        .flip-heads { transform: rotateY(1800deg); }
-        .flip-tails { transform: rotateY(1980deg); }
-        
-        /* Random Card */
-        .card-inner { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
-        .card-front, .card-back { backface-visibility: hidden; position: absolute; inset: 0; }
-        .card-front { transform: rotateY(180deg); }
-        .flip-card { transform: rotateY(180deg); }
-
-        /* Word Guess */
-        .wg-cell { transition: all 0.3s ease; transform-style: preserve-3d; }
-        .wg-pop { animation: wg-pop 0.1s ease-in-out; }
-        @keyframes wg-pop { 50% { transform: scale(1.1); } }
-        .wg-flip { animation: wg-flip-anim 0.5s ease forwards; }
-        @keyframes wg-flip-anim { 0% { transform: rotateX(0deg); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0deg); } }
-
-        /* New Tools 71-80 */
-        .illusion-spin { animation: illusion-spin 4s linear infinite; background: repeating-conic-gradient(from 0deg, #1e293b 0deg 15deg, #f8fafc 15deg 30deg); border-radius: 50%; box-shadow: inset 0 0 50px rgba(0,0,0,0.5); }
-        @keyframes illusion-spin { 100% { transform: rotate(360deg); } }
-    </style>
-	<style>
-		/* Mobile tweaks to improve tap targets, spacing and font sizes */
-		@media (max-width: 640px) {
-			body { padding-bottom: 56px; }
-			header h1 { font-size: 2rem !important; }
-			.grid { gap: 8px !important; }
-			.menu-card { padding: 1rem !important; min-height: 96px; }
-			.menu-card .text-5xl { font-size: 1.5rem !important; margin-bottom: 6px !important; }
-			.menu-card h2 { font-size: 0.95rem !important; }
-			#home-view { padding: 12px !important; }
-			/* Make app content panels fit narrow viewports */
-			.app-content { padding: 1rem !important; border-radius: 1.25rem !important; max-width: 92vw !important; }
-			.app-content .text-5xl { font-size: 2rem !important; }
-			.app-content h2 { font-size: 1.25rem !important; }
-			/* Reduce large interactive areas to prevent overflow */
-			.w-full.h-64 { height: 44vw !important; }
-			.w-full.h-64.text-6xl { font-size: 2.5rem !important; }
-			/* Make control buttons larger and easier to tap */
-			button, .btn, .menu-card { touch-action: manipulation; }
-		}
-		/* Small-portrait polish for mid-size phones */
-		@media (max-width: 420px) {
-			.grid { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
-			.menu-card { min-height: 88px; }
-			header p { font-size: 0.95rem; }
-		}
-	</style>
+        @media (max-width: 640px) {
+            body { padding-bottom: 56px; }
+            header h1 { font-size: 2rem !important; }
+            .grid { gap: 8px !important; }
+            .menu-card { padding: 1rem !important; min-height: 96px; }
+            .menu-card .text-5xl { font-size: 1.5rem !important; margin-bottom: 6px !important; }
+            .menu-card h2 { font-size: 0.95rem !important; }
+            #home-view { padding: 12px !important; }
+            .app-content { padding: 1rem !important; border-radius: 1.25rem !important; max-width: 92vw !important; }
+            .app-content .text-5xl { font-size: 2rem !important; }
+            .app-content h2 { font-size: 1.25rem !important; }
+            button, .btn, .menu-card { touch-action: manipulation; }
+        }
+        @media (max-width: 420px) {
+            .grid { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+            .menu-card { min-height: 88px; }
+            header p { font-size: 0.95rem; }
+        }
+    </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- HOME MENU VIEW -->
-    <div id="home-view" class="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full transition-opacity duration-300">
-        <header class="mb-12 mt-4 text-center">
-            <h1 class="text-5xl md:text-6xl font-bold mb-4 gradient-text tracking-tight">Nifty Little Things</h1>
-            <p class="text-slate-500 text-lg max-w-xl mx-auto">Pick a digital toy to play with.</p>
-        </header>
-
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            <!-- Row 1 -->
-            <div onclick="openApp('billion')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎰</div><h2 class="text-lg font-bold text-slate-700">The Billion Machine</h2></div>
-            <div onclick="openApp('sentence')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🧪</div><h2 class="text-lg font-bold text-slate-700">Sentence Alchemist</h2></div>
-            <div onclick="openApp('decay')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">⏳</div><h2 class="text-lg font-bold text-slate-700">Today's Decay</h2></div>
-            <div onclick="openApp('color')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎨</div><h2 class="text-lg font-bold text-slate-700">Hex Oracle</h2></div>
-            <!-- Row 2 -->
-            <div onclick="openApp('oracle')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎱</div><h2 class="text-lg font-bold text-slate-700">The Oracle</h2></div>
-            <div onclick="openApp('bubble')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🫧</div><h2 class="text-lg font-bold text-slate-700">Bubble Wrap</h2></div>
-            <div onclick="openApp('reaction')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">⚡</div><h2 class="text-lg font-bold text-slate-700">Reaction Test</h2></div>
-            <div onclick="openApp('cps')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🖱️</div><h2 class="text-lg font-bold text-slate-700">Click Speed Test</h2></div>
-            <!-- Row 3 -->
-            <div onclick="openApp('aim')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎯</div><h2 class="text-lg font-bold text-slate-700">Aim Trainer</h2></div>
-            <div onclick="openApp('rps')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">✌️</div><h2 class="text-lg font-bold text-slate-700">Rock Paper Scissors</h2></div>
-            <div onclick="openApp('guesser')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🔢</div><h2 class="text-lg font-bold text-slate-700">Number Guesser</h2></div>
-            <div onclick="openApp('memory')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🧠</div><h2 class="text-lg font-bold text-slate-700">Memory Matrix</h2></div>
-            <!-- Row 4 -->
-            <div onclick="openApp('tictactoe')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">❌</div><h2 class="text-lg font-bold text-slate-700">Tic-Tac-Toe</h2></div>
-            <div onclick="openApp('perfectstop')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">⏱️</div><h2 class="text-lg font-bold text-slate-700">Perfect Stop</h2></div>
-            <div onclick="openApp('typer')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">⌨️</div><h2 class="text-lg font-bold text-slate-700">Speed Typer</h2></div>
-            <div onclick="openApp('colorhunt')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🌈</div><h2 class="text-lg font-bold text-slate-700">Color Hunt</h2></div>
-            <!-- Row 5 -->
-            <div onclick="openApp('draw')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🖌️</div><h2 class="text-lg font-bold text-slate-700">Mini Paint</h2></div>
-            <div onclick="openApp('higherlower')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🃏</div><h2 class="text-lg font-bold text-slate-700">Higher or Lower</h2></div>
-            <div onclick="openApp('whack')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🔨</div><h2 class="text-lg font-bold text-slate-700">Whack-a-Dot</h2></div>
-            <div onclick="openApp('breathe')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🧘</div><h2 class="text-lg font-bold text-slate-700">Breathing Guide</h2></div>
-            <!-- Row 6 -->
-            <div onclick="openApp('scramble')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🔠</div><h2 class="text-lg font-bold text-slate-700">Word Scramble</h2></div>
-            <div onclick="openApp('dice')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎲</div><h2 class="text-lg font-bold text-slate-700">Dice Roller</h2></div>
-            <div onclick="openApp('passgen')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🔑</div><h2 class="text-lg font-bold text-slate-700">PassGen</h2></div>
-            <div onclick="openApp('coin')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🪙</div><h2 class="text-lg font-bold text-slate-700">Coin Flip</h2></div>
-            <!-- Row 7 -->
-            <div onclick="openApp('mathsprint')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🧮</div><h2 class="text-lg font-bold text-slate-700">Math Sprint</h2></div>
-            <div onclick="openApp('bpm')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🥁</div><h2 class="text-lg font-bold text-slate-700">BPM Tapper</h2></div>
-            <div onclick="openApp('randcard')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎴</div><h2 class="text-lg font-bold text-slate-700">Random Card</h2></div>
-            <div onclick="openApp('piano')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎹</div><h2 class="text-lg font-bold text-slate-700">Mini Piano</h2></div>
-            <!-- Row 8 -->
-            <div onclick="openApp('wordguess')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🟩</div><h2 class="text-lg font-bold text-slate-700">Word Guess</h2></div>
-            <div onclick="openApp('cipher')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🕵️</div><h2 class="text-lg font-bold text-slate-700">Secret Cipher</h2></div>
-            <div onclick="openApp('pomodoro')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🍅</div><h2 class="text-lg font-bold text-slate-700">Focus Timer</h2></div>
-            <div onclick="openApp('metronome')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">⏱️</div><h2 class="text-lg font-bold text-slate-700">Metronome</h2></div>
-            <!-- Row 9 -->
-            <div onclick="openApp('drumpad')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🥁</div><h2 class="text-lg font-bold text-slate-700">Drum Pad</h2></div>
-            <div onclick="openApp('palette')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎨</div><h2 class="text-lg font-bold text-slate-700">Palette Gen</h2></div>
-            <div onclick="openApp('glitch')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">👾</div><h2 class="text-lg font-bold text-slate-700">Glitch Text</h2></div>
-            <div onclick="openApp('morse')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">📡</div><h2 class="text-lg font-bold text-slate-700">Morse Code</h2></div>
-            <!-- Row 10 -->
-            <div onclick="openApp('stopwatch')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">⏱️</div><h2 class="text-lg font-bold text-slate-700">Stopwatch</h2></div>
-            <div onclick="openApp('qrgen')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">📱</div><h2 class="text-lg font-bold text-slate-700">QR Gen</h2></div>
-            <div onclick="openApp('synthfx')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🔊</div><h2 class="text-lg font-bold text-slate-700">Synth FX</h2></div>
-            <div onclick="openApp('stroop')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🧠</div><h2 class="text-lg font-bold text-slate-700">Stroop Test</h2></div>
-            <!-- Row 11 -->
-            <div onclick="openApp('tally')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">➕</div><h2 class="text-lg font-bold text-slate-700">Tally Counter</h2></div>
-            <div onclick="openApp('binary')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">0️⃣</div><h2 class="text-lg font-bold text-slate-700">Binary Conv</h2></div>
-            <div onclick="openApp('rgbmixer')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🧪</div><h2 class="text-lg font-bold text-slate-700">RGB Mixer</h2></div>
-            <div onclick="openApp('pitch')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎵</div><h2 class="text-lg font-bold text-slate-700">Pitch Perfect</h2></div>
-            <!-- Row 12 -->
-            <div onclick="openApp('lotto')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎟️</div><h2 class="text-lg font-bold text-slate-700">Lotto Picker</h2></div>
-            <div onclick="openApp('wisdom')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">💬</div><h2 class="text-lg font-bold text-slate-700">Daily Wisdom</h2></div>
-            <div onclick="openApp('emojislot')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎰</div><h2 class="text-lg font-bold text-slate-700">Emoji Slots</h2></div>
-            <div onclick="openApp('fliptext')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🙃</div><h2 class="text-lg font-bold text-slate-700">Flip Text</h2></div>
-            <!-- Row 13 -->
-            <div onclick="openApp('agecalc')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎂</div><h2 class="text-lg font-bold text-slate-700">Exact Age</h2></div>
-            <div onclick="openApp('bouncydvd')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">📺</div><h2 class="text-lg font-bold text-slate-700">Bouncy DVD</h2></div>
-            <div onclick="openApp('match')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🃏</div><h2 class="text-lg font-bold text-slate-700">Memory Match</h2></div>
-            <div onclick="openApp('joke')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎭</div><h2 class="text-lg font-bold text-slate-700">Dad Jokes</h2></div>
-            <!-- Row 14 -->
-            <div onclick="openApp('tts')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🗣️</div><h2 class="text-lg font-bold text-slate-700">Text to Speech</h2></div>
-            <div onclick="openApp('balloon')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎈</div><h2 class="text-lg font-bold text-slate-700">Pop Balloon</h2></div>
-            <div onclick="openApp('gridclick')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🖱️</div><h2 class="text-lg font-bold text-slate-700">Grid Clicker</h2></div>
-            <div onclick="openApp('ripple')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">💧</div><h2 class="text-lg font-bold text-slate-700">Ripple Pad</h2></div>
-            <!-- Row 15 -->
-            <div onclick="openApp('abcrace')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🔤</div><h2 class="text-lg font-bold text-slate-700">Alphabet Race</h2></div>
-            <div onclick="openApp('sortvis')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">📊</div><h2 class="text-lg font-bold text-slate-700">Sort Vis</h2></div>
-            <div onclick="openApp('runaway')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🏃</div><h2 class="text-lg font-bold text-slate-700">Catch Me</h2></div>
-            <div onclick="openApp('schulte')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🔢</div><h2 class="text-lg font-bold text-slate-700">Number Hunt</h2></div>
-            <!-- Row 16 -->
-            <div onclick="openApp('wordcount')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">📝</div><h2 class="text-lg font-bold text-slate-700">Word Counter</h2></div>
-            <div onclick="openApp('keycode')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">⌨️</div><h2 class="text-lg font-bold text-slate-700">Keycode Tool</h2></div>
-            <div onclick="openApp('pixelart')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">👾</div><h2 class="text-lg font-bold text-slate-700">Pixel Art</h2></div>
-            <div onclick="openApp('whitenoise')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎧</div><h2 class="text-lg font-bold text-slate-700">White Noise</h2></div>
-            <!-- Row 17 -->
-            <div onclick="openApp('gravity')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🍎</div><h2 class="text-lg font-bold text-slate-700">Gravity Balls</h2></div>
-            <div onclick="openApp('identicon')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🤖</div><h2 class="text-lg font-bold text-slate-700">Avatar Gen</h2></div>
-            <div onclick="openApp('flagguess')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🌍</div><h2 class="text-lg font-bold text-slate-700">Flag Guesser</h2></div>
-            <div onclick="openApp('kaomoji')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">ʕ•ᴥ•ʔ</div><h2 class="text-lg font-bold text-slate-700">Kaomoji</h2></div>
-            <!-- Row 18 -->
-            <div onclick="openApp('mandala')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🌸</div><h2 class="text-lg font-bold text-slate-700">Mandala Draw</h2></div>
-            <div onclick="openApp('tower')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🏗️</div><h2 class="text-lg font-bold text-slate-700">Tower Builder</h2></div>
-            <div onclick="openApp('particles')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🕸️</div><h2 class="text-lg font-bold text-slate-700">Particle Net</h2></div>
-            <div onclick="openApp('illusion')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🌀</div><h2 class="text-lg font-bold text-slate-700">Illusion</h2></div>
-            <!-- Row 19 -->
-            <div onclick="openApp('tonegen')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🎛️</div><h2 class="text-lg font-bold text-slate-700">Tone Gen</h2></div>
-            <div onclick="openApp('facts')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">💡</div><h2 class="text-lg font-bold text-slate-700">Fun Facts</h2></div>
-            <div onclick="openApp('guesshex')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🤔</div><h2 class="text-lg font-bold text-slate-700">Guess Hex</h2></div>
-            <div onclick="openApp('soundreact')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🔊</div><h2 class="text-lg font-bold text-slate-700">Sound React</h2></div>
-            <!-- Row 20 -->
-            <div onclick="openApp('vaporwave')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">🌸</div><h2 class="text-lg font-bold text-slate-700">Vaporwave</h2></div>
-            <div onclick="openApp('timer')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">⏲️</div><h2 class="text-lg font-bold text-slate-700">Countdown</h2></div>
-            <div onclick="openApp('circletap')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">⭕</div><h2 class="text-lg font-bold text-slate-700">Circle Tap</h2></div>
-            <div onclick="openApp('wavevis')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center"><div class="text-5xl mb-3">〰️</div><h2 class="text-lg font-bold text-slate-700">Wave Vis</h2></div>
-        </div>
-
-        <footer class="mt-16 pb-8 text-center text-slate-400 text-sm">
-            Hand-crafted for curious minds.
-        </footer>
-    </div>
-
-    <!-- FOCUSED APP VIEW -->
-    <div id="app-view" class="hidden flex-1 flex flex-col min-h-screen w-full relative">
-        <div class="w-full p-4 md:p-6 absolute top-0 left-0 z-40">
-            <button onclick="goHome()" class="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold bg-white/50 backdrop-blur px-4 py-2 rounded-full transition-colors border border-slate-200 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back
-            </button>
-        </div>
-
-        <div class="flex-1 flex items-center justify-center p-4 pt-24 w-full max-w-4xl mx-auto">
-            
-            <!-- 1. The Billion Machine -->
-            <div id="app-billion" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎰</div>
-                <h2 class="text-3xl font-bold mb-2">The Billion Machine</h2>
-                <p class="text-slate-500 mb-8">Generates a random integer between 1 and 1,000,000,000.</p>
-                <div class="relative p-4 md:p-6 bg-slate-800 rounded-3xl mb-8">
-                    <!-- Top Bulbs -->
-                    <div class="absolute -top-2 left-0 right-0 flex justify-around px-8"><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div></div>
-                    <!-- Bottom Bulbs -->
-                    <div class="absolute -bottom-2 left-0 right-0 flex justify-around px-8"><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div><div class="bulb"></div></div>
-                    <!-- Left Bulbs -->
-                    <div class="absolute left-1 top-0 bottom-0 flex flex-col justify-around py-8"><div class="bulb"></div><div class="bulb"></div></div>
-                    <!-- Right Bulbs -->
-                    <div class="absolute right-1 top-0 bottom-0 flex flex-col justify-around py-8"><div class="bulb"></div><div class="bulb"></div></div>
-                    <div id="billion-display" class="text-4xl md:text-6xl font-mono font-bold py-10 bg-slate-900 text-indigo-400 rounded-2xl border border-slate-700 tracking-wider">???</div>
-                </div>
-                <button id="billion-btn" onclick="generateBillion()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Crank the Lever</button>
-            </div>
-
-            <!-- 2. Sentence Alchemist -->
-            <div id="app-sentence" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🧪</div>
-                <h2 class="text-3xl font-bold mb-2">Sentence Alchemist</h2>
-                <div id="sentence-display" class="min-h-[160px] flex items-center justify-center p-6 bg-amber-50 rounded-3xl mb-8 border-2 border-dashed border-amber-200">
-                    <span class="text-2xl text-amber-800 leading-tight italic font-medium">Waiting...</span>
-                </div>
-                <button onclick="generateSentence()" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Synthesize Prose</button>
-            </div>
-
-            <!-- 3. Today's Decay -->
-            <div id="app-decay" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">⏳</div>
-                <h2 class="text-3xl font-bold mb-2">Today's Decay</h2>
-                <p class="text-slate-500 mb-12">The exact percentage of the current day that has already passed.</p>
-                <div class="w-full bg-slate-100 rounded-full h-8 md:h-12 mb-4 overflow-hidden shadow-inner relative">
-                    <div id="day-progress-bar" class="bg-blue-500 h-full transition-all duration-1000 ease-out" style="width: 0%"></div>
-                    <div id="day-percent" class="absolute inset-0 flex items-center justify-center font-bold text-white mix-blend-difference text-2xl drop-shadow-md">0%</div>
-                </div>
-            </div>
-
-            <!-- 4. Hex Oracle -->
-            <div id="app-color" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎨</div>
-                <h2 class="text-3xl font-bold mb-2">Hex Oracle</h2>
-                <div id="color-box" class="h-48 md:h-64 w-full rounded-3xl mb-8 flex items-center justify-center cursor-pointer group shadow-inner transition-colors duration-300" onclick="copyColor()">
-                    <span id="hex-label" class="text-white text-3xl font-bold opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 px-6 py-3 rounded-2xl backdrop-blur-sm">#6366F1</span>
-                </div>
-                <div class="flex gap-4">
-                    <button onclick="generateColor()" class="flex-1 bg-white border-4 border-purple-100 text-purple-600 hover:bg-purple-50 text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">New Hue</button>
-                    <button onclick="copyColor()" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Copy Code</button>
-                </div>
-            </div>
-
-            <!-- 5. The Oracle -->
-            <div id="app-oracle" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎱</div>
-                <h2 class="text-3xl font-bold mb-2">The Oracle</h2>
-                <div class="bg-rose-50 rounded-3xl p-8 mb-8 border-2 border-rose-100 min-h-[200px] flex items-center justify-center">
-                    <div id="decision-text" class="text-3xl md:text-5xl font-bold text-rose-600 transition-all duration-300">Seek Truth</div>
-                </div>
-                <button onclick="decide()" class="w-full bg-rose-500 hover:bg-rose-600 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Ask the Void</button>
-            </div>
-
-            <!-- 6. Bubble Wrap -->
-            <div id="app-bubble" class="app-content hidden w-full max-w-md bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🫧</div>
-                <h2 class="text-3xl font-bold mb-2">Bubble Wrap</h2>
-                <div id="bubble-grid" class="grid grid-cols-4 gap-2 mb-8 p-4 bg-slate-50 rounded-3xl border-2 border-slate-100 shadow-inner"></div>
-                <button onclick="resetBubbles()" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white text-xl font-bold py-4 rounded-2xl transition-all active:scale-95">New Sheet</button>
-            </div>
-
-            <!-- 7. Reaction Test -->
-            <div id="app-reaction" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">⚡</div>
-                <h2 class="text-3xl font-bold mb-2">Reaction Time</h2>
-                <div id="reaction-area" class="w-full h-64 md:h-80 bg-slate-200 hover:bg-slate-300 transition-colors rounded-3xl flex flex-col items-center justify-center cursor-pointer text-slate-700 select-none border-4 border-slate-300" onmousedown="handleReaction()">
-                    <span class="text-4xl font-bold mb-2">Click to Start</span>
-                </div>
-            </div>
-
-            <!-- 8. Click Speed Test -->
-            <div id="app-cps" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🖱️</div>
-                <h2 class="text-3xl font-bold mb-2">Click Speed Test</h2>
-                <div class="flex justify-between items-end mb-4 px-4">
-                    <div id="cps-time" class="text-2xl font-mono font-bold text-slate-700">Time: 5.0s</div>
-                    <div id="cps-result" class="text-2xl font-bold text-indigo-600"></div>
-                </div>
-                <div id="cps-btn" class="w-full h-64 bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 rounded-3xl flex items-center justify-center cursor-pointer text-white text-6xl font-bold select-none active:scale-95" onmousedown="handleCps()">START</div>
-            </div>
-
-            <!-- 9. Aim Trainer -->
-            <div id="app-aim" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎯</div>
-                <h2 class="text-3xl font-bold mb-2">Aim Trainer</h2>
-                <div class="flex justify-between items-end mb-4 px-4">
-                    <div id="aim-time" class="text-xl font-mono font-bold text-slate-700">Time: 15.0s</div>
-                    <div id="aim-score" class="text-xl font-bold text-rose-600">Score: 0</div>
-                </div>
-                <div id="aim-area" class="relative w-full h-64 bg-slate-100 rounded-3xl overflow-hidden border-4 border-slate-200">
-                    <div id="aim-start-screen" class="absolute inset-0 flex items-center justify-center bg-slate-800/10 z-10">
-                        <button onclick="startAimTrainer()" class="bg-rose-500 hover:bg-rose-600 text-white text-2xl font-bold py-4 px-8 rounded-2xl active:scale-95 shadow-lg">Start</button>
-                    </div>
-                    <div id="aim-target" class="absolute w-12 h-12 bg-rose-500 rounded-full cursor-crosshair hidden" onmousedown="hitAimTarget()" style="top:50%;left:50%;transform:translate(-50%,-50%);"></div>
-                </div>
-            </div>
-
-            <!-- 10. Rock Paper Scissors -->
-            <div id="app-rps" class="app-content hidden w-full bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">✌️</div>
-                <h2 class="text-3xl font-bold mb-6">Rock Paper Scissors</h2>
-                <div class="flex justify-around items-center mb-10 bg-slate-50 p-6 rounded-3xl border-2 border-slate-100">
-                    <div class="text-center"><div class="text-sm font-bold text-slate-400">YOU</div><div id="rps-player-choice" class="text-6xl my-2">❓</div><div id="rps-player-score" class="text-2xl font-bold">0</div></div>
-                    <div class="text-center px-4"><div id="rps-result" class="text-2xl font-bold text-indigo-600">VS</div></div>
-                    <div class="text-center"><div class="text-sm font-bold text-slate-400">CPU</div><div id="rps-cpu-choice" class="text-6xl my-2">❓</div><div id="rps-cpu-score" class="text-2xl font-bold">0</div></div>
-                </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <button onclick="playRPS('🪨')" class="bg-slate-100 hover:bg-slate-200 text-5xl py-6 rounded-2xl border-2 active:scale-90">🪨</button>
-                    <button onclick="playRPS('📄')" class="bg-slate-100 hover:bg-slate-200 text-5xl py-6 rounded-2xl border-2 active:scale-90">📄</button>
-                    <button onclick="playRPS('✂️')" class="bg-slate-100 hover:bg-slate-200 text-5xl py-6 rounded-2xl border-2 active:scale-90">✂️</button>
-                </div>
-            </div>
-
-            <!-- 11. Number Guesser -->
-            <div id="app-guesser" class="app-content hidden w-full max-w-lg bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🔢</div>
-                <h2 class="text-3xl font-bold mb-8">Number Guesser (1-100)</h2>
-                <div class="bg-blue-50 p-8 rounded-3xl border-2 border-blue-100 mb-8">
-                    <div id="guess-hint" class="text-3xl font-bold text-blue-600 mb-6">Take a guess!</div>
-                    <input type="number" id="guess-input" min="1" max="100" class="w-full max-w-xs text-center text-3xl font-bold p-4 rounded-xl border-2 border-blue-200 focus:outline-none focus:border-blue-500 bg-white" placeholder="50">
-                </div>
-                <button onclick="submitGuess()" id="guess-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-bold py-5 rounded-2xl active:scale-95">Submit</button>
-                <div id="guess-attempts" class="mt-4 text-slate-400 font-medium">Attempts: 0</div>
-            </div>
-
-            <!-- 12. Memory Matrix -->
-            <div id="app-memory" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🧠</div>
-                <h2 class="text-3xl font-bold mb-6">Memory Matrix</h2>
-                <div class="flex justify-between items-center mb-6 px-4">
-                    <div id="memory-level" class="text-xl font-bold text-emerald-600">Level: 1</div>
-                    <div id="memory-status" class="text-lg font-medium text-slate-500">Press Start</div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 max-w-[280px] mx-auto mb-8">
-                    <div id="mem-btn-0" onmousedown="handleMemClick(0)" class="aspect-square rounded-3xl bg-red-500 opacity-50 cursor-pointer active:scale-95"></div>
-                    <div id="mem-btn-1" onmousedown="handleMemClick(1)" class="aspect-square rounded-3xl bg-blue-500 opacity-50 cursor-pointer active:scale-95"></div>
-                    <div id="mem-btn-2" onmousedown="handleMemClick(2)" class="aspect-square rounded-3xl bg-emerald-500 opacity-50 cursor-pointer active:scale-95"></div>
-                    <div id="mem-btn-3" onmousedown="handleMemClick(3)" class="aspect-square rounded-3xl bg-amber-500 opacity-50 cursor-pointer active:scale-95"></div>
-                </div>
-                <button onclick="startMemory()" id="memory-start-btn" class="w-full bg-slate-800 text-white text-xl font-bold py-4 rounded-2xl active:scale-95">Start</button>
-            </div>
-
-            <!-- 13. Tic-Tac-Toe -->
-            <div id="app-tictactoe" class="app-content hidden w-full max-w-sm bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">❌</div>
-                <h2 class="text-3xl font-bold mb-4">Tic-Tac-Toe</h2>
-                <div id="ttt-status" class="text-xl font-bold text-indigo-600 mb-4 bg-indigo-50 py-2 px-4 rounded-full inline-block">Your Turn</div>
-                <div class="grid grid-cols-3 gap-2 bg-slate-100 p-3 rounded-3xl mb-6 w-full aspect-square">
-                    <button onclick="playTTT(0)" id="ttt-0" class="bg-white rounded-2xl text-5xl hover:bg-slate-50"></button>
-                    <button onclick="playTTT(1)" id="ttt-1" class="bg-white rounded-2xl text-5xl hover:bg-slate-50"></button>
-                    <button onclick="playTTT(2)" id="ttt-2" class="bg-white rounded-2xl text-5xl hover:bg-slate-50"></button>
-                    <button onclick="playTTT(3)" id="ttt-3" class="bg-white rounded-2xl text-5xl hover:bg-slate-50"></button>
-                    <button onclick="playTTT(4)" id="ttt-4" class="bg-white rounded-2xl text-5xl hover:bg-slate-50"></button>
-                    <button onclick="playTTT(5)" id="ttt-5" class="bg-white rounded-2xl text-5xl hover:bg-slate-50"></button>
-                    <button onclick="playTTT(6)" id="ttt-6" class="bg-white rounded-2xl text-5xl hover:bg-slate-50"></button>
-                    <button onclick="playTTT(7)" id="ttt-7" class="bg-white rounded-2xl text-5xl hover:bg-slate-50"></button>
-                    <button onclick="playTTT(8)" id="ttt-8" class="bg-white rounded-2xl text-5xl hover:bg-slate-50"></button>
-                </div>
-                <button onclick="resetTicTacToe()" class="w-full bg-slate-800 text-white text-xl font-bold py-4 rounded-2xl active:scale-95">Restart</button>
-            </div>
-
-            <!-- 14. Perfect Stop -->
-            <div id="app-perfectstop" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">⏱️</div>
-                <h2 class="text-3xl font-bold mb-4">Perfect Stop</h2>
-                <p class="text-slate-500 mb-8">Stop EXACTLY at 7.000s.</p>
-                <div class="bg-slate-800 text-white p-8 rounded-3xl mb-8 border-4 border-slate-700">
-                    <div id="ps-time" class="text-6xl md:text-7xl font-mono font-bold">0.000</div>
-                    <div id="ps-diff" class="mt-2 text-lg h-6 font-bold"></div>
-                </div>
-                <button id="ps-btn" onclick="handlePerfectStop()" class="w-full bg-rose-500 text-white text-2xl font-bold py-6 rounded-2xl active:scale-95 shadow-lg">START</button>
-            </div>
-
-            <!-- 15. Speed Typer -->
-            <div id="app-typer" class="app-content hidden w-full max-w-2xl bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">⌨️</div>
-                <h2 class="text-3xl font-bold mb-2">Speed Typer</h2>
-                <p class="text-slate-500 mb-6">Type to test your real-time Words Per Minute.</p>
-                
-                <div class="flex justify-between items-center mb-2 px-2">
-                    <div id="typer-wpm" class="text-2xl font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-xl transition-colors">WPM: 0</div>
-                    <div id="typer-time" class="text-lg font-mono font-bold text-slate-500">0.0s</div>
-                </div>
-
-                <div id="typer-display" class="text-2xl text-left font-mono tracking-tight leading-relaxed mb-6 p-6 bg-slate-50 rounded-2xl border-2 border-slate-200 select-none text-slate-400"></div>
-                
-                <input type="text" id="typer-input" oninput="handleTyperInput()" class="w-full p-4 text-2xl font-mono rounded-2xl border-2 border-indigo-200 focus:border-indigo-500 focus:outline-none mb-4 shadow-inner" placeholder="Start typing here..." autocomplete="off" spellcheck="false">
-                
-                <button onclick="resetTyper()" class="text-slate-400 hover:text-slate-600 font-bold underline underline-offset-4">New Phrase</button>
-            </div>
-
-            <!-- 16. Color Hunt -->
-            <div id="app-colorhunt" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🌈</div>
-                <h2 class="text-3xl font-bold mb-4">Color Hunt</h2>
-                <div class="flex justify-center mb-6"><div id="ch-level" class="text-xl font-bold text-slate-700 bg-slate-100 px-6 py-2 rounded-full border-2 border-slate-200">Level: 1</div></div>
-                <div id="ch-grid" class="grid gap-2 mb-8 aspect-square w-full bg-slate-50 p-2 rounded-3xl border-2 border-slate-100 shadow-inner"></div>
-                <button onclick="resetColorHunt()" class="w-full bg-slate-200 text-slate-700 text-xl font-bold py-4 rounded-2xl active:scale-95">Restart</button>
-            </div>
-
-            <!-- 17. Mini Paint -->
-            <div id="app-draw" class="app-content hidden w-full max-w-xl bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🖌️</div>
-                <h2 class="text-3xl font-bold mb-4">Mini Paint</h2>
-                <div class="flex justify-center gap-2 mb-4">
-                    <button onclick="setDrawColor('#ef4444')" class="w-8 h-8 rounded-full bg-red-500 active:scale-90 border-2 border-slate-200 hover:border-slate-800"></button>
-                    <button onclick="setDrawColor('#3b82f6')" class="w-8 h-8 rounded-full bg-blue-500 active:scale-90 border-2 border-slate-200 hover:border-slate-800"></button>
-                    <button onclick="setDrawColor('#22c55e')" class="w-8 h-8 rounded-full bg-green-500 active:scale-90 border-2 border-slate-200 hover:border-slate-800"></button>
-                    <button onclick="setDrawColor('#eab308')" class="w-8 h-8 rounded-full bg-yellow-500 active:scale-90 border-2 border-slate-200 hover:border-slate-800"></button>
-                    <button onclick="setDrawColor('#000000')" class="w-8 h-8 rounded-full bg-black active:scale-90 border-2 border-slate-200 hover:border-slate-800"></button>
-                    <button onclick="setDrawColor('#ffffff')" class="w-8 h-8 rounded-full bg-white active:scale-90 border-2 border-slate-300 hover:border-slate-800 flex items-center justify-center text-xs font-bold">Eraser</button>
-                </div>
-                <canvas id="draw-canvas" width="400" height="300" class="w-full bg-white border-4 border-slate-200 rounded-2xl shadow-inner mb-4"></canvas>
-                <button onclick="clearCanvas()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-2xl active:scale-95">Clear Canvas</button>
-            </div>
-
-            <!-- 18. Higher or Lower -->
-            <div id="app-higherlower" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🃏</div>
-                <h2 class="text-3xl font-bold mb-4">Higher or Lower</h2>
-                <p class="text-slate-500 mb-6">Will the next number (1-100) be Higher or Lower?</p>
-                <div class="flex justify-between items-center mb-4 px-4"><div class="text-lg font-bold text-slate-500">Score: <span id="hl-score" class="text-indigo-600">0</span></div></div>
-                <div class="bg-indigo-50 p-8 rounded-3xl border-2 border-indigo-100 mb-6">
-                    <div id="hl-current" class="text-7xl font-bold text-indigo-600">50</div>
-                </div>
-                <div id="hl-message" class="h-6 font-bold text-lg mb-4 text-emerald-500"></div>
-                <div class="flex gap-4">
-                    <button onclick="guessHL('higher')" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-2xl font-bold py-4 rounded-2xl active:scale-95 shadow-md">Higher ⬆️</button>
-                    <button onclick="guessHL('lower')" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white text-2xl font-bold py-4 rounded-2xl active:scale-95 shadow-md">Lower ⬇️</button>
-                </div>
-                <button id="hl-restart" onclick="resetHL()" class="hidden mt-6 text-slate-400 hover:text-slate-600 font-bold underline">Play Again</button>
-            </div>
-
-            <!-- 19. Whack-a-Dot -->
-            <div id="app-whack" class="app-content hidden w-full max-w-sm bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🔨</div>
-                <h2 class="text-3xl font-bold mb-4">Whack-a-Dot</h2>
-                <div class="flex justify-between mb-4">
-                    <div id="whack-time" class="font-bold text-slate-600">Time: 15s</div>
-                    <div id="whack-score" class="font-bold text-rose-600">Score: 0</div>
-                </div>
-                <div id="whack-grid" class="grid grid-cols-3 gap-2 bg-slate-100 p-4 rounded-3xl aspect-square relative">
-                    <div id="whack-overlay" class="absolute inset-0 bg-slate-800/20 backdrop-blur-sm rounded-3xl z-10 flex items-center justify-center">
-                        <button onclick="startWhack()" class="bg-rose-500 text-white font-bold py-3 px-6 rounded-xl active:scale-95 shadow-lg">Start</button>
-                    </div>
-                    <div class="bg-slate-200 rounded-full flex items-center justify-center" onclick="hitWhack(0)"><div id="whack-dot-0" class="w-3/4 h-3/4 rounded-full bg-rose-500 hidden cursor-pointer active:scale-75 transition-transform"></div></div>
-                    <div class="bg-slate-200 rounded-full flex items-center justify-center" onclick="hitWhack(1)"><div id="whack-dot-1" class="w-3/4 h-3/4 rounded-full bg-rose-500 hidden cursor-pointer active:scale-75 transition-transform"></div></div>
-                    <div class="bg-slate-200 rounded-full flex items-center justify-center" onclick="hitWhack(2)"><div id="whack-dot-2" class="w-3/4 h-3/4 rounded-full bg-rose-500 hidden cursor-pointer active:scale-75 transition-transform"></div></div>
-                    <div class="bg-slate-200 rounded-full flex items-center justify-center" onclick="hitWhack(3)"><div id="whack-dot-3" class="w-3/4 h-3/4 rounded-full bg-rose-500 hidden cursor-pointer active:scale-75 transition-transform"></div></div>
-                    <div class="bg-slate-200 rounded-full flex items-center justify-center" onclick="hitWhack(4)"><div id="whack-dot-4" class="w-3/4 h-3/4 rounded-full bg-rose-500 hidden cursor-pointer active:scale-75 transition-transform"></div></div>
-                    <div class="bg-slate-200 rounded-full flex items-center justify-center" onclick="hitWhack(5)"><div id="whack-dot-5" class="w-3/4 h-3/4 rounded-full bg-rose-500 hidden cursor-pointer active:scale-75 transition-transform"></div></div>
-                    <div class="bg-slate-200 rounded-full flex items-center justify-center" onclick="hitWhack(6)"><div id="whack-dot-6" class="w-3/4 h-3/4 rounded-full bg-rose-500 hidden cursor-pointer active:scale-75 transition-transform"></div></div>
-                    <div class="bg-slate-200 rounded-full flex items-center justify-center" onclick="hitWhack(7)"><div id="whack-dot-7" class="w-3/4 h-3/4 rounded-full bg-rose-500 hidden cursor-pointer active:scale-75 transition-transform"></div></div>
-                    <div class="bg-slate-200 rounded-full flex items-center justify-center" onclick="hitWhack(8)"><div id="whack-dot-8" class="w-3/4 h-3/4 rounded-full bg-rose-500 hidden cursor-pointer active:scale-75 transition-transform"></div></div>
-                </div>
-            </div>
-
-            <!-- 20. Breathing Guide -->
-            <div id="app-breathe" class="app-content hidden w-full max-w-md bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🧘</div>
-                <h2 class="text-3xl font-bold mb-12">Take a Breath</h2>
-                <div class="relative w-64 h-64 mx-auto flex items-center justify-center">
-                    <div class="absolute inset-0 bg-teal-100 rounded-full"></div>
-                    <div id="breathe-anim" class="absolute inset-0 bg-teal-400 rounded-full opacity-50 shadow-lg"></div>
-                    <div id="breathe-text" class="relative text-2xl font-bold text-teal-800 z-10">Start</div>
-                </div>
-                <button onclick="startBreathe()" id="breathe-btn" class="mt-12 w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md">Begin Exercise</button>
-            </div>
-
-            <!-- 21. Word Scramble -->
-            <div id="app-scramble" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🔠</div>
-                <h2 class="text-3xl font-bold mb-4">Word Scramble</h2>
-                <p class="text-slate-500 mb-6">Unscramble the letters to find the word.</p>
-                <div class="bg-slate-100 py-6 rounded-3xl mb-6 border-2 border-slate-200">
-                    <div id="scramble-word" class="text-4xl font-bold text-slate-800 tracking-[0.25em] uppercase">WORD</div>
-                </div>
-                <input type="text" id="scramble-input" class="w-full text-center text-2xl font-bold p-4 rounded-xl border-2 border-indigo-200 focus:outline-none focus:border-indigo-500 uppercase tracking-widest mb-4" placeholder="GUESS">
-                <button onclick="checkScramble()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md">Submit</button>
-                <div id="scramble-msg" class="mt-4 font-bold h-6 text-emerald-500"></div>
-            </div>
-
-            <!-- 22. Dice Roller -->
-            <div id="app-dice" class="app-content hidden w-full max-w-lg bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎲</div>
-                <h2 class="text-3xl font-bold mb-6">Dice Roller</h2>
-                <div class="flex justify-center gap-4 mb-6">
-                    <button onclick="setDiceCount(1)" class="dice-cnt-btn px-4 py-2 rounded-xl bg-slate-200 font-bold active:scale-95">1</button>
-                    <button onclick="setDiceCount(2)" class="dice-cnt-btn px-4 py-2 rounded-xl bg-slate-800 text-white font-bold active:scale-95">2</button>
-                    <button onclick="setDiceCount(3)" class="dice-cnt-btn px-4 py-2 rounded-xl bg-slate-200 font-bold active:scale-95">3</button>
-                    <button onclick="setDiceCount(4)" class="dice-cnt-btn px-4 py-2 rounded-xl bg-slate-200 font-bold active:scale-95">4</button>
-                </div>
-                <div id="dice-container" class="flex flex-wrap justify-center gap-4 min-h-[120px] mb-8 p-6 bg-slate-50 rounded-3xl border-2 border-slate-100"></div>
-                <button onclick="rollDice()" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-5 rounded-2xl active:scale-95 shadow-md text-xl">Roll Dice</button>
-            </div>
-
-            <!-- 23. PassGen -->
-            <div id="app-passgen" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🔑</div>
-                <h2 class="text-3xl font-bold mb-6">PassGen</h2>
-                <div class="bg-slate-800 text-white p-6 rounded-2xl mb-6 relative group border-4 border-slate-700">
-                    <div id="pg-output" class="text-xl font-mono break-all font-bold tracking-wider">Click Generate</div>
-                </div>
-                <div class="mb-6 px-2 text-left space-y-4">
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-2">Length: <span id="pg-len-val" class="text-indigo-600">12</span></label>
-                        <input type="range" id="pg-len" min="6" max="32" value="12" class="w-full" oninput="document.getElementById('pg-len-val').innerText=this.value">
-                    </div>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="generatePassword()" class="flex-1 bg-indigo-500 text-white font-bold py-4 rounded-xl active:scale-95">Generate</button>
-                    <button onclick="copyPassword()" class="bg-slate-200 text-slate-700 px-6 font-bold rounded-xl active:scale-95">Copy</button>
-                </div>
-            </div>
-
-            <!-- 24. Coin Flip -->
-            <div id="app-coin" class="app-content hidden w-full max-w-sm bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🪙</div>
-                <h2 class="text-3xl font-bold mb-12">Coin Flip</h2>
-                <div class="relative w-48 h-48 mx-auto mb-12 perspective-1000">
-                    <div id="coin-inner" class="coin-inner w-full h-full relative shadow-2xl rounded-full">
-                        <div class="coin-front bg-amber-400 rounded-full border-[12px] border-amber-500 flex items-center justify-center">
-                            <span class="text-5xl font-bold text-amber-700">H</span>
-                        </div>
-                        <div class="coin-back bg-amber-400 rounded-full border-[12px] border-amber-500 flex items-center justify-center">
-                            <span class="text-5xl font-bold text-amber-700">T</span>
-                        </div>
-                    </div>
-                </div>
-                <div id="coin-result" class="h-8 text-2xl font-bold text-slate-700 mb-6"></div>
-                <button onclick="flipCoin()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-5 rounded-2xl active:scale-95 shadow-md text-xl">Flip Coin</button>
-            </div>
-
-            <!-- 25. Math Sprint -->
-            <div id="app-mathsprint" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🧮</div>
-                <h2 class="text-3xl font-bold mb-4">Math Sprint</h2>
-                <div class="flex justify-between items-center mb-6 px-4">
-                    <div id="ms-time" class="text-2xl font-mono font-bold text-slate-700">30s</div>
-                    <div id="ms-score" class="text-2xl font-bold text-emerald-600">Score: 0</div>
-                </div>
-                <div id="ms-game-area" class="bg-indigo-50 p-8 rounded-3xl border-2 border-indigo-100 mb-6 relative">
-                    <div id="ms-overlay" class="absolute inset-0 bg-indigo-50/90 backdrop-blur-sm rounded-3xl z-10 flex items-center justify-center">
-                        <button onclick="startMathSprint()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl active:scale-95 shadow-lg text-xl">Start Sprint</button>
-                    </div>
-                    <div id="ms-equation" class="text-5xl font-bold text-indigo-700 mb-6 font-mono tracking-widest">Ready?</div>
-                    <input type="number" id="ms-input" onkeyup="checkMathSprint(event)" class="w-full text-center text-4xl font-bold p-4 rounded-xl border-2 border-indigo-200 focus:outline-none focus:border-indigo-500 bg-white transition-colors" placeholder="0" disabled>
-                </div>
-            </div>
-
-            <!-- 26. BPM Tapper -->
-            <div id="app-bpm" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🥁</div>
-                <h2 class="text-3xl font-bold mb-2">BPM Tapper</h2>
-                <p class="text-slate-500 mb-8">Tap the button to the beat of a song.</p>
-                <div class="bg-slate-800 text-white p-8 rounded-3xl mb-8 border-4 border-slate-700 shadow-inner">
-                    <div id="bpm-display" class="text-6xl md:text-7xl font-mono font-bold tracking-tight">---</div>
-                    <div class="mt-2 text-lg text-slate-400 font-bold uppercase tracking-widest">BPM</div>
-                </div>
-                <button onmousedown="tapBpm()" class="w-full h-48 bg-rose-500 hover:bg-rose-600 text-white text-4xl font-bold py-6 rounded-[2.5rem] active:scale-90 transition-transform shadow-xl shadow-rose-200 flex items-center justify-center select-none">TAP</button>
-                <button onclick="resetBpm()" class="mt-6 text-slate-400 hover:text-slate-600 font-bold underline">Reset</button>
-            </div>
-
-            <!-- 27. Random Card -->
-            <div id="app-randcard" class="app-content hidden w-full max-w-2xl bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎴</div>
-                <h2 class="text-3xl font-bold mb-8">Random Card</h2>
-                <div class="relative w-full max-w-[400px] aspect-[2.5/3.5] mx-auto mb-10 perspective-1000 cursor-pointer" onclick="drawRandomCard()">
-                    <div id="card-inner" class="card-inner w-full h-full relative shadow-2xl rounded-3xl">
-                        <div class="card-back bg-slate-800 rounded-3xl border-4 border-slate-900 flex items-center justify-center shadow-inner">
-                            <div class="w-full h-full border-4 border-dashed border-slate-600 rounded-2xl m-3 flex items-center justify-center">
-                                <span class="text-8xl opacity-30">🎴</span>
-                            </div>
-                        </div>
-                        <div class="card-front bg-white rounded-3xl border-8 border-slate-100 flex items-center justify-center relative overflow-hidden">
-                            <div id="card-content" class="w-full h-full flex flex-col items-center justify-center p-6">
-                                <!-- Card content injected here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <button onclick="drawRandomCard()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-5 rounded-2xl active:scale-95 shadow-md text-xl">Draw New Card</button>
-            </div>
-
-            <!-- 28. Mini Piano -->
-            <div id="app-piano" class="app-content hidden w-full max-w-xl bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎹</div>
-                <h2 class="text-3xl font-bold mb-4">Mini Piano</h2>
-                <p class="text-slate-500 mb-8">Play a tune using the Web Audio API.</p>
-                <div class="flex w-full h-56 bg-slate-900 p-2 rounded-2xl shadow-xl overflow-hidden gap-1">
-                    <button onclick="playPiano('C4')" class="flex-1 bg-white hover:bg-slate-100 active:bg-slate-300 rounded-b-lg rounded-t-sm shadow-inner transition-colors flex items-end justify-center pb-4 text-slate-400 font-bold">C</button>
-                    <button onclick="playPiano('D4')" class="flex-1 bg-white hover:bg-slate-100 active:bg-slate-300 rounded-b-lg rounded-t-sm shadow-inner transition-colors flex items-end justify-center pb-4 text-slate-400 font-bold">D</button>
-                    <button onclick="playPiano('E4')" class="flex-1 bg-white hover:bg-slate-100 active:bg-slate-300 rounded-b-lg rounded-t-sm shadow-inner transition-colors flex items-end justify-center pb-4 text-slate-400 font-bold">E</button>
-                    <button onclick="playPiano('F4')" class="flex-1 bg-white hover:bg-slate-100 active:bg-slate-300 rounded-b-lg rounded-t-sm shadow-inner transition-colors flex items-end justify-center pb-4 text-slate-400 font-bold">F</button>
-                    <button onclick="playPiano('G4')" class="flex-1 bg-white hover:bg-slate-100 active:bg-slate-300 rounded-b-lg rounded-t-sm shadow-inner transition-colors flex items-end justify-center pb-4 text-slate-400 font-bold">G</button>
-                    <button onclick="playPiano('A4')" class="flex-1 bg-white hover:bg-slate-100 active:bg-slate-300 rounded-b-lg rounded-t-sm shadow-inner transition-colors flex items-end justify-center pb-4 text-slate-400 font-bold">A</button>
-                    <button onclick="playPiano('B4')" class="flex-1 bg-white hover:bg-slate-100 active:bg-slate-300 rounded-b-lg rounded-t-sm shadow-inner transition-colors flex items-end justify-center pb-4 text-slate-400 font-bold">B</button>
-                    <button onclick="playPiano('C5')" class="flex-1 bg-white hover:bg-slate-100 active:bg-slate-300 rounded-b-lg rounded-t-sm shadow-inner transition-colors flex items-end justify-center pb-4 text-slate-400 font-bold">C</button>
-                </div>
-            </div>
-
-            <!-- 29. Word Guess -->
-            <div id="app-wordguess" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🟩</div>
-                <h2 class="text-3xl font-bold mb-6">Word Guess</h2>
-                <div id="wg-grid" class="grid grid-rows-6 grid-cols-5 gap-2 w-full max-w-[280px] mx-auto mb-6">
-                    <!-- 30 cells generated by JS -->
-                </div>
-                <div id="wg-msg" class="h-6 font-bold text-lg mb-6 text-slate-500">Type on your keyboard</div>
-                <button onclick="resetWordGuess()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 rounded-2xl active:scale-95 shadow-md">Restart Game</button>
-            </div>
-
-            <!-- 30. Secret Cipher -->
-            <div id="app-cipher" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🕵️</div>
-                <h2 class="text-3xl font-bold mb-6">Secret Cipher</h2>
-                <textarea id="cipher-in" oninput="updateCipher()" class="w-full h-24 p-4 rounded-xl border-2 border-slate-200 mb-4 focus:outline-none focus:border-indigo-400 resize-none font-medium" placeholder="Type secret message..."></textarea>
-                <select id="cipher-type" onchange="updateCipher()" class="w-full p-3 rounded-xl border-2 border-slate-200 mb-4 font-bold text-slate-700 outline-none focus:border-indigo-400">
-                    <option value="rot13">ROT13 (Caesar)</option>
-                    <option value="base64">Base64 Encode</option>
-                    <option value="reverse">Reverse Text</option>
-                </select>
-                <textarea id="cipher-out" readonly class="w-full h-24 p-4 rounded-xl border-2 border-indigo-200 bg-indigo-50 mb-4 focus:outline-none font-mono font-bold text-indigo-800 resize-none" placeholder="Result..."></textarea>
-                <button onclick="copyToClipboard(document.getElementById('cipher-out').value)" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md">Copy Result</button>
-            </div>
-
-            <!-- 31. Focus Timer -->
-            <div id="app-pomodoro" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🍅</div>
-                <h2 class="text-3xl font-bold mb-2">Focus Timer</h2>
-                <div id="pomo-mode" class="text-lg font-bold text-rose-500 mb-6 uppercase tracking-widest">Work</div>
-                <div class="bg-slate-800 text-white p-8 rounded-3xl mb-8 border-4 border-slate-700 shadow-inner">
-                    <div id="pomo-time" class="text-7xl font-mono font-bold tracking-tight">25:00</div>
-                </div>
-                <div class="flex gap-4">
-                    <button id="pomo-btn" onclick="togglePomodoro()" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white text-2xl font-bold py-4 rounded-2xl active:scale-95 shadow-md">START</button>
-                    <button onclick="switchPomodoro()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 font-bold py-4 rounded-2xl active:scale-95 shadow-md">SKIP</button>
-                </div>
-            </div>
-
-            <!-- 32. Metronome -->
-            <div id="app-metronome" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">⏱️</div>
-                <h2 class="text-3xl font-bold mb-6">Metronome</h2>
-                <div class="flex justify-center items-center gap-4 mb-8">
-                    <div id="metro-light" class="w-6 h-6 rounded-full bg-slate-200 transition-colors"></div>
-                    <div class="text-6xl font-bold text-slate-800"><span id="metro-bpm-val">120</span><span class="text-2xl text-slate-400 ml-2">BPM</span></div>
-                </div>
-                <input type="range" id="metro-slider" min="40" max="240" value="120" class="w-full mb-8 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" oninput="changeMetronome(this.value)">
-                <button id="metro-btn" onclick="toggleMetronome()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white text-2xl font-bold py-5 rounded-2xl active:scale-95 shadow-md">START</button>
-            </div>
-
-            <!-- 33. Drum Pad -->
-            <div id="app-drumpad" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🥁</div>
-                <h2 class="text-3xl font-bold mb-6">Drum Pad</h2>
-                <div class="grid grid-cols-2 gap-4 aspect-square mb-4">
-                    <button onclick="playDrum('kick')" class="bg-rose-500 hover:bg-rose-400 active:bg-rose-600 text-white font-bold text-3xl rounded-3xl shadow-[0_8px_0_rgb(159,18,57)] active:shadow-[0_0px_0_rgb(159,18,57)] active:translate-y-2 transition-all">Kick</button>
-                    <button onclick="playDrum('snare')" class="bg-blue-500 hover:bg-blue-400 active:bg-blue-600 text-white font-bold text-3xl rounded-3xl shadow-[0_8px_0_rgb(30,58,138)] active:shadow-[0_0px_0_rgb(30,58,138)] active:translate-y-2 transition-all">Snare</button>
-                    <button onclick="playDrum('hihat')" class="bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-white font-bold text-3xl rounded-3xl shadow-[0_8px_0_rgb(180,83,9)] active:shadow-[0_0px_0_rgb(180,83,9)] active:translate-y-2 transition-all">Hi-Hat</button>
-                    <button onclick="playDrum('synth')" class="bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-white font-bold text-3xl rounded-3xl shadow-[0_8px_0_rgb(4,120,87)] active:shadow-[0_0px_0_rgb(4,120,87)] active:translate-y-2 transition-all">Synth</button>
-                </div>
-            </div>
-
-            <!-- 34. Palette Gen -->
-            <div id="app-palette" class="app-content hidden w-full max-w-lg bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎨</div>
-                <h2 class="text-3xl font-bold mb-6">Palette Gen</h2>
-                <div id="palette-bars" class="flex h-48 w-full rounded-3xl overflow-hidden mb-6 shadow-inner cursor-pointer" onclick="resetPalette()">
-                    <!-- Bars injected -->
-                </div>
-                <div id="palette-hexes" class="flex justify-between text-xs sm:text-sm font-mono font-bold text-slate-500 mb-6 px-2"></div>
-                <button onclick="resetPalette()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md text-xl">Generate Palette</button>
-            </div>
-
-            <!-- 35. Glitch Text -->
-            <div id="app-glitch" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">👾</div>
-                <h2 class="text-3xl font-bold mb-6">Glitch Text</h2>
-                <input type="text" id="glitch-in" oninput="updateGlitch()" class="w-full p-4 rounded-xl border-2 border-slate-200 mb-4 focus:outline-none focus:border-purple-400 font-bold" placeholder="Normal text...">
-                <div class="mb-6 px-2 text-left">
-                    <label class="block font-bold text-slate-700 mb-2">Corruption Level</label>
-                    <input type="range" id="glitch-level" min="1" max="50" value="15" class="w-full" oninput="updateGlitch()">
-                </div>
-                <div id="glitch-out" class="w-full min-h-[120px] p-4 rounded-xl border-2 border-purple-200 bg-purple-50 mb-6 overflow-hidden break-all text-xl text-center flex items-center justify-center text-purple-900"></div>
-                <button onclick="copyToClipboard(document.getElementById('glitch-out').innerText)" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md text-xl">Copy Zalgo</button>
-            </div>
-
-            <!-- 36. Morse Code -->
-            <div id="app-morse" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">📡</div>
-                <h2 class="text-3xl font-bold mb-6">Morse Code</h2>
-                <input type="text" id="morse-in" oninput="updateMorse()" class="w-full p-4 rounded-xl border-2 border-slate-200 mb-4 focus:outline-none focus:border-amber-400 font-bold uppercase" placeholder="MESSAGE">
-                <div id="morse-out" class="w-full min-h-[100px] p-4 rounded-xl border-2 border-amber-200 bg-amber-50 mb-6 font-mono text-2xl tracking-widest break-words text-amber-900"></div>
-                <button onclick="playMorse()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md text-xl flex justify-center items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Play Audio
-                </button>
-            </div>
-
-            <!-- 37. Stopwatch -->
-            <div id="app-stopwatch" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">⏱️</div>
-                <h2 class="text-3xl font-bold mb-6">Stopwatch</h2>
-                <div class="bg-slate-800 text-white p-8 rounded-3xl mb-8 border-4 border-slate-700 shadow-inner">
-                    <div id="sw-time" class="text-6xl md:text-7xl font-mono font-bold tracking-tight">00:00.00</div>
-                </div>
-                <div class="flex gap-4">
-                    <button id="sw-start-btn" onclick="toggleStopwatch()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white text-2xl font-bold py-4 rounded-2xl active:scale-95 shadow-md">START</button>
-                    <button onclick="resetStopwatch()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 text-xl font-bold py-4 rounded-2xl active:scale-95 shadow-md">RESET</button>
-                </div>
-            </div>
-
-            <!-- 38. QR Generator -->
-            <div id="app-qrgen" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">📱</div>
-                <h2 class="text-3xl font-bold mb-6">QR Generator</h2>
-                <input type="text" id="qr-in" oninput="generateQR()" class="w-full p-4 rounded-xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400 font-bold" placeholder="Enter text or URL...">
-                <div class="flex justify-center items-center bg-slate-50 p-6 rounded-3xl border-2 border-slate-100 min-h-[200px]">
-                    <img id="qr-out" src="" alt="QR Code" class="hidden w-48 h-48 mix-blend-multiply">
-                    <span id="qr-placeholder" class="text-slate-400 font-bold">Type to generate</span>
-                </div>
-            </div>
-
-            <!-- 39. Synth FX -->
-            <div id="app-synthfx" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🔊</div>
-                <h2 class="text-3xl font-bold mb-6">Synth FX</h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="playFX('laser')" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-8 rounded-3xl active:scale-95 text-2xl shadow-lg shadow-rose-200 transition-all">Laser</button>
-                    <button onclick="playFX('jump')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-8 rounded-3xl active:scale-95 text-2xl shadow-lg shadow-blue-200 transition-all">Jump</button>
-                    <button onclick="playFX('explosion')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-8 rounded-3xl active:scale-95 text-2xl shadow-lg shadow-amber-200 transition-all">Boom</button>
-                    <button onclick="playFX('coin')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-8 rounded-3xl active:scale-95 text-2xl shadow-lg shadow-emerald-200 transition-all">Coin</button>
-                </div>
-            </div>
-
-            <!-- 40. Stroop Test -->
-            <div id="app-stroop" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🧠</div>
-                <h2 class="text-3xl font-bold mb-2">Stroop Test</h2>
-                <p class="text-slate-500 mb-6">Pick the COLOR of the ink, not the word!</p>
-                <div class="flex justify-between font-bold text-lg mb-2">
-                    <div id="stroop-time" class="text-slate-600">Time: 15s</div>
-                    <div id="stroop-score" class="text-emerald-600">Score: 0</div>
-                </div>
-                <div class="bg-slate-50 border-2 border-slate-200 rounded-3xl p-8 mb-6 h-40 flex items-center justify-center relative">
-                    <div id="stroop-overlay" class="absolute inset-0 bg-white/80 backdrop-blur flex items-center justify-center rounded-3xl z-10">
-                        <button onclick="startStroop()" class="bg-indigo-500 text-white px-8 py-3 font-bold rounded-xl active:scale-95 text-xl">Start</button>
-                    </div>
-                    <div id="stroop-word" class="text-5xl font-black uppercase tracking-widest hidden">RED</div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="guessStroop('red')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-xl active:scale-95 text-xl">Red</button>
-                    <button onclick="guessStroop('blue')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-xl active:scale-95 text-xl">Blue</button>
-                    <button onclick="guessStroop('green')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl active:scale-95 text-xl">Green</button>
-                    <button onclick="guessStroop('yellow')" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 rounded-xl active:scale-95 text-xl">Yellow</button>
-                </div>
-            </div>
-
-            <!-- 41. Tally Counter -->
-            <div id="app-tally" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center select-none">
-                <div class="text-5xl mb-4">➕</div>
-                <h2 class="text-3xl font-bold mb-6">Tally Counter</h2>
-                <div class="bg-slate-800 text-white p-12 rounded-3xl mb-8 border-4 border-slate-700 shadow-inner cursor-pointer active:scale-95 transition-transform" onmousedown="incrementTally()">
-                    <div id="tally-count" class="text-8xl md:text-9xl font-mono font-bold tracking-tight">0</div>
-                </div>
-                <div class="flex gap-4">
-                    <button onclick="incrementTally(-1)" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 text-2xl font-bold py-4 rounded-2xl active:scale-95 shadow-md">-1</button>
-                    <button onclick="resetTally()" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white text-xl font-bold py-4 rounded-2xl active:scale-95 shadow-md">Reset Counter</button>
-                </div>
-            </div>
-
-            <!-- 42. Binary Converter -->
-            <div id="app-binary" class="app-content hidden w-full max-w-lg bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">0️⃣</div>
-                <h2 class="text-3xl font-bold mb-6">Binary Converter</h2>
-                <textarea id="bin-text" oninput="textToBin()" class="w-full h-24 p-4 rounded-xl border-2 border-slate-200 mb-4 focus:outline-none focus:border-emerald-400 resize-none font-medium" placeholder="Type text here..."></textarea>
-                <div class="text-slate-400 font-bold mb-4">⬇️ ⬆️</div>
-                <textarea id="bin-out" oninput="binToText()" class="w-full h-32 p-4 rounded-xl border-2 border-emerald-200 bg-emerald-50 mb-4 focus:outline-none focus:border-emerald-400 font-mono font-bold text-emerald-800 resize-none" placeholder="01010100..."></textarea>
-                <button onclick="copyToClipboard(document.getElementById('bin-out').value)" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md text-xl">Copy Binary</button>
-            </div>
-
-            <!-- 43. RGB Mixer -->
-            <div id="app-rgbmixer" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🧪</div>
-                <h2 class="text-3xl font-bold mb-6">RGB Mixer</h2>
-                <div id="rgb-preview" class="w-full h-40 rounded-3xl shadow-inner mb-6 transition-colors border-4 border-slate-100" style="background-color: rgb(128,128,128)"></div>
-                <div id="rgb-hex" class="text-3xl font-mono font-bold text-slate-700 mb-6">#808080</div>
-                <div class="space-y-4 text-left font-bold text-slate-600">
-                    <div class="flex items-center gap-4"><span class="w-4 text-red-500">R</span><input type="range" id="rgb-r" min="0" max="255" value="128" class="flex-1 accent-red-500" oninput="updateRGB()"></div>
-                    <div class="flex items-center gap-4"><span class="w-4 text-green-500">G</span><input type="range" id="rgb-g" min="0" max="255" value="128" class="flex-1 accent-green-500" oninput="updateRGB()"></div>
-                    <div class="flex items-center gap-4"><span class="w-4 text-blue-500">B</span><input type="range" id="rgb-b" min="0" max="255" value="128" class="flex-1 accent-blue-500" oninput="updateRGB()"></div>
-                </div>
-            </div>
-
-            <!-- 44. Pitch Perfect -->
-            <div id="app-pitch" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎵</div>
-                <h2 class="text-3xl font-bold mb-2">Pitch Perfect</h2>
-                <p class="text-slate-500 mb-6">Listen to the target pitch, then match it!</p>
-                <div class="flex gap-4 mb-8">
-                    <button onmousedown="playTargetPitch()" onmouseup="stopPitch()" onmouseleave="stopPitch()" ontouchstart="playTargetPitch()" ontouchend="stopPitch()" class="flex-1 bg-amber-500 text-white font-bold py-4 rounded-xl active:scale-95 shadow-md">Hear Target</button>
-                    <button onmousedown="playUserPitch()" onmouseup="stopPitch()" onmouseleave="stopPitch()" ontouchstart="playUserPitch()" ontouchend="stopPitch()" class="flex-1 bg-indigo-500 text-white font-bold py-4 rounded-xl active:scale-95 shadow-md">Hear Yours</button>
-                </div>
-                <input type="range" id="pitch-slider" min="200" max="800" value="500" class="w-full mb-8 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
-                <button onclick="checkPitch()" class="w-full bg-slate-800 text-white text-xl font-bold py-4 rounded-2xl active:scale-95 shadow-md">Check Accuracy</button>
-                <div id="pitch-result" class="mt-4 font-bold h-6 text-lg"></div>
-            </div>
-
-            <!-- 45. Lotto Picker -->
-            <div id="app-lotto" class="app-content hidden w-full max-w-lg bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎟️</div>
-                <h2 class="text-3xl font-bold mb-8">Lotto Picker</h2>
-                <div id="lotto-balls" class="flex flex-wrap justify-center gap-3 mb-8 min-h-[64px]">
-                    <!-- Balls injected here -->
-                </div>
-                <button onclick="rollLotto()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold py-5 rounded-2xl active:scale-95 shadow-md">Draw 6 Numbers</button>
-            </div>
-
-            <!-- 46. Daily Wisdom -->
-            <div id="app-wisdom" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">💬</div>
-                <h2 class="text-3xl font-bold mb-6">Daily Wisdom</h2>
-                <div class="bg-amber-50 p-8 rounded-3xl border-2 border-amber-100 mb-8 min-h-[200px] flex items-center justify-center flex-col shadow-inner">
-                    <div id="wisdom-text" class="text-2xl font-medium text-amber-900 italic mb-4">"Click below for enlightenment."</div>
-                    <div id="wisdom-author" class="text-amber-700 font-bold uppercase tracking-widest text-sm"></div>
-                </div>
-                <button onclick="getWisdom()" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-5 rounded-2xl active:scale-95 shadow-md">Inspire Me</button>
-            </div>
-
-            <!-- 47. Emoji Slots -->
-            <div id="app-emojislot" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎰</div>
-                <h2 class="text-3xl font-bold mb-6">Emoji Slots</h2>
-                <div class="flex justify-center gap-4 mb-8 bg-slate-800 p-6 rounded-3xl shadow-inner border-4 border-slate-700">
-                    <div id="slot-1" class="text-6xl bg-white w-24 h-24 rounded-2xl flex items-center justify-center shadow-inner">🍒</div>
-                    <div id="slot-2" class="text-6xl bg-white w-24 h-24 rounded-2xl flex items-center justify-center shadow-inner">🍋</div>
-                    <div id="slot-3" class="text-6xl bg-white w-24 h-24 rounded-2xl flex items-center justify-center shadow-inner">🍉</div>
-                </div>
-                <div id="slot-msg" class="h-8 font-bold text-2xl mb-4 text-slate-700">Ready to spin!</div>
-                <button id="slot-btn" onclick="spinSlots()" class="w-full bg-rose-500 hover:bg-rose-600 text-white text-2xl font-bold py-5 rounded-2xl active:scale-95 shadow-md">SPIN</button>
-            </div>
-
-            <!-- 48. Flip Text -->
-            <div id="app-fliptext" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🙃</div>
-                <h2 class="text-3xl font-bold mb-6">Flip Text</h2>
-                <input type="text" id="flip-in" oninput="updateFlip()" class="w-full p-4 text-xl rounded-xl border-2 border-slate-200 mb-4 focus:outline-none focus:border-indigo-400 font-bold" placeholder="Type normally...">
-                <div class="text-slate-400 font-bold mb-4">⬇️</div>
-                <div id="flip-out" class="w-full min-h-[80px] p-4 rounded-xl border-2 border-indigo-200 bg-indigo-50 mb-6 text-2xl flex items-center justify-center text-indigo-900 break-words" style="transform: scaleY(-1)"></div>
-                <button onclick="copyToClipboard(document.getElementById('flip-out').innerText)" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md text-xl">Copy Text</button>
-            </div>
-
-            <!-- 49. Exact Age -->
-            <div id="app-agecalc" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎂</div>
-                <h2 class="text-3xl font-bold mb-4">Exact Age</h2>
-                <p class="text-slate-500 mb-6">Enter your birthday to see exactly how old you are.</p>
-                <input type="datetime-local" id="age-in" onchange="startAgeCalc()" class="w-full p-4 rounded-xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-emerald-400 font-bold text-slate-700 cursor-pointer">
-                <div id="age-out" class="grid grid-cols-2 gap-4 text-left hidden">
-                    <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100"><div id="age-y" class="text-3xl font-bold text-emerald-600">0</div><div class="text-sm font-bold text-emerald-400 uppercase tracking-wide">Years</div></div>
-                    <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100"><div id="age-d" class="text-3xl font-bold text-emerald-600">0</div><div class="text-sm font-bold text-emerald-400 uppercase tracking-wide">Days</div></div>
-                    <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100"><div id="age-h" class="text-3xl font-bold text-emerald-600">0</div><div class="text-sm font-bold text-emerald-400 uppercase tracking-wide">Hours</div></div>
-                    <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100"><div id="age-s" class="text-3xl font-bold text-emerald-600">0</div><div class="text-sm font-bold text-emerald-400 uppercase tracking-wide">Seconds</div></div>
-                </div>
-            </div>
-
-            <!-- 50. Bouncy DVD -->
-            <div id="app-bouncydvd" class="app-content hidden w-full max-w-xl bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">📺</div>
-                <h2 class="text-3xl font-bold mb-6">Bouncy DVD</h2>
-                <div class="w-full aspect-video bg-slate-900 rounded-3xl overflow-hidden relative shadow-inner mb-6" id="dvd-container">
-                    <div id="dvd-logo" class="absolute text-2xl md:text-3xl font-black italic tracking-tighter" style="color: #ef4444; text-shadow: 2px 2px 0 #000; left:0; top:0;">DVD</div>
-                </div>
-                <div class="mb-6 px-4">
-                    <div class="flex justify-between text-sm font-bold text-slate-500 mb-2"><span>Slow</span><span class="text-indigo-500">Speed Multiplier</span><span>Fast!</span></div>
-                    <input type="range" id="dvd-speed" min="1" max="30" value="3" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500" oninput="changeDvdSpeed(this.value)">
-                </div>
-                <div class="flex justify-center gap-8">
-                    <div class="font-bold text-slate-500">Wall Hits: <span id="dvd-hits" class="text-indigo-600">0</span></div>
-                    <div class="font-bold text-slate-500">Corner Hits: <span id="dvd-corners" class="text-rose-600">0</span></div>
-                </div>
-            </div>
-
-            <!-- 51. Memory Match -->
-            <div id="app-match" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🃏</div>
-                <h2 class="text-3xl font-bold mb-6">Memory Match</h2>
-                <div class="flex justify-between items-center mb-4 px-4 font-bold text-slate-500">
-                    <div>Moves: <span id="match-moves" class="text-indigo-600">0</span></div>
-                    <div id="match-status">Pairs: 0/8</div>
-                </div>
-                <div id="match-grid" class="grid grid-cols-4 gap-3 bg-slate-50 p-4 rounded-3xl shadow-inner mb-6"></div>
-                <button onclick="resetMatch()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md">Restart Game</button>
-            </div>
-
-            <!-- 52. Dad Jokes -->
-            <div id="app-joke" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎭</div>
-                <h2 class="text-3xl font-bold mb-6">Dad Jokes</h2>
-                <div class="bg-amber-50 p-8 rounded-3xl border-2 border-amber-100 mb-8 min-h-[200px] flex items-center justify-center flex-col shadow-inner">
-                    <div id="joke-text" class="text-xl font-medium text-amber-900 mb-4">"Click below for a laugh."</div>
-                </div>
-                <button onclick="getJoke()" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-5 rounded-2xl active:scale-95 shadow-md">Tell Me a Joke</button>
-            </div>
-
-            <!-- 53. Text to Speech -->
-            <div id="app-tts" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🗣️</div>
-                <h2 class="text-3xl font-bold mb-6">Text to Speech</h2>
-                <textarea id="tts-input" class="w-full h-32 p-4 rounded-xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400 font-bold resize-none" placeholder="Type something to say..."></textarea>
-                <button onclick="playTTS()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white text-xl font-bold py-5 rounded-2xl active:scale-95 shadow-md">Speak</button>
-            </div>
-
-            <!-- 54. Pop Balloon -->
-            <div id="app-balloon" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎈</div>
-                <h2 class="text-3xl font-bold mb-2">Pop the Balloon</h2>
-                <p class="text-slate-500 mb-6">Pump it up, but don't let it burst!</p>
-                <div class="bg-slate-50 h-64 rounded-3xl border-2 border-slate-200 mb-6 flex items-center justify-center relative overflow-hidden shadow-inner">
-                    <div id="balloon-obj" class="text-6xl cursor-pointer transition-transform duration-200 active:scale-[0.9]" onclick="pumpBalloon()">🎈</div>
-                    <div id="balloon-pop" class="absolute text-5xl hidden">💥</div>
-                </div>
-                <div class="flex gap-4">
-                    <button onclick="pumpBalloon()" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-4 rounded-2xl active:scale-95">Pump</button>
-                    <button onclick="resetBalloon()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 rounded-2xl active:scale-95">New Balloon</button>
-                </div>
-            </div>
-
-            <!-- 55. Grid Clicker -->
-            <div id="app-gridclick" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🖱️</div>
-                <h2 class="text-3xl font-bold mb-4">Grid Clicker</h2>
-                <div class="flex justify-between items-center mb-4 px-4 font-bold text-slate-500">
-                    <div>Time: <span id="gc-time" class="text-indigo-600">0.0s</span></div>
-                    <div>Score: <span id="gc-score" class="text-emerald-600">0/15</span></div>
-                </div>
-                <div id="gc-grid" class="grid grid-cols-5 gap-2 bg-slate-100 p-4 rounded-3xl aspect-square mb-6"></div>
-                <button id="gc-btn" onclick="startGridClick()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md">Start Game</button>
-            </div>
-
-            <!-- 56. Ripple Pad -->
-            <div id="app-ripple" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">💧</div>
-                <h2 class="text-3xl font-bold mb-4">Ripple Pad</h2>
-                <p class="text-slate-500 mb-6">Tap the water to create ripples.</p>
-                <div id="ripple-area" class="w-full aspect-video bg-blue-100 rounded-3xl border-4 border-blue-200 shadow-inner relative overflow-hidden cursor-crosshair" onmousedown="createRipple(event)">
-                </div>
-            </div>
-
-            <!-- 57. Alphabet Race -->
-            <div id="app-abcrace" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🔤</div>
-                <h2 class="text-3xl font-bold mb-4">Alphabet Race</h2>
-                <p class="text-slate-500 mb-6">Type A to Z as fast as possible.</p>
-                <div class="text-4xl font-mono font-bold text-indigo-600 mb-6" id="abc-time">0.000s</div>
-                <input type="text" id="abc-input" oninput="checkABC(event)" class="w-full text-center text-2xl font-bold uppercase p-4 rounded-xl border-2 border-indigo-200 focus:outline-none focus:border-indigo-500 mb-4 tracking-[0.2em]" placeholder="TYPE HERE...">
-                <button onclick="resetABCRace()" class="text-slate-400 hover:text-slate-600 font-bold underline">Reset Race</button>
-            </div>
-
-            <!-- 58. Sort Vis -->
-            <div id="app-sortvis" class="app-content hidden w-full max-w-lg bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">📊</div>
-                <h2 class="text-3xl font-bold mb-6">Bubble Sort Vis</h2>
-                <div id="sort-container" class="w-full h-48 bg-slate-50 border-2 border-slate-200 rounded-2xl mb-6 p-2 flex items-end gap-1"></div>
-                <div class="flex gap-4">
-                    <button onclick="resetSortVis()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 rounded-2xl active:scale-95 shadow-sm">Shuffle</button>
-                    <button id="sort-btn" onclick="startSortVis()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md">Sort Array</button>
-                </div>
-            </div>
-
-            <!-- 59. Catch Me -->
-            <div id="app-runaway" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🏃</div>
-                <h2 class="text-3xl font-bold mb-4">Catch Me</h2>
-                <p class="text-slate-500 mb-6">Try to click the button.</p>
-                <div class="w-full h-64 bg-slate-50 rounded-3xl border-2 border-slate-200 relative overflow-hidden shadow-inner">
-                    <button id="runaway-btn" onmouseenter="moveRunaway()" onclick="winRunaway()" class="absolute bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-200 ease-out shadow-md" style="top:40%; left:40%;">Click Me!</button>
-                </div>
-                <div id="runaway-msg" class="mt-4 font-bold text-emerald-500 h-6 text-xl"></div>
-            </div>
-
-            <!-- 60. Number Hunt -->
-            <div id="app-schulte" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🔢</div>
-                <h2 class="text-3xl font-bold mb-4">Number Hunt</h2>
-                <div class="flex justify-between items-center mb-4 px-4 font-bold text-slate-500">
-                    <div>Time: <span id="sh-time" class="text-indigo-600">0.0s</span></div>
-                    <div id="sh-status">Click 1 to 25!</div>
-                </div>
-                <div id="sh-grid" class="grid grid-cols-5 gap-2 bg-slate-50 p-4 rounded-3xl shadow-inner mb-6"></div>
-                <button onclick="resetSchulte()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md">Restart</button>
-            </div>
-
-            <!-- 61. Word Counter -->
-            <div id="app-wordcount" class="app-content hidden w-full max-w-lg bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">📝</div>
-                <h2 class="text-3xl font-bold mb-6">Word Counter</h2>
-                <textarea id="wc-in" oninput="updateWordCount()" class="w-full h-48 p-4 rounded-xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400 font-medium resize-none" placeholder="Type or paste text here..."></textarea>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-indigo-50 p-4 rounded-2xl border-2 border-indigo-100"><div id="wc-w" class="text-4xl font-bold text-indigo-600">0</div><div class="text-sm font-bold text-indigo-400 uppercase">Words</div></div>
-                    <div class="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100"><div id="wc-c" class="text-4xl font-bold text-emerald-600">0</div><div class="text-sm font-bold text-emerald-400 uppercase">Characters</div></div>
-                </div>
-            </div>
-
-            <!-- 62. Keycode Tool -->
-            <div id="app-keycode" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">⌨️</div>
-                <h2 class="text-3xl font-bold mb-6">Keycode Tool</h2>
-                <p class="text-slate-500 mb-8">Press any key on your keyboard.</p>
-                <div class="bg-slate-800 p-8 rounded-3xl mb-8 border-4 border-slate-700 shadow-inner">
-                    <div id="kc-code" class="text-8xl font-mono font-bold text-white mb-2 tracking-tighter">?</div>
-                    <div id="kc-key" class="text-2xl font-bold text-emerald-400">---</div>
-                </div>
-            </div>
-
-            <!-- 63. Pixel Art -->
-            <div id="app-pixelart" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">👾</div>
-                <h2 class="text-3xl font-bold mb-6">Pixel Art</h2>
-                <div class="flex justify-center gap-2 mb-6">
-                    <button onclick="setPxColor('#ef4444')" class="w-8 h-8 rounded bg-red-500 hover:scale-110 shadow-sm"></button>
-                    <button onclick="setPxColor('#f97316')" class="w-8 h-8 rounded bg-orange-500 hover:scale-110 shadow-sm"></button>
-                    <button onclick="setPxColor('#eab308')" class="w-8 h-8 rounded bg-yellow-500 hover:scale-110 shadow-sm"></button>
-                    <button onclick="setPxColor('#22c55e')" class="w-8 h-8 rounded bg-green-500 hover:scale-110 shadow-sm"></button>
-                    <button onclick="setPxColor('#3b82f6')" class="w-8 h-8 rounded bg-blue-500 hover:scale-110 shadow-sm"></button>
-                    <button onclick="setPxColor('#a855f7')" class="w-8 h-8 rounded bg-purple-500 hover:scale-110 shadow-sm"></button>
-                    <button onclick="setPxColor('#000000')" class="w-8 h-8 rounded bg-black hover:scale-110 shadow-sm"></button>
-                    <button onclick="setPxColor('#f1f5f9')" class="w-8 h-8 rounded bg-slate-100 border border-slate-300 hover:scale-110 shadow-sm" title="Eraser">🤍</button>
-                </div>
-                <div class="flex justify-between items-center mb-2 px-2 text-slate-500 font-bold"><span>Color: <div id="px-curr" class="inline-block w-4 h-4 rounded align-middle" style="background-color:#3b82f6"></div></span> <button onclick="resetPixelArt()" class="underline hover:text-slate-800">Clear</button></div>
-                <div id="px-grid" class="grid grid-cols-8 gap-0 w-full aspect-square border-2 border-slate-300 bg-slate-300 gap-px mb-2"></div>
-            </div>
-
-            <!-- 64. White Noise -->
-            <div id="app-whitenoise" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎧</div>
-                <h2 class="text-3xl font-bold mb-6">White Noise</h2>
-                <p class="text-slate-500 mb-8">Generate calming brown noise to help you focus.</p>
-                <button id="wn-btn" onclick="toggleWhiteNoise()" class="w-full h-48 bg-indigo-500 hover:bg-indigo-600 text-white text-4xl font-bold py-6 rounded-[2.5rem] active:scale-95 transition-transform shadow-xl shadow-indigo-200 flex items-center justify-center select-none">
-                    PLAY NOISE
-                </button>
-            </div>
-
-            <!-- 65. Gravity Balls -->
-            <div id="app-gravity" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🍎</div>
-                <h2 class="text-3xl font-bold mb-4">Gravity Balls</h2>
-                <p class="text-slate-500 mb-6">Click anywhere to drop a ball.</p>
-                <canvas id="grav-canvas" width="300" height="300" class="w-full bg-slate-50 border-4 border-slate-200 rounded-3xl shadow-inner cursor-crosshair mb-4" onmousedown="addGravBall(event)"></canvas>
-                <button onclick="initGravity()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-2xl active:scale-95">Clear Canvas</button>
-            </div>
-
-            <!-- 66. Avatar Gen -->
-            <div id="app-identicon" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🤖</div>
-                <h2 class="text-3xl font-bold mb-4">Avatar Gen</h2>
-                <input type="text" id="id-in" oninput="updateIdenticon()" class="w-full p-4 rounded-xl border-2 border-slate-200 mb-6 focus:outline-none focus:border-indigo-400 font-bold text-center" placeholder="Enter your name...">
-                <div id="id-grid" class="grid grid-cols-5 gap-0 w-48 h-48 mx-auto bg-slate-100 rounded shadow-md overflow-hidden mb-6"></div>
-            </div>
-
-            <!-- 67. Flag Guesser -->
-            <div id="app-flagguess" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🌍</div>
-                <h2 class="text-3xl font-bold mb-4">Flag Guesser</h2>
-                <div id="fg-msg" class="text-slate-500 font-bold h-6 mb-4">Which country is this?</div>
-                <div id="fg-flag" class="text-9xl mb-8 drop-shadow-md">❓</div>
-                <div id="fg-opts" class="grid grid-cols-2 gap-3">
-                    <button class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-xl active:scale-95 shadow-md">...</button>
-                    <button class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-xl active:scale-95 shadow-md">...</button>
-                    <button class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-xl active:scale-95 shadow-md">...</button>
-                    <button class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-xl active:scale-95 shadow-md">...</button>
-                </div>
-            </div>
-
-            <!-- 68. Kaomoji -->
-            <div id="app-kaomoji" class="app-content hidden w-full max-w-lg bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">ʕ•ᴥ•ʔ</div>
-                <h2 class="text-3xl font-bold mb-6">Kaomoji</h2>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <button onclick="copyToClipboard('(╯°□°）╯︵ ┻━┻')" class="bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl active:scale-95">(╯°□°）╯︵ ┻━┻</button>
-                    <button onclick="copyToClipboard('( ͡° ͜ʖ ͡°)')" class="bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl active:scale-95">( ͡° ͜ʖ ͡°)</button>
-                    <button onclick="copyToClipboard('¯\\_(ツ)_/¯')" class="bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl active:scale-95">¯\_(ツ)_/¯</button>
-                    <button onclick="copyToClipboard('ʕ•ᴥ•ʔ')" class="bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl active:scale-95">ʕ•ᴥ•ʔ</button>
-                    <button onclick="copyToClipboard('ಠ_ಠ')" class="bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl active:scale-95">ಠ_ಠ</button>
-                    <button onclick="copyToClipboard('(ง\'̀-\'́)ง')" class="bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl active:scale-95">(ง'̀-'́)ง</button>
-                    <button onclick="copyToClipboard('(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧')" class="bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl active:scale-95">(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧</button>
-                    <button onclick="copyToClipboard('༼ つ ◕_◕ ༽つ')" class="bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl active:scale-95">༼ つ ◕_◕ ༽つ</button>
-                    <button onclick="copyToClipboard('ᕕ( ᐛ )ᕗ')" class="bg-slate-50 hover:bg-slate-100 border-2 border-slate-200 text-slate-700 font-bold py-4 rounded-xl active:scale-95">ᕕ( ᐛ )ᕗ</button>
-                </div>
-            </div>
-
-            <!-- 69. Mandala Draw -->
-            <div id="app-mandala" class="app-content hidden w-full max-w-lg bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🌸</div>
-                <h2 class="text-3xl font-bold mb-4">Mandala Draw</h2>
-                <canvas id="md-canvas" width="400" height="400" class="w-full aspect-square bg-slate-50 border-4 border-slate-200 rounded-full shadow-inner cursor-crosshair mb-6" onmousedown="mdDraw=true; drawMandala(event, true)" onmouseup="mdDraw=false" onmouseleave="mdDraw=false" onmousemove="drawMandala(event)"></canvas>
-                <button onclick="clearMandala()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 rounded-2xl active:scale-95 shadow-sm">Clear Canvas</button>
-            </div>
-
-            <!-- 70. Tower Builder -->
-            <div id="app-tower" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center select-none">
-                <div class="text-5xl mb-4">🏗️</div>
-                <h2 class="text-3xl font-bold mb-4">Tower Builder</h2>
-                <div id="tower-score" class="text-xl font-bold text-indigo-600 mb-4">Score: 0</div>
-                <canvas id="tower-canvas" width="300" height="300" class="w-full bg-slate-100 border-4 border-slate-200 rounded-2xl shadow-inner mb-6 cursor-pointer" onmousedown="startTower()"></canvas>
-                <button onclick="startTower()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md text-xl">Drop Block</button>
-            </div>
-
-            <!-- 71. Particle Net -->
-            <div id="app-particles" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🕸️</div>
-                <h2 class="text-3xl font-bold mb-4">Particle Net</h2>
-                <p class="text-slate-500 mb-6">Watch them connect.</p>
-                <canvas id="part-canvas" width="300" height="300" class="w-full bg-slate-900 border-4 border-slate-800 rounded-3xl shadow-inner mb-4"></canvas>
-            </div>
-
-            <!-- 72. Illusion -->
-            <div id="app-illusion" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🌀</div>
-                <h2 class="text-3xl font-bold mb-4">Optical Illusion</h2>
-                <p class="text-slate-500 mb-6">Stare at the center for 20 seconds, then look away.</p>
-                <div class="flex justify-center mb-8">
-                    <div id="illusion-wheel" class="w-64 h-64 illusion-spin"></div>
-                </div>
-                <button onclick="toggleIllusion()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md">Pause / Resume</button>
-            </div>
-
-            <!-- 73. Tone Gen -->
-            <div id="app-tonegen" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🎛️</div>
-                <h2 class="text-3xl font-bold mb-6">Tone Generator</h2>
-                <div class="bg-indigo-50 border-2 border-indigo-100 rounded-3xl p-8 mb-6 shadow-inner">
-                    <div class="text-5xl font-mono font-bold text-indigo-600 mb-2"><span id="tone-val">440</span> Hz</div>
-                </div>
-                <input type="range" id="tone-slide" min="20" max="2000" value="440" class="w-full mb-8 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500" oninput="updateTone(this.value)">
-                <button id="tone-btn" onclick="toggleTone()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-5 rounded-2xl active:scale-95 shadow-md text-xl">START</button>
-            </div>
-
-            <!-- 74. Fun Facts -->
-            <div id="app-facts" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">💡</div>
-                <h2 class="text-3xl font-bold mb-6">Fun Facts</h2>
-                <div class="bg-amber-50 p-8 rounded-3xl border-2 border-amber-100 mb-8 min-h-[200px] flex items-center justify-center flex-col shadow-inner">
-                    <div id="fact-text" class="text-xl font-medium text-amber-900 mb-4 leading-relaxed">"Click the button to learn something new!"</div>
-                </div>
-                <button onclick="nextFact()" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-5 rounded-2xl active:scale-95 shadow-md">Next Fact</button>
-            </div>
-
-            <!-- 75. Guess Hex -->
-            <div id="app-guesshex" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🤔</div>
-                <h2 class="text-3xl font-bold mb-4">Guess Hex</h2>
-                <div id="gh-msg" class="text-slate-500 font-bold h-6 mb-4">Which hex code is this?</div>
-                <div id="gh-color" class="w-full h-32 rounded-2xl shadow-inner border-4 border-slate-200 mb-6"></div>
-                <div id="gh-opts" class="grid grid-cols-2 gap-3">
-                    <button class="bg-slate-100 text-slate-700 font-bold py-4 rounded-xl active:scale-95 shadow-md border-2 border-slate-200 transition-colors">...</button>
-                    <button class="bg-slate-100 text-slate-700 font-bold py-4 rounded-xl active:scale-95 shadow-md border-2 border-slate-200 transition-colors">...</button>
-                    <button class="bg-slate-100 text-slate-700 font-bold py-4 rounded-xl active:scale-95 shadow-md border-2 border-slate-200 transition-colors">...</button>
-                    <button class="bg-slate-100 text-slate-700 font-bold py-4 rounded-xl active:scale-95 shadow-md border-2 border-slate-200 transition-colors">...</button>
-                </div>
-            </div>
-
-            <!-- 76. Sound React -->
-            <div id="app-soundreact" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🔊</div>
-                <h2 class="text-3xl font-bold mb-2">Sound React</h2>
-                <p class="text-slate-500 mb-8">Close your eyes. Click when you hear the beep!</p>
-                <button id="sr-btn" onmousedown="handleSoundReact()" class="w-full h-48 bg-indigo-500 hover:bg-indigo-600 text-white text-4xl font-bold py-6 rounded-[2.5rem] active:scale-95 transition-transform shadow-xl shadow-indigo-200 flex items-center justify-center select-none">START</button>
-            </div>
-
-            <!-- 77. Vaporwave -->
-            <div id="app-vaporwave" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">🌸</div>
-                <h2 class="text-3xl font-bold mb-6">Vaporwave Text</h2>
-                <input type="text" id="vapor-in" oninput="updateVapor()" class="w-full p-4 rounded-xl border-2 border-slate-200 mb-4 focus:outline-none focus:border-pink-400 font-bold" placeholder="Type normal text...">
-                <div class="text-slate-400 font-bold mb-4">⬇️</div>
-                <textarea id="vapor-out" readonly class="w-full h-32 p-4 rounded-xl border-2 border-pink-200 bg-pink-50 mb-4 focus:outline-none font-bold text-pink-600 resize-none break-all" placeholder="Ａｅｓｔｈｅｔｉｃ..."></textarea>
-                <button onclick="copyToClipboard(document.getElementById('vapor-out').value)" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 rounded-2xl active:scale-95 shadow-md">Copy</button>
-            </div>
-
-            <!-- 78. Countdown -->
-            <div id="app-timer" class="app-content hidden w-full max-w-md bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
-                <div class="text-5xl mb-4">⏲️</div>
-                <h2 class="text-3xl font-bold mb-6">Countdown Timer</h2>
-                <div class="bg-slate-800 text-white p-8 rounded-3xl mb-6 border-4 border-slate-700 shadow-inner">
-                    <div id="tmr-display" class="text-7xl font-mono font-bold tracking-tight">01:00</div>
-                </div>
-                <div id="tmr-inputs" class="flex gap-4 mb-6 justify-center">
-                    <div><label class="block text-slate-500 font-bold mb-1">Mins</label><input type="number" id="tmr-in-m" value="1" min="0" max="99" class="w-2
+    <!-- HOME MENU VIEW -->
+    <div id="home-view" class="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full transition-opacity duration-300">
+        <header class="mb-12 mt-4 text-center">
+            <h1 class="text-5xl md:text-6xl font-bold mb-4 gradient-text tracking-tight">Nifty Little Things</h1>
+            <p class="text-slate-500 text-lg max-w-xl mx-auto">Pick a digital toy to play with.</p>
+        </header>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div onclick="openApp('billion')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🎰</div>
+                <h2 class="text-lg font-bold text-slate-700">Billion Machine</h2>
+            </div>
+            <div onclick="openApp('sentence')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🧪</div>
+                <h2 class="text-lg font-bold text-slate-700">Sentence Gen</h2>
+            </div>
+            <div onclick="openApp('decay')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">⏳</div>
+                <h2 class="text-lg font-bold text-slate-700">Day Decay</h2>
+            </div>
+            <div onclick="openApp('color')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🎨</div>
+                <h2 class="text-lg font-bold text-slate-700">Hex Oracle</h2>
+            </div>
+            <div onclick="openApp('oracle')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🎱</div>
+                <h2 class="text-lg font-bold text-slate-700">The Oracle</h2>
+            </div>
+            <div onclick="openApp('reaction')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">⚡</div>
+                <h2 class="text-lg font-bold text-slate-700">Reaction</h2>
+            </div>
+            <div onclick="openApp('cps')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🖱️</div>
+                <h2 class="text-lg font-bold text-slate-700">Click Speed</h2>
+            </div>
+            <div onclick="openApp('aim')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🎯</div>
+                <h2 class="text-lg font-bold text-slate-700">Aim Trainer</h2>
+            </div>
+            <div onclick="openApp('rps')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">✌️</div>
+                <h2 class="text-lg font-bold text-slate-700">Rock Paper</h2>
+            </div>
+            <div onclick="openApp('guesser')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🔢</div>
+                <h2 class="text-lg font-bold text-slate-700">Number Guess</h2>
+            </div>
+            <div onclick="openApp('memory')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">🧠</div>
+                <h2 class="text-lg font-bold text-slate-700">Memory Matrix</h2>
+            </div>
+            <div onclick="openApp('tictactoe')" class="menu-card cursor-pointer bg-white border-2 border-slate-100 rounded-3xl p-6 flex flex-col items-center justify-center text-center">
+                <div class="text-5xl mb-3">❌</div>
+                <h2 class="text-lg font-bold text-slate-700">Tic-Tac-Toe</h2>
+            </div>
+        </div>
+
+        <footer class="mt-16 pb-8 text-center text-slate-400 text-sm">
+            Hand-crafted for curious minds.
+        </footer>
+    </div>
+
+    <!-- FOCUSED APP VIEW -->
+    <div id="app-view" class="hidden flex-1 flex flex-col min-h-screen w-full relative">
+        <div class="w-full p-4 md:p-6 absolute top-0 left-0 z-40">
+            <button onclick="goHome()" class="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold bg-white/50 backdrop-blur px-4 py-2 rounded-full transition-colors border border-slate-200 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back
+            </button>
+        </div>
+
+        <div class="flex-1 flex items-center justify-center p-4 pt-24 w-full max-w-4xl mx-auto">
+            
+            <!-- 1. The Billion Machine -->
+            <div id="app-billion" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🎰</div>
+                <h2 class="text-3xl font-bold mb-2">The Billion Machine</h2>
+                <p class="text-slate-500 mb-8">Generates a random integer between 1 and 1,000,000,000.</p>
+                <div id="billion-display" class="text-6xl font-mono font-bold py-10 bg-slate-900 text-indigo-400 rounded-2xl border border-slate-700 tracking-wider mb-8">???</div>
+                <button onclick="generateBillion()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Crank the Lever</button>
+            </div>
+
+            <!-- 2. Sentence Alchemist -->
+            <div id="app-sentence" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🧪</div>
+                <h2 class="text-3xl font-bold mb-2">Sentence Alchemist</h2>
+                <div id="sentence-display" class="min-h-[160px] flex items-center justify-center p-6 bg-amber-50 rounded-3xl mb-8 border-2 border-dashed border-amber-200">
+                    <span class="text-2xl text-amber-800 leading-tight italic font-medium">Waiting...</span>
+                </div>
+                <button onclick="generateSentence()" class="w-full bg-amber-500 hover:bg-amber-600 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Synthesize Prose</button>
+            </div>
+
+            <!-- 3. Today's Decay -->
+            <div id="app-decay" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">⏳</div>
+                <h2 class="text-3xl font-bold mb-2">Today's Decay</h2>
+                <p class="text-slate-500 mb-12">The exact percentage of the current day that has already passed.</p>
+                <div class="w-full bg-slate-100 rounded-full h-8 md:h-12 mb-4 overflow-hidden shadow-inner relative">
+                    <div id="day-progress-bar" class="bg-blue-500 h-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                    <div id="day-percent" class="absolute inset-0 flex items-center justify-center font-bold text-white mix-blend-difference text-2xl drop-shadow-md">0%</div>
+                </div>
+            </div>
+
+            <!-- 4. Hex Oracle -->
+            <div id="app-color" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🎨</div>
+                <h2 class="text-3xl font-bold mb-2">Hex Oracle</h2>
+                <div id="color-box" class="h-48 md:h-64 w-full rounded-3xl mb-8 flex items-center justify-center cursor-pointer group shadow-inner transition-colors duration-300" onclick="copyColor()">
+                    <span id="hex-label" class="text-white text-3xl font-bold opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 px-6 py-3 rounded-2xl backdrop-blur-sm">#6366F1</span>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="generateColor()" class="flex-1 bg-white border-4 border-purple-100 text-purple-600 hover:bg-purple-50 text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">New Hue</button>
+                    <button onclick="copyColor()" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Copy Code</button>
+                </div>
+            </div>
+
+            <!-- 5. The Oracle -->
+            <div id="app-oracle" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🎱</div>
+                <h2 class="text-3xl font-bold mb-2">The Oracle</h2>
+                <div class="min-h-[200px] flex items-center justify-center p-8 bg-slate-900 rounded-3xl mb-8 border-4 border-slate-700 shadow-inner">
+                    <div id="oracle-text" class="text-2xl font-bold text-white text-center">Ask a yes/no question...</div>
+                </div>
+                <button onclick="consultOracle()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Consult Oracle</button>
+            </div>
+
+            <!-- 6. Reaction Test -->
+            <div id="app-reaction" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">⚡</div>
+                <h2 class="text-3xl font-bold mb-2">Reaction Test</h2>
+                <div id="reaction-display" class="min-h-[200px] flex items-center justify-center p-8 bg-rose-100 rounded-3xl mb-8 border-4 border-rose-200">
+                    <div id="reaction-text" class="text-2xl font-bold text-rose-700">Wait for green...</div>
+                </div>
+                <button onclick="startReaction()" id="reaction-btn" class="w-full bg-rose-600 hover:bg-rose-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Start Test</button>
+            </div>
+
+            <!-- 7. Click Speed Test -->
+            <div id="app-cps" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🖱️</div>
+                <h2 class="text-3xl font-bold mb-2">Click Speed Test</h2>
+                <div id="cps-display" class="min-h-[120px] flex flex-col items-center justify-center p-8 bg-slate-900 rounded-3xl mb-8 border-4 border-slate-700">
+                    <div id="cps-count" class="text-5xl font-bold text-emerald-400">0</div>
+                    <div id="cps-time" class="text-lg text-slate-400 font-bold mt-2">5s remaining</div>
+                </div>
+                <button onclick="startCPS()" id="cps-btn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Start Clicking</button>
+            </div>
+
+            <!-- 8. Aim Trainer -->
+            <div id="app-aim" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🎯</div>
+                <h2 class="text-3xl font-bold mb-2">Aim Trainer</h2>
+                <p class="text-slate-500 mb-6">Click the circles as they appear.</p>
+                <div id="aim-arena" class="w-full h-64 bg-slate-100 rounded-3xl mb-8 border-4 border-slate-200 relative overflow-hidden shadow-inner"></div>
+                <div id="aim-score" class="text-3xl font-bold text-slate-700 mb-4">Score: 0</div>
+                <button onclick="startAim()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Start Game</button>
+            </div>
+
+            <!-- 9. Rock Paper Scissors -->
+            <div id="app-rps" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">✌️</div>
+                <h2 class="text-3xl font-bold mb-2">Rock Paper Scissors</h2>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="p-4 bg-slate-100 rounded-2xl"><span class="text-4xl">🤖</span><div class="text-sm font-bold text-slate-600 mt-2" id="rps-computer">Waiting</div></div>
+                    <div class="p-4 bg-slate-100 rounded-2xl"><span class="text-4xl" id="rps-player">🤷</span><div class="text-sm font-bold text-slate-600 mt-2">You</div></div>
+                </div>
+                <div id="rps-result" class="text-2xl font-bold text-slate-700 mb-6">Make your move</div>
+                <div class="flex gap-2 justify-center">
+                    <button onclick="playRPS('rock')" class="text-4xl p-4 hover:scale-110 transition-transform">🪨</button>
+                    <button onclick="playRPS('paper')" class="text-4xl p-4 hover:scale-110 transition-transform">📄</button>
+                    <button onclick="playRPS('scissors')" class="text-4xl p-4 hover:scale-110 transition-transform">✂️</button>
+                </div>
+            </div>
+
+            <!-- 10. Number Guesser -->
+            <div id="app-guesser" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🔢</div>
+                <h2 class="text-3xl font-bold mb-6">Number Guesser</h2>
+                <div id="guess-display" class="bg-slate-900 text-white p-8 rounded-3xl mb-6 border-4 border-slate-700">
+                    <div class="text-slate-400 text-sm mb-2">I'm thinking of a number between 1 and 100</div>
+                    <div id="guess-feedback" class="text-2xl font-bold text-yellow-400">Take a guess...</div>
+                </div>
+                <input type="number" id="guess-input" min="1" max="100" class="w-full text-center text-3xl font-bold p-4 rounded-xl border-2 border-slate-200 mb-4 focus:outline-none focus:border-indigo-500">
+                <button onclick="checkGuess()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Submit Guess</button>
+                <button onclick="resetGuesser()" class="w-full mt-4 text-slate-500 hover:text-slate-700 font-bold underline">New Game</button>
+            </div>
+
+            <!-- 11. Memory Matrix -->
+            <div id="app-memory" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">🧠</div>
+                <h2 class="text-3xl font-bold mb-2">Memory Matrix</h2>
+                <div id="memory-grid" class="grid grid-cols-4 gap-2 mb-8 max-w-xs mx-auto"></div>
+                <button onclick="startMemory()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">Start Game</button>
+            </div>
+
+            <!-- 12. Tic-Tac-Toe -->
+            <div id="app-tictactoe" class="app-content hidden w-full bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-lg text-center">
+                <div class="text-5xl mb-4">❌</div>
+                <h2 class="text-3xl font-bold mb-6">Tic-Tac-Toe</h2>
+                <div id="ttt-grid" class="grid grid-cols-3 gap-2 max-w-xs mx-auto mb-8"></div>
+                <div id="ttt-status" class="text-2xl font-bold text-slate-700 mb-4">Your turn (X)</div>
+                <button onclick="resetTTT()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xl font-bold py-5 rounded-2xl transition-all active:scale-95">New Game</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentApp = null;
+
+        // Navigation
+        function openApp(appId) {
+            currentApp = appId;
+            document.getElementById('home-view').classList.add('hidden');
+            document.getElementById('app-view').classList.remove('hidden');
+            
+            // Hide all apps first
+            document.querySelectorAll('.app-content').forEach(el => el.classList.add('hidden'));
+            
+            // Show selected app
+            const appEl = document.getElementById('app-' + appId);
+            if (appEl) {
+                appEl.classList.remove('hidden');
+                initApp(appId);
+            }
+        }
+
+        function goHome() {
+            document.getElementById('home-view').classList.remove('hidden');
+            document.getElementById('app-view').classList.add('hidden');
+            currentApp = null;
+        }
+
+        // Initialize apps
+        function initApp(appId) {
+            switch(appId) {
+                case 'decay':
+                    updateDecay();
+                    if (window.decayInterval) clearInterval(window.decayInterval);
+                    window.decayInterval = setInterval(updateDecay, 1000);
+                    break;
+                case 'billion':
+                    generateBillion();
+                    break;
+                case 'color':
+                    generateColor();
+                    break;
+                case 'memory':
+                    startMemory();
+                    break;
+                case 'tictactoe':
+                    resetTTT();
+                    break;
+            }
+        }
+
+        // 1. Billion Machine
+        function generateBillion() {
+            const num = Math.floor(Math.random() * 1000000000) + 1;
+            document.getElementById('billion-display').innerText = num.toLocaleString();
+        }
+
+        // 2. Sentence Generator
+        function generateSentence() {
+            const subjects = ['A cat', 'The dog', 'A bird', 'The computer', 'My friend'];
+            const verbs = ['jumps over', 'runs past', 'looks at', 'dreams about', 'studies'];
+            const objects = ['the moon', 'a rainbow', 'the stars', 'a pizza', 'the ocean'];
+            
+            const sentence = subjects[Math.floor(Math.random() * subjects.length)] + ' ' + 
+                           verbs[Math.floor(Math.random() * verbs.length)] + ' ' + 
+                           objects[Math.floor(Math.random() * objects.length)] + '.';
+            document.getElementById('sentence-display').innerText = sentence;
+        }
+
+        // 3. Today's Decay
+        function updateDecay() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            const percent = Math.round(((now - start) / (end - start)) * 100);
+            
+            document.getElementById('day-progress-bar').style.width = percent + '%';
+            document.getElementById('day-percent').innerText = percent + '%';
+        }
+
+        // 4. Color Generator
+        function generateColor() {
+            const colors = ['#6366F1', '#A855F7', '#EC4899', '#F43F5E', '#FB923C', '#10B981', '#06B6D4', '#3B82F6'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            document.getElementById('color-box').style.backgroundColor = color;
+            document.getElementById('hex-label').innerText = color;
+        }
+
+        function copyColor() {
+            const text = document.getElementById('hex-label').innerText;
+            navigator.clipboard.writeText(text);
+            alert('Copied: ' + text);
+        }
+
+        // 5. The Oracle
+        function consultOracle() {
+            const responses = ['Yes', 'No', 'Maybe', 'Ask again later', 'Definitely', 'Not likely', 'Absolutely', 'Don\'t count on it'];
+            const response = responses[Math.floor(Math.random() * responses.length)];
+            document.getElementById('oracle-text').innerText = response;
+        }
+
+        // 6. Reaction Test
+        function startReaction() {
+            const btn = document.getElementById('reaction-btn');
+            btn.disabled = true;
+            const display = document.getElementById('reaction-display');
+            const text = document.getElementById('reaction-text');
+            
+            display.classList.remove('bg-rose-100', 'border-rose-200');
+            display.classList.add('bg-yellow-100', 'border-yellow-200');
+            text.classList.remove('text-rose-700');
+            text.classList.add('text-yellow-700');
+            text.innerText = 'Wait...';
+            
+            const delay = Math.random() * 3000 + 1000;
+            setTimeout(() => {
+                display.classList.remove('bg-yellow-100', 'border-yellow-200');
+                display.classList.add('bg-emerald-100', 'border-emerald-200');
+                text.classList.remove('text-yellow-700');
+                text.classList.add('text-emerald-700');
+                text.innerText = 'CLICK NOW!';
+                const startTime = Date.now();
+                
+                display.onclick = () => {
+                    const reactionTime = Date.now() - startTime;
+                    text.innerText = reactionTime + 'ms';
+                    btn.disabled = false;
+                    display.onclick = null;
+                };
+            }, delay);
+        }
+
+        // 7. Click Speed Test
+        function startCPS() {
+            let clicks = 0;
+            let timeLeft = 5;
+            const btn = document.getElementById('cps-btn');
+            const countDisplay = document.getElementById('cps-count');
+            const timeDisplay = document.getElementById('cps-time');
+            
+            btn.disabled = true;
+            btn.innerText = 'CLICK HERE';
+            btn.onclick = () => clicks++;
+            
+            const timer = setInterval(() => {
+                timeLeft--;
+                timeDisplay.innerText = timeLeft + 's remaining';
+                countDisplay.innerText = clicks;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    btn.disabled = true;
+                    btn.onclick = () => startCPS();
+                    btn.innerText = 'Start Clicking';
+                    countDisplay.innerText = clicks + ' clicks';
+                    timeDisplay.innerText = 'CPS: ' + (clicks / 5).toFixed(1);
+                }
+            }, 1000);
+        }
+
+        // 8. Aim Trainer
+        function startAim() {
+            const arena = document.getElementById('aim-arena');
+            const scoreDisplay = document.getElementById('aim-score');
+            let score = 0;
+            arena.innerHTML = '';
+            
+            function createTarget() {
+                const target = document.createElement('div');
+                target.className = 'absolute w-8 h-8 bg-red-500 rounded-full cursor-pointer hover:scale-110 transition-transform';
+                target.style.left = Math.random() * (arena.offsetWidth - 32) + 'px';
+                target.style.top = Math.random() * (arena.offsetHeight - 32) + 'px';
+                
+                target.onclick = (e) => {
+                    e.stopPropagation();
+                    score++;
+                    scoreDisplay.innerText = 'Score: ' + score;
+                    target.remove();
+                    createTarget();
+                };
+                
+                arena.appendChild(target);
+                setTimeout(() => target.remove(), 1000);
+            }
+            
+            for (let i = 0; i < 5; i++) {
+                createTarget();
+            }
+        }
+
+        // 9. Rock Paper Scissors
+        function playRPS(choice) {
+            const choices = ['rock', 'paper', 'scissors'];
+            const computer = choices[Math.floor(Math.random() * 3)];
+            const emojis = { rock: '🪨', paper: '📄', scissors: '✂️' };
+            
+            document.getElementById('rps-player').innerText = emojis[choice];
+            document.getElementById('rps-computer').innerText = emojis[computer];
+            
+            let result = 'Draw!';
+            if (choice === 'rock' && computer === 'scissors') result = 'You Win!';
+            else if (choice === 'paper' && computer === 'rock') result = 'You Win!';
+            else if (choice === 'scissors' && computer === 'paper') result = 'You Win!';
+            else if (choice !== computer) result = 'You Lose!';
+            
+            document.getElementById('rps-result').innerText = result;
+        }
+
+        // 10. Number Guesser
+        let secretNumber = Math.floor(Math.random() * 100) + 1;
+        function checkGuess() {
+            const guess = parseInt(document.getElementById('guess-input').value);
+            const feedback = document.getElementById('guess-feedback');
+            
+            if (guess === secretNumber) {
+                feedback.innerText = '🎉 Correct!';
+            } else if (guess < secretNumber) {
+                feedback.innerText = '📈 Too low, guess higher';
+            } else {
+                feedback.innerText = '📉 Too high, guess lower';
+            }
+        }
+
+        function resetGuesser() {
+            secretNumber = Math.floor(Math.random() * 100) + 1;
+            document.getElementById('guess-input').value = '';
+            document.getElementById('guess-feedback').innerText = 'Take a guess...';
+        }
+
+        // 11. Memory Matrix
+        let memorySequence = [];
+        let playerSequence = [];
+        let level = 1;
+
+        function startMemory() {
+            memorySequence = [];
+            playerSequence = [];
+            level = 1;
+            playNextMemorySequence();
+        }
+
+        function playNextMemorySequence() {
+            playerSequence = [];
+            const nextColor = Math.floor(Math.random() * 4);
+            memorySequence.push(nextColor);
+            playSequence();
+        }
+
+        function playSequence() {
+            const grid = document.getElementById('memory-grid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 4; i++) {
+                const button = document.createElement('div');
+                button.className = 'w-16 h-16 bg-slate-300 rounded-lg cursor-pointer hover:opacity-80 transition-opacity';
+                const colors = ['bg-red-400', 'bg-blue-400', 'bg-yellow-400', 'bg-green-400'];
+                button.classList.add(colors[i]);
+                
+                button.onclick = () => {
+                    playerSequence.push(i);
+                    if (playerSequence[playerSequence.length - 1] !== memorySequence[playerSequence.length - 1]) {
+                        alert('Game Over! Level: ' + level);
+                        startMemory();
+                    } else if (playerSequence.length === memorySequence.length) {
+                        level++;
+                        setTimeout(playNextMemorySequence, 1000);
+                    }
+                };
+                
+                grid.appendChild(button);
+            }
+        }
+
+        // 12. Tic-Tac-Toe
+        let tttBoard = ['', '', '', '', '', '', '', '', ''];
+        let tttIsX = true;
+
+        function resetTTT() {
+            tttBoard = ['', '', '', '', '', '', '', '', ''];
+            tttIsX = true;
+            document.getElementById('ttt-status').innerText = 'Your turn (X)';
+            renderTTT();
+        }
+
+        function renderTTT() {
+            const grid = document.getElementById('ttt-grid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'w-20 h-20 bg-slate-200 rounded-lg flex items-center justify-center text-4xl font-bold cursor-pointer hover:bg-slate-300 transition-colors';
+                cell.innerText = tttBoard[i];
+                
+                cell.onclick = () => {
+                    if (tttBoard[i] === '') {
+                        tttBoard[i] = tttIsX ? 'X' : 'O';
+                        tttIsX = !tttIsX;
+                        renderTTT();
+                        checkTTTWin();
+                    }
+                };
+                
+                grid.appendChild(cell);
+            }
+        }
+
+        function checkTTTWin() {
+            const lines = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            
+            for (let line of lines) {
+                if (tttBoard[line[0]] && tttBoard[line[0]] === tttBoard[line[1]] && tttBoard[line[1]] === tttBoard[line[2]]) {
+                    document.getElementById('ttt-status').innerText = tttBoard[line[0]] + ' wins!';
+                }
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert('Copied!');
+        }
+    </script>
+</body>
+</html>
