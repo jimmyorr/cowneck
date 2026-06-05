@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New React Game Template</title>
+
+    <!-- Google Analytics (Required for all cowneck games) -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-6RNVL7JZVJ');
+    </script>
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Babel (Compiles JSX in the browser on the fly) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <!-- The root element where React will mount the game -->
+    <div id="root"></div>
+    
+    <!-- React Code Block -->
+    <!-- Notice type="text/babel" and data-type="module" which are required! -->
+    <script type="text/babel" data-type="module">
+        // 1. IMPORT REQUIRED LIBRARIES HERE
+        // Always use https://esm.sh/ to import React and any other libraries you need!
+        import React, { useState, useEffect, useCallback, useRef } from 'https://esm.sh/react@18';
+        import { createRoot } from 'https://esm.sh/react-dom@18/client';
+        // Example: import { Terminal } from 'https://esm.sh/lucide-react';
+
+
+        // =====================================================================
+        // 2. DELETE THE FUNCTION BELOW AND PASTE YOUR RAW REACT COMPONENT CODE 
+        // Make sure your main component is named App (e.g. function App() { ... })
+        // If the code says "export default function App()", change it to just "function App()"
+        // =====================================================================
+
+        function App() {
+            return (
+                <div className="flex h-screen items-center justify-center bg-slate-900 text-white">
+                    <div className="text-center">
+                        <h1 className="text-4xl font-bold mb-4">Hello World!</h1>
+                        <p className="text-slate-400">DELETE this App component and replace it with your generated game code.</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // =====================================================================
+        // 3. RENDER THE APP
+        // This code tells React to render your App inside the <div id="root"> above
+        // =====================================================================
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
