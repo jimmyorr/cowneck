@@ -1,0 +1,1812 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Froggie Fro: Journey to Stuffy City</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #050510;
+        touch-action: none;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #canvas-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+      }
+
+      #ui-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .pointer-events-auto {
+        pointer-events: auto;
+      }
+
+      /* Virtual Joystick */
+      #joystick-zone {
+        position: absolute;
+        bottom: 30px;
+        left: 30px;
+        width: 140px;
+        height: 140px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        pointer-events: auto;
+        backdrop-filter: blur(4px);
+      }
+      #joystick-stick {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        position: absolute;
+        pointer-events: none;
+      }
+
+      /* Action Buttons */
+      #action-btn {
+        position: absolute;
+        bottom: 40px;
+        right: 40px;
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-weight: 900;
+        font-size: 1rem;
+        box-shadow: 0 6px 0 #1e3a8a;
+        pointer-events: auto;
+        border: 2px solid #bfdbfe;
+        transition: transform 0.1s;
+      }
+      #action-btn:active {
+        transform: translateY(6px);
+        box-shadow: 0 0px 0 #1e3a8a;
+      }
+
+      /* Screens */
+      .screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 50;
+        background: rgba(5, 5, 16, 0.9);
+        backdrop-filter: blur(10px);
+        transition: opacity 0.5s;
+        pointer-events: auto;
+      }
+      .hidden-screen {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .title-text {
+        font-size: 4rem;
+        font-weight: 900;
+        color: #fff;
+        text-shadow:
+          0 0 20px #22c55e,
+          0 0 40px #22c55e;
+        text-align: center;
+        line-height: 1.1;
+        margin-bottom: 1rem;
+      }
+
+      .toast {
+        position: absolute;
+        top: 120px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 30px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        z-index: 20;
+        border: 2px solid #22c55e;
+        text-align: center;
+        text-shadow: 0 0 5px #22c55e;
+      }
+
+      #mission-tracker {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 10px 20px;
+        border-radius: 20px;
+        border: 1px solid #333;
+        backdrop-filter: blur(5px);
+      }
+
+      /* Minigame HUD */
+      #minigame-hud {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.85);
+        border: 2px solid #facc15;
+        padding: 10px 30px;
+        border-radius: 20px;
+        text-align: center;
+        display: none;
+        z-index: 15;
+        box-shadow: 0 0 15px rgba(250, 204, 21, 0.5);
+        backdrop-filter: blur(5px);
+        width: 80%;
+        max-width: 400px;
+        pointer-events: none;
+      }
+
+      @media (max-width: 768px) {
+        .title-text {
+          font-size: 2.5rem;
+        }
+        #joystick-zone {
+          width: 120px;
+          height: 120px;
+          bottom: 20px;
+          left: 20px;
+        }
+        #action-btn {
+          width: 70px;
+          height: 70px;
+          bottom: 20px;
+          right: 20px;
+        }
+        #minigame-hud {
+          top: 10px;
+          padding: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-container" class="pointer-events-auto"></div>
+
+    <div id="ui-layer">
+      <div class="p-4 flex justify-between items-start pointer-events-auto">
+        <div id="mission-tracker">
+          <div
+            id="level-display"
+            class="text-lg font-black text-blue-400 uppercase tracking-widest mb-1"
+          >
+            Level 1
+          </div>
+          <h1 class="text-xl sm:text-2xl font-black text-white drop-shadow-md">
+            Squad: <span id="score-text" class="text-yellow-400">0 / 8</span>
+          </h1>
+          <p
+            id="mission-desc"
+            class="text-xs sm:text-sm text-green-400 font-bold mt-1"
+          >
+            Find the lost stuffies!
+          </p>
+        </div>
+        <div
+          class="hidden sm:block bg-black/50 p-3 rounded-xl backdrop-blur-md text-white font-bold text-right border border-white/10 text-sm"
+        >
+          <p class="text-blue-400 mb-1">Controls</p>
+          <p>WASD / Joystick to Move</p>
+          <p>Drag Screen to Look Around</p>
+          <p>Space to Jump / Interact</p>
+        </div>
+        <div
+          class="sm:hidden bg-black/50 p-2 rounded-xl backdrop-blur-md text-white font-bold text-center border border-white/10 text-xs mt-12"
+        >
+          <p class="text-blue-400">Drag to look around</p>
+        </div>
+      </div>
+
+      <!-- Help Line Button -->
+      <div class="absolute top-4 right-4 sm:top-20 pointer-events-auto">
+        <button
+          id="help-btn"
+          class="bg-yellow-400 hover:bg-yellow-300 text-black px-4 py-3 rounded-full font-black shadow-[0_4px_0_#b45309] active:translate-y-[4px] active:shadow-[0_0px_0_#b45309] transition-all border-2 border-yellow-100 flex items-center gap-2 z-20 text-sm sm:text-base"
+        >
+          <span class="text-xl">🖍️</span> Help Line
+        </button>
+      </div>
+
+      <!-- Minigame HUD -->
+      <div id="minigame-hud">
+        <h2
+          id="mg-title"
+          class="text-xl font-black text-yellow-300 uppercase tracking-wide"
+        >
+          Minigame!
+        </h2>
+        <p id="mg-desc" class="text-sm text-white font-bold my-1">
+          Complete the objective!
+        </p>
+        <div class="flex justify-between items-center mt-2 font-bold">
+          <span id="mg-progress" class="text-green-400 text-lg">0 / 5</span>
+          <span id="mg-timer" class="text-red-400 text-lg">30s</span>
+        </div>
+      </div>
+
+      <div>
+        <div id="joystick-zone"><div id="joystick-stick"></div></div>
+        <div id="action-btn">JUMP</div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast">Message</div>
+
+    <!-- Level Complete Screen -->
+    <div id="level-screen" class="screen hidden-screen">
+      <h1
+        class="title-text text-yellow-300"
+        style="
+          text-shadow:
+            0 0 20px #eab308,
+            0 0 40px #eab308;
+        "
+      >
+        LEVEL COMPLETE!
+      </h1>
+      <p
+        id="level-msg"
+        class="text-2xl text-white font-bold drop-shadow-md mb-8 text-center px-4 max-w-2xl"
+      >
+        You rescued Jerry! A new bridge has appeared!
+      </p>
+      <button
+        id="next-level-btn"
+        class="bg-green-600 hover:bg-green-500 text-white font-black py-4 px-12 rounded-full text-2xl shadow-[0_6px_0_#166534] active:shadow-[0_0px_0_#166534] active:translate-y-[6px] transition-all border-4 border-green-300"
+      >
+        CONTINUE
+      </button>
+    </div>
+
+    <!-- Marker Dialog Window -->
+    <div
+      id="marker-dialog"
+      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-md p-6 rounded-3xl shadow-2xl z-[60] hidden flex-col items-center border-4 border-blue-400 max-w-sm pointer-events-auto text-center w-[90%] sm:w-full"
+    >
+      <div class="text-5xl mb-2">🖍️</div>
+      <h2 class="text-2xl font-black text-blue-600 mb-3 drop-shadow-sm">
+        Everlasting Marker
+      </h2>
+      <p
+        id="marker-text"
+        class="text-lg font-bold text-gray-700 mb-6 leading-tight"
+      >
+        I drew a bridge to the North! Jerry is shivering!
+      </p>
+      <button
+        id="close-marker-btn"
+        class="bg-blue-500 hover:bg-blue-400 text-white px-8 py-3 rounded-full font-black shadow-[0_4px_0_#1e3a8a] active:translate-y-[4px] active:shadow-[0_0px_0_#1e3a8a] transition-all border-2 border-blue-200"
+      >
+        GOT IT!
+      </button>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="screen">
+      <h1 class="title-text">
+        Froggie Fro:<br /><span
+          style="color: #06b6d4; text-shadow: 0 0 20px #0891b2"
+          >Road to Stuffy</span
+        >
+      </h1>
+      <p
+        class="text-lg sm:text-xl text-gray-300 font-bold drop-shadow-md mb-8 max-w-2xl text-center px-6"
+      >
+        Jerry, Bob, Eleflie, Lemmy and the rest of the gang are lost! Gather the
+        squad, unlock the Froggy Car, and cruise down the highway to Stuffy City
+        to find the others!
+      </p>
+      <button
+        id="start-btn"
+        class="bg-blue-600 hover:bg-blue-500 text-white font-black py-4 px-12 rounded-full text-2xl shadow-[0_6px_0_#1e3a8a] active:translate-y-[6px] active:shadow-[0_0px_0_#1e3a8a] transition-all border-2 border-blue-300"
+      >
+        START ADVENTURE
+      </button>
+    </div>
+
+    <script>
+      // --- Game State ---
+      let gameActive = false;
+      let score = 0;
+      const maxScore = 8;
+      let squad = [];
+      let moveHistory = [];
+      let phase = "explore";
+      let isJumping = false;
+      let yVelocity = 0;
+      let currentLevel = 1;
+
+      // --- Minigame State ---
+      const mg = {
+        active: false,
+        id: 0,
+        objs: [],
+        timer: 0,
+        progress: 0,
+        goal: 0,
+        friendRef: null,
+        pivot: null,
+      };
+
+      // --- Input Systems ---
+      const keys = { w: false, a: false, s: false, d: false, space: false };
+      const joystick = { active: false, nx: 0, ny: 0 };
+      let justPressedSpace = false;
+
+      // Camera Control State
+      let camYaw = 0;
+      let camPitch = Math.PI / 4;
+      let isDraggingCam = false;
+      let lastPointerX = 0;
+      let lastPointerY = 0;
+
+      window.addEventListener("keydown", (e) => {
+        if (e.code === "KeyW" || e.key === "ArrowUp") keys.w = true;
+        if (e.code === "KeyS" || e.key === "ArrowDown") keys.s = true;
+        if (e.code === "KeyA" || e.key === "ArrowLeft") keys.a = true;
+        if (e.code === "KeyD" || e.key === "ArrowRight") keys.d = true;
+        if (e.code === "Space") {
+          keys.space = true;
+          justPressedSpace = true;
+        }
+      });
+      window.addEventListener("keyup", (e) => {
+        if (e.code === "KeyW" || e.key === "ArrowUp") keys.w = false;
+        if (e.code === "KeyS" || e.key === "ArrowDown") keys.s = false;
+        if (e.code === "KeyA" || e.key === "ArrowLeft") keys.a = false;
+        if (e.code === "KeyD" || e.key === "ArrowRight") keys.d = false;
+        if (e.code === "Space") keys.space = false;
+      });
+
+      const canvasContainer = document.getElementById("canvas-container");
+      canvasContainer.addEventListener("pointerdown", (e) => {
+        isDraggingCam = true;
+        lastPointerX = e.clientX;
+        lastPointerY = e.clientY;
+      });
+      window.addEventListener("pointermove", (e) => {
+        if (!isDraggingCam) return;
+        const dx = e.clientX - lastPointerX;
+        const dy = e.clientY - lastPointerY;
+        lastPointerX = e.clientX;
+        lastPointerY = e.clientY;
+        camYaw -= dx * 0.006;
+        camPitch += dy * 0.006;
+        camPitch = Math.max(0.1, Math.min(Math.PI / 2.2, camPitch));
+      });
+      window.addEventListener("pointerup", () => {
+        isDraggingCam = false;
+      });
+      window.addEventListener("pointercancel", () => {
+        isDraggingCam = false;
+      });
+
+      const zone = document.getElementById("joystick-zone");
+      const stick = document.getElementById("joystick-stick");
+      function handleJoy(e) {
+        if (!joystick.active) return;
+        e.preventDefault();
+        let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const rect = zone.getBoundingClientRect();
+        const maxR = rect.width / 2 - 30;
+        let dx = clientX - (rect.left + rect.width / 2);
+        let dy = clientY - (rect.top + rect.height / 2);
+        let dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > maxR) {
+          dx = (dx / dist) * maxR;
+          dy = (dy / dist) * maxR;
+        }
+        stick.style.transform = `translate(${dx}px, ${dy}px)`;
+        joystick.nx = dx / maxR;
+        joystick.ny = dy / maxR;
+      }
+      zone.addEventListener(
+        "touchstart",
+        (e) => {
+          joystick.active = true;
+          handleJoy(e);
+        },
+        { passive: false },
+      );
+      zone.addEventListener("touchmove", handleJoy, { passive: false });
+      zone.addEventListener("touchend", () => {
+        joystick.active = false;
+        joystick.nx = 0;
+        joystick.ny = 0;
+        stick.style.transform = "translate(0,0)";
+      });
+      zone.addEventListener("mousedown", (e) => {
+        joystick.active = true;
+        handleJoy(e);
+      });
+      window.addEventListener("mousemove", (e) => {
+        if (joystick.active) handleJoy(e);
+      });
+      window.addEventListener("mouseup", () => {
+        joystick.active = false;
+        joystick.nx = 0;
+        joystick.ny = 0;
+        stick.style.transform = "translate(0,0)";
+      });
+
+      const actionBtn = document.getElementById("action-btn");
+      actionBtn.addEventListener(
+        "touchstart",
+        (e) => {
+          e.preventDefault();
+          keys.space = true;
+          justPressedSpace = true;
+        },
+        { passive: false },
+      );
+      actionBtn.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        keys.space = false;
+      });
+      actionBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        keys.space = true;
+        justPressedSpace = true;
+      });
+      actionBtn.addEventListener("mouseup", (e) => {
+        e.preventDefault();
+        keys.space = false;
+      });
+
+      // --- Three.js Init ---
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x050510);
+      scene.fog = new THREE.FogExp2(0x050510, 0.005);
+
+      const camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000,
+      );
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        powerPreference: "high-performance",
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      canvasContainer.appendChild(renderer.domElement);
+
+      const hemiLight = new THREE.HemisphereLight(0x0f172a, 0x050510, 1.5);
+      scene.add(hemiLight);
+      const moonLight = new THREE.DirectionalLight(0x38bdf8, 1);
+      moonLight.position.set(50, 100, 50);
+      moonLight.castShadow = true;
+      moonLight.shadow.mapSize.width = 1024;
+      moonLight.shadow.mapSize.height = 1024;
+      scene.add(moonLight);
+
+      const solidGrounds = [];
+      function addSolidMesh(mesh) {
+        scene.add(mesh);
+        solidGrounds.push(mesh);
+      }
+
+      // --- World 1: Islands ---
+      const mats = {
+        grass: new THREE.MeshStandardMaterial({
+          color: 0x15803d,
+          roughness: 1,
+        }),
+        ice: new THREE.MeshStandardMaterial({
+          color: 0xe0f2fe,
+          roughness: 0.3,
+          metalness: 0.1,
+        }),
+        desert: new THREE.MeshStandardMaterial({
+          color: 0xd97706,
+          roughness: 1,
+        }),
+        lava: new THREE.MeshStandardMaterial({
+          color: 0x450a0a,
+          roughness: 0.9,
+        }),
+        cyber: new THREE.MeshStandardMaterial({
+          color: 0x1e1b4b,
+          roughness: 0.5,
+        }),
+        wood: new THREE.MeshStandardMaterial({ color: 0x78350f }),
+      };
+
+      function createIsland(x, z, r, mat) {
+        const geo = new THREE.CylinderGeometry(r, r - 2, 6, 24);
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(x, -3, z);
+        mesh.receiveShadow = true;
+        addSolidMesh(mesh);
+      }
+
+      function createBridge(x1, z1, x2, z2) {
+        const dx = x2 - x1,
+          dz = z2 - z1;
+        const len = Math.sqrt(dx * dx + dz * dz);
+        const mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(6, 2, len),
+          mats.wood,
+        );
+        mesh.position.set(x1 + dx / 2, -1, z1 + dz / 2);
+        mesh.rotation.y = Math.atan2(dx, dz);
+        mesh.receiveShadow = true;
+        addSolidMesh(mesh);
+      }
+
+      createIsland(0, 0, 16, mats.grass); // Hub
+      createIsland(0, -45, 14, mats.ice); // North (Jerry)
+      createIsland(45, 0, 14, mats.desert); // East (Bob)
+      createIsland(0, 45, 14, mats.lava); // South (Eleflie)
+      createIsland(-45, 0, 14, mats.cyber); // West (Lemmy)
+      createBridge(0, -15, 0, -32); // Initial Bridge
+
+      // Everlasting Marker Prop
+      const everlastingMarker = new THREE.Group();
+      const markerBody = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.6, 0.6, 4, 16),
+        new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.2 }),
+      );
+      markerBody.position.y = 2;
+      const markerTip = new THREE.Mesh(
+        new THREE.ConeGeometry(0.6, 1.5, 16),
+        new THREE.MeshStandardMaterial({ color: 0x1e3a8a }),
+      );
+      markerTip.position.y = 4.75;
+      const markerLabel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.62, 0.62, 2, 16),
+        new THREE.MeshStandardMaterial({ color: 0xffffff }),
+      );
+      markerLabel.position.y = 2;
+      everlastingMarker.add(markerBody, markerTip, markerLabel);
+      everlastingMarker.position.set(5, 0, 5);
+      everlastingMarker.rotation.z = 0.2;
+      scene.add(everlastingMarker);
+
+      const silverMat = new THREE.MeshStandardMaterial({
+        color: 0xcccccc,
+        metalness: 0.9,
+        roughness: 0.1,
+      });
+      const blackMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+      const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
+      function addKeychain(group, y) {
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.25, 0.05, 8, 24),
+          silverMat,
+        );
+        ring.position.set(0, y, -0.2);
+        ring.rotation.y = Math.PI / 4;
+        group.add(ring);
+      }
+
+      function buildChar(type) {
+        const group = new THREE.Group();
+        const baseMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        const bodyGeo = new THREE.SphereGeometry(1, 32, 16);
+        const body = new THREE.Mesh(bodyGeo, baseMat);
+        body.position.y = 1;
+        body.castShadow = true;
+
+        if (type === "froggie") {
+          baseMat.color.setHex(0x22c55e);
+          body.scale.set(1.1, 0.8, 1.1);
+          [-0.4, 0.4].forEach((x) => {
+            const eye = new THREE.Mesh(
+              new THREE.SphereGeometry(0.3, 16, 16),
+              whiteMat,
+            );
+            eye.position.set(x, 1.6, 0.6);
+            const pupil = new THREE.Mesh(
+              new THREE.SphereGeometry(0.12, 16, 16),
+              blackMat,
+            );
+            pupil.position.set(x, 1.6, 0.88);
+            group.add(eye, pupil);
+          });
+          addKeychain(group, 1.8);
+        } else if (type === "polarbear") {
+          baseMat.color.setHex(0xf8fafc);
+          [-0.6, 0.6].forEach((x) => {
+            const ear = new THREE.Mesh(
+              new THREE.SphereGeometry(0.25, 16, 16),
+              baseMat,
+            );
+            ear.position.set(x, 1.7, 0);
+            group.add(ear);
+          });
+          const snout = new THREE.Mesh(
+            new THREE.SphereGeometry(0.4, 16, 16),
+            blackMat,
+          );
+          snout.position.set(0, 1, 0.9);
+          group.add(snout);
+          addKeychain(group, 2.0);
+        } else if (type === "tiger") {
+          baseMat.color.setHex(0xf97316);
+          body.scale.set(1, 1.1, 1);
+          [-0.5, 0.5].forEach((x) => {
+            const ear = new THREE.Mesh(
+              new THREE.ConeGeometry(0.2, 0.4, 8),
+              blackMat,
+            );
+            ear.position.set(x, 1.8, 0);
+            group.add(ear);
+          });
+          for (let i = 0; i < 3; i++) {
+            const stripe = new THREE.Mesh(
+              new THREE.TorusGeometry(1.02, 0.05, 8, 24),
+              blackMat,
+            );
+            stripe.rotation.x = Math.PI / 2;
+            stripe.position.y = 0.6 + i * 0.4;
+            group.add(stripe);
+          }
+          addKeychain(group, 2.1);
+        } else if (type === "elephant") {
+          baseMat.color.setHex(0x94a3b8);
+          body.scale.set(1.2, 1, 1.1);
+          [-1, 1].forEach((x) => {
+            const ear = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.6, 0.6, 0.1, 16),
+              baseMat,
+            );
+            ear.rotation.z = Math.PI / 2;
+            ear.rotation.y = x > 0 ? 0.2 : -0.2;
+            ear.position.set(x * 1.1, 1.2, 0);
+            group.add(ear);
+          });
+          const trunk = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.2, 0.3, 1.5, 16),
+            baseMat,
+          );
+          trunk.rotation.x = Math.PI / 4;
+          trunk.position.set(0, 0.8, 1.2);
+          group.add(trunk);
+          addKeychain(group, 2.1);
+        } else if (type === "lion") {
+          baseMat.color.setHex(0xfacc15);
+          const mane = new THREE.Mesh(
+            new THREE.TorusGeometry(0.8, 0.4, 16, 32),
+            new THREE.MeshStandardMaterial({ color: 0xb45309 }),
+          );
+          mane.position.set(0, 1.2, 0.5);
+          group.add(mane);
+          addKeychain(group, 2.1);
+        } else if (type === "dog") {
+          baseMat.color.setHex(0x8b4513);
+          [-0.5, 0.5].forEach((x) => {
+            const ear = new THREE.Mesh(
+              new THREE.BoxGeometry(0.2, 0.8, 0.4),
+              baseMat,
+            );
+            ear.position.set(x, 1.4, 0);
+            ear.rotation.z = x < 0 ? 0.2 : -0.2;
+            group.add(ear);
+          });
+          const snout = new THREE.Mesh(
+            new THREE.BoxGeometry(0.5, 0.4, 0.5),
+            blackMat,
+          );
+          snout.position.set(0, 1, 0.9);
+          group.add(snout);
+          addKeychain(group, 2.0);
+        } else if (type === "cheetah") {
+          baseMat.color.setHex(0xfacc15);
+          [-0.4, 0.4].forEach((x) => {
+            const ear = new THREE.Mesh(
+              new THREE.SphereGeometry(0.2, 8, 8),
+              baseMat,
+            );
+            ear.position.set(x, 1.8, 0);
+            group.add(ear);
+          });
+          for (let i = 0; i < 6; i++) {
+            const spot = new THREE.Mesh(
+              new THREE.SphereGeometry(0.15, 8, 8),
+              blackMat,
+            );
+            spot.position.set(
+              (Math.random() - 0.5) * 1.8,
+              0.5 + Math.random(),
+              (Math.random() - 0.5) * 1.8,
+            );
+            group.add(spot);
+          }
+          addKeychain(group, 2.0);
+        } else if (type === "chimp") {
+          baseMat.color.setHex(0x3e2723);
+          const faceMat = new THREE.MeshStandardMaterial({ color: 0xd7ccc8 });
+          const face = new THREE.Mesh(
+            new THREE.SphereGeometry(0.85, 16, 16),
+            faceMat,
+          );
+          face.position.set(0, 1, 0.3);
+          group.add(face);
+          [-0.9, 0.9].forEach((x) => {
+            const ear = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.3, 0.3, 0.1, 16),
+              faceMat,
+            );
+            ear.rotation.z = Math.PI / 2;
+            ear.position.set(x, 1.2, 0);
+            group.add(ear);
+          });
+          addKeychain(group, 2.0);
+        } else if (type === "doughnut") {
+          baseMat.color.setHex(0xf5deb3);
+          const dMat = new THREE.MeshStandardMaterial({ color: 0xff69b4 });
+          const donut = new THREE.Mesh(
+            new THREE.TorusGeometry(1.2, 0.4, 16, 32),
+            dMat,
+          );
+          donut.rotation.x = Math.PI / 2;
+          donut.position.set(0, 0.8, 0);
+          group.add(donut);
+          [-0.4, 0.4].forEach((x) => {
+            const ear = new THREE.Mesh(
+              new THREE.SphereGeometry(0.2, 8, 8),
+              baseMat,
+            );
+            ear.position.set(x, 1.8, 0);
+            group.add(ear);
+          });
+          addKeychain(group, 2.0);
+        }
+
+        group.add(body);
+        return group;
+      }
+
+      const froggie = buildChar("froggie");
+      scene.add(froggie);
+      squad.push(froggie);
+
+      const friendsToRescue = [
+        // World 1
+        {
+          obj: buildChar("polarbear"),
+          name: "Jerry the Polar Bear",
+          pos: { x: 0, z: -45 },
+          collected: false,
+          active: true,
+        },
+        {
+          obj: buildChar("tiger"),
+          name: "Bob the Tiger",
+          pos: { x: 45, z: 0 },
+          collected: false,
+          active: false,
+        },
+        {
+          obj: buildChar("elephant"),
+          name: "Eleflie the Elephant",
+          pos: { x: 0, z: 45 },
+          collected: false,
+          active: false,
+        },
+        {
+          obj: buildChar("lion"),
+          name: "Lemmy the Lion",
+          pos: { x: -45, z: 0 },
+          collected: false,
+          active: false,
+        },
+        // World 2 (Stuffy City)
+        {
+          obj: buildChar("dog"),
+          name: "Doge the Dog",
+          pos: { x: 45, z: -465 },
+          collected: false,
+          active: false,
+        },
+        {
+          obj: buildChar("cheetah"),
+          name: "Cherry the Cheetah",
+          pos: { x: -45, z: -525 },
+          collected: false,
+          active: false,
+        },
+        {
+          obj: buildChar("chimp"),
+          name: "Chimp the Chimpanzee",
+          pos: { x: 45, z: -525 },
+          collected: false,
+          active: false,
+        },
+        {
+          obj: buildChar("doughnut"),
+          name: "Derick the Doughnut",
+          pos: { x: -45, z: -465 },
+          collected: false,
+          active: false,
+        },
+      ];
+
+      friendsToRescue.forEach((f) => {
+        f.obj.position.set(f.pos.x, 2, f.pos.z);
+        const aura = new THREE.Mesh(
+          new THREE.CylinderGeometry(2, 2, 10, 16, 1, true),
+          new THREE.MeshBasicMaterial({
+            color: 0x06b6d4,
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.DoubleSide,
+          }),
+        );
+        aura.position.y = 5;
+        f.obj.add(aura);
+        scene.add(f.obj);
+        if (!f.active) f.obj.visible = false;
+      });
+
+      // --- Minigame System ---
+      function startMinigame(level, friendRef) {
+        mg.active = true;
+        mg.id = level;
+        mg.objs = [];
+        mg.progress = 0;
+        mg.friendRef = friendRef;
+
+        const ui = document.getElementById("minigame-hud");
+        const title = document.getElementById("mg-title");
+        const desc = document.getElementById("mg-desc");
+        const progressEl = document.getElementById("mg-progress");
+        ui.style.display = "block";
+
+        if (level === 1) {
+          title.innerText = "Snowflake Catch!";
+          desc.innerText = "Catch 5 falling snowflakes to melt the ice!";
+          mg.goal = 5;
+          mg.timer = 25;
+          progressEl.innerText = `0 / ${mg.goal}`;
+          for (let i = 0; i < 5; i++) {
+            let flake = new THREE.Mesh(
+              new THREE.DodecahedronGeometry(0.6),
+              new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                emissive: 0x38bdf8,
+              }),
+            );
+            flake.position.set(
+              (Math.random() - 0.5) * 16,
+              10 + Math.random() * 15,
+              -45 + (Math.random() - 0.5) * 16,
+            );
+            scene.add(flake);
+            mg.objs.push(flake);
+          }
+        } else if (level === 2) {
+          title.innerText = "Desert Ring Race!";
+          desc.innerText = "Run through all 4 Golden Rings quickly!";
+          mg.goal = 4;
+          mg.timer = 20;
+          progressEl.innerText = `0 / ${mg.goal}`;
+          const ringMat = new THREE.MeshStandardMaterial({
+            color: 0xfacc15,
+            emissive: 0xb45309,
+          });
+          [
+            [45, 10],
+            [55, 0],
+            [45, -10],
+            [35, 0],
+          ].forEach((p) => {
+            let ring = new THREE.Mesh(
+              new THREE.TorusGeometry(1.5, 0.2, 8, 16),
+              ringMat,
+            );
+            ring.position.set(p[0], 1.5, p[1]);
+            scene.add(ring);
+            mg.objs.push(ring);
+          });
+        } else if (level === 3) {
+          title.innerText = "Lava Jump Survival!";
+          desc.innerText = "Jump over the spinning fireballs for 15s!";
+          mg.goal = 15;
+          mg.timer = 15;
+          progressEl.innerText = "Survive!";
+          mg.pivot = new THREE.Group();
+          mg.pivot.position.set(0, 1.5, 45);
+          scene.add(mg.pivot);
+          const fireMat = new THREE.MeshStandardMaterial({
+            color: 0xff0000,
+            emissive: 0xff5500,
+          });
+          let fire1 = new THREE.Mesh(
+            new THREE.SphereGeometry(1.5, 16, 16),
+            fireMat,
+          );
+          fire1.position.set(10, 0, 0);
+          let fire2 = new THREE.Mesh(
+            new THREE.SphereGeometry(1.5, 16, 16),
+            fireMat,
+          );
+          fire2.position.set(-10, 0, 0);
+          mg.pivot.add(fire1, fire2);
+          mg.objs.push(fire1, fire2);
+        } else if (level === 4) {
+          title.innerText = "Cyber-Battery Chase!";
+          desc.innerText = "Catch the runaway battery to power Lemmy!";
+          mg.goal = 1;
+          mg.timer = 25;
+          progressEl.innerText = `0 / 1`;
+          let battery = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.6, 0.6, 2, 16),
+            new THREE.MeshStandardMaterial({
+              color: 0x22c55e,
+              emissive: 0x22c55e,
+            }),
+          );
+          battery.position.set(-45, 1, 10);
+          scene.add(battery);
+          mg.objs.push(battery);
+        } else if (level === 5) {
+          title.innerText = "Fetch the Bones!";
+          desc.innerText = "Find and collect 3 bones around the block!";
+          mg.goal = 3;
+          mg.timer = 20;
+          progressEl.innerText = `0 / ${mg.goal}`;
+          for (let i = 0; i < 3; i++) {
+            let bone = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.3, 0.3, 2, 8),
+              whiteMat,
+            );
+            bone.rotation.z = Math.PI / 2;
+            bone.position.set(
+              friendRef.obj.position.x + (Math.random() - 0.5) * 25,
+              1,
+              friendRef.obj.position.z + (Math.random() - 0.5) * 25,
+            );
+            scene.add(bone);
+            mg.objs.push(bone);
+          }
+        } else if (level === 6) {
+          title.innerText = "Speed Orb Dash!";
+          desc.innerText = "Use your speed to grab 4 floating Orbs!";
+          mg.goal = 4;
+          mg.timer = 20;
+          progressEl.innerText = `0 / ${mg.goal}`;
+          for (let i = 0; i < 4; i++) {
+            let orb = new THREE.Mesh(
+              new THREE.SphereGeometry(0.8, 16, 16),
+              new THREE.MeshStandardMaterial({
+                color: 0xfacc15,
+                emissive: 0xb45309,
+              }),
+            );
+            orb.position.set(
+              friendRef.obj.position.x + (Math.random() - 0.5) * 30,
+              2 + Math.random() * 3,
+              friendRef.obj.position.z + (Math.random() - 0.5) * 30,
+            );
+            scene.add(orb);
+            mg.objs.push(orb);
+          }
+        } else if (level === 7) {
+          title.innerText = "Banana Grab!";
+          desc.innerText = "Jump up and grab 3 Bananas!";
+          mg.goal = 3;
+          mg.timer = 20;
+          progressEl.innerText = `0 / ${mg.goal}`;
+          for (let i = 0; i < 3; i++) {
+            let banana = new THREE.Mesh(
+              new THREE.TorusGeometry(1, 0.3, 8, 16, Math.PI),
+              new THREE.MeshStandardMaterial({ color: 0xfacc15 }),
+            );
+            banana.position.set(
+              friendRef.obj.position.x + (Math.random() - 0.5) * 20,
+              4 + Math.random() * 4,
+              friendRef.obj.position.z + (Math.random() - 0.5) * 20,
+            );
+            scene.add(banana);
+            mg.objs.push(banana);
+          }
+        } else if (level === 8) {
+          title.innerText = "Doughnut Dodge!";
+          desc.innerText = "Survive the falling pastries for 15s!";
+          mg.goal = 15;
+          mg.timer = 15;
+          progressEl.innerText = "Survive!";
+          for (let i = 0; i < 6; i++) {
+            let donut = new THREE.Mesh(
+              new THREE.TorusGeometry(1.5, 0.6, 16, 32),
+              new THREE.MeshStandardMaterial({ color: 0xff69b4 }),
+            );
+            donut.position.set(
+              friendRef.obj.position.x + (Math.random() - 0.5) * 20,
+              10 + Math.random() * 20,
+              friendRef.obj.position.z + (Math.random() - 0.5) * 20,
+            );
+            donut.rotation.x = Math.PI / 2;
+            scene.add(donut);
+            mg.objs.push(donut);
+          }
+        }
+      }
+
+      function cleanupMinigame() {
+        mg.objs.forEach((obj) => scene.remove(obj));
+        if (mg.pivot) {
+          scene.remove(mg.pivot);
+          mg.pivot = null;
+        }
+        mg.objs = [];
+        document.getElementById("minigame-hud").style.display = "none";
+        mg.active = false;
+      }
+
+      function winMinigame() {
+        showToast("Minigame Completed!");
+        cleanupMinigame();
+
+        let f = mg.friendRef;
+        f.collected = true;
+        f.active = false;
+        f.obj.children.forEach((c) => {
+          if (c.geometry.type === "CylinderGeometry") c.visible = false;
+        });
+        squad.push(f.obj);
+        score++;
+        currentLevel++;
+
+        document.getElementById("score-text").innerText =
+          `${score} / ${maxScore}`;
+
+        // Show Level Screen
+        gameActive = false;
+        if (currentLevel === 5) {
+          document.getElementById("level-msg").innerText =
+            `You rescued ${f.name} and completed World 1! The Marker drew a massive highway!`;
+          document.getElementById("next-level-btn").innerText =
+            `ENTER HIGHWAY TO WORLD 2`;
+        } else if (currentLevel <= maxScore) {
+          document.getElementById("level-msg").innerText =
+            `You rescued ${f.name}! Keep exploring Stuffy City!`;
+          document.getElementById("next-level-btn").innerText =
+            `CONTINUE TO LEVEL ${currentLevel}`;
+        } else {
+          document.getElementById("level-msg").innerText =
+            `You rescued EVERYONE! The squad is finally complete!`;
+          document.getElementById("next-level-btn").innerText =
+            `START THE PARTY!`;
+        }
+        document
+          .getElementById("level-screen")
+          .classList.remove("hidden-screen");
+      }
+
+      function failMinigame() {
+        showToast("Minigame Failed! Try again.");
+        cleanupMinigame();
+
+        // Reset player safely
+        if (mg.friendRef) {
+          froggie.position.set(mg.friendRef.pos.x, 10, mg.friendRef.pos.z + 5);
+        } else {
+          froggie.position.set(
+            currentLevel > 4 ? 0 : 0,
+            10,
+            currentLevel > 4 ? -480 : 0,
+          );
+        }
+        yVelocity = 0;
+      }
+
+      function activateLevel(lvl) {
+        if (lvl === 2) {
+          createBridge(15, 0, 32, 0);
+          friendsToRescue[1].active = true;
+          friendsToRescue[1].obj.visible = true;
+        } else if (lvl === 3) {
+          createBridge(0, 15, 0, 32);
+          friendsToRescue[2].active = true;
+          friendsToRescue[2].obj.visible = true;
+        } else if (lvl === 4) {
+          createBridge(-15, 0, -32, 0);
+          friendsToRescue[3].active = true;
+          friendsToRescue[3].obj.visible = true;
+        } else if (lvl === 5) {
+          unlockHighway();
+        } else if (lvl > 5 && lvl <= 8) {
+          friendsToRescue[lvl - 1].active = true;
+          friendsToRescue[lvl - 1].obj.visible = true;
+        }
+      }
+
+      // --- World 2: Highway & Stuffy City ---
+      const highwayGroup = new THREE.Group();
+      const cityGroup = new THREE.Group();
+      scene.add(highwayGroup);
+      scene.add(cityGroup);
+
+      const froggyCar = new THREE.Group();
+      const chassis = new THREE.Mesh(
+        new THREE.BoxGeometry(4, 1.5, 7),
+        new THREE.MeshStandardMaterial({
+          color: 0x22c55e,
+          roughness: 0.2,
+          metalness: 0.3,
+        }),
+      );
+      chassis.position.y = 1;
+      froggyCar.add(chassis);
+      const roof = new THREE.Mesh(
+        new THREE.BoxGeometry(3, 1.5, 3),
+        new THREE.MeshStandardMaterial({ color: 0x15803d }),
+      );
+      roof.position.set(0, 2.5, -0.5);
+      froggyCar.add(roof);
+      for (let i = 0; i < 4; i++) {
+        const w = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.8, 0.8, 0.6, 16),
+          new THREE.MeshStandardMaterial({ color: 0x111 }),
+        );
+        w.rotation.z = Math.PI / 2;
+        w.position.set(i % 2 === 0 ? 2.2 : -2.2, 0.8, i < 2 ? 2.5 : -2.5);
+        froggyCar.add(w);
+      }
+      [-0.8, 0.8].forEach((x) => {
+        const eye = new THREE.Mesh(
+          new THREE.SphereGeometry(0.5, 16, 16),
+          whiteMat,
+        );
+        eye.position.set(x, 3.5, 0.5);
+        const pupil = new THREE.Mesh(
+          new THREE.SphereGeometry(0.2, 16, 16),
+          blackMat,
+        );
+        pupil.position.set(x, 3.5, 0.9);
+        froggyCar.add(eye, pupil);
+      });
+      [-1.2, 1.2].forEach((x) => {
+        const hl = new THREE.SpotLight(0xffffff, 5, 100, Math.PI / 6, 0.5, 1);
+        hl.position.set(x, 1.2, 3.5);
+        const target = new THREE.Object3D();
+        target.position.set(x, 1.2, 10);
+        hl.target = target;
+        froggyCar.add(hl);
+        froggyCar.add(target);
+        const lMesh = new THREE.Mesh(
+          new THREE.CircleGeometry(0.4, 16),
+          new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            emissive: 0xffffff,
+          }),
+        );
+        lMesh.position.set(x, 1.2, 3.51);
+        froggyCar.add(lMesh);
+      });
+
+      froggyCar.position.set(0, 0, -70);
+      froggyCar.rotation.y = Math.PI;
+      froggyCar.visible = false;
+      scene.add(froggyCar);
+
+      function unlockHighway() {
+        const roadMat = new THREE.MeshStandardMaterial({
+          color: 0x222222,
+          roughness: 0.8,
+        });
+        const road = new THREE.Mesh(new THREE.BoxGeometry(20, 2, 400), roadMat);
+        road.position.set(0, -1, -220);
+        highwayGroup.add(road);
+        addSolidMesh(road);
+
+        const railMat = new THREE.MeshStandardMaterial({
+          color: 0x06b6d4,
+          emissive: 0x06b6d4,
+          emissiveIntensity: 2,
+        });
+        const railL = new THREE.Mesh(
+          new THREE.BoxGeometry(0.5, 1, 400),
+          railMat,
+        );
+        railL.position.set(-9.5, 0.5, -220);
+        const railR = new THREE.Mesh(
+          new THREE.BoxGeometry(0.5, 1, 400),
+          railMat,
+        );
+        railR.position.set(9.5, 0.5, -220);
+        highwayGroup.add(railL, railR);
+
+        froggyCar.visible = true;
+        phase = "transition";
+        document.getElementById("mission-desc").innerText =
+          "Get in the Froggy Car!";
+        document.getElementById("action-btn").innerText = "ENTER";
+      }
+
+      function buildCity() {
+        const cityCenterZ = -500;
+
+        // NEW LIGHTING FOR STUFFY CITY (Fixes darkness)
+        const cityLight1 = new THREE.PointLight(0xec4899, 2.5, 800);
+        cityLight1.position.set(80, 80, cityCenterZ + 50);
+        cityGroup.add(cityLight1);
+
+        const cityLight2 = new THREE.PointLight(0x06b6d4, 2.5, 800);
+        cityLight2.position.set(-80, 80, cityCenterZ - 50);
+        cityGroup.add(cityLight2);
+
+        const cityAmbient = new THREE.AmbientLight(0xffffff, 0.4);
+        cityGroup.add(cityAmbient);
+
+        // Ground (lighter color so we can see it better)
+        const cGround = new THREE.Mesh(
+          new THREE.BoxGeometry(300, 2, 300),
+          new THREE.MeshStandardMaterial({ color: 0x222233 }),
+        );
+        cGround.position.set(0, -1, cityCenterZ);
+        addSolidMesh(cGround);
+        cityGroup.add(cGround);
+
+        const signMat = new THREE.MeshStandardMaterial({
+          color: 0xec4899,
+          emissive: 0xec4899,
+          emissiveIntensity: 2,
+        });
+        const sign = new THREE.Mesh(new THREE.BoxGeometry(60, 15, 2), signMat);
+        sign.position.set(0, 40, cityCenterZ + 120);
+        cityGroup.add(sign);
+
+        const neonColors = [0x06b6d4, 0xec4899, 0xa855f7, 0x22c55e, 0xeab308];
+
+        for (let x = -120; x <= 120; x += 30) {
+          for (let z = -620; z <= -380; z += 30) {
+            if (Math.abs(x) < 20) continue;
+
+            const height = 20 + Math.random() * 80;
+            const bMat = new THREE.MeshStandardMaterial({
+              color: 0x1e293b,
+              roughness: 0.1,
+              metalness: 0.8,
+            });
+            const bldg = new THREE.Mesh(
+              new THREE.BoxGeometry(20, height, 20),
+              bMat,
+            );
+            bldg.position.set(x, height / 2, z);
+
+            const ringCol =
+              neonColors[Math.floor(Math.random() * neonColors.length)];
+            const ring = new THREE.Mesh(
+              new THREE.BoxGeometry(22, 2, 22),
+              new THREE.MeshStandardMaterial({
+                color: ringCol,
+                emissive: ringCol,
+                emissiveIntensity: 1,
+              }),
+            );
+            ring.position.set(0, (height / 2) * 0.8, 0);
+            bldg.add(ring);
+
+            cityGroup.add(bldg);
+            addSolidMesh(bldg);
+          }
+        }
+      }
+      buildCity();
+
+      // --- Core Logic & UI ---
+      function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.innerText = msg;
+        toast.style.opacity = "1";
+        toast.style.top = "140px";
+        setTimeout(() => {
+          toast.style.opacity = "0";
+          toast.style.top = "120px";
+        }, 4000);
+      }
+
+      document.getElementById("help-btn").addEventListener("click", () => {
+        const dialog = document.getElementById("marker-dialog");
+        const text = document.getElementById("marker-text");
+
+        if (currentLevel === 1)
+          text.innerText =
+            "I drew a bridge to the North! Jerry the Polar Bear is shivering on the Ice island. Complete his minigame!";
+        else if (currentLevel === 2)
+          text.innerText =
+            "Great job! I just sketched a bridge to the East. Beat Bob's Desert Ring Race to save him!";
+        else if (currentLevel === 3)
+          text.innerText =
+            "Two down! My red ink made a bridge to the South. Survive the Lava Jump to rescue Eleflie!";
+        else if (currentLevel === 4)
+          text.innerText =
+            "Almost done! I used my neon ink for a bridge to the West. Catch the runaway battery for Lemmy!";
+        else if (currentLevel === 5)
+          text.innerText =
+            "Welcome to Stuffy City! Doge the Dog is hanging around the East block. Play his fetching game!";
+        else if (currentLevel === 6)
+          text.innerText =
+            "Wow, it's busy here! Cherry the Cheetah is sprinting around the North-West block!";
+        else if (currentLevel === 7)
+          text.innerText =
+            "Look at those skyscrapers! Chimp the Chimpanzee is swinging near the North-East block!";
+        else if (currentLevel === 8)
+          text.innerText =
+            "You're amazing! Derick the Doughnut is chilling in the West block. Watch out for falling pastries!";
+        else
+          text.innerText = "You found EVERYONE! Time to party in Stuffy City!";
+
+        dialog.classList.remove("hidden");
+        dialog.classList.add("flex");
+      });
+
+      document
+        .getElementById("close-marker-btn")
+        .addEventListener("click", () => {
+          document.getElementById("marker-dialog").classList.add("hidden");
+          document.getElementById("marker-dialog").classList.remove("flex");
+        });
+
+      document.getElementById("start-btn").addEventListener("click", () => {
+        document.getElementById("start-screen").classList.add("hidden-screen");
+        gameActive = true;
+        for (let i = 0; i < 300; i++)
+          moveHistory.push({ x: 0, y: 0, z: 0, rot: 0 });
+      });
+
+      document
+        .getElementById("next-level-btn")
+        .addEventListener("click", () => {
+          document
+            .getElementById("level-screen")
+            .classList.add("hidden-screen");
+          gameActive = true;
+
+          document.getElementById("level-display").innerText =
+            currentLevel <= maxScore
+              ? `Level ${currentLevel}`
+              : "All Complete!";
+
+          // FIX: Don't spawn them in Stuffy City immediately if they just unlocked the highway!
+          // Only spawn at -480 if the current level is GREATER than 5 (meaning they already reached the city)
+          let spawnPos = currentLevel > 5 ? { x: 0, z: -480 } : { x: 0, z: 0 };
+
+          if (currentLevel <= maxScore || currentLevel === 5) {
+            froggie.position.set(spawnPos.x, 10, spawnPos.z);
+            froggie.rotation.y = 0;
+            moveHistory = [];
+            for (let i = 0; i < 300; i++)
+              moveHistory.push({ x: 0, y: 0, z: 0, rot: 0 });
+            squad.forEach((member) => {
+              member.position.set(spawnPos.x, 10, spawnPos.z);
+              member.rotation.y = 0;
+            });
+            activateLevel(currentLevel);
+            camYaw = 0;
+            camPitch = Math.PI / 4;
+          }
+        });
+
+      const clock = new THREE.Clock();
+      let carVelocity = 0;
+      const raycaster = new THREE.Raycaster();
+      const downVec = new THREE.Vector3(0, -1, 0);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const delta = Math.min(clock.getDelta(), 0.1);
+        const time = clock.getElapsedTime();
+
+        if (gameActive) {
+          // --- MINIGAME LOOP ---
+          if (mg.active) {
+            mg.timer -= delta;
+            document.getElementById("mg-timer").innerText =
+              Math.ceil(mg.timer) + "s";
+
+            if (mg.timer <= 0) {
+              if (mg.id === 3 || mg.id === 8) winMinigame();
+              else failMinigame();
+            } else {
+              if (mg.id === 1) {
+                mg.objs.forEach((flake, index) => {
+                  if (!flake.visible) return;
+                  flake.position.y -= delta * 5;
+                  flake.rotation.y += delta;
+                  flake.rotation.x += delta;
+                  if (flake.position.y < 0) flake.position.y = 15;
+                  if (froggie.position.distanceTo(flake.position) < 2.5) {
+                    flake.visible = false;
+                    mg.progress++;
+                    document.getElementById("mg-progress").innerText =
+                      `${mg.progress} / ${mg.goal}`;
+                    if (mg.progress >= mg.goal) winMinigame();
+                  }
+                });
+              } else if (mg.id === 2) {
+                mg.objs.forEach((ring) => {
+                  if (!ring.visible) return;
+                  ring.rotation.y += delta;
+                  if (froggie.position.distanceTo(ring.position) < 2.5) {
+                    ring.visible = false;
+                    mg.progress++;
+                    document.getElementById("mg-progress").innerText =
+                      `${mg.progress} / ${mg.goal}`;
+                    if (mg.progress >= mg.goal) winMinigame();
+                  }
+                });
+              } else if (mg.id === 3) {
+                if (mg.pivot) {
+                  mg.pivot.rotation.y += delta * 2;
+                  let hit = false;
+                  mg.objs.forEach((fire) => {
+                    let fPos = new THREE.Vector3();
+                    fire.getWorldPosition(fPos);
+                    if (froggie.position.distanceTo(fPos) < 2.5) hit = true;
+                  });
+                  if (hit) failMinigame();
+                }
+              } else if (mg.id === 4) {
+                let battery = mg.objs[0];
+                battery.rotation.y += delta * 5;
+                let dist = froggie.position.distanceTo(battery.position);
+                if (dist < 2.0) winMinigame();
+                else if (dist < 10) {
+                  let runDir = new THREE.Vector3().subVectors(
+                    battery.position,
+                    froggie.position,
+                  );
+                  runDir.y = 0;
+                  runDir.normalize();
+                  battery.position.add(runDir.multiplyScalar(delta * 8));
+                  if (
+                    battery.position.distanceTo(new THREE.Vector3(-45, 0, 0)) >
+                    12
+                  ) {
+                    let centerDir = new THREE.Vector3(-45, 1, 0)
+                      .sub(battery.position)
+                      .normalize();
+                    battery.position.add(centerDir.multiplyScalar(delta * 12));
+                  }
+                }
+              } else if (mg.id === 5 || mg.id === 6 || mg.id === 7) {
+                mg.objs.forEach((item) => {
+                  if (!item.visible) return;
+                  item.rotation.y += delta;
+                  item.position.y =
+                    (mg.id === 7 ? 4 : 2) +
+                    Math.sin(time * 5 + item.position.x) * 0.5;
+                  if (froggie.position.distanceTo(item.position) < 3.5) {
+                    item.visible = false;
+                    mg.progress++;
+                    document.getElementById("mg-progress").innerText =
+                      `${mg.progress} / ${mg.goal}`;
+                    if (mg.progress >= mg.goal) winMinigame();
+                  }
+                });
+              } else if (mg.id === 8) {
+                mg.objs.forEach((donut) => {
+                  donut.position.y -= delta * 8;
+                  if (donut.position.y < 0) {
+                    donut.position.y = 15 + Math.random() * 10;
+                    donut.position.x =
+                      mg.friendRef.obj.position.x + (Math.random() - 0.5) * 25;
+                    donut.position.z =
+                      mg.friendRef.obj.position.z + (Math.random() - 0.5) * 25;
+                  }
+                  if (froggie.position.distanceTo(donut.position) < 2.5)
+                    failMinigame();
+                });
+              }
+            }
+          }
+
+          // --- PHYSICS & GRAVITY ---
+          let activeObj = phase === "driving" ? froggyCar : froggie;
+
+          raycaster.set(
+            activeObj.position.clone().setY(activeObj.position.y + 5),
+            downVec,
+          );
+          const intersects = raycaster.intersectObjects(solidGrounds);
+          let onGround = false;
+          let groundY = 0;
+
+          if (intersects.length > 0 && intersects[0].distance < 6) {
+            onGround = true;
+            groundY = intersects[0].point.y;
+          }
+
+          if (onGround) {
+            if (yVelocity < 0) {
+              yVelocity = 0;
+              activeObj.position.y = groundY;
+              isJumping = false;
+            }
+          } else {
+            yVelocity -= 40 * delta;
+          }
+
+          if (justPressedSpace && phase === "explore" && onGround) {
+            yVelocity = 15;
+            isJumping = true;
+            justPressedSpace = false;
+          } else if (justPressedSpace) {
+            justPressedSpace = false;
+          }
+
+          activeObj.position.y += yVelocity * delta;
+
+          if (activeObj.position.y < -20) {
+            if (mg.active) {
+              failMinigame();
+            } else {
+              // Update falling bounds
+              if (phase === "driving") activeObj.position.set(0, 10, -70);
+              else
+                activeObj.position.set(
+                  currentLevel > 5 ? 0 : 0,
+                  10,
+                  currentLevel > 5 ? -480 : 0,
+                );
+              yVelocity = 0;
+            }
+          }
+
+          // --- CAMERA MATH ---
+          const camRadius = phase === "driving" ? 35 : 25;
+          const camTargetX =
+            activeObj.position.x +
+            camRadius * Math.sin(camYaw) * Math.cos(camPitch);
+          const camTargetY =
+            activeObj.position.y + 2 + camRadius * Math.sin(camPitch);
+          const camTargetZ =
+            activeObj.position.z +
+            camRadius * Math.cos(camYaw) * Math.cos(camPitch);
+          camera.position.lerp(
+            new THREE.Vector3(camTargetX, camTargetY, camTargetZ),
+            0.15,
+          );
+          camera.lookAt(
+            activeObj.position.clone().add(new THREE.Vector3(0, 2, 0)),
+          );
+
+          // --- PLAYER MOVEMENT (Walking) ---
+          if (phase === "explore" || phase === "transition") {
+            let inputX = joystick.active
+              ? joystick.nx
+              : keys.a
+                ? -1
+                : keys.d
+                  ? 1
+                  : 0;
+            let inputZ = joystick.active
+              ? joystick.ny
+              : keys.w
+                ? -1
+                : keys.s
+                  ? 1
+                  : 0;
+            let rawMove = new THREE.Vector3(inputX, 0, inputZ);
+
+            if (inputX !== 0 || inputZ !== 0) {
+              const fwd = new THREE.Vector3(
+                -Math.sin(camYaw),
+                0,
+                -Math.cos(camYaw),
+              ).normalize();
+              const rgt = new THREE.Vector3(
+                Math.cos(camYaw),
+                0,
+                -Math.sin(camYaw),
+              ).normalize();
+              const moveVec = new THREE.Vector3();
+              moveVec.addScaledVector(fwd, -inputZ);
+              moveVec.addScaledVector(rgt, inputX);
+
+              if (moveVec.lengthSq() > 0) {
+                moveVec.normalize().multiplyScalar(15 * delta);
+                froggie.position.add(moveVec);
+                const targetAngle = Math.atan2(moveVec.x, moveVec.z);
+                let diff = targetAngle - froggie.rotation.y;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                froggie.rotation.y += diff * 10 * delta;
+              }
+              froggie.children[0].rotation.z = Math.sin(time * 20) * 0.15;
+              froggie.children[0].scale.y =
+                1 + Math.abs(Math.sin(time * 20)) * 0.1;
+            } else {
+              froggie.children[0].rotation.z = 0;
+              froggie.children[0].scale.y = 1 + Math.sin(time * 3) * 0.03;
+            }
+
+            // Conga line logic
+            moveHistory.unshift({
+              x: froggie.position.x,
+              y: froggie.position.y,
+              z: froggie.position.z,
+              rot: froggie.rotation.y,
+            });
+            if (moveHistory.length > 200) moveHistory.pop();
+
+            for (let i = 1; i < squad.length; i++) {
+              const member = squad[i];
+              const hIdx = i * 15;
+              if (hIdx < moveHistory.length) {
+                const tgt = moveHistory[hIdx];
+                member.position.lerp(
+                  new THREE.Vector3(tgt.x, tgt.y, tgt.z),
+                  0.4,
+                );
+                member.rotation.y = tgt.rot;
+                if (rawMove.lengthSq() > 0)
+                  member.children[0].position.y =
+                    1 + Math.abs(Math.sin(time * 15 + i)) * 0.4;
+              }
+            }
+
+            everlastingMarker.position.y = Math.sin(time * 3) * 0.5 + 0.5;
+            everlastingMarker.rotation.y += delta * 0.5;
+
+            // Trigger Minigames!
+            if (!mg.active) {
+              friendsToRescue.forEach((f) => {
+                if (!f.collected && f.active) {
+                  f.obj.rotation.y += delta;
+                  if (froggie.position.distanceTo(f.obj.position) < 4) {
+                    startMinigame(currentLevel, f);
+                  }
+                }
+              });
+            }
+
+            // Enter Car Logic
+            if (
+              phase === "transition" &&
+              froggie.position.distanceTo(froggyCar.position) < 5
+            ) {
+              if (
+                keys.space ||
+                document.getElementById("action-btn").innerText === "ENTER"
+              ) {
+                phase = "driving";
+                froggie.visible = false;
+                squad.forEach((m) => (m.visible = false));
+                document.getElementById("mission-desc").innerText =
+                  "Drive to Stuffy City!";
+                document.getElementById("action-btn").innerText = "BRAKE";
+                camYaw = froggyCar.rotation.y + Math.PI;
+                camPitch = Math.PI / 6;
+                showToast("Cruising down the highway!");
+              }
+            }
+          }
+
+          // --- DRIVING PHYSICS ---
+          else if (phase === "driving") {
+            let accel = joystick.active
+              ? -joystick.ny
+              : keys.w
+                ? 1
+                : keys.s
+                  ? -1
+                  : 0;
+            let steer = joystick.active
+              ? -joystick.nx
+              : keys.a
+                ? 1
+                : keys.d
+                  ? -1
+                  : 0;
+            if (keys.space) carVelocity *= 0.9;
+
+            carVelocity += accel * 40 * delta;
+            carVelocity *= 0.96;
+            if (carVelocity > 60) carVelocity = 60;
+            if (carVelocity < -20) carVelocity = -20;
+
+            if (Math.abs(carVelocity) > 1)
+              froggyCar.rotation.y +=
+                steer * 2 * delta * (carVelocity > 0 ? 1 : -1);
+
+            const vVec = new THREE.Vector3(0, 0, 1).applyAxisAngle(
+              new THREE.Vector3(0, 1, 0),
+              froggyCar.rotation.y,
+            );
+            vVec.multiplyScalar(carVelocity * delta);
+            froggyCar.position.add(vVec);
+
+            froggyCar.children.forEach((c) => {
+              if (c.geometry && c.geometry.type === "CylinderGeometry")
+                c.rotation.x -= carVelocity * delta * 0.5;
+            });
+
+            // Arriving at Stuffy City! Switch back to Explore Phase!
+            if (froggyCar.position.z < -450) {
+              phase = "explore";
+
+              showToast(
+                "Welcome to Stuffy City! Explore and find new friends!",
+              );
+              document.getElementById("mission-desc").innerText =
+                "Find the City Stuffies!";
+              document.getElementById("action-btn").innerText = "JUMP";
+
+              // Eject player
+              froggie.position.set(0, 10, -480);
+              squad.forEach((m) => {
+                m.visible = true;
+                m.position.set(0, 10, -480);
+              });
+              froggie.visible = true;
+
+              // Bring the Everlasting Marker to the city to help
+              everlastingMarker.position.set(10, 0, -480);
+
+              // Activate Level 5 immediately
+              friendsToRescue[4].active = true;
+              friendsToRescue[4].obj.visible = true;
+              currentLevel = 5;
+              document.getElementById("level-display").innerText =
+                `Level ${currentLevel}`;
+            }
+          }
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+
+      window.onload = animate;
+    </script>
+  </body>
+</html>
