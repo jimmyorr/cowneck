@@ -1,0 +1,1188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Silly Cat Zoomies: Huge World</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #87ceeb;
+        font-family: "Segoe UI", system-ui, sans-serif;
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      #game-ui {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      /* BUILDER PANEL */
+      #builder-screen {
+        position: absolute;
+        inset: 0;
+        z-index: 100;
+        background: rgba(44, 62, 80, 0.85);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+      }
+      .builder-card {
+        background: white;
+        padding: 25px;
+        border-radius: 25px;
+        width: 90%;
+        max-width: 500px;
+        text-align: center;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      }
+      .slot-container {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin: 20px 0;
+      }
+      .tile-slot {
+        width: 55px;
+        height: 55px;
+        border: 3px dashed #bdc3c7;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 14px;
+      }
+      .tile-slot.active {
+        border-color: #3498db;
+        background: #ebf5fb;
+        transform: scale(1.1);
+        transition: 0.2s;
+      }
+      .tile-slot.filled {
+        border-style: solid;
+        border-color: #2ecc71;
+        background: #2ecc71;
+        color: white;
+      }
+
+      .biome-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .biome-btn {
+        padding: 12px 5px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+        transition: transform 0.1s;
+      }
+      .biome-btn:active {
+        transform: translateY(4px);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0.2);
+      }
+
+      #play-button {
+        width: 100%;
+        padding: 18px;
+        border-radius: 50px;
+        border: none;
+        background: #2ecc71;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        box-shadow: 0 6px 0 #219150;
+        opacity: 0.4;
+        pointer-events: none;
+      }
+      #play-button.active {
+        opacity: 1;
+        pointer-events: auto;
+        cursor: pointer;
+      }
+      #play-button:active {
+        transform: translateY(6px);
+        box-shadow: 0 0 0 #219150;
+      }
+
+      /* HUD */
+      #hud {
+        display: none;
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+      .score-pill {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: white;
+        padding: 10px 25px;
+        border-radius: 50px;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        font-size: 18px;
+        color: #333;
+      }
+
+      .action-prompt {
+        position: absolute;
+        bottom: 180px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #2c3e50;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 30px;
+        font-weight: bold;
+        display: none;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        font-size: 16px;
+        letter-spacing: 1px;
+      }
+
+      /* 3D TEXT BUBBLE */
+      .meow-label {
+        position: absolute;
+        background: white;
+        color: black;
+        font-weight: bold;
+        padding: 8px 20px;
+        border-radius: 20px;
+        border: 3px solid #333;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        font-size: 18px;
+        animation: floatUp 1.2s forwards ease-out;
+        z-index: 50;
+      }
+      @keyframes floatUp {
+        0% {
+          opacity: 1;
+          margin-top: 0;
+          transform: translate(-50%, -50%) scale(0.5);
+        }
+        20% {
+          transform: translate(-50%, -50%) scale(1.1);
+        }
+        100% {
+          opacity: 0;
+          margin-top: -100px;
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+
+      /* MOBILE CONTROLS */
+      #controls {
+        position: absolute;
+        bottom: 20px;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 30px;
+        box-sizing: border-box;
+      }
+      .joy-pad {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        border: 3px solid rgba(255, 255, 255, 0.5);
+        position: relative;
+        pointer-events: auto;
+        backdrop-filter: blur(5px);
+      }
+      .joy-knob {
+        width: 60px;
+        height: 60px;
+        background: white;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+      .action-group {
+        display: flex;
+        gap: 15px;
+        pointer-events: auto;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        max-width: 200px;
+      }
+      .round-btn {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: none;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        box-shadow: 0 8px 0 rgba(0, 0, 0, 0.3);
+        transition: transform 0.1s;
+      }
+      .round-btn:active {
+        transform: translateY(8px);
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0.3);
+      }
+
+      #btn-fish {
+        background: #3498db;
+        box-shadow: 0 8px 0 #2980b9;
+        display: none;
+      }
+      #btn-jump {
+        background: #f1c40f;
+        box-shadow: 0 8px 0 #d4ac0d;
+        color: #5c4002;
+      }
+      #btn-meow {
+        background: #e74c3c;
+        box-shadow: 0 8px 0 #c0392b;
+      }
+
+      @media (max-width: 600px) {
+        .biome-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .joy-pad {
+          width: 120px;
+          height: 120px;
+        }
+        .round-btn {
+          width: 70px;
+          height: 70px;
+          font-size: 12px;
+        }
+        #controls {
+          padding: 0 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container"></div>
+
+    <div id="game-ui">
+      <!-- BUILDER -->
+      <div id="builder-screen">
+        <div class="builder-card">
+          <h2 style="margin-top: 0; font-size: 28px">World Builder</h2>
+          <p>Pick 3 to 5 HUGE tiles to generate a world!</p>
+          <div class="slot-container" id="slots"></div>
+          <div class="biome-grid" id="biome-selector"></div>
+          <button id="play-button">START ZOOMIES</button>
+        </div>
+      </div>
+
+      <!-- HUD -->
+      <div id="hud">
+        <div class="score-pill">🐟 <span id="score">0</span></div>
+        <div id="action-prompt" class="action-prompt">TAP FISH BUTTON!</div>
+
+        <div id="controls">
+          <div class="joy-pad" id="joy-base">
+            <div class="joy-knob" id="joy-stick"></div>
+          </div>
+          <div class="action-group">
+            <button class="round-btn" id="btn-fish">FISH</button>
+            <button class="round-btn" id="btn-jump">JUMP</button>
+            <button class="round-btn" id="btn-meow">MEOW</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      // --- DATA & CONSTANTS ---
+      const TILE_SIZE = 150; // HUGE TILES
+
+      const BIOMES = [
+        { id: "grass", name: "Meadow", color: 0x76d7c4 },
+        { id: "forest", name: "Forest", color: 0x27ae60 },
+        { id: "pond", name: "Pond", color: 0x2ecc71 }, // Green grass around blue pond
+        { id: "desert", name: "Desert", color: 0xf5cba7 },
+        { id: "snow", name: "Snow", color: 0xecf0f1 },
+        { id: "candy", name: "Candy", color: 0xf1948a },
+        { id: "city", name: "City", color: 0x95a5a6 },
+        { id: "lava", name: "Lava", color: 0x2c3e50 },
+      ];
+
+      // --- ENGINE VARS ---
+      let scene, camera, renderer, clock;
+      let mapObjects = [];
+      let groundMeshes = []; // RAYCASTER TARGETS (Fixes falling through floor)
+      let player,
+        playerVel = new THREE.Vector3();
+      let colliders = [],
+        treats = [],
+        pondZones = [];
+      let score = 0,
+        isGrounded = false;
+
+      // Fishing state
+      let fishRod, bobber, fishLine;
+      let isFishing = false,
+        fishTimer = 0,
+        fishState = "none";
+
+      // Inputs
+      let input = { x: 0, y: 0, jump: false, action: false };
+      const keys = { w: 0, a: 0, s: 0, d: 0, shift: false };
+      let selected = [null, null, null, null, null],
+        currentSlot = 0;
+
+      function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87ceeb);
+        scene.fog = new THREE.Fog(0x87ceeb, 100, 450); // Pushed fog back for huge tiles
+
+        camera = new THREE.PerspectiveCamera(
+          55,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000,
+        );
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document
+          .getElementById("game-container")
+          .appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+        sun.position.set(100, 150, 100);
+        sun.castShadow = true;
+        sun.shadow.camera.left = -200;
+        sun.shadow.camera.right = 200;
+        sun.shadow.camera.top = 200;
+        sun.shadow.camera.bottom = -200;
+        sun.shadow.mapSize.width = 2048;
+        sun.shadow.mapSize.height = 2048;
+        scene.add(sun);
+
+        clock = new THREE.Clock();
+
+        setupBuilderUI();
+        setupControls();
+
+        window.addEventListener("resize", onResize);
+        animate();
+      }
+
+      // --- BUILDER LOGIC ---
+      function setupBuilderUI() {
+        const slotsDiv = document.getElementById("slots");
+        const gridDiv = document.getElementById("biome-selector");
+        const playBtn = document.getElementById("play-button");
+
+        for (let i = 0; i < 5; i++) {
+          const s = document.createElement("div");
+          s.className = `tile-slot ${i === 0 ? "active" : ""}`;
+          s.id = `slot-${i}`;
+          s.innerText = "?";
+          s.onclick = () => {
+            currentSlot = i;
+            document
+              .querySelectorAll(".tile-slot")
+              .forEach((el) => el.classList.remove("active"));
+            s.classList.add("active");
+          };
+          slotsDiv.appendChild(s);
+        }
+
+        BIOMES.forEach((b) => {
+          const btn = document.createElement("button");
+          btn.className = "biome-btn";
+          btn.innerText = b.name;
+          btn.style.backgroundColor = `#${b.color.toString(16).padStart(6, "0")}`;
+          btn.onclick = () => {
+            selected[currentSlot] = b;
+            const s = document.getElementById(`slot-${currentSlot}`);
+            s.classList.add("filled");
+            s.innerText = b.name;
+            if (currentSlot < 4) {
+              currentSlot++;
+              document
+                .querySelectorAll(".tile-slot")
+                .forEach((el) => el.classList.remove("active"));
+              document
+                .getElementById(`slot-${currentSlot}`)
+                .classList.add("active");
+            }
+            if (selected.filter((x) => x).length >= 3)
+              playBtn.classList.add("active");
+          };
+          gridDiv.appendChild(btn);
+        });
+
+        playBtn.onclick = startWorld;
+      }
+
+      // --- WORLD GENERATION ---
+      function startWorld() {
+        document.getElementById("builder-screen").style.display = "none";
+        document.getElementById("hud").style.display = "block";
+
+        mapObjects.forEach((obj) => scene.remove(obj));
+        mapObjects = [];
+        groundMeshes = []; // CRITICAL for Raycasting floor!
+        colliders = [];
+        treats = [];
+        pondZones = [];
+
+        if (player) {
+          scene.remove(player);
+          player = null;
+        }
+
+        const pool = selected.filter((x) => x);
+        let cx = 0,
+          cz = 0;
+        const occupied = new Set();
+
+        // Generate Map (12 HUGE tiles)
+        for (let i = 0; i < 12; i++) {
+          const b = pool[Math.floor(Math.random() * pool.length)];
+          createTile(b, cx * TILE_SIZE, cz * TILE_SIZE);
+          occupied.add(`${cx},${cz}`);
+
+          let moved = false;
+          while (!moved) {
+            const dir = Math.floor(Math.random() * 4);
+            let nx = cx,
+              nz = cz;
+            if (dir === 0) nx++;
+            else if (dir === 1) nx--;
+            else if (dir === 2) nz++;
+            else nz--;
+            if (!occupied.has(`${nx},${nz}`)) {
+              cx = nx;
+              cz = nz;
+              moved = true;
+            }
+          }
+        }
+
+        createCat();
+      }
+
+      function createTile(biome, x, z) {
+        const group = new THREE.Group();
+
+        // Base Earth
+        const base = new THREE.Mesh(
+          new THREE.BoxGeometry(TILE_SIZE - 2, 20, TILE_SIZE - 2),
+          new THREE.MeshStandardMaterial({ color: 0x5d4037 }),
+        );
+        base.position.set(x, -10, z);
+        base.receiveShadow = true;
+        group.add(base);
+
+        // Surface (Added to groundMeshes for PERFECT collision)
+        const surf = new THREE.Mesh(
+          new THREE.BoxGeometry(TILE_SIZE - 2, 2, TILE_SIZE - 2),
+          new THREE.MeshStandardMaterial({
+            color: biome.color,
+            roughness: 0.9,
+          }),
+        );
+        surf.position.set(x, 1, z);
+        surf.receiveShadow = true;
+        group.add(surf);
+        groundMeshes.push(surf);
+
+        // --- UNIQUE BIOME ARCHITECTURE ---
+        if (biome.id === "city") {
+          for (let i = 0; i < 6; i++) {
+            const bw = 20 + Math.random() * 20;
+            const bd = 20 + Math.random() * 20;
+            const bh = 50 + Math.random() * 70; // Massive skyscrapers
+            const bldg = new THREE.Mesh(
+              new THREE.BoxGeometry(bw, bh, bd),
+              new THREE.MeshStandardMaterial({
+                color: Math.random() > 0.5 ? 0xbdc3c7 : 0x7f8c8d,
+              }),
+            );
+            bldg.position.set(
+              x + (Math.random() - 0.5) * 100,
+              bh / 2 + 2,
+              z + (Math.random() - 0.5) * 100,
+            );
+            bldg.castShadow = true;
+            bldg.receiveShadow = true;
+            group.add(bldg);
+            colliders.push(new THREE.Box3().setFromObject(bldg));
+          }
+        } else if (biome.id === "forest") {
+          for (let i = 0; i < 15; i++) {
+            const tree = new THREE.Group();
+            const trunk = new THREE.Mesh(
+              new THREE.CylinderGeometry(1.5, 2, 10),
+              new THREE.MeshStandardMaterial({ color: 0x5d4037 }),
+            );
+            trunk.position.y = 5;
+            const leaves = new THREE.Mesh(
+              new THREE.ConeGeometry(8, 20, 8),
+              new THREE.MeshStandardMaterial({ color: 0x27ae60 }),
+            );
+            leaves.position.y = 15;
+            tree.add(trunk, leaves);
+            tree.position.set(
+              x + (Math.random() - 0.5) * 120,
+              2,
+              z + (Math.random() - 0.5) * 120,
+            );
+            tree.castShadow = true;
+            group.add(tree);
+            colliders.push(new THREE.Box3().setFromObject(trunk));
+          }
+        } else if (biome.id === "snow") {
+          for (let i = 0; i < 5; i++) {
+            const snowman = new THREE.Group();
+            const b1 = new THREE.Mesh(
+              new THREE.SphereGeometry(4),
+              new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            );
+            b1.position.y = 4;
+            const b2 = new THREE.Mesh(
+              new THREE.SphereGeometry(3),
+              new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            );
+            b2.position.y = 10;
+            const b3 = new THREE.Mesh(
+              new THREE.SphereGeometry(2),
+              new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            );
+            b3.position.y = 14;
+            snowman.add(b1, b2, b3);
+            snowman.position.set(
+              x + (Math.random() - 0.5) * 120,
+              2,
+              z + (Math.random() - 0.5) * 120,
+            );
+            snowman.castShadow = true;
+            group.add(snowman);
+            colliders.push(new THREE.Box3().setFromObject(snowman));
+          }
+        } else if (biome.id === "desert") {
+          for (let i = 0; i < 8; i++) {
+            const cactus = new THREE.Group();
+            const main = new THREE.Mesh(
+              new THREE.CylinderGeometry(2, 2, 12, 8),
+              new THREE.MeshStandardMaterial({ color: 0x2ecc71 }),
+            );
+            main.position.y = 8;
+            const arm1 = new THREE.Mesh(
+              new THREE.CylinderGeometry(1.5, 1.5, 5, 8),
+              new THREE.MeshStandardMaterial({ color: 0x2ecc71 }),
+            );
+            arm1.position.set(3, 10, 0);
+            arm1.rotation.z = Math.PI / 4;
+            const arm2 = new THREE.Mesh(
+              new THREE.CylinderGeometry(1.5, 1.5, 4, 8),
+              new THREE.MeshStandardMaterial({ color: 0x2ecc71 }),
+            );
+            arm2.position.set(-3, 6, 0);
+            arm2.rotation.z = -Math.PI / 4;
+            cactus.add(main, arm1, arm2);
+            cactus.position.set(
+              x + (Math.random() - 0.5) * 120,
+              2,
+              z + (Math.random() - 0.5) * 120,
+            );
+            cactus.castShadow = true;
+            group.add(cactus);
+            colliders.push(new THREE.Box3().setFromObject(cactus));
+          }
+        } else if (biome.id === "candy") {
+          for (let i = 0; i < 8; i++) {
+            const pop = new THREE.Group();
+            const stick = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.5, 0.5, 15),
+              new THREE.MeshStandardMaterial({ color: 0xffffff }),
+            );
+            stick.position.y = 7.5;
+            const candy = new THREE.Mesh(
+              new THREE.TorusGeometry(4, 1.5, 16, 32),
+              new THREE.MeshStandardMaterial({
+                color: Math.random() > 0.5 ? 0xff69b4 : 0x3498db,
+              }),
+            );
+            candy.position.y = 15;
+            pop.add(stick, candy);
+            pop.position.set(
+              x + (Math.random() - 0.5) * 120,
+              2,
+              z + (Math.random() - 0.5) * 120,
+            );
+            pop.castShadow = true;
+            group.add(pop);
+            colliders.push(new THREE.Box3().setFromObject(stick));
+          }
+        } else if (biome.id === "lava") {
+          const lavaPool = new THREE.Mesh(
+            new THREE.BoxGeometry(TILE_SIZE - 20, 2.5, TILE_SIZE - 20),
+            new THREE.MeshStandardMaterial({
+              color: 0xe67e22,
+              emissive: 0xaa3300,
+            }),
+          );
+          lavaPool.position.set(x, 1, z);
+          group.add(lavaPool);
+          for (let i = 0; i < 10; i++) {
+            const rock = new THREE.Mesh(
+              new THREE.DodecahedronGeometry(4 + Math.random() * 4),
+              new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 1 }),
+            );
+            rock.position.set(
+              x + (Math.random() - 0.5) * 100,
+              3,
+              z + (Math.random() - 0.5) * 100,
+            );
+            group.add(rock);
+            colliders.push(new THREE.Box3().setFromObject(rock));
+          }
+        } else if (biome.id === "pond") {
+          // Giant water plane
+          const water = new THREE.Mesh(
+            new THREE.BoxGeometry(TILE_SIZE - 40, 2.5, TILE_SIZE - 40),
+            new THREE.MeshStandardMaterial({
+              color: 0x3498db,
+              transparent: true,
+              opacity: 0.8,
+            }),
+          );
+          water.position.set(x, 1, z);
+          group.add(water);
+          groundMeshes.push(water); // Cat can wade in it
+          pondZones.push({ x, z, r: TILE_SIZE / 2 - 20 });
+
+          // Boulders around pond
+          for (let i = 0; i < 16; i++) {
+            const rock = new THREE.Mesh(
+              new THREE.DodecahedronGeometry(3),
+              new THREE.MeshStandardMaterial({ color: 0x7f8c8d }),
+            );
+            const ang = (i / 16) * Math.PI * 2;
+            rock.position.set(
+              x + Math.cos(ang) * (TILE_SIZE / 2 - 15),
+              3,
+              z + Math.sin(ang) * (TILE_SIZE / 2 - 15),
+            );
+            group.add(rock);
+            colliders.push(new THREE.Box3().setFromObject(rock));
+          }
+        }
+
+        // Treat (Tuna can)
+        if (Math.random() > 0.3) {
+          const t = new THREE.Mesh(
+            new THREE.CylinderGeometry(1.5, 1.5, 0.8, 16),
+            new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.6 }),
+          );
+          t.position.set(
+            x + (Math.random() - 0.5) * 100,
+            3,
+            z + (Math.random() - 0.5) * 100,
+          );
+          t.rotation.x = Math.PI / 2;
+          t.userData = { baseY: 3, offset: Math.random() * 10 };
+          group.add(t);
+          treats.push(t);
+        }
+
+        scene.add(group);
+        mapObjects.push(group);
+      }
+
+      function createCat() {
+        player = new THREE.Group();
+
+        const catMat = new THREE.MeshStandardMaterial({
+          color: 0xff8800,
+          roughness: 0.8,
+        });
+        const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
+        // Chunky Box Body
+        const body = new THREE.Mesh(
+          new THREE.BoxGeometry(1.8, 1.4, 2.8),
+          catMat,
+        );
+        body.position.y = 1.0;
+        body.castShadow = true;
+        player.add(body);
+
+        // Round Head
+        const head = new THREE.Mesh(
+          new THREE.SphereGeometry(1.0, 16, 16),
+          catMat,
+        );
+        head.position.set(0, 2.0, 1.6);
+        head.castShadow = true;
+        player.add(head);
+
+        // Ears
+        const earGeo = new THREE.ConeGeometry(0.4, 0.8, 4);
+        const e1 = new THREE.Mesh(earGeo, catMat);
+        e1.position.set(0.5, 1.0, 0);
+        e1.rotation.x = -0.2;
+        const e2 = new THREE.Mesh(earGeo, catMat);
+        e2.position.set(-0.5, 1.0, 0);
+        e2.rotation.x = -0.2;
+        head.add(e1, e2);
+
+        // Legs
+        player.userData.legs = [];
+        const legGeo = new THREE.BoxGeometry(0.5, 1.0, 0.5);
+        const legPos = [
+          [-0.6, 0.5, 1.0],
+          [0.6, 0.5, 1.0],
+          [-0.6, 0.5, -1.0],
+          [0.6, 0.5, -1.0],
+        ];
+        legPos.forEach((p) => {
+          const l = new THREE.Mesh(legGeo, whiteMat);
+          l.position.set(p[0], p[1], p[2]);
+          l.castShadow = true;
+          player.add(l);
+          player.userData.legs.push(l);
+        });
+
+        // Fishing Rod
+        fishRod = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.1, 0.2, 8),
+          new THREE.MeshStandardMaterial({ color: 0x5d4037 }),
+        );
+        fishRod.position.set(1.5, 3, 2);
+        fishRod.rotation.x = 0.5;
+        fishRod.visible = false;
+        player.add(fishRod);
+
+        player.position.set(0, 50, 0); // Drop in from sky
+        scene.add(player);
+        playerVel.set(0, 0, 0);
+      }
+
+      // --- GAME LOOP ---
+      function animate() {
+        requestAnimationFrame(animate);
+        const dt = Math.min(clock.getDelta(), 0.1);
+
+        if (player) {
+          if (!isFishing) updatePlayer(dt);
+          updateFishing(dt);
+          updateCamera();
+          checkPonds();
+        } else {
+          camera.position.x = Math.sin(Date.now() * 0.0002) * 150;
+          camera.position.z = Math.cos(Date.now() * 0.0002) * 150;
+          camera.position.y = 100;
+          camera.lookAt(0, 0, 0);
+        }
+
+        const time = Date.now() * 0.003;
+        treats.forEach((t) => {
+          t.rotation.y += dt * 2;
+          t.position.y =
+            t.userData.baseY + Math.sin(time + t.userData.offset) * 0.5;
+        });
+
+        renderer.render(scene, camera);
+      }
+
+      function updatePlayer(dt) {
+        const camDir = new THREE.Vector3();
+        camera.getWorldDirection(camDir);
+        camDir.y = 0;
+        camDir.normalize();
+        const camRight = new THREE.Vector3(-camDir.z, 0, camDir.x);
+
+        let ix = input.x,
+          iy = input.y;
+        if (keys.w) iy = 1;
+        if (keys.s) iy = -1;
+        if (keys.a) ix = -1;
+        if (keys.d) ix = 1;
+
+        const move = new THREE.Vector3()
+          .addScaledVector(camDir, iy)
+          .addScaledVector(camRight, ix);
+        const speed = keys.shift ? 700 : 400; // Scaled up for huge tiles
+
+        if (move.length() > 0.1) {
+          const targetRot = Math.atan2(move.x, move.z);
+          let diff = targetRot - player.rotation.y;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          player.rotation.y += diff * 12 * dt;
+
+          playerVel.x += move.x * speed * dt;
+          playerVel.z += move.z * speed * dt;
+
+          const f = Date.now() * 0.015;
+          player.userData.legs.forEach(
+            (l, i) => (l.rotation.x = Math.sin(f + (i % 2) * Math.PI) * 0.8),
+          );
+        } else {
+          player.userData.legs.forEach((l) => (l.rotation.x = 0));
+        }
+
+        if (input.jump && isGrounded) {
+          playerVel.y = 50;
+          isGrounded = false;
+          input.jump = false;
+        }
+
+        playerVel.y -= 150 * dt; // Gravity
+        player.position.addScaledVector(playerVel, dt);
+
+        // --- BULLETPROOF RAYCAST FLOOR DETECTION ---
+        let floorY = -100; // Default to void
+
+        // Cast a ray strictly downwards from high above the player
+        const raycaster = new THREE.Raycaster(
+          new THREE.Vector3(player.position.x, 200, player.position.z),
+          new THREE.Vector3(0, -1, 0),
+        );
+        const hits = raycaster.intersectObjects(groundMeshes);
+
+        if (hits.length > 0) {
+          floorY = hits[0].point.y;
+        }
+
+        // Cat's center is y, feet are roughly at y - 1.0
+        if (player.position.y <= floorY + 1.0 && floorY !== -100) {
+          player.position.y = floorY + 1.0;
+          playerVel.y = 0;
+          isGrounded = true;
+        } else {
+          isGrounded = false;
+        }
+
+        // Void Respawn
+        if (player.position.y < -50) {
+          player.position.set(0, 50, 0);
+          playerVel.set(0, 0, 0);
+        }
+
+        // Object Collisions
+        const pBox = new THREE.Box3()
+          .setFromObject(player)
+          .expandByScalar(-0.4);
+        colliders.forEach((c) => {
+          if (pBox.intersectsBox(c)) {
+            const center = new THREE.Vector3();
+            c.getCenter(center);
+            const push = player.position
+              .clone()
+              .sub(center)
+              .setY(0)
+              .normalize();
+            player.position.addScaledVector(push, 1.0);
+            playerVel.x *= 0.5;
+            playerVel.z *= 0.5; // lose momentum on bonk
+          }
+        });
+
+        // Collect Treats
+        treats.forEach((t, i) => {
+          if (player.position.distanceTo(t.position) < 4) {
+            t.parent.remove(t);
+            treats.splice(i, 1);
+            score += 5;
+            document.getElementById("score").innerText = score;
+            triggerMeow("Yum!");
+          }
+        });
+
+        const friction = isGrounded ? 8 : 2;
+        playerVel.x *= 1 - friction * dt;
+        playerVel.z *= 1 - friction * dt;
+      }
+
+      function updateCamera() {
+        // Pulled back for huge tiles
+        const ideal = player.position
+          .clone()
+          .add(new THREE.Vector3(-40, 50, 40));
+        camera.position.lerp(ideal, 0.1);
+        camera.lookAt(player.position);
+      }
+
+      // --- FISHING MECHANICS ---
+      function checkPonds() {
+        let near = false;
+        pondZones.forEach((z) => {
+          if (
+            player.position.distanceTo(
+              new THREE.Vector3(z.x, player.position.y, z.z),
+            ) <
+            z.r + 15
+          )
+            near = true;
+        });
+
+        const prompt = document.getElementById("action-prompt");
+        const fishBtn = document.getElementById("btn-fish");
+
+        if (near && !isFishing) {
+          prompt.style.display = "block";
+          prompt.innerText = "TAP FISH BUTTON!";
+          prompt.style.background = "#2c3e50";
+          fishBtn.style.display = "block";
+          if (input.action) startFishing();
+        } else if (isFishing) {
+          prompt.style.display = "block";
+          if (input.action) {
+            if (fishState === "biting") {
+              score += 10;
+              document.getElementById("score").innerText = score;
+              triggerMeow("Caught it! +10");
+            } else triggerMeow("Too early!");
+            endFishing();
+          }
+        } else {
+          prompt.style.display = "none";
+          fishBtn.style.display = "none";
+        }
+        input.action = false;
+      }
+
+      function startFishing() {
+        isFishing = true;
+        fishState = "waiting";
+        fishTimer = 2 + Math.random() * 3;
+        fishRod.visible = true;
+        playerVel.set(0, 0, 0);
+        document.getElementById("action-prompt").innerText = "Waiting...";
+
+        bobber = new THREE.Mesh(
+          new THREE.SphereGeometry(0.8),
+          new THREE.MeshBasicMaterial({ color: 0xe74c3c }),
+        );
+        const fwd = new THREE.Vector3(0, 0, 1).applyAxisAngle(
+          new THREE.Vector3(0, 1, 0),
+          player.rotation.y,
+        );
+        bobber.position
+          .copy(player.position)
+          .add(fwd.multiplyScalar(15))
+          .setY(1.0);
+        scene.add(bobber);
+
+        const geo = new THREE.BufferGeometry().setFromPoints([
+          player.position,
+          bobber.position,
+        ]);
+        fishLine = new THREE.Line(
+          geo,
+          new THREE.LineBasicMaterial({ color: 0xffffff }),
+        );
+        scene.add(fishLine);
+      }
+
+      function updateFishing(dt) {
+        if (!isFishing) return;
+        if (fishLine && bobber) {
+          const tip = player.position
+            .clone()
+            .add(
+              new THREE.Vector3(1.5, 6, 0).applyAxisAngle(
+                new THREE.Vector3(0, 1, 0),
+                player.rotation.y,
+              ),
+            );
+          const pos = fishLine.geometry.attributes.position;
+          pos.setXYZ(0, tip.x, tip.y, tip.z);
+          pos.setXYZ(
+            1,
+            bobber.position.x,
+            bobber.position.y,
+            bobber.position.z,
+          );
+          pos.needsUpdate = true;
+        }
+        if (fishState === "waiting") {
+          fishTimer -= dt;
+          bobber.position.y = 1.0 + Math.sin(Date.now() * 0.005) * 0.2;
+          if (fishTimer <= 0) {
+            fishState = "biting";
+            fishTimer = 1.2;
+            document.getElementById("action-prompt").innerText = "PULL NOW!";
+            document.getElementById("action-prompt").style.background =
+              "#e74c3c";
+          }
+        } else if (fishState === "biting") {
+          fishTimer -= dt;
+          bobber.position.y = 0.5 + Math.random() * 0.8;
+          if (fishTimer <= 0) {
+            triggerMeow("Got away...");
+            endFishing();
+          }
+        }
+      }
+
+      function endFishing() {
+        isFishing = false;
+        fishState = "none";
+        fishRod.visible = false;
+        if (bobber) scene.remove(bobber);
+        if (fishLine) scene.remove(fishLine);
+        bobber = null;
+        fishLine = null;
+      }
+
+      // --- UI & CONTROLS ---
+      function triggerMeow(text = "MEOW!") {
+        const d = document.createElement("div");
+        d.className = "meow-label";
+        d.innerText = text;
+        document.body.appendChild(d);
+
+        const p = player.position.clone();
+        p.y += 6;
+        p.project(camera);
+        const x = (p.x * 0.5 + 0.5) * window.innerWidth;
+        const y = (p.y * -0.5 + 0.5) * window.innerHeight;
+
+        d.style.left = `${x}px`;
+        d.style.top = `${y}px`;
+        setTimeout(() => d.remove(), 1200);
+      }
+
+      function setupControls() {
+        const zone = document.getElementById("joy-base");
+        const stick = document.getElementById("joy-stick");
+        let sx = 0,
+          sy = 0;
+
+        zone.addEventListener(
+          "touchstart",
+          (e) => {
+            e.preventDefault();
+            sx = e.touches[0].clientX;
+            sy = e.touches[0].clientY;
+          },
+          { passive: false },
+        );
+
+        zone.addEventListener(
+          "touchmove",
+          (e) => {
+            e.preventDefault();
+            let dx = e.touches[0].clientX - sx,
+              dy = e.touches[0].clientY - sy;
+            const d = Math.sqrt(dx * dx + dy * dy),
+              max = 50;
+            if (d > max) {
+              dx = (dx / d) * max;
+              dy = (dy / d) * max;
+            }
+            stick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+            input.x = dx / max;
+            input.y = -dy / max;
+          },
+          { passive: false },
+        );
+
+        zone.addEventListener("touchend", () => {
+          input.x = 0;
+          input.y = 0;
+          stick.style.transform = `translate(-50%, -50%)`;
+        });
+
+        document
+          .getElementById("btn-jump")
+          .addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            input.jump = true;
+          });
+        document
+          .getElementById("btn-jump")
+          .addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            input.jump = true;
+          });
+
+        document
+          .getElementById("btn-meow")
+          .addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            triggerMeow();
+          });
+        document
+          .getElementById("btn-meow")
+          .addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            triggerMeow();
+          });
+
+        document
+          .getElementById("btn-fish")
+          .addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            input.action = true;
+          });
+        document
+          .getElementById("btn-fish")
+          .addEventListener("mousedown", (e) => {
+            e.preventDefault();
+            input.action = true;
+          });
+
+        window.addEventListener("keydown", (e) => {
+          const k = e.key.toLowerCase();
+          if (k === "w" || k === "arrowup") keys.w = 1;
+          if (k === "s" || k === "arrowdown") keys.s = 1;
+          if (k === "a" || k === "arrowleft") keys.a = 1;
+          if (k === "d" || k === "arrowright") keys.d = 1;
+          if (k === "shift") keys.shift = true;
+          if (k === " ") input.jump = true;
+          if (k === "f") input.action = true;
+          if (k === "e") triggerMeow();
+        });
+        window.addEventListener("keyup", (e) => {
+          const k = e.key.toLowerCase();
+          if (k === "w" || k === "arrowup") keys.w = 0;
+          if (k === "s" || k === "arrowdown") keys.s = 0;
+          if (k === "a" || k === "arrowleft") keys.a = 0;
+          if (k === "d" || k === "arrowright") keys.d = 0;
+          if (k === "shift") keys.shift = false;
+        });
+      }
+
+      function onResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      init();
+    </script>
+  </body>
+</html>
