@@ -1,843 +1,1047 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>cowneck games</title>
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"
+    ></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
 
-        gtag('config', 'G-6RNVL7JZVJ');
+      gtag("config", "G-6RNVL7JZVJ");
     </script>
-    
+
     <!-- Premium Typography -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
     <style>
-        /* --- RESET & CORE DESIGN SYSTEM --- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+      /* --- RESET & CORE DESIGN SYSTEM --- */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #0b0b0f;
-            /* Ultra-deep modern dark background */
-            background-image: 
-                radial-gradient(circle at 50% 0%, #1a1a2e 0%, #0b0b0f 70%),
-                radial-gradient(circle at 10% 40%, rgba(102, 126, 234, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 70%, rgba(255, 126, 179, 0.03) 0%, transparent 40%);
-            color: #e2e8f0;
-            min-height: 100vh;
-            overflow-x: hidden;
-            line-height: 1.5;
-        }
+      body {
+        font-family:
+          "Plus Jakarta Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background-color: #0b0b0f;
+        /* Ultra-deep modern dark background */
+        background-image:
+          radial-gradient(circle at 50% 0%, #1a1a2e 0%, #0b0b0f 70%),
+          radial-gradient(
+            circle at 10% 40%,
+            rgba(102, 126, 234, 0.05) 0%,
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 90% 70%,
+            rgba(255, 126, 179, 0.03) 0%,
+            transparent 40%
+          );
+        color: #e2e8f0;
+        min-height: 100vh;
+        overflow-x: hidden;
+        line-height: 1.5;
+      }
 
-        /* Custom Premium Scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0b0b0f;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #232334;
-            border-radius: 5px;
-            border: 2px solid #0b0b0f;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #32324d;
-        }
+      /* Custom Premium Scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0b0b0f;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #232334;
+        border-radius: 5px;
+        border: 2px solid #0b0b0f;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #32324d;
+      }
 
-        /* --- HEADER & HERO --- */
+      /* --- HEADER & HERO --- */
+      header {
+        text-align: center;
+        padding: 80px 20px 40px;
+        position: relative;
+      }
+
+      h1 {
+        font-family: "Outfit", sans-serif;
+        font-size: 3.5rem;
+        font-weight: 800;
+        text-transform: lowercase;
+        letter-spacing: -1px;
+        background: linear-gradient(
+          135deg,
+          #a1c4fd 0%,
+          #c2e9fb 50%,
+          #e0c3fc 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0px 0px 40px rgba(194, 233, 251, 0.2);
+        margin-bottom: 8px;
+      }
+
+      p.subtitle {
+        color: #94a3b8;
+        font-size: 1.15rem;
+        max-width: 600px;
+        margin: 0 auto;
+        font-weight: 500;
+      }
+
+      /* --- BACK LINK --- */
+      .back-to-home {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+        color: #64748b;
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease;
+        padding: 8px 16px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .back-to-home:hover {
+        color: #f1f5f9;
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.15);
+        transform: translateX(-3px);
+      }
+
+      /* --- FILTER BAR --- */
+      .filter-bar {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 30px auto 40px;
+        max-width: 700px;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 40px;
+        backdrop-filter: blur(10px);
+      }
+
+      .filter-btn {
+        background-color: transparent;
+        color: #94a3b8;
+        border: 1px solid transparent;
+        padding: 10px 22px;
+        border-radius: 30px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .filter-btn .count {
+        background-color: rgba(255, 255, 255, 0.06);
+        color: #64748b;
+        font-size: 0.8rem;
+        padding: 2px 8px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        font-weight: 700;
+      }
+
+      .filter-btn:hover {
+        color: #f1f5f9;
+        background-color: rgba(255, 255, 255, 0.04);
+        transform: translateY(-1px);
+      }
+
+      /* Interactive active states with dedicated gradients */
+      .filter-btn.active[data-filter="all"] {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+      .filter-btn.active[data-filter="all"] .count {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
+      .filter-btn.active[data-filter="kirby"] {
+        background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(255, 126, 179, 0.3);
+      }
+      .filter-btn.active[data-filter="kirby"] .count {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
+      .filter-btn.active[data-filter="miles"] {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: #0f172a;
+      }
+      .filter-btn.active[data-filter="miles"] .count {
+        background-color: rgba(15, 23, 42, 0.15);
+        color: #0f172a;
+      }
+
+      .filter-btn.active[data-filter="jimmy"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(118, 75, 162, 0.3);
+      }
+      .filter-btn.active[data-filter="jimmy"] .count {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
+      /* --- GRID CONTAINER --- */
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px 80px;
+      }
+
+      .games-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+      }
+
+      /* --- GAME CARD --- */
+      .game-card {
+        background: rgba(30, 30, 46, 0.4);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Glassmorphic Glow Hover Effects */
+      .game-card:hover {
+        transform: translateY(-6px) scale(1.01);
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      }
+
+      .game-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.05) 0%,
+          transparent 100%
+        );
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        pointer-events: none;
+      }
+
+      .game-card:hover::before {
+        opacity: 1;
+      }
+
+      /* Creator Badges */
+      .creator-badge {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        color: #fff;
+      }
+
+      .badge-kirby {
+        background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+        box-shadow: 0 4px 10px rgba(255, 126, 179, 0.15);
+      }
+
+      .badge-miles {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: #0f172a;
+        box-shadow: 0 4px 10px rgba(79, 172, 254, 0.15);
+      }
+
+      .badge-jimmy {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow: 0 4px 10px rgba(118, 75, 162, 0.15);
+      }
+
+      /* Featured Cards & Badges */
+      .featured-badge {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+        color: #0b0b0f;
+        box-shadow: 0 4px 10px rgba(255, 165, 0, 0.25);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        z-index: 2;
+      }
+
+      .game-card.featured {
+        border: 1px solid rgba(255, 215, 0, 0.2);
+        box-shadow: 0 10px 30px rgba(255, 215, 0, 0.04);
+        background: linear-gradient(
+          135deg,
+          rgba(38, 38, 58, 0.45) 0%,
+          rgba(20, 20, 30, 0.45) 100%
+        );
+      }
+
+      .game-card.featured h2 {
+        margin-top: 32px; /* push down to clear the featured badge */
+      }
+
+      .game-card.featured:hover {
+        border-color: rgba(255, 215, 0, 0.45);
+        box-shadow: 0 20px 40px rgba(255, 215, 0, 0.08);
+        transform: translateY(-8px) scale(1.02);
+      }
+
+      /* Card Content */
+      .game-card h2 {
+        font-family: "Outfit", sans-serif;
+        font-size: 1.45rem;
+        margin-top: 10px;
+        margin-bottom: 12px;
+        color: #fff;
+        font-weight: 700;
+        line-height: 1.3;
+        max-width: calc(100% - 75px); /* Leave room for badges */
+      }
+
+      .game-card p {
+        color: #94a3b8;
+        line-height: 1.6;
+        font-size: 0.95rem;
+        flex-grow: 1;
+        margin-bottom: 24px;
+        font-weight: 450;
+      }
+
+      /* --- BUTTONS --- */
+      .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        padding: 14px 20px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-decoration: none;
+        letter-spacing: 0.5px;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        border: none;
+        cursor: pointer;
+      }
+
+      .btn span {
+        transition: transform 0.2s ease;
+      }
+
+      .btn:hover span {
+        transform: translateX(4px);
+      }
+
+      /* Creator Specific Buttons */
+      .game-card[data-creator="kirby"] .btn {
+        background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(255, 126, 179, 0.2);
+      }
+      .game-card[data-creator="kirby"] .btn:hover {
+        box-shadow: 0 6px 20px rgba(255, 126, 179, 0.4);
+        filter: brightness(1.1);
+      }
+
+      .game-card[data-creator="miles"] .btn {
+        background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(0, 180, 219, 0.2);
+      }
+      .game-card[data-creator="miles"] .btn:hover {
+        box-shadow: 0 6px 20px rgba(0, 180, 219, 0.4);
+        filter: brightness(1.1);
+      }
+
+      .game-card[data-creator="jimmy"] .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(118, 75, 162, 0.2);
+      }
+      .game-card[data-creator="jimmy"] .btn:hover {
+        box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
+        filter: brightness(1.1);
+      }
+
+      .btn:active {
+        transform: scale(0.98);
+      }
+
+      /* --- FADE ANIMATION --- */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-in {
+        animation: fadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      /* --- MOBILE RESPONSIVENESS --- */
+      @media (max-width: 768px) {
         header {
-            text-align: center;
-            padding: 80px 20px 40px;
-            position: relative;
+          padding: 60px 20px 30px;
         }
 
         h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 3.5rem;
-            font-weight: 800;
-            text-transform: lowercase;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 50%, #e0c3fc 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0px 0px 40px rgba(194, 233, 251, 0.2);
-            margin-bottom: 8px;
+          font-size: 2.6rem;
         }
 
-        p.subtitle {
-            color: #94a3b8;
-            font-size: 1.15rem;
-            max-width: 600px;
-            margin: 0 auto;
-            font-weight: 500;
-        }
-
-        /* --- BACK LINK --- */
         .back-to-home {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            color: #64748b;
-            text-decoration: none;
-            font-size: 0.95rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
-            padding: 8px 16px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+          position: static;
+          display: inline-flex;
+          margin-bottom: 20px;
         }
 
-        .back-to-home:hover {
-            color: #f1f5f9;
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.15);
-            transform: translateX(-3px);
-        }
-
-        /* --- FILTER BAR --- */
         .filter-bar {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin: 30px auto 40px;
-            max-width: 700px;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 40px;
-            backdrop-filter: blur(10px);
+          border-radius: 20px;
+          padding: 6px;
+          gap: 6px;
         }
 
         .filter-btn {
-            background-color: transparent;
-            color: #94a3b8;
-            border: 1px solid transparent;
-            padding: 10px 22px;
-            border-radius: 30px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .filter-btn .count {
-            background-color: rgba(255, 255, 255, 0.06);
-            color: #64748b;
-            font-size: 0.8rem;
-            padding: 2px 8px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-weight: 700;
-        }
-
-        .filter-btn:hover {
-            color: #f1f5f9;
-            background-color: rgba(255, 255, 255, 0.04);
-            transform: translateY(-1px);
-        }
-
-        /* Interactive active states with dedicated gradients */
-        .filter-btn.active[data-filter="all"] {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-        .filter-btn.active[data-filter="all"] .count {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: #fff;
-        }
-
-        .filter-btn.active[data-filter="kirby"] {
-            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
-            color: #fff;
-            box-shadow: 0 4px 20px rgba(255, 126, 179, 0.3);
-        }
-        .filter-btn.active[data-filter="kirby"] .count {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: #fff;
-        }
-
-        .filter-btn.active[data-filter="miles"] {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: #0f172a;
-        }
-        .filter-btn.active[data-filter="miles"] .count {
-            background-color: rgba(15, 23, 42, 0.15);
-            color: #0f172a;
-        }
-
-        .filter-btn.active[data-filter="jimmy"] {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            box-shadow: 0 4px 20px rgba(118, 75, 162, 0.3);
-        }
-        .filter-btn.active[data-filter="jimmy"] .count {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: #fff;
-        }
-
-        /* --- GRID CONTAINER --- */
-        main {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px 80px;
+          padding: 8px 16px;
+          font-size: 0.85rem;
         }
 
         .games-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 24px;
+          gap: 16px;
+          grid-template-columns: 1fr;
         }
 
-        /* --- GAME CARD --- */
         .game-card {
-            background: rgba(30, 30, 46, 0.4);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 28px;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
+          padding: 24px;
         }
-
-        /* Glassmorphic Glow Hover Effects */
-        .game-card:hover {
-            transform: translateY(-6px) scale(1.01);
-            border-color: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .game-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            pointer-events: none;
-        }
-
-        .game-card:hover::before {
-            opacity: 1;
-        }
-
-        /* Creator Badges */
-        .creator-badge {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            padding: 4px 12px;
-            border-radius: 20px;
-            color: #fff;
-        }
-
-        .badge-kirby {
-            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
-            box-shadow: 0 4px 10px rgba(255, 126, 179, 0.15);
-        }
-
-        .badge-miles {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: #0f172a;
-            box-shadow: 0 4px 10px rgba(79, 172, 254, 0.15);
-        }
-
-        .badge-jimmy {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 4px 10px rgba(118, 75, 162, 0.15);
-        }
-
-        /* Featured Cards & Badges */
-        .featured-badge {
-            position: absolute;
-            top: 24px;
-            left: 24px;
-            font-size: 0.68rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
-            color: #0b0b0f;
-            box-shadow: 0 4px 10px rgba(255, 165, 0, 0.25);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            z-index: 2;
-        }
-
-        .game-card.featured {
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.04);
-            background: linear-gradient(135deg, rgba(38, 38, 58, 0.45) 0%, rgba(20, 20, 30, 0.45) 100%);
-        }
-
-        .game-card.featured h2 {
-            margin-top: 32px; /* push down to clear the featured badge */
-        }
-
-        .game-card.featured:hover {
-            border-color: rgba(255, 215, 0, 0.45);
-            box-shadow: 0 20px 40px rgba(255, 215, 0, 0.08);
-            transform: translateY(-8px) scale(1.02);
-        }
-
-        /* Card Content */
-        .game-card h2 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.45rem;
-            margin-top: 10px;
-            margin-bottom: 12px;
-            color: #fff;
-            font-weight: 700;
-            line-height: 1.3;
-            max-width: calc(100% - 75px); /* Leave room for badges */
-        }
-
-        .game-card p {
-            color: #94a3b8;
-            line-height: 1.6;
-            font-size: 0.95rem;
-            flex-grow: 1;
-            margin-bottom: 24px;
-            font-weight: 450;
-        }
-
-        /* --- BUTTONS --- */
-        .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-            padding: 14px 20px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            text-decoration: none;
-            letter-spacing: 0.5px;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn span {
-            transition: transform 0.2s ease;
-        }
-
-        .btn:hover span {
-            transform: translateX(4px);
-        }
-
-        /* Creator Specific Buttons */
-        .game-card[data-creator="kirby"] .btn {
-            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(255, 126, 179, 0.2);
-        }
-        .game-card[data-creator="kirby"] .btn:hover {
-            box-shadow: 0 6px 20px rgba(255, 126, 179, 0.4);
-            filter: brightness(1.1);
-        }
-
-        .game-card[data-creator="miles"] .btn {
-            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(0, 180, 219, 0.2);
-        }
-        .game-card[data-creator="miles"] .btn:hover {
-            box-shadow: 0 6px 20px rgba(0, 180, 219, 0.4);
-            filter: brightness(1.1);
-        }
-
-        .game-card[data-creator="jimmy"] .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.2);
-        }
-        .game-card[data-creator="jimmy"] .btn:hover {
-            box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
-            filter: brightness(1.1);
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        /* --- FADE ANIMATION --- */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        /* --- MOBILE RESPONSIVENESS --- */
-        @media (max-width: 768px) {
-            header {
-                padding: 60px 20px 30px;
-            }
-
-            h1 {
-                font-size: 2.6rem;
-            }
-
-            .back-to-home {
-                position: static;
-                display: inline-flex;
-                margin-bottom: 20px;
-            }
-
-            .filter-bar {
-                border-radius: 20px;
-                padding: 6px;
-                gap: 6px;
-            }
-
-            .filter-btn {
-                padding: 8px 16px;
-                font-size: 0.85rem;
-            }
-
-            .games-container {
-                gap: 16px;
-                grid-template-columns: 1fr;
-            }
-            
-            .game-card {
-                padding: 24px;
-            }
-        }
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <header>
-        <a href="/" class="back-to-home">← cowneck</a>
-        <h1>cowneck games</h1>
-        <p class="subtitle">Filter by creator or explore our combined collection.</p>
-        
-        <div class="filter-bar" role="tablist">
-            <button class="filter-btn active" id="filter-btn-all" data-filter="all" role="tab" aria-selected="true">
-                All Games <span class="count"></span>
-            </button>
-            <button class="filter-btn" id="filter-btn-kirby" data-filter="kirby" role="tab" aria-selected="false">
-                Kirby <span class="count"></span>
-            </button>
-            <button class="filter-btn" id="filter-btn-miles" data-filter="miles" role="tab" aria-selected="false">
-                Miles <span class="count"></span>
-            </button>
-            <button class="filter-btn" id="filter-btn-jimmy" data-filter="jimmy" role="tab" aria-selected="false">
-                Jimmy <span class="count"></span>
-            </button>
-        </div>
+      <a href="/" class="back-to-home">← cowneck</a>
+      <h1>cowneck games</h1>
+      <p class="subtitle">
+        Filter by creator or explore our combined collection.
+      </p>
+
+      <div class="filter-bar" role="tablist">
+        <button
+          class="filter-btn active"
+          id="filter-btn-all"
+          data-filter="all"
+          role="tab"
+          aria-selected="true"
+        >
+          All Games <span class="count"></span>
+        </button>
+        <button
+          class="filter-btn"
+          id="filter-btn-kirby"
+          data-filter="kirby"
+          role="tab"
+          aria-selected="false"
+        >
+          Kirby <span class="count"></span>
+        </button>
+        <button
+          class="filter-btn"
+          id="filter-btn-miles"
+          data-filter="miles"
+          role="tab"
+          aria-selected="false"
+        >
+          Miles <span class="count"></span>
+        </button>
+        <button
+          class="filter-btn"
+          id="filter-btn-jimmy"
+          data-filter="jimmy"
+          role="tab"
+          aria-selected="false"
+        >
+          Jimmy <span class="count"></span>
+        </button>
+      </div>
     </header>
 
     <main>
-        <div class="games-container" id="games-grid">
-            
-            <!-- FEATURED GAMES (1 from each creator) -->
-            <div class="game-card fade-in featured" data-creator="jimmy">
-                <span class="featured-badge">★ Featured</span>
-                <span class="creator-badge badge-jimmy">Jimmy</span>
-                <h2>🛩️ Chill Flight</h2>
-                <p>A peaceful, beautiful 3D flight experience. Soar at your own pace through endless, procedurally generated mountains and valleys.</p>
-                <a href="https://chill-flight.cowneck.com/" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in featured" data-creator="miles">
-                <span class="featured-badge">★ Featured</span>
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🐾 Goofy Paws</h2>
-                <p>The owners are absolutely furious. Survive household chaos, collect weapons, and battle major bosses like the Vacuum King!</p>
-                <a href="goofy-paws.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in featured" data-creator="kirby">
-                <span class="featured-badge">★ Featured</span>
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>Cat Cannon 🎯</h2>
-                <p>Aim, power up, and launch silly cats directly at target bullseyes. Score points for precision landing using intuitive spacebar controls.</p>
-                <a href="cat-cannon.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <!-- KIRBY'S GAMES -->
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>🏰 Escape The Dungeon</h2>
-                <p>Navigate a dark and perilous dungeon, solve puzzles, and find your way out before it's too late!</p>
-                <a href="escape_the_dungeon.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>💻 Hacker Sim</h2>
-                <p>A terminal-based data extraction protocol. Idle, click, upgrade your rig, and hack the mainframe!</p>
-                <a href="hacker_sim.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>Hypnotizer 🌀</h2>
-                <p>Escape the hypnotic rings and break them all to unlock new levels. Use arrow keys to navigate and break the rings.</p>
-                <a href="hypnotizer.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>Click Speed Test ⚡</h2>
-                <p>Test your clicking speed with this simple game. Click as many times as you can in the given time limit.</p>
-                <a href="click-speed-test.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>Violet Velocity ⬆</h2>
-                <p>A fast-paced 3D arcade game with sleek retro aesthetics. Navigate through tricky obstacles and collect yellow orbs.</p>
-                <a href="violet-velocity.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>Chained Teleporters ⛓️</h2>
-                <p>Two cosmic orbs are chained together. One is active, one is anchored. Switch roles dynamically to navigate the teleport field.</p>
-                <a href="chained-teleporters.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>Canvas Escape 🖼️</h2>
-                <p>Break out of the frame! Escape the canvas and dodge complex moving obstacles in this high-speed, stylized platformer.</p>
-                <a href="canvas-escape.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>Radical Rails 🛹</h2>
-                <p>Speedrun across 15 uniquely designed levels. Take the high sky rails for max velocity, but watch out - hitting solid walls stops you cold!</p>
-                <a href="radical-rails.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>Bridge Crossing 🌉</h2>
-                <p>Build secure bridges to cross treacherous canyons and reach the other side. Use timing and the space bar to gauge and construct.</p>
-                <a href="bridge-crossing.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>Pack Opening Simulator 🎁</h2>
-                <p>Open booster packs, reveal rare loot, and collect unique rewards. Test your fortune and see how quickly you can complete your collection!</p>
-                <a href="pack-opening-sim.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="kirby">
-                <span class="creator-badge badge-kirby">Kirby</span>
-                <h2>Tiny Projects 🧩</h2>
-                <p>A collection of small interactive experiments and micro-games. Quick to play, fun to explore.</p>
-                <a href="tiny_projects.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <!-- MILES'S GAMES -->
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🐸 Froggie Fro</h2>
-                <p>Journey to Stuffy City! Bounce, croak, and explore a whimsical world filled with challenges and plushie friends.</p>
-                <a href="froggie-foe.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🐈 The Golden Cat Treat</h2>
-                <p>A vibrant 3D platformer where you explore gorgeous worlds, scratch enemies out of your way, and hunt down the legendary golden treat!</p>
-                <a href="golden-cat.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🔢 Math Facts</h2>
-                <p>Sharpen your arithmetic reflexes with quick, engaging mathematical challenges that test your precision and speed.</p>
-                <a href="math-facts.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🌃 Neon Drifter</h2>
-                <p>A gripping retro text-based cyberpunk adventure where choices drive the story through neon-drenched landscapes.</p>
-                <a href="neon-drifter.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🤖 Cyberpup 2067</h2>
-                <p>Pilot a highly-equipped Corgi Mech in this gorgeous, high-action pixel-art retro platformer.</p>
-                <a href="cyberpup-2067.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🍫 Cyberpup Returns</h2>
-                <p>The epic sequel is faster, tastier, and spookier. Battle ghost puppies and chocolate rockets across three intense levels.</p>
-                <a href="cyberpup-returns.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>😼 Meow Royale</h2>
-                <p>Ultimate battle of the kittens! Engage in 1v1 split-screen or test your skills against 12 AI bots with dynamic storm circles.</p>
-                <a href="meow-royale.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🐾 Goofy Paws: Origins</h2>
-                <p>Discover the origin story of Goofy Paws the Orange Cat, tracking his initial journey to the famous house before the chaos began.</p>
-                <a href="goofy-paws-origins.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🎬 Director's Cut</h2>
-                <p>An action-oriented 2D arcade game. Play as the director, slice rogue actor extras, and dodge their theatrical attacks.</p>
-                <a href="directors-cut.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🦅 High Flyers</h2>
-                <p>Soar through multiple rich biomes, upgrade your customizable bird, collect loot boxes, and unlock awards in this 3D flight game.</p>
-                <a href="high-flyers.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🤪 The Goofiest Game</h2>
-                <p>You are a wobbly Jelly! Bounce around collecting flying space tacos while avoiding grumpy clouds in the goofiest universe ever.</p>
-                <a href="goofiest.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🐶 Pup Head</h2>
-                <p>A brilliant retro 1930s-inspired run-and-gun platformer packed with intense boss encounters and unique flying stages.</p>
-                <a href="puphead.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🛰️ Momentum Shift</h2>
-                <p>Master physical inertia! Navigate a fragile energy core to the extraction zone through environments with varying gravity laws.</p>
-                <a href="momentum.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🖼️ Dog Gallery</h2>
-                <p>Explore a stunning interactive museum gallery celebrating 1930s style animations. Choose a pup to preview detailed movements.</p>
-                <a href="dog-gallery.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🍞 Cat Loaf Manor</h2>
-                <p>A highly-addictive idle business manager. Knead bread dough, hire efficient helpers, and expand your pastry-themed kitty manor.</p>
-                <a href="cat-loaf-manor.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🐶 Pupnautica</h2>
-                <p>Stranded on a mysterious oceanic exoplanet, dive deep, harvest resources, craft survival machinery, and manage your oxygen supplies.</p>
-                <a href="pupnautica.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🦆 Stealth Duck</h2>
-                <p>Stay in the shadows! Sneak past alert patrolling guards and make your way safely to the blue pond in this 3D stealth adventure.</p>
-                <a href="stealth-duck.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🛩️ Goofy Flight</h2>
-                <p>Pilot Goofy Paws the Orange Cat through whimsical open skies, shooting silly string and dodging playful floating jellies.</p>
-                <a href="goofy-flight.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="miles">
-                <span class="creator-badge badge-miles">Miles</span>
-                <h2>🐈 Silly Cat Zoomies</h2>
-                <p>Experience the ultimate midnight zoomies! Dash around the house, knock over vases, and avoid the angry owners in this chaotic feline adventure.</p>
-                <a href="silly-cat.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <!-- JIMMY'S GAMES -->
-            <div class="game-card fade-in" data-creator="jimmy">
-                <span class="creator-badge badge-jimmy">Jimmy</span>
-                <h2>⬢ Nonaga</h2>
-                <p>A classic, brain-bending hexagonal strategy board game. Slide your pieces and shift the map borders dynamically to block and win.</p>
-                <a href="nonaga.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="jimmy">
-                <span class="creator-badge badge-jimmy">Jimmy</span>
-                <h2>🎩 High Society</h2>
-                <p>Outbid your elite rival bidders for ultimate luxury. Bid wisely, but avoid ending the game with the lowest remaining funds!</p>
-                <a href="high-society/index.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="jimmy">
-                <span class="creator-badge badge-jimmy">Jimmy</span>
-                <h2>🧙 Wizard</h2>
-                <p>A game of mystical forecasting. Predict exactly how many card tricks you will take each round to score points and outsmart rivals.</p>
-                <a href="wizard.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="jimmy">
-                <span class="creator-badge badge-jimmy">Jimmy</span>
-                <h2>🖼️ High Fidelity</h2>
-                <p>Do you have audiophile or videophile eyes? Examine subtle structural cues and identify the higher fidelity compressed image file.</p>
-                <a href="high-fidelity.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="jimmy">
-                <span class="creator-badge badge-jimmy">Jimmy</span>
-                <h2>🍩 Donut Chef</h2>
-                <p>Run your own successful sweet bakery! A deck-building strategy game where you bake delicious recipes and out-bake your rival.</p>
-                <a href="donut-chef.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="jimmy">
-                <span class="creator-badge badge-jimmy">Jimmy</span>
-                <h2>⛷️ Slope Builder</h2>
-                <p>Design a snowy ski mountain course in BUILD mode, then test your construction instantly in RIDE mode with interactive physics!</p>
-                <a href="slope-builder.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="jimmy">
-                <span class="creator-badge badge-jimmy">Jimmy</span>
-                <h2>🐶 Lofi Pup</h2>
-                <p>Relax, breathe, and unwind with procedural, generative lofi music. Tune the beats with custom environmental filters and sound seeds.</p>
-                <a href="lofi-pup.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
-            <div class="game-card fade-in" data-creator="jimmy">
-                <span class="creator-badge badge-jimmy">Jimmy</span>
-                <h2>📢 Stand Clear</h2>
-                <p>An auditory matching puzzle. Listen to famous transit sounds, record your own voice, and try to match the perfect frequency envelope.</p>
-                <a href="stand-clear.html" class="btn">PLAY NOW <span>→</span></a>
-            </div>
-
+      <div class="games-container" id="games-grid">
+        <!-- FEATURED GAMES (1 from each creator) -->
+        <div class="game-card fade-in featured" data-creator="jimmy">
+          <span class="featured-badge">★ Featured</span>
+          <span class="creator-badge badge-jimmy">Jimmy</span>
+          <h2>🛩️ Chill Flight</h2>
+          <p>
+            A peaceful, beautiful 3D flight experience. Soar at your own pace
+            through endless, procedurally generated mountains and valleys.
+          </p>
+          <a href="https://chill-flight.cowneck.com/" class="btn"
+            >PLAY NOW <span>→</span></a
+          >
         </div>
+
+        <div class="game-card fade-in featured" data-creator="miles">
+          <span class="featured-badge">★ Featured</span>
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🐾 Goofy Paws</h2>
+          <p>
+            The owners are absolutely furious. Survive household chaos, collect
+            weapons, and battle major bosses like the Vacuum King!
+          </p>
+          <a href="goofy-paws.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in featured" data-creator="kirby">
+          <span class="featured-badge">★ Featured</span>
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>Cat Cannon 🎯</h2>
+          <p>
+            Aim, power up, and launch silly cats directly at target bullseyes.
+            Score points for precision landing using intuitive spacebar
+            controls.
+          </p>
+          <a href="cat-cannon.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <!-- KIRBY'S GAMES -->
+        <div class="game-card fade-in" data-creator="kirby">
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>🏰 Escape The Dungeon</h2>
+          <p>
+            Navigate a dark and perilous dungeon, solve puzzles, and find your
+            way out before it's too late!
+          </p>
+          <a href="escape_the_dungeon.html" class="btn"
+            >PLAY NOW <span>→</span></a
+          >
+        </div>
+
+        <div class="game-card fade-in" data-creator="kirby">
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>💻 Hacker Sim</h2>
+          <p>
+            A terminal-based data extraction protocol. Idle, click, upgrade your
+            rig, and hack the mainframe!
+          </p>
+          <a href="hacker_sim.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+        <div class="game-card fade-in" data-creator="kirby">
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>Hypnotizer 🌀</h2>
+          <p>
+            Escape the hypnotic rings and break them all to unlock new levels.
+            Use arrow keys to navigate and break the rings.
+          </p>
+          <a href="hypnotizer.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="kirby">
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>Click Speed Test ⚡</h2>
+          <p>
+            Test your clicking speed with this simple game. Click as many times
+            as you can in the given time limit.
+          </p>
+          <a href="click-speed-test.html" class="btn"
+            >PLAY NOW <span>→</span></a
+          >
+        </div>
+
+        <div class="game-card fade-in" data-creator="kirby">
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>Violet Velocity ⬆</h2>
+          <p>
+            A fast-paced 3D arcade game with sleek retro aesthetics. Navigate
+            through tricky obstacles and collect yellow orbs.
+          </p>
+          <a href="violet-velocity.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="kirby">
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>Chained Teleporters ⛓️</h2>
+          <p>
+            Two cosmic orbs are chained together. One is active, one is
+            anchored. Switch roles dynamically to navigate the teleport field.
+          </p>
+          <a href="chained-teleporters.html" class="btn"
+            >PLAY NOW <span>→</span></a
+          >
+        </div>
+
+        <div class="game-card fade-in" data-creator="kirby">
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>Canvas Escape 🖼️</h2>
+          <p>
+            Break out of the frame! Escape the canvas and dodge complex moving
+            obstacles in this high-speed, stylized platformer.
+          </p>
+          <a href="canvas-escape.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="kirby">
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>Radical Rails 🛹</h2>
+          <p>
+            Speedrun across 15 uniquely designed levels. Take the high sky rails
+            for max velocity, but watch out - hitting solid walls stops you
+            cold!
+          </p>
+          <a href="radical-rails.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="kirby">
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>Bridge Crossing 🌉</h2>
+          <p>
+            Build secure bridges to cross treacherous canyons and reach the
+            other side. Use timing and the space bar to gauge and construct.
+          </p>
+          <a href="bridge-crossing.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="kirby">
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>Pack Opening Simulator 🎁</h2>
+          <p>
+            Open booster packs, reveal rare loot, and collect unique rewards.
+            Test your fortune and see how quickly you can complete your
+            collection!
+          </p>
+          <a href="pack-opening-sim.html" class="btn"
+            >PLAY NOW <span>→</span></a
+          >
+        </div>
+
+        <div class="game-card fade-in" data-creator="kirby">
+          <span class="creator-badge badge-kirby">Kirby</span>
+          <h2>Tiny Projects 🧩</h2>
+          <p>
+            A collection of small interactive experiments and micro-games. Quick
+            to play, fun to explore.
+          </p>
+          <a href="tiny_projects.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <!-- MILES'S GAMES -->
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🐸 Froggie Foe</h2>
+          <p>
+            Journey to Stuffy City! Bounce, croak, and explore a whimsical world
+            filled with challenges and plushie friends.
+          </p>
+          <a href="froggie-foe.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🐈 The Golden Cat Treat</h2>
+          <p>
+            A vibrant 3D platformer where you explore gorgeous worlds, scratch
+            enemies out of your way, and hunt down the legendary golden treat!
+          </p>
+          <a href="golden-cat.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🔢 Math Facts</h2>
+          <p>
+            Sharpen your arithmetic reflexes with quick, engaging mathematical
+            challenges that test your precision and speed.
+          </p>
+          <a href="math-facts.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🌃 Neon Drifter</h2>
+          <p>
+            A gripping retro text-based cyberpunk adventure where choices drive
+            the story through neon-drenched landscapes.
+          </p>
+          <a href="neon-drifter.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🤖 Cyberpup 2067</h2>
+          <p>
+            Pilot a highly-equipped Corgi Mech in this gorgeous, high-action
+            pixel-art retro platformer.
+          </p>
+          <a href="cyberpup-2067.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🍫 Cyberpup Returns</h2>
+          <p>
+            The epic sequel is faster, tastier, and spookier. Battle ghost
+            puppies and chocolate rockets across three intense levels.
+          </p>
+          <a href="cyberpup-returns.html" class="btn"
+            >PLAY NOW <span>→</span></a
+          >
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>😼 Meow Royale</h2>
+          <p>
+            Ultimate battle of the kittens! Engage in 1v1 split-screen or test
+            your skills against 12 AI bots with dynamic storm circles.
+          </p>
+          <a href="meow-royale.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🐾 Goofy Paws: Origins</h2>
+          <p>
+            Discover the origin story of Goofy Paws the Orange Cat, tracking his
+            initial journey to the famous house before the chaos began.
+          </p>
+          <a href="goofy-paws-origins.html" class="btn"
+            >PLAY NOW <span>→</span></a
+          >
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🎬 Director's Cut</h2>
+          <p>
+            An action-oriented 2D arcade game. Play as the director, slice rogue
+            actor extras, and dodge their theatrical attacks.
+          </p>
+          <a href="directors-cut.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🦅 High Flyers</h2>
+          <p>
+            Soar through multiple rich biomes, upgrade your customizable bird,
+            collect loot boxes, and unlock awards in this 3D flight game.
+          </p>
+          <a href="high-flyers.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🤪 The Goofiest Game</h2>
+          <p>
+            You are a wobbly Jelly! Bounce around collecting flying space tacos
+            while avoiding grumpy clouds in the goofiest universe ever.
+          </p>
+          <a href="goofiest.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🐶 Pup Head</h2>
+          <p>
+            A brilliant retro 1930s-inspired run-and-gun platformer packed with
+            intense boss encounters and unique flying stages.
+          </p>
+          <a href="puphead.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🛰️ Momentum Shift</h2>
+          <p>
+            Master physical inertia! Navigate a fragile energy core to the
+            extraction zone through environments with varying gravity laws.
+          </p>
+          <a href="momentum.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🖼️ Dog Gallery</h2>
+          <p>
+            Explore a stunning interactive museum gallery celebrating 1930s
+            style animations. Choose a pup to preview detailed movements.
+          </p>
+          <a href="dog-gallery.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🍞 Cat Loaf Manor</h2>
+          <p>
+            A highly-addictive idle business manager. Knead bread dough, hire
+            efficient helpers, and expand your pastry-themed kitty manor.
+          </p>
+          <a href="cat-loaf-manor.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🐶 Pupnautica</h2>
+          <p>
+            Stranded on a mysterious oceanic exoplanet, dive deep, harvest
+            resources, craft survival machinery, and manage your oxygen
+            supplies.
+          </p>
+          <a href="pupnautica.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🦆 Stealth Duck</h2>
+          <p>
+            Stay in the shadows! Sneak past alert patrolling guards and make
+            your way safely to the blue pond in this 3D stealth adventure.
+          </p>
+          <a href="stealth-duck.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🛩️ Goofy Flight</h2>
+          <p>
+            Pilot Goofy Paws the Orange Cat through whimsical open skies,
+            shooting silly string and dodging playful floating jellies.
+          </p>
+          <a href="goofy-flight.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="miles">
+          <span class="creator-badge badge-miles">Miles</span>
+          <h2>🐈 Silly Cat Zoomies</h2>
+          <p>
+            Experience the ultimate midnight zoomies! Dash around the house,
+            knock over vases, and avoid the angry owners in this chaotic feline
+            adventure.
+          </p>
+          <a href="silly-cat.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <!-- JIMMY'S GAMES -->
+        <div class="game-card fade-in" data-creator="jimmy">
+          <span class="creator-badge badge-jimmy">Jimmy</span>
+          <h2>⬢ Nonaga</h2>
+          <p>
+            A classic, brain-bending hexagonal strategy board game. Slide your
+            pieces and shift the map borders dynamically to block and win.
+          </p>
+          <a href="nonaga.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="jimmy">
+          <span class="creator-badge badge-jimmy">Jimmy</span>
+          <h2>🎩 High Society</h2>
+          <p>
+            Outbid your elite rival bidders for ultimate luxury. Bid wisely, but
+            avoid ending the game with the lowest remaining funds!
+          </p>
+          <a href="high-society/index.html" class="btn"
+            >PLAY NOW <span>→</span></a
+          >
+        </div>
+
+        <div class="game-card fade-in" data-creator="jimmy">
+          <span class="creator-badge badge-jimmy">Jimmy</span>
+          <h2>🧙 Wizard</h2>
+          <p>
+            A game of mystical forecasting. Predict exactly how many card tricks
+            you will take each round to score points and outsmart rivals.
+          </p>
+          <a href="wizard.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="jimmy">
+          <span class="creator-badge badge-jimmy">Jimmy</span>
+          <h2>🖼️ High Fidelity</h2>
+          <p>
+            Do you have audiophile or videophile eyes? Examine subtle structural
+            cues and identify the higher fidelity compressed image file.
+          </p>
+          <a href="high-fidelity.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="jimmy">
+          <span class="creator-badge badge-jimmy">Jimmy</span>
+          <h2>🍩 Donut Chef</h2>
+          <p>
+            Run your own successful sweet bakery! A deck-building strategy game
+            where you bake delicious recipes and out-bake your rival.
+          </p>
+          <a href="donut-chef.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="jimmy">
+          <span class="creator-badge badge-jimmy">Jimmy</span>
+          <h2>⛷️ Slope Builder</h2>
+          <p>
+            Design a snowy ski mountain course in BUILD mode, then test your
+            construction instantly in RIDE mode with interactive physics!
+          </p>
+          <a href="slope-builder.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="jimmy">
+          <span class="creator-badge badge-jimmy">Jimmy</span>
+          <h2>🐶 Lofi Pup</h2>
+          <p>
+            Relax, breathe, and unwind with procedural, generative lofi music.
+            Tune the beats with custom environmental filters and sound seeds.
+          </p>
+          <a href="lofi-pup.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+
+        <div class="game-card fade-in" data-creator="jimmy">
+          <span class="creator-badge badge-jimmy">Jimmy</span>
+          <h2>📢 Stand Clear</h2>
+          <p>
+            An auditory matching puzzle. Listen to famous transit sounds, record
+            your own voice, and try to match the perfect frequency envelope.
+          </p>
+          <a href="stand-clear.html" class="btn">PLAY NOW <span>→</span></a>
+        </div>
+      </div>
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const buttons = document.querySelectorAll('.filter-btn');
-            const cards = document.querySelectorAll('.game-card');
-            const subtitle = document.querySelector('.subtitle');
+      document.addEventListener("DOMContentLoaded", () => {
+        const buttons = document.querySelectorAll(".filter-btn");
+        const cards = document.querySelectorAll(".game-card");
+        const subtitle = document.querySelector(".subtitle");
 
-            // 1. Calculate dynamic game counts
-            const totalCount = cards.length;
-            const counts = {
-                all: totalCount,
-                kirby: 0,
-                miles: 0,
-                jimmy: 0
-            };
+        // 1. Calculate dynamic game counts
+        const totalCount = cards.length;
+        const counts = {
+          all: totalCount,
+          kirby: 0,
+          miles: 0,
+          jimmy: 0,
+        };
 
-            cards.forEach(card => {
-                const creator = card.getAttribute('data-creator');
-                if (creator && counts[creator] !== undefined) {
-                    counts[creator]++;
-                }
-            });
-
-            // 2. Update count badges in the DOM
-            buttons.forEach(button => {
-                const filter = button.getAttribute('data-filter');
-                const countSpan = button.querySelector('.count');
-                if (countSpan && counts[filter] !== undefined) {
-                    countSpan.textContent = counts[filter];
-                }
-            });
-
-            // 3. Update subtitle with dynamic total
-            if (subtitle) {
-                subtitle.textContent = `Filter by creator or explore all ${totalCount} games in our combined collection.`;
-            }
-
-            // 4. Handle interactive filtering
-            buttons.forEach(button => {
-                button.addEventListener('click', () => {
-                    // Update active button state
-                    buttons.forEach(btn => {
-                        btn.classList.remove('active');
-                        btn.setAttribute('aria-selected', 'false');
-                    });
-                    button.classList.add('active');
-                    button.setAttribute('aria-selected', 'true');
-
-                    const filter = button.getAttribute('data-filter');
-
-                    // Filter cards with smooth entrance animation
-                    cards.forEach(card => {
-                        card.classList.remove('fade-in');
-                        if (filter === 'all' || card.getAttribute('data-creator') === filter) {
-                            card.style.display = 'flex';
-                            // Trigger layout reflow to reset CSS transition state
-                            void card.offsetWidth;
-                            card.classList.add('fade-in');
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-                });
-            });
+        cards.forEach((card) => {
+          const creator = card.getAttribute("data-creator");
+          if (creator && counts[creator] !== undefined) {
+            counts[creator]++;
+          }
         });
-    </script>
-</body>
 
+        // 2. Update count badges in the DOM
+        buttons.forEach((button) => {
+          const filter = button.getAttribute("data-filter");
+          const countSpan = button.querySelector(".count");
+          if (countSpan && counts[filter] !== undefined) {
+            countSpan.textContent = counts[filter];
+          }
+        });
+
+        // 3. Update subtitle with dynamic total
+        if (subtitle) {
+          subtitle.textContent = `Filter by creator or explore all ${totalCount} games in our combined collection.`;
+        }
+
+        // 4. Handle interactive filtering
+        buttons.forEach((button) => {
+          button.addEventListener("click", () => {
+            // Update active button state
+            buttons.forEach((btn) => {
+              btn.classList.remove("active");
+              btn.setAttribute("aria-selected", "false");
+            });
+            button.classList.add("active");
+            button.setAttribute("aria-selected", "true");
+
+            const filter = button.getAttribute("data-filter");
+
+            // Filter cards with smooth entrance animation
+            cards.forEach((card) => {
+              card.classList.remove("fade-in");
+              if (
+                filter === "all" ||
+                card.getAttribute("data-creator") === filter
+              ) {
+                card.style.display = "flex";
+                // Trigger layout reflow to reset CSS transition state
+                void card.offsetWidth;
+                card.classList.add("fade-in");
+              } else {
+                card.style.display = "none";
+              }
+            });
+          });
+        });
+      });
+    </script>
+  </body>
 </html>
