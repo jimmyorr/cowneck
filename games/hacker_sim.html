@@ -14,13 +14,22 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "react": "https://esm.sh/react@18.2.0",
+                "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+                "lucide-react": "https://esm.sh/lucide-react@0.378.0?deps=react@18.2.0"
+            }
+        }
+    </script>
 </head>
 <body>
     <div id="root"></div>
     <script type="text/babel" data-type="module">
-        import React, { useState, useEffect, useCallback, useRef } from 'https://esm.sh/react@18';
-        import { createRoot } from 'https://esm.sh/react-dom@18/client';
-        import { Terminal, Cpu, Database, Server, MousePointer2, Activity, Wifi } from 'https://esm.sh/lucide-react';
+        import React, { useState, useEffect, useCallback, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { Terminal, Cpu, Database, Server, MousePointer2, Activity, Wifi } from 'lucide-react';
 
 
 // --- GAME DATA ---
