@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Headline Hijack</title>
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & Firebase Imports -->
+  <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "firebase/app": "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"
+      }
+    }
+  </script>
+  
+  <!-- Babel for in-browser JSX transpilation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* Custom Scrollbar for the Reveal Phase */
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); border-radius: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    
+    /* Fade Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+  </style>
+</head>
+<body class="bg-slate-900 text-white font-sans selection:bg-pink-500 selection:text-white antialiased">
+  
+  <div id="root"></div>
+
+  <!-- The Main React App -->
+  <script type="text/babel" data-type="module">
+    import React, { useState, useEffect } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import { initializeApp } from 'firebase/app';
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
+    import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, collection, getDocs } from 'firebase/firestore';
+
+    // --- INLINE ICONS (Replacing lucide-react) ---
+    const AlertCircle = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>;
+    const CheckCircle2 = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
+    const Crown = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>;
+    const Play = ({size=24, className="", fill="none"}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>;
+    const SkipForward = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>;
+    const Users = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>;
+    const Trophy = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 1.1-.9 2-2 2H4v2h16v-2h-4c-1.1 0-2-.9-2-2v-2.34"></path><path d="M8 2h8v8c0 2.2-1.8 4-4 4s-4-1.8-4-4V2z"></path></svg>;
+    const Globe = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>;
+    const Bot = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>;
+    const Smartphone = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>;
+    const ArrowLeft = ({size=24, className=""}) => <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
+
+    // --- FIREBASE INITIALIZATION ---
+    const getFirebaseConfig = () => {
+      try {
+        return typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+      } catch (e) {
+        return {};
+      }
+    };
+
+    const firebaseConfig = getFirebaseConfig();
+    let app, auth, db;
+
+    if (Object.keys(firebaseConfig).length > 0) {
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+    }
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+    // --- GAME CONTENT (Curated Prompts) ---
+    const PROMPTS = [
+      { id: 1, prompt: "In 1923, a jockey won a race at Belmont Park despite being dead of a _______ during the race.", realAnswer: "heart attack", botLies: ["broken leg", "bee sting", "bad cold", "sneezing fit"] },
+      { id: 2, prompt: "In 2004, a town in Taiwan held a festival featuring a massive 60-foot-long whale that suddenly _______.", realAnswer: "exploded", botLies: ["flew away", "started singing", "turned pink", "sneezed"] },
+      { id: 3, prompt: "In 1995, a man robbed two banks with _______ juice on his face, believing it made him invisible to cameras.", realAnswer: "lemon", botLies: ["pickle", "tomato", "grape", "onion"] },
+      { id: 4, prompt: "Before becoming a famous dictator, Muammar Gaddafi once tried to buy a _______ from a private collector.", realAnswer: "theme park", botLies: ["dinosaur skull", "spacesuit", "pirate ship", "gold toilet"] },
+      { id: 5, prompt: "In 1859, a man released 24 _______ into Australia for hunting, inadvertently causing an ecological disaster.", realAnswer: "rabbits", botLies: ["kangaroos", "pigeons", "llamas", "hamsters"] },
+      { id: 6, prompt: "A town in Alaska famously elected a _______ named Stubbs to be their honorary mayor for 20 years.", realAnswer: "cat", botLies: ["dog", "snowman", "bear", "penguin"] },
+      { id: 7, prompt: "In 1974, a man sneaked a _______ into the cockpit of a commercial flight as a gift for his friend.", realAnswer: "live penguin", botLies: ["pizza", "birthday cake", "parrot", "monkey"] },
+      { id: 8, prompt: "In 2011, a woman sued a movie theater because the film Drive didn't have enough _______ in it.", realAnswer: "driving", botLies: ["explosions", "romance", "dogs", "talking"] },
+      { id: 9, prompt: "In 2018, a man was arrested for calling the emergency police line 20 times just to complain about his _______.", realAnswer: "cold kebab", botLies: ["noisy neighbor", "stolen shoe", "bad haircut", "burnt toast"] },
+      { id: 10, prompt: "In 2014, a thief in Germany stole a truck containing 5 metric tons of _______.", realAnswer: "nutella", botLies: ["cheese", "gold coins", "marshmallows", "glitter"] },
+      { id: 11, prompt: "In 1982, a man broke into Buckingham Palace and spent 10 minutes sitting on the Queen's bed talking about _______.", realAnswer: "royal family drama", botLies: ["the weather", "his pet dog", "baking recipes", "sports"] },
+      { id: 12, prompt: "In 2015, a tourist in China was hospitalized after trying to take a selfie with a _______.", realAnswer: "walrus", botLies: ["panda", "statue", "tiger", "train"] },
+      { id: 13, prompt: "In 1971, a man hijacked a plane, jumped out with a parachute and cash, leaving behind a _______.", realAnswer: "clip-on tie", botLies: ["fake mustache", "love letter", "half-eaten sandwich", "shoe"] },
+      { id: 14, prompt: "In 2020, a zoo had to separate five parrots because they wouldn't stop _______ at the visitors.", realAnswer: "swearing", botLies: ["spitting", "laughing", "throwing food", "barking"] },
+      { id: 15, prompt: "In 2007, a massive brawl broke out at a competitive tournament for the game _______.", realAnswer: "rock paper scissors", botLies: ["monopoly", "chess", "hide and seek", "bingo"] },
+      { id: 16, prompt: "In 2011, a man survived a bear attack by hitting the bear directly in the nose with a _______.", realAnswer: "zucchini", botLies: ["frying pan", "fishing pole", "shoe", "purse"] },
+      { id: 17, prompt: "In 1960, the CIA spent $20 million trying to turn a _______ into a spy device to eavesdrop on meetings.", realAnswer: "cat", botLies: ["pigeon", "toaster", "tree", "mouse"] },
+      { id: 18, prompt: "In 2012, a man was arrested for trying to board a plane with 44 live _______ hidden under his clothes.", realAnswer: "snakes", botLies: ["frogs", "hamsters", "spiders", "birds"] },
+      { id: 19, prompt: "In 1997, a major toy company had to recall a doll because it kept eating children's _______.", realAnswer: "hair", botLies: ["homework", "fingers", "clothes", "jewelry"] },
+      { id: 20, prompt: "In 2016, an automated lawnmower went rogue and drove two miles down a highway to a local _______.", realAnswer: "supermarket", botLies: ["gas station", "park", "police station", "golf course"] },
+      { id: 21, prompt: "The longest wedding veil in history was the same length as 63 _______ fields.", realAnswer: "football", botLies: ["baseball", "soccer", "tennis", "corn"] },
+      { id: 22, prompt: "To test if a pearl is real, you can lightly rub it against your _______.", realAnswer: "teeth", botLies: ["skin", "hair", "clothing", "fingernail"] },
+      { id: 23, prompt: "Male seahorses are incredibly unique because they are the ones who give _______ to their babies.", realAnswer: "birth", botLies: ["names", "food", "shelter", "lessons"] },
+      { id: 24, prompt: "Goats have rectangular _______ which gives them amazing peripheral vision.", realAnswer: "pupils", botLies: ["ears", "noses", "tails", "hooves"] },
+      { id: 25, prompt: "A group of rhinos is called a _______.", realAnswer: "crash", botLies: ["herd", "smash", "boom", "party"] },
+      { id: 26, prompt: "The smell of cut grass is actually a chemical distress signal released when the grass is _______.", realAnswer: "hurt", botLies: ["thirsty", "growing", "happy", "dying"] },
+      { id: 27, prompt: "The official mascot of the internet browser Firefox is not a fox; it is actually a red _______.", realAnswer: "panda", botLies: ["dog", "cat", "bird", "squirrel"] },
+      { id: 28, prompt: "A group of jellyfish is surprisingly called a _______.", realAnswer: "smack", botLies: ["sting", "blob", "wave", "jiggle"] },
+      { id: 29, prompt: "The tiny piece of plastic or metal at the end of a shoelace is called an _______.", realAnswer: "aglet", botLies: ["tip", "point", "cap", "stopper"] },
+      { id: 30, prompt: "Due to a genetic defect, all cats are completely unable to taste _______ things.", realAnswer: "sweet", botLies: ["sour", "salty", "spicy", "bitter"] },
+      { id: 31, prompt: "Hippopotamus sweat is completely unique because it comes out colored _______.", realAnswer: "red", botLies: ["blue", "green", "black", "purple"] },
+      { id: 32, prompt: "Wombat poop is famous in the animal kingdom because it is shaped like a _______.", realAnswer: "cube", botLies: ["star", "triangle", "donut", "heart"] },
+      { id: 33, prompt: "It is physically impossible for pigs to look directly up at the _______.", realAnswer: "sky", botLies: ["sun", "clouds", "birds", "trees"] },
+      { id: 34, prompt: "An ostrich's eye is physically larger than its entire _______.", realAnswer: "brain", botLies: ["stomach", "heart", "foot", "beak"] },
+      { id: 35, prompt: "The inventor of the Frisbee was cremated and turned into a _______ after he died.", realAnswer: "frisbee", botLies: ["golf ball", "trophy", "statue", "kite"] },
+      { id: 36, prompt: "A snail can sleep without waking up for an incredibly long time, up to 3 _______.", realAnswer: "years", botLies: ["months", "days", "weeks", "decades"] },
+      { id: 37, prompt: "A single cloud can weigh as much as 100 _______.", realAnswer: "elephants", botLies: ["cars", "houses", "buses", "airplanes"] },
+      { id: 38, prompt: "Cows have best friends and get highly stressed when they are _______.", realAnswer: "separated", botLies: ["milked", "sleeping", "running", "eating"] },
+      { id: 39, prompt: "An octopus is a very unique sea creature because it has three _______.", realAnswer: "hearts", botLies: ["brains", "eyes", "stomachs", "noses"] },
+      { id: 40, prompt: "Bananas are scientifically classified as berries, but surprisingly, _______ are not.", realAnswer: "strawberries", botLies: ["blueberries", "grapes", "apples", "oranges"] },
+      { id: 41, prompt: "A baby spider is called a spiderling, but a baby puffin is called a _______.", realAnswer: "puffling", botLies: ["puff", "chick", "fluff", "puffer"] },
+      { id: 42, prompt: "A group of crows is called a murder, but a group of owls is called a _______.", realAnswer: "parliament", botLies: ["school", "gang", "library", "choir"] },
+      { id: 43, prompt: "The first oranges ever grown in the world were not orange, they were _______.", realAnswer: "green", botLies: ["red", "blue", "yellow", "purple"] },
+      { id: 44, prompt: "The total weight of all the ants on Earth is roughly equal to the weight of all the _______.", realAnswer: "humans", botLies: ["elephants", "whales", "trees", "cars"] },
+      { id: 45, prompt: "A blue whale's tongue is so massive that it weighs as much as a fully grown _______.", realAnswer: "elephant", botLies: ["car", "house", "bus", "hippo"] },
+      { id: 46, prompt: "To cool down on hot days, vultures have a disgusting habit of peeing on their own _______.", realAnswer: "legs", botLies: ["food", "friends", "wings", "nests"] },
+      { id: 47, prompt: "Sea otters hold hands while they are sleeping so they don't _______ away from each other.", realAnswer: "drift", botLies: ["swim", "run", "fly", "sink"] },
+      { id: 48, prompt: "A cockroach can live for several weeks even if someone cuts off its _______.", realAnswer: "head", botLies: ["legs", "wings", "antennae", "tail"] },
+      { id: 49, prompt: "The only mammal in the world that is fully capable of true sustained flight is the _______.", realAnswer: "bat", botLies: ["squirrel", "monkey", "mouse", "cat"] },
+      { id: 50, prompt: "Elephants are the only mammals in the world that are physically unable to _______.", realAnswer: "jump", botLies: ["swim", "run", "sneeze", "sleep"] },
+      { id: 51, prompt: "Honey is the only natural food in the world that never _______, even after thousands of years.", realAnswer: "spoils", botLies: ["freezes", "melts", "tastes bad", "dries up"] },
+      { id: 52, prompt: "A shrimp's heart is located inside its _______.", realAnswer: "head", botLies: ["tail", "leg", "stomach", "claw"] },
+      { id: 53, prompt: "Pigs are highly intelligent, but they cannot sweat, which is why they roll in _______.", realAnswer: "mud", botLies: ["grass", "water", "snow", "leaves"] },
+      { id: 54, prompt: "A group of frogs is called an _______.", realAnswer: "army", botLies: ["squad", "navy", "puddle", "jump"] },
+      { id: 55, prompt: "The fingerprints of a koala are so similar to humans that they can confuse a _______.", realAnswer: "crime scene", botLies: ["doctor", "teacher", "computer", "scanner"] },
+      { id: 56, prompt: "A single sneeze travels out of your mouth at an amazing speed of 100 _______ per hour.", realAnswer: "miles", botLies: ["kilometers", "feet", "inches", "yards"] },
+      { id: 57, prompt: "You cannot hum while holding your _______ closed.", realAnswer: "nose", botLies: ["eyes", "ears", "mouth", "breath"] },
+      { id: 58, prompt: "If you try to tickle a rat, it will actually make tiny, high-pitched _______ sounds.", realAnswer: "laughing", botLies: ["crying", "barking", "sneezing", "hissing"] },
+      { id: 59, prompt: "Peanuts are not actually nuts, they are scientifically classified as _______.", realAnswer: "legumes", botLies: ["berries", "fruits", "vegetables", "seeds"] },
+      { id: 60, prompt: "A crocodile cannot stick its _______ out of its mouth.", realAnswer: "tongue", botLies: ["teeth", "food", "water", "breath"] }
+    ];
+
+    const DICTIONARY_PROMPTS = [
+      { id: 1, prompt: "The real English word 'BUMFUZZLE' means: _______", realAnswer: "to confuse or fluster someone", botLies: ["a fluffy winter hat", "a dance step", "a type of bumblebee", "a messy haircut"] },
+      { id: 2, prompt: "The real English word 'SNOLLYGOSTER' means: _______", realAnswer: "a clever, unscrupulous person", botLies: ["a monster that eats socks", "a type of rollercoaster", "a sneezing ghost", "a slimy toad"] },
+      { id: 3, prompt: "The real English word 'TARADIDDLE' means: _______", realAnswer: "a small lie or piece of nonsense", botLies: ["a turtle with two shells", "a magical spell", "a musical instrument", "a slow song"] },
+      { id: 4, prompt: "The real English word 'CATTYWAMPUS' means: _______", realAnswer: "askew, crooked, or out of place", botLies: ["a cat that loves to swim", "a giant purple hippo", "a scary forest monster", "a sour candy"] },
+      { id: 5, prompt: "The real English word 'GOBBLEDYGOOK' means: _______", realAnswer: "language that is meaningless or hard to understand", botLies: ["a turkey's favorite food", "a messy pile of slime", "a monster in the closet", "a type of soup"] },
+      { id: 6, prompt: "The real English word 'LOLLYGAG' means: _______", realAnswer: "to spend time aimlessly; to dawdle", botLies: ["a candy that makes you laugh", "a funny joke", "a silly dance", "a sticky lollipop"] },
+      { id: 7, prompt: "The real English word 'MALARKEY' means: _______", realAnswer: "meaningless talk; nonsense", botLies: ["a special key for a castle", "a type of bird", "a shiny coin", "a locked door"] },
+      { id: 8, prompt: "The real English word 'NINCOMPOOP' means: _______", realAnswer: "a silly or foolish person", botLies: ["a tiny flying insect", "a bathroom for birds", "a monkey's tail", "a baby pigeon"] },
+      { id: 9, prompt: "The real English word 'SKEDADDLE' means: _______", realAnswer: "to run away quickly", botLies: ["a type of skateboard", "a lizard with no legs", "a paddle boat", "a puddle of mud"] },
+      { id: 10, prompt: "The real English word 'SNICKERSNEE' means: _______", realAnswer: "a large knife", botLies: ["a sneeze that sounds like a laugh", "a type of candy bar", "a tiny mouse", "a winter cold"] },
+      { id: 11, prompt: "The real English word 'WIDDERSHINS' means: _______", realAnswer: "in a direction contrary to the sun's course", botLies: ["a spider with shiny legs", "a magic potion", "a painful shin bruise", "a type of snake"] },
+      { id: 12, prompt: "The real English word 'COLLYWOBBLES' means: _______", realAnswer: "stomach pain or queasiness", botLies: ["a wobbly type of jelly", "a bird that cannot fly", "a silly dance", "a wobbly chair"] },
+      { id: 13, prompt: "The real English word 'BUMBERSHOOT' means: _______", realAnswer: "an umbrella", botLies: ["a rocket made of bamboo", "a slide at a water park", "a painful bee sting", "a jumping game"] },
+      { id: 14, prompt: "The real English word 'FLUMMOX' means: _______", realAnswer: "to perplex or bewilder greatly", botLies: ["a fluffy ox", "a type of floating bubble", "a magic trick", "a strange bird"] },
+      { id: 15, prompt: "The real English word 'KERFUFFLE' means: _______", realAnswer: "a commotion or fuss", botLies: ["a fluffy pancake", "a dog's sneeze", "a broken toy", "a soft pillow"] },
+      { id: 16, prompt: "The real English word 'FARDEL' means: _______", realAnswer: "a bundle or burden", botLies: ["a small fairy", "a magic wand", "a loud noise", "a type of cheese"] },
+      { id: 17, prompt: "The real English word 'FIPPLE' means: _______", realAnswer: "the mouthpiece of a recorder", botLies: ["a small apple", "a clumsy fall", "a baby fish", "a shiny coin"] },
+      { id: 18, prompt: "The real English word 'GONGOOZLER' means: _______", realAnswer: "someone who stares at canals", botLies: ["a monster that eats garbage", "a type of alien", "a loud alarm clock", "a strange bird"] },
+      { id: 19, prompt: "The real English word 'SNOUTBAND' means: _______", realAnswer: "someone who constantly interrupts", botLies: ["a pig's nose ring", "a marching band", "a winter scarf", "a sneeze guard"] },
+      { id: 20, prompt: "The real English word 'GUBBINS' means: _______", realAnswer: "miscellaneous items or gadgets", botLies: ["tiny green goblins", "shoes for rain", "a type of soup", "a bird's nest"] },
+      { id: 21, prompt: "The real English word 'MACARONICS' means: _______", realAnswer: "a mixture of languages", botLies: ["a pasta dish", "a robot monkey", "a secret code", "a funny dance"] },
+      { id: 22, prompt: "The real English word 'BROUHAHA' means: _______", realAnswer: "a noisy and overexcited reaction", botLies: ["a witch's laugh", "a type of coffee", "a scary ghost", "a magical spell"] },
+      { id: 23, prompt: "The real English word 'HULLABALOO' means: _______", realAnswer: "a commotion or fuss", botLies: ["a baby monkey", "a type of balloon", "a circus tent", "a loud sneeze"] },
+      { id: 24, prompt: "The real English word 'FUSTIGATE' means: _______", realAnswer: "to beat with a stick", botLies: ["to run away quickly", "to smell really bad", "to eat too much", "to hide in a closet"] },
+      { id: 25, prompt: "The real English word 'WABBIT' means: _______", realAnswer: "exhausted or slightly unwell", botLies: ["a funny rabbit", "a magic wand", "a fast runner", "a jumping frog"] },
+      { id: 26, prompt: "The real English word 'DONNYBROOK' means: _______", realAnswer: "a scene of uproar and disorder", botLies: ["a small river", "a type of hat", "a fancy car", "a quiet library"] },
+      { id: 27, prompt: "The real English word 'MOLLYCODDLE' means: _______", realAnswer: "to treat with excessive indulgence", botLies: ["a wet fish", "a type of soup", "a muddy puddle", "a sleepy cat"] },
+      { id: 28, prompt: "The real English word 'SKULDUGGERY' means: _______", realAnswer: "underhanded or unscrupulous behavior", botLies: ["a pirate's ship", "a spooky cave", "a type of bone", "a treasure map"] },
+      { id: 29, prompt: "The real English word 'SNUFFLEGUSTER' means: _______", realAnswer: "a strong wind that blows dust", botLies: ["a sneezing monster", "a dirty carpet", "a loud pig", "a winter coat"] },
+      { id: 30, prompt: "The real English word 'SPELUNK' means: _______", realAnswer: "to explore caves", botLies: ["a falling rock", "a muddy puddle", "a loud noise", "a broken toy"] },
+      { id: 31, prompt: "The real English word 'TATTERDEMALION' means: _______", realAnswer: "a person in tattered clothing", botLies: ["a fancy king", "a magical lion", "a type of flower", "a golden coin"] },
+      { id: 32, prompt: "The real English word 'TROGLODYTE' means: _______", realAnswer: "a person who lives in a cave", botLies: ["a giant flying bug", "a scary dinosaur", "a magical stone", "a robot"] },
+      { id: 33, prompt: "The real English word 'WHIPPERSNAPPER' means: _______", realAnswer: "a young and inexperienced person", botLies: ["a snapping turtle", "a long rope", "a type of candy", "a fast car"] },
+      { id: 34, prompt: "The real English word 'WILLY-NILLY' means: _______", realAnswer: "without direction or planning", botLies: ["a silly clown", "a jumping frog", "a wet dog", "a funny song"] },
+      { id: 35, prompt: "The real English word 'YAHOO' means: _______", realAnswer: "a rude, noisy, or violent person", botLies: ["a type of owl", "a fast horse", "a magic trick", "a hidden treasure"] },
+      { id: 36, prompt: "The real English word 'ZARF' means: _______", realAnswer: "an ornamental holder for a hot coffee cup", botLies: ["an alien spaceship", "a funny dog", "a type of scarf", "a loud sneeze"] },
+      { id: 37, prompt: "The real English word 'CACOPHONY' means: _______", realAnswer: "a harsh, discordant mixture of sounds", botLies: ["a fake telephone", "a type of pasta", "a singing bird", "a quiet whisper"] },
+      { id: 38, prompt: "The real English word 'RIGMAROLE' means: _______", realAnswer: "a lengthy and complicated procedure", botLies: ["a rolling pig", "a type of cheese", "a fast boat", "a jumping game"] },
+      { id: 39, prompt: "The real English word 'POPPYCOCK' means: _______", realAnswer: "nonsense or rubbish", botLies: ["a red flower", "a loud rooster", "a type of popcorn", "a magical spell"] },
+      { id: 40, prompt: "The real English word 'BALDERDASH' means: _______", realAnswer: "senseless talk or writing", botLies: ["a fast runner", "a bald man's hat", "a type of soup", "a loud crash"] },
+      { id: 41, prompt: "The real English word 'HOGWASH' means: _______", realAnswer: "absolute nonsense", botLies: ["a dirty pig", "a car wash", "a type of soap", "a muddy puddle"] },
+      { id: 42, prompt: "The real English word 'PIFFLE' means: _______", realAnswer: "trivial or senseless talk", botLies: ["a small pancake", "a dog's sneeze", "a type of flute", "a floating bubble"] },
+      { id: 43, prompt: "The real English word 'TWADDLE' means: _______", realAnswer: "trivial or foolish speech", botLies: ["a waddling duck", "a tiny toad", "a messy puddle", "a type of dance"] },
+      { id: 44, prompt: "The real English word 'BUNKUM' means: _______", realAnswer: "nonsense", botLies: ["a bunk bed", "a loud drum", "a type of candy", "a magic trick"] },
+      { id: 45, prompt: "The real English word 'FLIMFLAM' means: _______", realAnswer: "nonsensical or deceptive talk", botLies: ["a flying bird", "a magic spell", "a broken toy", "a messy room"] },
+      { id: 46, prompt: "The real English word 'TOMMYROT' means: _______", realAnswer: "absolute rubbish", botLies: ["a rotten tomato", "a scary ghost", "a broken clock", "a type of cheese"] },
+      { id: 47, prompt: "The real English word 'BILGEWATER' means: _______", realAnswer: "nonsense or rubbish", botLies: ["a dirty swamp", "a type of soup", "a thirsty dog", "a deep ocean"] },
+      { id: 48, prompt: "The real English word 'CLAPTRAP' means: _______", realAnswer: "absurd or nonsensical talk", botLies: ["a mouse trap", "a loud concert", "a type of bird", "a broken door"] },
+      { id: 49, prompt: "The real English word 'MOONSHINE' means: _______", realAnswer: "foolish talk or ideas", botLies: ["a glowing star", "a type of rock", "a night light", "a fast spaceship"] },
+      { id: 50, prompt: "The real English word 'EYEWASH' means: _______", realAnswer: "nonsense or deceptive talk", botLies: ["a crying baby", "a dirty window", "a swimming pool", "a type of soap"] },
+      { id: 51, prompt: "The real English word 'HOOEY' means: _______", realAnswer: "complete nonsense", botLies: ["a loud owl", "a type of hat", "a messy pile", "a sticky candy"] },
+      { id: 52, prompt: "The real English word 'BOSH' means: _______", realAnswer: "foolishness or nonsense", botLies: ["a loud crash", "a type of soup", "a angry dog", "a broken toy"] },
+      { id: 53, prompt: "The real English word 'TRIPE' means: _______", realAnswer: "rubbish or nonsense", botLies: ["a three-legged chair", "a type of fish", "a fast car", "a long rope"] },
+      { id: 54, prompt: "The real English word 'DRIVEL' means: _______", realAnswer: "silly nonsense", botLies: ["a messy sneeze", "a fast river", "a crying baby", "a broken clock"] },
+      { id: 55, prompt: "The real English word 'BLATHER' means: _______", realAnswer: "talking long-windedly without making sense", botLies: ["a type of soap", "a loud wind", "a muddy puddle", "a sleepy bear"] }
+    ];
+
+    const AUTOCOMPLETE_PROMPTS = [
+      { id: 1, prompt: "Top internet search: 'Can I legally own a pet _______'", realAnswer: "sloth", botLies: ["dinosaur", "cloud", "alien", "volcano"] },
+      { id: 2, prompt: "Top internet search: 'Why does my dog always stare at the _______'", realAnswer: "wall", botLies: ["ceiling", "television", "refrigerator", "ghosts"] },
+      { id: 3, prompt: "Top internet search: 'I accidentally swallowed a _______, what do I do?'", realAnswer: "watermelon seed", botLies: ["lego", "bug", "cloud", "shoe"] },
+      { id: 4, prompt: "Top internet search: 'Is it safe to put _______ in a waffle maker?'", realAnswer: "mashed potatoes", botLies: ["ice cream", "a shoe", "soup", "jellybeans"] },
+      { id: 5, prompt: "Top internet search: 'How to tell if your pet turtle is _______'", realAnswer: "happy", botLies: ["sleeping", "an alien", "hungry", "planning an escape"] },
+      { id: 6, prompt: "Top internet search: 'Do penguins actually have _______?'", realAnswer: "knees", botLies: ["elbows", "eyebrows", "feelings", "teeth"] },
+      { id: 7, prompt: "Top internet search: 'Why do chickens sometimes wear _______?'", realAnswer: "glasses", botLies: ["shoes", "hats", "sweaters", "socks"] },
+      { id: 8, prompt: "Top internet search: 'Can a human realistically outrun a _______?'", realAnswer: "hippo", botLies: ["snail", "cloud", "roomba", "pigeon"] },
+      { id: 9, prompt: "Top internet search: 'What happens if you put a _______ in the microwave?'", realAnswer: "grape", botLies: ["marshmallow", "sock", "rock", "pencil"] },
+      { id: 10, prompt: "Top internet search: 'How to politely tell someone they have _______'", realAnswer: "bad breath", botLies: ["a weird voice", "three eyes", "a tail", "a pet rock"] },
+      { id: 11, prompt: "Top internet search: 'Is it possible to be allergic to _______?'", realAnswer: "water", botLies: ["homework", "vegetables", "siblings", "math"] },
+      { id: 12, prompt: "Top internet search: 'Why does my dad sneeze when he looks at _______?'", realAnswer: "the sun", botLies: ["my mom", "the dog", "a picture of me", "vegetables"] },
+      { id: 13, prompt: "Top internet search: 'Can you train a goldfish to _______?'", realAnswer: "play soccer", botLies: ["fetch", "bark", "do math", "read"] },
+      { id: 14, prompt: "Top internet search: 'Is there a secret rule against eating _______ in space?'", realAnswer: "bread", botLies: ["soup", "ice cream", "pizza", "candy"] },
+      { id: 15, prompt: "Top internet search: 'Why did ancient Romans wash their clothes with _______?'", realAnswer: "urine", botLies: ["milk", "dirt", "grape juice", "sand"] },
+      { id: 16, prompt: "Top internet search: 'Can I teach my cat to _______'", realAnswer: "use a toilet", botLies: ["read", "do math", "bark", "fly"] },
+      { id: 17, prompt: "Top internet search: 'Is it illegal to name your baby _______'", realAnswer: "Batman", botLies: ["Pizza", "Table", "Dog", "Nothing"] },
+      { id: 18, prompt: "Top internet search: 'Why does my dog smell like _______'", realAnswer: "Fritos", botLies: ["cheese", "onions", "my boss", "rain"] },
+      { id: 19, prompt: "Top internet search: 'How many grapes can a human _______'", realAnswer: "fit in their mouth", botLies: ["juggle", "eat in an hour", "step on", "throw"] },
+      { id: 20, prompt: "Top internet search: 'Can you get arrested for _______'", realAnswer: "walking a cow", botLies: ["sleeping", "eating loudly", "hugging a tree", "sneezing"] },
+      { id: 21, prompt: "Top internet search: 'Is it normal for a potato to look like _______'", realAnswer: "a face", botLies: ["a shoe", "an alien", "a car", "my mom"] },
+      { id: 22, prompt: "Top internet search: 'Why do my toes look like _______'", realAnswer: "sausages", botLies: ["grapes", "beans", "aliens", "cheese"] },
+      { id: 23, prompt: "Top internet search: 'What happens if you sneeze with your _______'", realAnswer: "eyes open", botLies: ["mouth full", "shoes off", "hands tied", "ears plugged"] },
+      { id: 24, prompt: "Top internet search: 'How to legally become a _______'", realAnswer: "pirate", botLies: ["ghost", "ninja", "wizard", "penguin"] },
+      { id: 25, prompt: "Top internet search: 'Can a toaster explode if you _______'", realAnswer: "stare at it", botLies: ["yell at it", "put cheese in it", "unplug it", "drop it"] },
+      { id: 26, prompt: "Top internet search: 'Do spiders have _______'", realAnswer: "knees", botLies: ["feelings", "eyebrows", "ears", "teeth"] },
+      { id: 27, prompt: "Top internet search: 'Why is the sky not _______'", realAnswer: "green", botLies: ["pink", "falling", "made of cheese", "holographic"] },
+      { id: 28, prompt: "Top internet search: 'Can I build a house out of _______'", realAnswer: "cheese", botLies: ["marshmallows", "glass", "paper", "mud"] },
+      { id: 29, prompt: "Top internet search: 'How to convince my parents I am _______'", realAnswer: "a vampire", botLies: ["a robot", "an alien", "a dog", "invisible"] },
+      { id: 30, prompt: "Top internet search: 'Is it possible to sweat _______'", realAnswer: "blue", botLies: ["glitter", "blood", "juice", "milk"] },
+      { id: 31, prompt: "Top internet search: 'Why does milk taste like _______'", realAnswer: "pennies", botLies: ["water", "grass", "feet", "chalk"] },
+      { id: 32, prompt: "Top internet search: 'Can my goldfish understand _______'", realAnswer: "English", botLies: ["math", "music", "my feelings", "television"] },
+      { id: 33, prompt: "Top internet search: 'How to make a fake _______'", realAnswer: "UFO", botLies: ["dog", "mustache", "cloud", "tree"] },
+      { id: 34, prompt: "Top internet search: 'Can you cook an egg by _______'", realAnswer: "yelling at it", botLies: ["staring at it", "hugging it", "putting it in sand", "breathing on it"] },
+      { id: 35, prompt: "Top internet search: 'What to do if a squirrel steals your _______'", realAnswer: "wallet", botLies: ["shoe", "sandwich", "keys", "heart"] },
+      { id: 36, prompt: "Top internet search: 'Why are clouds not made of _______'", realAnswer: "cotton candy", botLies: ["marshmallows", "smoke", "bubbles", "foam"] },
+      { id: 37, prompt: "Top internet search: 'Can I ride a bear to _______'", realAnswer: "work", botLies: ["school", "the moon", "the store", "sleep"] },
+      { id: 38, prompt: "Top internet search: 'Is it safe to eat a glowing _______'", realAnswer: "mushroom", botLies: ["rock", "bug", "fish", "plant"] },
+      { id: 39, prompt: "Top internet search: 'How to tell if your neighbor is a _______'", realAnswer: "robot", botLies: ["alien", "vampire", "spy", "ghost"] },
+      { id: 40, prompt: "Top internet search: 'Can a pigeon remember my _______'", realAnswer: "face", botLies: ["name", "voice", "smell", "car"] },
+      { id: 41, prompt: "Top internet search: 'Why does my car make a _______ noise'", realAnswer: "quacking", botLies: ["mooing", "barking", "laughing", "sneezing"] },
+      { id: 42, prompt: "Top internet search: 'Can I use butter as _______'", realAnswer: "sunscreen", botLies: ["shampoo", "glue", "toothpaste", "paint"] },
+      { id: 43, prompt: "Top internet search: 'How to tame a wild _______'", realAnswer: "raccoon", botLies: ["toaster", "cloud", "potato", "pigeon"] },
+      { id: 44, prompt: "Top internet search: 'Is it weird to talk to a _______'", realAnswer: "plant", botLies: ["rock", "shoe", "refrigerator", "cloud"] },
+      { id: 45, prompt: "Top internet search: 'Can you freeze a bubble of _______'", realAnswer: "soap", botLies: ["milk", "juice", "mud", "soup"] },
+      { id: 46, prompt: "Top internet search: 'Why is my shadow _______'", realAnswer: "missing", botLies: ["blue", "talking", "moving", "dancing"] },
+      { id: 47, prompt: "Top internet search: 'Can an ant survive a fall from a _______'", realAnswer: "airplane", botLies: ["cloud", "skyscraper", "tree", "mountain"] },
+      { id: 48, prompt: "Top internet search: 'How to politely decline a fight with a _______'", realAnswer: "kangaroo", botLies: ["bear", "squirrel", "goose", "toddler"] },
+      { id: 49, prompt: "Top internet search: 'Is it bad luck to step on a _______'", realAnswer: "banana", botLies: ["bug", "crack", "shadow", "penny"] },
+      { id: 50, prompt: "Top internet search: 'Can you legally marry a _______'", realAnswer: "tree", botLies: ["dog", "car", "pizza", "ghost"] },
+      { id: 51, prompt: "Top internet search: 'Why do cats hate the sound of _______'", realAnswer: "tin foil", botLies: ["music", "sneezing", "water", "laughing"] },
+      { id: 52, prompt: "Top internet search: 'How to train a snail to _______'", realAnswer: "race", botLies: ["fetch", "jump", "dance", "read"] },
+      { id: 53, prompt: "Top internet search: 'Is it possible to tickle a _______'", realAnswer: "fish", botLies: ["rock", "tree", "cloud", "bug"] },
+      { id: 54, prompt: "Top internet search: 'Can a ghost use a _______'", realAnswer: "smartphone", botLies: ["toilet", "car", "microwave", "pencil"] },
+      { id: 55, prompt: "Top internet search: 'Why does my left elbow always _______'", realAnswer: "click", botLies: ["itch", "glow", "sweat", "fall asleep"] }
+    ];
+
+    // Expanded list of cool bot names
+    const BOT_NAMES = [
+      "NeonNinja", "RetroSpark", "GizmoGamer", "PixelPanda", "CyberCat",
+      "CosmicCoder", "AstroBuddy", "TurboTurtle", "BrainyBot", "QuantumQuip",
+      "DataDrifter", "LofiLlama", "SonicScribe", "GlitchGoblin", "AlphaAlgorist",
+      "CleverCactus", "MatrixMonkey", "VectorViper"
+    ];
+
+    const BOT_LIES = [
+      "a hotdog", "spaghetti", "the mayor", "a large rock", "a monkey", 
+      "an alien", "pizza", "a sword", "a clown", "his mom", "cheese", 
+      "a ghost", "batman", "a small dog", "a shoe", "a sandwich",
+      "a police officer", "a dirty sock", "a lawnmower", "a toothbrush",
+      "a bouncy castle", "a toilet", "a bucket of chicken", "a pigeon"
+    ];
+
+    // --- UTILITY FUNCTIONS ---
+    const generateRoomCode = () => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      let result = '';
+      for (let i = 0; i < 4; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    };
+
+    const shuffleArray = (array) => {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    };
+
+    // --- MAIN APP COMPONENT ---
+    function App() {
+      const [user, setUser] = useState(null);
+      const [authLoading, setAuthLoading] = useState(true);
+      const [viewState, setViewState] = useState('MAIN_MENU'); // MAIN_MENU, HUB, LOCAL_HUB, ONLINE_HUB, MODE_SELECT, MATCHMAKING, PLAYING
+      const [selectedNetwork, setSelectedNetwork] = useState(null); // 'party', 'ai', 'public'
+      const [roomCode, setRoomCode] = useState('');
+      const [playerName, setPlayerName] = useState('');
+      const [isHost, setIsHost] = useState(false);
+      const [errorMsg, setErrorMsg] = useState('');
+
+      // 1. Initialize Firebase Auth
+      useEffect(() => {
+        if (!auth) {
+          setErrorMsg("Firebase configuration missing. Cannot run multiplayer.");
+          setAuthLoading(false);
+          return;
+        }
+
+        const initAuth = async () => {
+          try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+              await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+              await signInAnonymously(auth);
+            }
+          } catch (err) {
+            console.error("Auth Error:", err);
+            setErrorMsg("Failed to connect to game servers.");
+          }
+        };
+
+        initAuth();
+
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+          setUser(currentUser);
+          setAuthLoading(false);
+        });
+
+        return () => unsubscribe();
+      }, []);
+
+      // 2. Room Management
+      const handleCreateRoom = async (networkType, gameMode) => {
+        if (!user || !playerName) {
+          setErrorMsg("Please enter your name first!");
+          return;
+        }
+        const newCode = generateRoomCode();
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', newCode);
+
+        let initialPrompt = null;
+        if (gameMode === 'classic') {
+          initialPrompt = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
+        } else if (gameMode === 'dictionary') {
+          initialPrompt = DICTIONARY_PROMPTS[Math.floor(Math.random() * DICTIONARY_PROMPTS.length)];
+        } else if (gameMode === 'autocomplete') {
+          initialPrompt = AUTOCOMPLETE_PROMPTS[Math.floor(Math.random() * AUTOCOMPLETE_PROMPTS.length)];
+        } else if (gameMode === 'custom') {
+          initialPrompt = { prompt: '', realAnswer: '' };
+        }
+
+        const players = {
+          [user.uid]: { id: user.uid, name: playerName, score: 0, isBot: false }
+        };
+
+        if (networkType === 'ai') {
+          const randomBots = shuffleArray(BOT_NAMES);
+          players['bot1'] = { id: 'bot1', name: randomBots[0], score: 0, isBot: true };
+          players['bot2'] = { id: 'bot2', name: randomBots[1], score: 0, isBot: true };
+          players['bot3'] = { id: 'bot3', name: randomBots[2], score: 0, isBot: true };
+        }
+
+        await setDoc(roomRef, {
+          code: newCode,
+          networkType: networkType, 
+          gameMode: gameMode,       
+          state: 'LOBBY',
+          hostId: user.uid,
+          players: players,
+          truthFinders: {}, // TRACKS TRUTH BONUS
+          currentPrompt: initialPrompt,
+          submissions: {}, choices: [], votes: {},
+          createdAt: Date.now()
+        });
+
+        setRoomCode(newCode);
+        setIsHost(true);
+        setViewState('PLAYING');
+      };
+
+      const handleJoinRoom = async (e) => {
+        e.preventDefault();
+        if (!user || !roomCode || !playerName) return;
+        
+        const upperCode = roomCode.toUpperCase();
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', upperCode);
+        const roomSnap = await getDoc(roomRef);
+
+        if (roomSnap.exists()) {
+          await updateDoc(roomRef, {
+            [`players.${user.uid}`]: { id: user.uid, name: playerName, score: 0, isBot: false }
+          });
+          setRoomCode(upperCode);
+          setIsHost(false);
+          setViewState('PLAYING');
+        } else {
+          setErrorMsg("Room not found. Check the code.");
+        }
+      };
+
+      const handleMatchmaking = async () => {
+        if (!user || !playerName) {
+          setErrorMsg("Please enter your name first!");
+          return;
+        }
+        setViewState('MATCHMAKING');
+        
+        try {
+          const roomsSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'rooms'));
+          let foundRoom = null;
+          roomsSnap.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.networkType === 'public' && data.state === 'LOBBY' && Object.keys(data.players || {}).length < 4) {
+              foundRoom = data;
+            }
+          });
+
+          if (foundRoom) {
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', foundRoom.code);
+            await updateDoc(roomRef, {
+              [`players.${user.uid}`]: { id: user.uid, name: playerName, score: 0, isBot: false }
+            });
+            setRoomCode(foundRoom.code);
+            setIsHost(false);
+            setViewState('PLAYING');
+          } else {
+            handleCreateRoom('public', 'classic');
+          }
+        } catch (err) {
+          console.error("Matchmaking error:", err);
+          setErrorMsg("Failed to find a match.");
+          setViewState('ONLINE_HUB');
+        }
+      };
+
+      const leaveRoom = () => {
+        setRoomCode('');
+        setIsHost(false);
+        setErrorMsg('');
+        setViewState('HUB');
+      };
+
+      if (authLoading) {
+        return (
+          <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center font-sans">
+            <div className="animate-pulse text-xl">Connecting to servers...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen bg-slate-900 text-white font-sans selection:bg-pink-500 selection:text-white">
+          {viewState !== 'PLAYING' ? (
+            <div className="max-w-md mx-auto pt-20 px-6">
+              <div className="text-center mb-10">
+                <h1 className="text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-amber-500 tracking-tight">
+                  HEADLINE<br />HIJACK
+                </h1>
+                <p className="text-slate-400">The game of fake news and real laughs.</p>
+              </div>
+
+              {errorMsg && (
+                <div className="bg-red-500/20 border border-red-500 text-red-200 p-3 rounded-lg mb-6 flex items-center gap-2">
+                  <AlertCircle size={18} />
+                  <span className="text-sm">{errorMsg}</span>
+                </div>
+              )}
+
+              <div className="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 mb-8">
+                {viewState === 'MAIN_MENU' && (
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 text-center">Enter Your Name To Start</label>
+                      <input 
+                        type="text" 
+                        maxLength={12}
+                        value={playerName}
+                        onChange={(e) => setPlayerName(e.target.value)}
+                        className="w-full bg-slate-900 border-2 border-slate-600 rounded-xl px-4 py-4 text-xl text-center focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-colors shadow-inner"
+                        placeholder="e.g. Captain Fake"
+                      />
+                    </div>
+                    <div className="pt-4">
+                      <button 
+                        disabled={!playerName}
+                        onClick={() => setViewState('HUB')}
+                        className="w-full bg-pink-600 hover:bg-pink-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-colors text-xl shadow-lg"
+                      >
+                        CONTINUE
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {viewState === 'HUB' && (
+                  <div className="space-y-4 animate-fade-in-up">
+                    <button onClick={() => setViewState('MAIN_MENU')} className="text-slate-400 hover:text-white flex items-center gap-1 text-sm mb-4">
+                      <ArrowLeft size={16} /> Edit Name
+                    </button>
+                    <button 
+                      onClick={() => setViewState('LOCAL_HUB')}
+                      className="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-5 rounded-xl transition-colors flex items-center justify-center gap-3 text-lg shadow-lg"
+                    >
+                      <Smartphone size={24} /> Local Party (TV + Phones)
+                    </button>
+                    <button 
+                      onClick={() => { setSelectedNetwork('ai'); setViewState('MODE_SELECT'); }}
+                      className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-5 rounded-xl transition-colors flex items-center justify-center gap-3 text-lg shadow-lg"
+                    >
+                      <Bot size={24} /> Play vs AI Bots
+                    </button>
+                    <button 
+                      onClick={() => setViewState('ONLINE_HUB')}
+                      className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 rounded-xl transition-colors flex items-center justify-center gap-3 text-lg shadow-lg"
+                    >
+                      <Globe size={24} /> Play Online Public
+                    </button>
+                  </div>
+                )}
+
+                {viewState === 'LOCAL_HUB' && (
+                  <div className="space-y-6 animate-fade-in-up">
+                    <button onClick={() => setViewState('HUB')} className="text-slate-400 hover:text-white flex items-center gap-1 text-sm mb-4">
+                      <ArrowLeft size={16} /> Back
+                    </button>
+                    <form onSubmit={handleJoinRoom} className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Join Room Code</label>
+                        <input 
+                          type="text" 
+                          maxLength={4}
+                          value={roomCode}
+                          onChange={(e) => setRoomCode(e.target.value)}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-2xl tracking-widest text-center uppercase focus:outline-none focus:border-pink-500"
+                          placeholder="ABCD"
+                        />
+                      </div>
+                      <button 
+                        type="submit"
+                        disabled={!roomCode}
+                        className="w-full bg-pink-600 hover:bg-pink-500 disabled:bg-slate-700 text-white font-bold py-3 rounded-xl transition-colors text-lg"
+                      >
+                        Join Game
+                      </button>
+                    </form>
+                    <div className="relative flex items-center py-2">
+                      <div className="flex-grow border-t border-slate-700"></div>
+                      <span className="flex-shrink-0 mx-4 text-slate-500 text-sm font-medium">OR</span>
+                      <div className="flex-grow border-t border-slate-700"></div>
+                    </div>
+                    <button 
+                      onClick={() => { setSelectedNetwork('party'); setViewState('MODE_SELECT'); }}
+                      className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg"
+                    >
+                      <Crown size={20} /> Host New Game on TV
+                    </button>
+                  </div>
+                )}
+
+                {viewState === 'ONLINE_HUB' && (
+                  <div className="space-y-6 animate-fade-in-up">
+                    <button onClick={() => setViewState('HUB')} className="text-slate-400 hover:text-white flex items-center gap-1 text-sm mb-4">
+                      <ArrowLeft size={16} /> Back
+                    </button>
+                    <div className="grid gap-4">
+                      <button 
+                        onClick={handleMatchmaking}
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 rounded-xl transition-colors flex flex-col items-center justify-center gap-2 shadow-lg"
+                      >
+                        <div className="flex items-center gap-2 text-xl"><Globe size={24} /> Find Match</div>
+                        <span className="text-blue-200 text-sm font-normal">Join any open public game</span>
+                      </button>
+                      <button 
+                        onClick={() => { setSelectedNetwork('public'); setViewState('MODE_SELECT'); }}
+                        className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-5 rounded-xl transition-colors flex flex-col items-center justify-center gap-2 shadow-lg"
+                      >
+                        <div className="flex items-center gap-2 text-xl"><Crown size={24} /> Host Public Game</div>
+                        <span className="text-slate-300 text-sm font-normal">Create a lobby and pick the mode</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {viewState === 'MODE_SELECT' && (
+                  <div className="space-y-4 animate-fade-in-up">
+                    <button onClick={() => setViewState(selectedNetwork === 'party' ? 'LOCAL_HUB' : (selectedNetwork === 'public' ? 'ONLINE_HUB' : 'HUB'))} className="text-slate-400 hover:text-white flex items-center gap-1 text-sm mb-2">
+                      <ArrowLeft size={16} /> Cancel
+                    </button>
+                    <h3 className="text-center font-bold text-slate-300 uppercase tracking-widest mb-4 border-b border-slate-700 pb-2">Select Game Mode</h3>
+                    
+                    <button onClick={() => handleCreateRoom(selectedNetwork, 'classic')} className="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-4 rounded-xl transition-colors shadow-lg flex justify-between px-6 items-center">
+                      <span>Classic Headlines</span> <span className="text-pink-200 text-xs">Fill in the blank</span>
+                    </button>
+                    <button onClick={() => handleCreateRoom(selectedNetwork, 'dictionary')} className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 rounded-xl transition-colors shadow-lg flex justify-between px-6 items-center">
+                      <span>Word Weaver</span> <span className="text-amber-200 text-xs">Fake definitions</span>
+                    </button>
+                    <button onClick={() => handleCreateRoom(selectedNetwork, 'autocomplete')} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-colors shadow-lg flex justify-between px-6 items-center">
+                      <span>Search Snippets</span> <span className="text-emerald-200 text-xs">Autocomplete fun</span>
+                    </button>
+                    
+                    {selectedNetwork === 'party' && (
+                      <button onClick={() => handleCreateRoom(selectedNetwork, 'custom')} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl transition-colors shadow-lg flex justify-between px-6 items-center mt-4">
+                        <span>Custom Prompts</span> <span className="text-indigo-200 text-xs">Write your own</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {viewState === 'MATCHMAKING' && (
+                  <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
+                    <Globe size={48} className="text-blue-500 animate-spin-slow" />
+                    <h3 className="text-2xl font-bold">Finding a match...</h3>
+                    <p className="text-slate-400">Searching public servers.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <GameEngine 
+              user={user} 
+              roomCode={roomCode} 
+              isHost={isHost} 
+              leaveRoom={leaveRoom} 
+            />
+          )}
+        </div>
+      );
+    }
+
+    // --- GAME ENGINE COMPONENT ---
+    function GameEngine({ user, roomCode, isHost, leaveRoom }) {
+      const [room, setRoom] = useState(null);
+      const [error, setError] = useState('');
+
+      useEffect(() => {
+        if (!user) return;
+        
+        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode);
+        
+        const unsubscribe = onSnapshot(roomRef, 
+          (docSnap) => {
+            if (docSnap.exists()) {
+              setRoom(docSnap.data());
+            } else {
+              setError("Room was closed.");
+            }
+          },
+          (err) => {
+            console.error("Snapshot error:", err);
+            setError("Lost connection to room.");
+          }
+        );
+
+        return () => unsubscribe();
+      }, [user, roomCode]);
+
+      if (error) {
+        return (
+          <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
+            <AlertCircle size={48} className="text-red-500 mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Uh oh!</h2>
+            <p className="text-slate-400 mb-6">{error}</p>
+            <button onClick={leaveRoom} className="bg-slate-700 px-6 py-3 rounded-lg font-bold">Back to Menu</button>
+          </div>
+        );
+      }
+
+      if (!room) {
+        return <div className="flex items-center justify-center min-h-screen text-slate-400">Loading Game State...</div>;
+      }
+
+      if (room.networkType === 'party') {
+        if (isHost) return <HostView room={room} roomCode={roomCode} />;
+        return <PlayerView room={room} user={user} leaveRoom={leaveRoom} />;
+      } else {
+        return <UnifiedView room={room} user={user} isHost={isHost} leaveRoom={leaveRoom} />;
+      }
+    }
+
+    // ============================================================================
+    // HOST VIEW (The "Big Screen" / TV)
+    // ============================================================================
+    function HostView({ room, roomCode }) {
+      const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode);
+
+      const playersList = Object.values(room.players || {});
+      const numPlayers = playersList.length;
+      const numSubmissions = Object.keys(room.submissions || {}).length;
+      const numVotes = Object.keys(room.votes || {}).length;
+
+      const [customPromptInput, setCustomPromptInput] = useState('');
+      const [customAnswerInput, setCustomAnswerInput] = useState('');
+      const [customError, setCustomError] = useState('');
+
+      const startGame = async () => {
+        if (numPlayers < 2) {
+          alert("Need at least 2 players to start!"); 
+          return;
+        }
+        if (room.gameMode === 'custom') {
+          await updateDoc(roomRef, { state: 'HOST_WRITING' });
+        } else {
+          await updateDoc(roomRef, { state: 'TYPING' });
+        }
+      };
+
+      const submitCustomPrompt = async () => {
+        if (!customPromptInput.includes('_______')) {
+          setCustomError("Your prompt must include exactly one blank line: _______");
+          return;
+        }
+        if (!customAnswerInput.trim()) {
+          setCustomError("You must provide the real answer!");
+          return;
+        }
+        
+        setCustomError('');
+        await updateDoc(roomRef, {
+          state: 'TYPING',
+          currentPrompt: {
+            prompt: customPromptInput,
+            realAnswer: customAnswerInput.trim(),
+            botLies: []
+          }
+        });
+      };
+
+      const advanceToVoting = async () => {
+        const choices = [];
+        
+        choices.push({
+          id: 'real',
+          text: room.currentPrompt.realAnswer.toLowerCase(),
+          isReal: true
+        });
+
+        Object.entries(room.submissions).forEach(([playerId, text]) => {
+          const cleanText = text.toLowerCase().trim();
+          const compareText = room.currentPrompt.realAnswer.toLowerCase();
+          
+          if (cleanText !== compareText) {
+            choices.push({
+              id: playerId,
+              text: cleanText,
+              authorId: playerId
+            });
+          }
+        });
+
+        const shuffledChoices = shuffleArray(choices);
+        
+        await updateDoc(roomRef, { 
+          state: 'VOTING',
+          choices: shuffledChoices,
+          votes: {}
+        });
+      };
+
+      const calculateScoresAndReveal = async () => {
+        const updatedPlayers = { ...room.players };
+        
+        Object.entries(room.votes).forEach(([voterId, choiceId]) => {
+          if (choiceId === 'real') {
+            if (updatedPlayers[voterId]) updatedPlayers[voterId].score += 1000;
+          } else {
+            if (updatedPlayers[choiceId]) updatedPlayers[choiceId].score += 500;
+          }
+        });
+
+        await updateDoc(roomRef, {
+          state: 'REVEAL',
+          players: updatedPlayers
+        });
+      };
+
+      const nextRound = async () => {
+        if (room.gameMode === 'custom') {
+          setCustomPromptInput('');
+          setCustomAnswerInput('');
+          await updateDoc(roomRef, {
+            state: 'HOST_WRITING',
+            truthFinders: {},
+            submissions: {}, choices: [], votes: {}
+          });
+        } else {
+          let promptsList = PROMPTS;
+          if (room.gameMode === 'dictionary') promptsList = DICTIONARY_PROMPTS;
+          if (room.gameMode === 'autocomplete') promptsList = AUTOCOMPLETE_PROMPTS;
+
+          const randomPrompt = promptsList[Math.floor(Math.random() * promptsList.length)];
+          await updateDoc(roomRef, {
+            state: 'TYPING',
+            currentPrompt: randomPrompt,
+            truthFinders: {},
+            submissions: {}, choices: [], votes: {}
+          });
+        }
+      };
+
+      if (room.state === 'LOBBY') {
+        return (
+          <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-slate-900">
+            <div className="max-w-4xl w-full flex flex-col md:flex-row gap-12 items-center">
+              <div className="flex-1 text-center bg-slate-800 p-12 rounded-3xl border-4 border-slate-700 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-pink-500 to-amber-500"></div>
+                <h2 className="text-2xl font-bold text-slate-400 mb-4 uppercase tracking-widest">Join on your phone at</h2>
+                <div className="text-8xl font-black text-white tracking-widest mb-6 font-mono">
+                  {roomCode}
+                </div>
+                {numPlayers >= 2 ? (
+                  <button 
+                    onClick={startGame}
+                    className="bg-green-500 hover:bg-green-400 text-white text-2xl font-black py-4 px-12 rounded-2xl shadow-lg transition-transform hover:scale-105 flex items-center justify-center gap-3 mx-auto"
+                  >
+                    <Play fill="currentColor" /> {room.gameMode === 'custom' ? "START CUSTOM GAME" : "START GAME"}
+                  </button>
+                ) : (
+                  <p className="text-slate-500 flex items-center justify-center gap-2">
+                    <Users size={18} /> Waiting for at least 2 players...
+                  </p>
+                )}
+              </div>
+
+              <div className="flex-1 w-full">
+                <h3 className="text-3xl font-bold mb-6 flex items-center gap-3">
+                  Players <span className="bg-slate-700 text-sm py-1 px-3 rounded-full">{numPlayers}</span>
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {playersList.map(p => (
+                    <div key={p.id} className="bg-slate-800 border border-slate-700 py-3 px-4 rounded-xl flex items-center gap-3 animate-fade-in-up">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-amber-500 flex items-center justify-center font-bold text-lg">
+                        {p.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="font-bold text-xl truncate">{p.name}</span>
+                    </div>
+                  ))}
+                  {playersList.length === 0 && (
+                    <div className="col-span-2 text-slate-500 italic">No one has joined yet...</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (room.state === 'HOST_WRITING') {
+        return (
+          <div className="flex flex-col items-center justify-center min-h-screen p-8 max-w-4xl mx-auto w-full">
+            <div className="bg-indigo-900/30 border-2 border-indigo-500 rounded-3xl p-10 shadow-2xl w-full text-center">
+              <h2 className="text-3xl font-black mb-2 text-indigo-400">Custom Prompt Maker</h2>
+              <p className="text-slate-400 mb-8">Write a funny scenario or trivia question. Use <span className="font-bold text-white">_______</span> for the blank.</p>
+              
+              {customError && (
+                 <div className="bg-red-500/20 text-red-300 p-4 rounded-xl mb-6 border border-red-500">
+                   {customError}
+                 </div>
+              )}
+
+              <div className="space-y-6 text-left">
+                <div>
+                  <label className="block text-sm font-bold text-indigo-300 uppercase tracking-widest mb-2">The Prompt</label>
+                  <textarea 
+                    value={customPromptInput}
+                    onChange={(e) => setCustomPromptInput(e.target.value)}
+                    placeholder="Example: At school today, the teacher accidentally brought a _______ to class."
+                    className="w-full bg-slate-900 border-2 border-slate-700 rounded-xl p-4 text-xl text-white focus:border-indigo-500 min-h-[120px]"
+                  />
+                  <button 
+                    onClick={() => setCustomPromptInput(prev => prev + " _______ ")}
+                    className="mt-2 text-sm bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded border border-slate-600 transition-colors"
+                  >
+                    + Insert Blank Line
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-indigo-300 uppercase tracking-widest mb-2">The Real Answer</label>
+                  <input 
+                    type="text"
+                    value={customAnswerInput}
+                    onChange={(e) => setCustomAnswerInput(e.target.value)}
+                    placeholder="The actual truth..."
+                    className="w-full bg-slate-900 border-2 border-slate-700 rounded-xl p-4 text-xl text-white focus:border-indigo-500"
+                  />
+                </div>
+
+                <button 
+                  onClick={submitCustomPrompt}
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black py-5 rounded-xl shadow-lg mt-8 text-xl"
+                >
+                  Send to Players
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      if (room.state === 'TYPING') {
+        return (
+          <div className="flex flex-col items-center justify-center min-h-screen p-8 text-center max-w-5xl mx-auto">
+            <h2 className="text-pink-500 font-bold uppercase tracking-widest mb-4">Phase 1: The Lie</h2>
+            
+            <div className="bg-slate-800 border-2 border-slate-700 rounded-3xl p-10 shadow-2xl mb-12 w-full">
+              <p className="text-4xl md:text-5xl font-medium leading-tight">
+                {room.currentPrompt.prompt.split('_______').map((part, i, arr) => (
+                  <React.Fragment key={i}>
+                    {part}
+                    {i !== arr.length - 1 && (
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-amber-500 font-black underline decoration-4 underline-offset-8">
+                        {" ________ "}
+                      </span>
+                    )}
+                  </React.Fragment>
+                ))}
+              </p>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <p className="text-2xl mb-6 font-bold text-slate-300">
+                Check your devices and fill in the blank!
+              </p>
+              <div className="flex flex-wrap justify-center gap-4 mb-8">
+                {playersList.map(p => {
+                  const hasSubmitted = !!room.submissions[p.id];
+                  return (
+                    <div key={p.id} className={`py-2 px-4 rounded-full font-bold flex items-center gap-2 transition-colors ${hasSubmitted ? 'bg-green-500/20 text-green-400 border border-green-500/50' : 'bg-slate-800 text-slate-500'}`}>
+                      {hasSubmitted && <CheckCircle2 size={18} />}
+                      {p.name}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button 
+                onClick={advanceToVoting}
+                className="text-slate-500 hover:text-white flex items-center gap-2 text-sm transition-colors"
+              >
+                <SkipForward size={16} /> Force Next Phase
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      if (room.state === 'VOTING') {
+        return (
+          <div className="flex flex-col items-center justify-center min-h-screen p-8 max-w-5xl mx-auto">
+            <h2 className="text-amber-500 font-bold uppercase tracking-widest mb-4">Phase 2: The Truth</h2>
+            
+            <p className="text-3xl font-medium text-center leading-relaxed mb-10 text-slate-300">
+              {room.currentPrompt.prompt.replace('_______', ' [ ... ] ')}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mb-12">
+              {room.choices.map((choice, index) => (
+                <div key={index} className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-6 text-center shadow-lg flex items-center justify-center min-h-[100px]">
+                  <span className="text-3xl font-bold uppercase text-white">{choice.text}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col items-center">
+              <p className="text-xl mb-4 font-bold text-slate-400">
+                Votes in: {numVotes} / {numPlayers}
+              </p>
+              
+              <button 
+                onClick={calculateScoresAndReveal}
+                className="bg-amber-500 hover:bg-amber-400 text-slate-900 text-xl font-black py-4 px-10 rounded-2xl shadow-lg transition-transform hover:scale-105"
+              >
+                Reveal Answers
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      if (room.state === 'REVEAL') {
+        return (
+          <div className="flex flex-col items-center justify-center min-h-screen p-8 max-w-5xl mx-auto w-full">
+            <h2 className="text-4xl font-black mb-6 text-center">THE RESULTS</h2>
+            
+            <div className="w-full space-y-6 max-h-[70vh] overflow-y-auto pr-4 custom-scrollbar">
+              {room.choices.map((choice) => {
+                const voters = Object.entries(room.votes)
+                  .filter(([_, votedChoiceId]) => votedChoiceId === choice.id)
+                  .map(([voterId, _]) => room.players[voterId]?.name);
+
+                const isTruth = choice.id === 'real';
+                const author = isTruth ? null : room.players[choice.authorId];
+
+                return (
+                  <div key={choice.id} className={`rounded-2xl border-2 p-6 flex flex-col md:flex-row items-center justify-between gap-6 ${isTruth ? 'bg-green-900/40 border-green-500' : 'bg-slate-800 border-slate-700'}`}>
+                    
+                    <div className="flex-1 text-center md:text-left">
+                      <div className="text-3xl font-black uppercase mb-2">{choice.text}</div>
+                      {isTruth ? (
+                        <div className="text-green-400 font-bold uppercase tracking-widest text-sm flex items-center justify-center md:justify-start gap-1">
+                          <CheckCircle2 size={16} /> THE ACTUAL TRUTH
+                        </div>
+                      ) : (
+                        <div className="text-pink-400 font-bold text-sm">
+                          Written by: <span className="text-white text-lg">{author?.name || 'Unknown'}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="w-full md:w-1/3 bg-slate-900/50 rounded-xl p-4 min-h-[80px] flex flex-col justify-center border border-slate-800">
+                      <div className="text-xs text-slate-500 font-bold uppercase mb-2">Fooled:</div>
+                      <div className="flex flex-wrap gap-2">
+                        {voters.length > 0 ? (
+                          voters.map((v, i) => (
+                            <span key={i} className="bg-slate-700 text-white text-sm py-1 px-3 rounded-full font-medium">
+                              {v}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-slate-600 italic">Nobody</span>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-10">
+               <button 
+                onClick={() => updateDoc(roomRef, { state: 'LEADERBOARD' })}
+                className="bg-white text-slate-900 text-xl font-black py-4 px-10 rounded-2xl shadow-lg hover:bg-slate-200 transition-colors"
+              >
+                Show Leaderboard
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      if (room.state === 'LEADERBOARD') {
+        const sortedPlayers = playersList.sort((a, b) => b.score - a.score);
+
+        return (
+          <div className="flex flex-col items-center justify-center min-h-screen p-8 max-w-3xl mx-auto w-full">
+            <Trophy size={64} className="text-amber-500 mb-6" />
+            <h2 className="text-5xl font-black mb-10 text-center tracking-tight">LEADERBOARD</h2>
+
+            <div className="w-full space-y-4 mb-12">
+              {sortedPlayers.map((p, index) => (
+                <div key={p.id} className={`flex items-center justify-between p-6 rounded-2xl border ${index === 0 ? 'bg-gradient-to-r from-pink-600 to-amber-600 border-transparent transform scale-105 shadow-xl' : 'bg-slate-800 border-slate-700'}`}>
+                  <div className="flex items-center gap-6">
+                    <span className={`text-4xl font-black ${index === 0 ? 'text-white/50' : 'text-slate-600'}`}>#{index + 1}</span>
+                    <span className="text-3xl font-bold">{p.name}</span>
+                  </div>
+                  <span className="text-3xl font-mono font-bold">{p.score} <span className="text-lg opacity-60 font-sans">pts</span></span>
+                </div>
+              ))}
+            </div>
+
+            <button 
+              onClick={nextRound}
+              className="bg-slate-700 hover:bg-slate-600 text-white text-xl font-bold py-4 px-10 rounded-2xl shadow-lg transition-colors flex items-center gap-3"
+            >
+              <Play fill="currentColor" size={20} /> Next Round
+            </button>
+          </div>
+        );
+      }
+
+      return <div>Unknown State</div>;
+    }
+
+    // ============================================================================
+    // PLAYER VIEW (The Mobile Phone / Controller)
+    // ============================================================================
+    function PlayerView({ room, user, leaveRoom }) {
+      const [inputText, setInputText] = useState('');
+      const [localWarning, setLocalWarning] = useState('');
+
+      const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', room.code);
+      const me = room.players?.[user.uid];
+
+      const submitLie = async (e) => {
+        e.preventDefault();
+        const cleanText = inputText.trim().toLowerCase();
+        if (!cleanText) return;
+
+        const compareText = room.currentPrompt.realAnswer.toLowerCase();
+        
+        if (cleanText === compareText) {
+          if (!room.truthFinders?.[user.uid]) {
+            const currentScore = room.players[user.uid]?.score || 0;
+            await updateDoc(roomRef, {
+              [`players.${user.uid}.score`]: currentScore + 1500,
+              [`truthFinders.${user.uid}`]: true
+            });
+            setLocalWarning("🎯 TRUTH BONUS! +1500 pts! Now type a fake answer.");
+          } else {
+            setLocalWarning("You already got the Truth Bonus! You must type a lie to proceed.");
+          }
+          return;
+        }
+
+        await updateDoc(roomRef, {
+          [`submissions.${user.uid}`]: inputText.trim()
+        });
+        setLocalWarning('');
+        setInputText(''); 
+      };
+
+      const submitVote = async (choiceId) => {
+        await updateDoc(roomRef, {
+          [`votes.${user.uid}`]: choiceId
+        });
+      };
+
+      if (!me) {
+        return (
+          <div className="p-6 text-center mt-20">
+            <p>You are not in this game.</p>
+            <button onClick={leaveRoom} className="mt-4 text-pink-500">Go Back</button>
+          </div>
+        );
+      }
+
+      const Header = () => (
+        <div className="fixed top-0 left-0 w-full bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center z-10">
+          <div className="font-bold text-slate-300">{me.name}</div>
+          <div className="font-mono bg-slate-800 px-3 py-1 rounded-lg text-pink-400 font-bold text-sm">
+            {me.score} PTS
+          </div>
+        </div>
+      );
+
+      return (
+        <div className="min-h-screen bg-slate-900 text-white pt-20 pb-10 px-6 flex flex-col items-center">
+          <Header />
+
+          {room.state === 'LOBBY' && (
+            <div className="flex flex-col items-center text-center mt-10">
+              <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mb-6 border-4 border-pink-500 shadow-[0_0_30px_rgba(236,72,153,0.3)]">
+                <CheckCircle2 size={48} className="text-pink-500" />
+              </div>
+              <h2 className="text-3xl font-black mb-2">You're in!</h2>
+              <p className="text-slate-400 text-lg">Look at the main screen.<br/>Waiting for host to start...</p>
+            </div>
+          )}
+
+          {room.state === 'HOST_WRITING' && (
+            <div className="flex flex-col items-center text-center mt-20 animate-fade-in-up">
+              <div className="w-20 h-20 bg-indigo-900/30 rounded-full flex items-center justify-center mb-6 border-2 border-indigo-500 animate-pulse">
+                <Crown size={32} className="text-indigo-400" />
+              </div>
+              <h2 className="text-3xl font-black mb-4">Custom Mode</h2>
+              <p className="text-slate-300 text-lg bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                The Host is currently typing a custom prompt just for this group... Get ready!
+              </p>
+            </div>
+          )}
+
+          {room.state === 'TYPING' && (
+            <div className="w-full max-w-md">
+              {room.submissions[user.uid] ? (
+                <div className="text-center mt-20">
+                  <div className="inline-block p-4 bg-green-500/10 rounded-full mb-4">
+                    <CheckCircle2 size={48} className="text-green-500" />
+                  </div>
+                  <h3 className="text-2xl font-bold">Lie submitted!</h3>
+                  <p className="text-slate-400 mt-2">Waiting for other players...</p>
+                </div>
+              ) : (
+                <form onSubmit={submitLie} className="flex flex-col gap-4 mt-6">
+                  <label className="text-sm font-bold text-slate-400 uppercase tracking-widest text-center">
+                    Fill in the blank
+                  </label>
+                  
+                  {localWarning && (
+                    <div className="bg-amber-500/20 text-amber-200 p-3 rounded-lg text-sm text-center border border-amber-500">
+                      {localWarning}
+                    </div>
+                  )}
+
+                  <input
+                    type="text"
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    placeholder="Type your lie..."
+                    className="w-full bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-4 text-xl text-center focus:outline-none focus:border-pink-500 shadow-inner"
+                    autoFocus
+                    maxLength={40}
+                  />
+                  <button 
+                    type="submit"
+                    disabled={!inputText.trim()}
+                    className="w-full bg-gradient-to-r from-pink-600 to-amber-600 text-white font-black py-4 rounded-xl text-xl mt-4 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  >
+                    SUBMIT
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
+          {room.state === 'VOTING' && (
+            <div className="w-full max-w-md">
+              {room.votes[user.uid] ? (
+                <div className="text-center mt-20">
+                  <div className="inline-block p-4 bg-amber-500/10 rounded-full mb-4">
+                    <CheckCircle2 size={48} className="text-amber-500" />
+                  </div>
+                  <h3 className="text-2xl font-bold">Vote recorded!</h3>
+                  <p className="text-slate-400 mt-2">Waiting for everyone else...</p>
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <p className="text-center font-bold text-slate-400 uppercase tracking-widest mb-6">Select the truth!</p>
+                  <div className="flex flex-col gap-4">
+                    {room.choices.map((choice) => {
+                      if (choice.authorId === user.uid) return null;
+
+                      return (
+                        <button
+                          key={choice.id}
+                          onClick={() => submitVote(choice.id)}
+                          className="w-full bg-slate-800 border-2 border-slate-700 hover:border-pink-500 hover:bg-slate-700 text-white font-bold py-5 px-4 rounded-xl text-xl uppercase transition-colors"
+                        >
+                          {choice.text}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {room.state === 'REVEAL' && (
+            <div className="flex flex-col items-center text-center mt-20">
+              <h2 className="text-3xl font-black mb-4">Results are in!</h2>
+              <p className="text-slate-300 text-xl border-t border-b border-slate-700 py-4 px-8 inline-block">
+                Look at the main screen to see how you did.
+              </p>
+            </div>
+          )}
+
+          {room.state === 'LEADERBOARD' && (
+            <div className="flex flex-col items-center text-center mt-20">
+              <Trophy size={48} className="text-amber-500 mb-4" />
+              <h2 className="text-3xl font-black mb-2">Leaderboard</h2>
+              <p className="text-slate-400 text-lg mb-8">Look at the main screen for rankings.</p>
+              
+              <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-xs border border-slate-700">
+                <div className="text-sm text-slate-500 font-bold uppercase mb-1">Your Total Score</div>
+                <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-amber-500">
+                  {me.score}
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    // ============================================================================
+    // UNIFIED VIEW (Online & AI Mode - Single Screen Experience)
+    // ============================================================================
+    function UnifiedView({ room, user, isHost, leaveRoom }) {
+      const [inputText, setInputText] = useState('');
+      const [localWarning, setLocalWarning] = useState('');
+
+      const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', room.code);
+      const me = room.players?.[user.uid];
+      const playersList = Object.values(room.players || {});
+      const numPlayers = playersList.length;
+
+      useEffect(() => {
+        if (!isHost) return;
+
+        const advanceToVoting = async () => {
+          const choices = [];
+          choices.push({ id: 'real', text: room.currentPrompt.realAnswer.toLowerCase(), isReal: true });
+
+          Object.entries(room.submissions).forEach(([playerId, text]) => {
+            const cleanText = text.toLowerCase().trim();
+            const compareText = room.currentPrompt.realAnswer.toLowerCase();
+            
+            if (cleanText !== compareText) {
+              choices.push({ id: playerId, text: cleanText, authorId: playerId });
+            }
+          });
+          await updateDoc(roomRef, { state: 'VOTING', choices: shuffleArray(choices), votes: {} });
+        };
+
+        const calculateScoresAndReveal = async () => {
+          const updatedPlayers = { ...room.players };
+          Object.entries(room.votes).forEach(([voterId, choiceId]) => {
+            if (choiceId === 'real') {
+              if (updatedPlayers[voterId]) updatedPlayers[voterId].score += 1000;
+            } else {
+              if (updatedPlayers[choiceId]) updatedPlayers[choiceId].score += 500;
+            }
+          });
+          await updateDoc(roomRef, { state: 'REVEAL', players: updatedPlayers });
+        };
+
+        if (room.state === 'TYPING') {
+          const neededSubmissions = numPlayers;
+          if (Object.keys(room.submissions || {}).length === neededSubmissions && numPlayers > 0) {
+            advanceToVoting();
+          }
+        }
+        if (room.state === 'VOTING') {
+          const neededVotes = numPlayers;
+          if (Object.keys(room.votes || {}).length === neededVotes && numPlayers > 0) {
+            calculateScoresAndReveal();
+          }
+        }
+      }, [room, isHost, numPlayers, roomRef]);
+
+      // AI Bot Logic Hook
+      useEffect(() => {
+        if (room.networkType !== 'ai' || !isHost) return;
+        const bots = playersList.filter(p => p.isBot);
+
+        const runAI = () => {
+          if (room.state === 'TYPING') {
+            const newSubs = { ...room.submissions };
+            let updated = false;
+            
+            const availableLies = room.currentPrompt?.botLies ? [...room.currentPrompt.botLies] : [...BOT_LIES];
+            for (let i = availableLies.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [availableLies[i], availableLies[j]] = [availableLies[j], availableLies[i]];
+            }
+
+            bots.forEach(bot => {
+              if (!newSubs[bot.id]) {
+                newSubs[bot.id] = availableLies.pop() || BOT_LIES[Math.floor(Math.random() * BOT_LIES.length)];
+                updated = true;
+              }
+            });
+            
+            if (updated) {
+              setTimeout(() => updateDoc(roomRef, { submissions: newSubs }), 1500);
+            }
+          } else if (room.state === 'VOTING') {
+            const newVotes = { ...room.votes };
+            let updated = false;
+            bots.forEach(bot => {
+              if (!newVotes[bot.id]) {
+                const validChoices = room.choices.filter(c => c.authorId !== bot.id);
+                if (validChoices.length > 0) {
+                  newVotes[bot.id] = validChoices[Math.floor(Math.random() * validChoices.length)].id;
+                  updated = true;
+                }
+              }
+            });
+            if (updated) {
+              setTimeout(() => updateDoc(roomRef, { votes: newVotes }), 2500); 
+            }
+          }
+        };
+        runAI();
+      }, [room, isHost, roomRef, playersList]);
+
+      const submitLie = async (e) => {
+        e.preventDefault();
+        const cleanText = inputText.trim().toLowerCase();
+        if (!cleanText) return;
+        
+        const compareText = room.currentPrompt.realAnswer.toLowerCase();
+        if (cleanText === compareText) {
+          if (!room.truthFinders?.[user.uid]) {
+            const currentScore = room.players[user.uid]?.score || 0;
+            await updateDoc(roomRef, { 
+              [`players.${user.uid}.score`]: currentScore + 1500,
+              [`truthFinders.${user.uid}`]: true
+            });
+            setLocalWarning("🎯 TRUTH BONUS! +1500 pts! Now type a fake answer.");
+          } else {
+            setLocalWarning("You already got the Truth Bonus! You must type a lie to proceed.");
+          }
+          return;
+        }
+
+        await updateDoc(roomRef, { [`submissions.${user.uid}`]: inputText.trim() });
+        setLocalWarning('');
+        setInputText('');
+      };
+
+      const submitVote = async (choiceId) => {
+        await updateDoc(roomRef, { [`votes.${user.uid}`]: choiceId });
+      };
+
+      const startGame = async () => {
+        await updateDoc(roomRef, { state: 'TYPING' });
+      };
+
+      const nextRound = async () => {
+        let promptsList = PROMPTS;
+        if (room.gameMode === 'dictionary') promptsList = DICTIONARY_PROMPTS;
+        if (room.gameMode === 'autocomplete') promptsList = AUTOCOMPLETE_PROMPTS;
+        
+        const randomPrompt = promptsList[Math.floor(Math.random() * promptsList.length)];
+        await updateDoc(roomRef, {
+          state: 'TYPING', currentPrompt: randomPrompt,
+          truthFinders: {}, submissions: {}, choices: [], votes: {}
+        });
+        setInputText('');
+      };
+
+      if (!me) {
+        return <div className="p-6 text-center mt-20"><button onClick={leaveRoom}>Go Back</button></div>;
+      }
+
+      return (
+        <div className="flex flex-col items-center min-h-screen p-6 pt-20 max-w-4xl mx-auto w-full">
+          {/* Header */}
+          <div className="fixed top-0 left-0 w-full bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-center z-10 px-6">
+            <div className="font-bold flex items-center gap-2">
+              {room.networkType === 'ai' ? <Bot size={18} className="text-indigo-400"/> : <Globe size={18} className="text-blue-400"/>}
+              {me.name}
+            </div>
+            <div className="flex gap-4 items-center">
+              <div className="font-mono bg-slate-800 px-3 py-1 rounded-lg text-pink-400 font-bold text-sm">
+                {me.score} PTS
+              </div>
+              <button onClick={leaveRoom} className="text-slate-500 text-sm hover:text-white">Leave</button>
+            </div>
+          </div>
+
+          {room.state === 'LOBBY' && (
+            <div className="w-full bg-slate-800 p-8 rounded-2xl border border-slate-700 text-center shadow-xl mt-10">
+              <h2 className="text-3xl font-black mb-6 uppercase tracking-widest">{room.networkType === 'ai' ? 'Bot Match' : 'Public Match'}</h2>
+              <div className="mb-8 flex flex-wrap justify-center gap-3">
+                {playersList.map(p => (
+                  <div key={p.id} className="bg-slate-700 px-4 py-2 rounded-full font-bold flex items-center gap-2">
+                    {p.isBot && <Bot size={16} className="text-indigo-400"/>}
+                    {p.name}
+                  </div>
+                ))}
+              </div>
+              {isHost && (
+                <button 
+                  onClick={startGame}
+                  disabled={numPlayers < 2 && room.networkType !== 'ai'}
+                  className="bg-green-500 hover:bg-green-400 text-white text-2xl font-black py-4 px-12 rounded-2xl shadow-lg transition-transform hover:scale-105 disabled:opacity-50 disabled:scale-100"
+                >
+                  START GAME
+                </button>
+              )}
+              {!isHost && <p className="text-slate-400 animate-pulse">Waiting for host to start...</p>}
+            </div>
+          )}
+
+          {room.state === 'TYPING' && (
+            <div className="w-full text-center mt-10">
+              <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-8 shadow-xl mb-8">
+                <p className="text-2xl md:text-3xl font-medium leading-relaxed">
+                  {room.currentPrompt.prompt.split('_______').map((part, i, arr) => (
+                    <React.Fragment key={i}>
+                      {part}
+                      {i !== arr.length - 1 && (
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-amber-500 font-black underline decoration-2 underline-offset-8">
+                          {" ________ "}
+                        </span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </p>
+              </div>
+
+              {room.submissions[user.uid] ? (
+                <div className="p-8 bg-green-900/20 rounded-2xl border border-green-500/30 inline-block mt-4">
+                  <CheckCircle2 size={48} className="text-green-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold">Answer Locked!</h3>
+                  <p className="text-slate-400 text-sm mt-2">Waiting for others ({Object.keys(room.submissions).length}/{numPlayers})</p>
+                </div>
+              ) : (
+                <form onSubmit={submitLie} className="max-w-md mx-auto w-full">
+                  {localWarning && <div className="bg-amber-500/20 text-amber-200 p-3 rounded-lg text-sm text-center border border-amber-500 mb-2">{localWarning}</div>}
+                  <input
+                    type="text" value={inputText} onChange={(e) => setInputText(e.target.value)}
+                    placeholder={room.gameMode === 'dictionary' ? "Type a fake definition..." : "Type your lie..."}
+                    className="w-full bg-slate-800 border-2 border-slate-600 rounded-xl px-4 py-4 text-xl text-center focus:border-pink-500"
+                    autoFocus maxLength={40}
+                  />
+                  <button type="submit" disabled={!inputText.trim()} className="w-full bg-pink-600 text-white font-black py-4 rounded-xl mt-4 disabled:opacity-50">
+                    SUBMIT
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
+          {room.state === 'VOTING' && (
+            <div className="w-full text-center mt-6">
+              <p className="text-xl md:text-2xl font-medium mb-8 text-slate-300 bg-slate-800 p-6 rounded-2xl">
+                {room.currentPrompt.prompt.replace('_______', ' [ ... ] ')}
+              </p>
+
+              {room.votes[user.uid] ? (
+                 <div className="p-8 bg-amber-900/20 rounded-2xl border border-amber-500/30 inline-block mt-4">
+                  <CheckCircle2 size={48} className="text-amber-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold">Vote Locked!</h3>
+                  <p className="text-slate-400 text-sm mt-2">Waiting for others ({Object.keys(room.votes).length}/{numPlayers})</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto w-full">
+                  {room.choices.map((choice) => {
+                    if (choice.authorId === user.uid) return null;
+                    return (
+                      <button
+                        key={choice.id} onClick={() => submitVote(choice.id)}
+                        className="bg-slate-800 border-2 border-slate-600 hover:border-amber-500 text-white font-bold py-6 px-4 rounded-xl text-lg uppercase transition-all shadow-md hover:shadow-amber-500/20"
+                      >
+                        {choice.text}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {room.state === 'REVEAL' && (
+            <div className="w-full max-w-2xl mt-6">
+              <h2 className="text-3xl font-black mb-6 text-center">RESULTS</h2>
+              <div className="space-y-4 mb-8">
+                {room.choices.map((choice) => {
+                  const voters = Object.entries(room.votes)
+                    .filter(([_, choiceId]) => choiceId === choice.id)
+                    .map(([voterId]) => room.players[voterId]?.name);
+                  const isTruth = choice.id === 'real';
+                  const author = isTruth ? null : room.players[choice.authorId];
+
+                  return (
+                    <div key={choice.id} className={`rounded-xl border-2 p-5 flex flex-col sm:flex-row items-center justify-between gap-4 ${isTruth ? 'bg-green-900/30 border-green-500' : 'bg-slate-800 border-slate-700'}`}>
+                      <div className="text-center sm:text-left flex-1">
+                        <div className="text-2xl font-black uppercase mb-1">{choice.text}</div>
+                        {isTruth ? (
+                          <div className="text-green-400 font-bold text-xs uppercase flex items-center justify-center sm:justify-start gap-1"><CheckCircle2 size={14}/> THE TRUTH</div>
+                        ) : (
+                          <div className="text-pink-400 text-sm">By: <span className="text-white font-bold">{author?.name || 'Unknown'}</span></div>
+                        )}
+                      </div>
+                      <div className="bg-slate-900 rounded p-3 min-w-[120px] text-center">
+                        <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Voters:</div>
+                        <div className="flex flex-wrap justify-center gap-1">
+                          {voters.length > 0 ? voters.map((v, i) => <span key={i} className="bg-slate-700 text-xs py-1 px-2 rounded-full">{v}</span>) : <span className="text-slate-600 text-xs italic">None</span>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {isHost && (
+                <button onClick={() => updateDoc(roomRef, { state: 'LEADERBOARD' })} className="w-full bg-white text-slate-900 text-xl font-black py-4 rounded-xl">
+                  Show Standings
+                </button>
+              )}
+              {!isHost && <p className="text-center text-slate-400 animate-pulse">Waiting for host to continue...</p>}
+            </div>
+          )}
+
+          {room.state === 'LEADERBOARD' && (
+            <div className="w-full max-w-md mt-6 text-center">
+              <Trophy size={48} className="text-amber-500 mx-auto mb-6" />
+              <div className="space-y-3 mb-8">
+                {playersList.sort((a, b) => b.score - a.score).map((p, index) => (
+                  <div key={p.id} className={`flex justify-between items-center p-4 rounded-xl border ${index === 0 ? 'bg-gradient-to-r from-pink-600 to-amber-600 border-transparent shadow-lg' : 'bg-slate-800 border-slate-700'}`}>
+                    <span className="font-bold text-lg">{index + 1}. {p.name} {p.isBot && <Bot size={14} className="inline ml-1 opacity-50"/>}</span>
+                    <span className="font-mono font-bold text-xl">{p.score}</span>
+                  </div>
+                ))}
+              </div>
+              {isHost && (
+                <button onClick={nextRound} className="w-full bg-slate-700 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2">
+                  <Play size={20}/> Next Round
+                </button>
+              )}
+              {!isHost && <p className="text-slate-400 animate-pulse">Waiting for host to start next round...</p>}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // --- RENDER APP ---
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      const root = createRoot(rootElement);
+      root.render(<App />);
+    }
+  </script>
+</body>
+</html>
