@@ -224,11 +224,18 @@ input:checked + .slider:before {
   gap: 12px;
 }
 
-.artist-item {
+.artist-list li {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
+  padding: 8px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color var(--transition-speed);
+}
+
+.artist-list li:hover {
+  background-color: var(--bg-hover);
 }
 
 .artist-name {

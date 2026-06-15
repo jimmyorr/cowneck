@@ -88,6 +88,15 @@ async function init() {
     // Playback delegation
     songsGrid.addEventListener('click', handlePlayback);
     
+    // Top Artist click filter
+    topArtistsList.addEventListener('click', (e) => {
+      const li = e.target.closest('li');
+      if (!li) return;
+      const artistName = li.querySelector('.artist-name').innerText;
+      searchInput.value = artistName;
+      handleSearch();
+    });
+    
   } catch (error) {
     console.error("Failed to load likes.json", error);
     loading.innerText = "Error loading data. Make sure likes.json is in the public directory.";
@@ -159,7 +168,7 @@ function updateStats() {
   
   const sortedArtists = Object.entries(artistCounts)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 10);
+    .slice(0, 100);
     
   topArtistsList.innerHTML = sortedArtists.map(([artist, count]) => `
     <li class="artist-item">
@@ -170,11 +179,11 @@ function updateStats() {
 }
 
 // Handlers
-function handleSearch(e) {
-  const term = e.target.value.toLowerCase();
+function handleSearch() {
+  const query = searchInput.value.toLowerCase();
   filteredSongs = allSongs.filter(song => 
-    song.title.toLowerCase().includes(term) || 
-    song.artist.toLowerCase().includes(term)
+    song.title.toLowerCase().includes(query) || 
+    song.artist.toLowerCase().includes(query)
   );
   handleSort(); // Re-apply sort after filtering
 }
