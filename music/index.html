@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Liked Music</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="topbar">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="#ff0000" width="28" height="28">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+          </svg>
+          <h1>Music Likes</h1>
+        </div>
+        <div class="controls">
+          <input type="text" id="searchInput" class="search-input" placeholder="Search songs or artists..." />
+          <select id="sortSelect" class="sort-select">
+            <option value="recent">Recently Liked</option>
+            <option value="titleAsc">Title (A-Z)</option>
+            <option value="titleDesc">Title (Z-A)</option>
+            <option value="artistAsc">Artist (A-Z)</option>
+            <option value="viewsDesc">Views (High to Low)</option>
+          </select>
+          <div class="toggle-container">
+            <span class="toggle-label">YouTube Music</span>
+            <label class="switch">
+              <input type="checkbox" id="platformToggle" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+      </header>
+
+      <div class="main-layout">
+        <aside class="sidebar">
+          <div class="stats-card">
+            <h2>Library Stats</h2>
+            <div class="stat-item">
+              <span class="stat-value" id="totalSongsCount">0</span>
+              <span class="stat-label">Total Tracks</span>
+            </div>
+          </div>
+          
+          <div class="top-artists">
+            <h2>Top Artists</h2>
+            <ul id="topArtistsList" class="artist-list">
+              <!-- Rendered via JS -->
+            </ul>
+          </div>
+        </aside>
+
+        <main class="content">
+          <div id="songsGrid" class="songs-grid">
+            <!-- Cards rendered via JS -->
+          </div>
+          <div id="loading" class="loading">Loading library...</div>
+          <div id="noResults" class="no-results hidden">No songs found matching your search.</div>
+        </main>
+      </div>
+    </div>
+    <script src="./main.js"></script>
+  </body>
+</html>
