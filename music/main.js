@@ -7,7 +7,6 @@ const loading = document.getElementById('loading');
 const noResults = document.getElementById('noResults');
 const searchInput = document.getElementById('searchInput');
 const sortSelect = document.getElementById('sortSelect');
-const platformToggle = document.getElementById('platformToggle');
 const totalSongsCount = document.getElementById('totalSongsCount');
 const topArtistsList = document.getElementById('topArtistsList');
 
@@ -27,7 +26,7 @@ async function init() {
     // Event Listeners
     searchInput.addEventListener('input', handleSearch);
     sortSelect.addEventListener('change', handleSort);
-    platformToggle.addEventListener('change', renderGrid);
+    
     
   } catch (error) {
     console.error("Failed to load likes.json", error);
@@ -37,17 +36,11 @@ async function init() {
 
 // URL Generators
 function getVideoUrl(videoId) {
-  const isMusic = platformToggle.checked;
-  return isMusic 
-    ? `https://music.youtube.com/watch?v=${videoId}`
-    : `https://www.youtube.com/watch?v=${videoId}`;
+  return `https://music.youtube.com/watch?v=${videoId}`;
 }
 
 function getChannelUrl(channelId) {
-  const isMusic = platformToggle.checked;
-  return isMusic
-    ? `https://music.youtube.com/channel/${channelId}`
-    : `https://www.youtube.com/channel/${channelId}`;
+  return `https://music.youtube.com/channel/${channelId}`;
 }
 
 // Render the grid of song cards
