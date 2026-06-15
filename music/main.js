@@ -27,6 +27,8 @@ async function init() {
     searchInput.addEventListener('input', handleSearch);
     sortSelect.addEventListener('change', handleSort);
     
+    // Playback delegation
+    songsGrid.addEventListener('click', handlePlayback);
     
   } catch (error) {
     console.error("Failed to load likes.json", error);
@@ -62,14 +64,14 @@ function renderGrid() {
     
     return `
       <div class="song-card">
-        <a href="${videoUrl}" target="_blank" class="thumbnail-container">
+        <div class="thumbnail-container" data-video-id="${song.video_id}" data-thumbnail-url="${thumbnailUrl}" style="cursor: pointer;">
           <img src="${thumbnailUrl}" alt="${escapeHtml(song.title)}" class="thumbnail" loading="lazy" />
           <div class="play-overlay">
             <svg class="play-icon" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z"/>
             </svg>
           </div>
-        </a>
+        </div>
         <div class="song-info">
           <a href="${videoUrl}" target="_blank" class="song-title" title="${escapeHtml(song.title)}">
             ${escapeHtml(song.title)}
@@ -139,6 +141,39 @@ function handleSort() {
   });
   
   renderGrid();
+}
+
+let currentlyPlayingContainer = null;
+
+function handlePlayback(e) {
+  const container = e.target.closest('.thumbnail-container');
+  if (!container) return;
+
+  const videoId = container.dataset.videoId;
+  if (!videoId) return;
+
+  // If clicking on the already playing container, ignore or stop? 
+  // Let's just let the iframe handle its own pauses, so we do nothing if it's already playing.
+  if (container.classList.contains('playing')) return;
+
+  // Stop currently playing
+  if (currentlyPlayingContainer && currentlyPlayingContainer !== container) {
+    const oldThumbUrl = currentlyPlayingContainer.dataset.thumbnailUrl;
+    currentlyPlayingContainer.innerHTML = `
+      <img src="${oldThumbUrl}" class="thumbnail" loading="lazy" />
+      <div class="play-overlay">
+        <svg class="play-icon" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </div>
+    `;
+    currentlyPlayingContainer.classList.remove('playing');
+  }
+
+  // Play new one
+  container.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+  container.classList.add('playing');
+  currentlyPlayingContainer = container;
 }
 
 // Utilities
