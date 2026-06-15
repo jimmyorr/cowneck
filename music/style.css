@@ -43,6 +43,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  padding-bottom: 90px; /* Space for the bottom player */
 }
 
 /* Header */
@@ -363,6 +364,135 @@ input:checked + .slider:before {
 
 .hidden {
   display: none !important;
+}
+
+/* Bottom Player */
+.bottom-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background-color: #121212;
+  border-top: 1px solid var(--border-color);
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.player-thumbnail {
+  width: 64px;
+  height: 64px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.player-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.player-title {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-artist {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
+
+.play-pause-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-speed);
+}
+
+.play-pause-btn:hover:not(:disabled) {
+  background-color: var(--bg-hover);
+}
+
+.play-pause-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .topbar {
+    flex-direction: column;
+    padding: 12px;
+    gap: 12px;
+  }
+  .search-input {
+    width: 100%;
+  }
+  .controls {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sort-select {
+    width: 100%;
+  }
+  .main-layout {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px;
+  }
+  .content {
+    padding: 16px;
+  }
+  .bottom-player {
+    padding: 0 12px;
+    height: 70px;
+  }
+  .player-info {
+    width: auto;
+  }
+  .app-container {
+    padding-bottom: 70px;
+  }
+  .player-thumbnail {
+    width: 48px;
+    height: 48px;
+  }
 }
 
 /* Mobile Responsiveness */

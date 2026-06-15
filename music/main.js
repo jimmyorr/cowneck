@@ -9,6 +9,64 @@ const searchInput = document.getElementById('searchInput');
 const sortSelect = document.getElementById('sortSelect');
 const totalSongsCount = document.getElementById('totalSongsCount');
 const topArtistsList = document.getElementById('topArtistsList');
+const bottomPlayer = document.getElementById('bottomPlayer');
+const playerThumbnail = document.getElementById('playerThumbnail');
+const playerTitle = document.getElementById('playerTitle');
+const playerArtist = document.getElementById('playerArtist');
+const playPauseBtn = document.getElementById('playPauseBtn');
+const playIcon = document.getElementById('playIcon');
+const pauseIcon = document.getElementById('pauseIcon');
+
+// YouTube Player Setup
+let ytPlayer;
+let isPlayerReady = false;
+
+// Load YT IFrame API
+const tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+const firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+window.onYouTubeIframeAPIReady = function() {
+  ytPlayer = new YT.Player('ytplayer', {
+    height: '1',
+    width: '1',
+    videoId: '',
+    playerVars: {
+      'playsinline': 1,
+      'autoplay': 1,
+      'controls': 0
+    },
+    events: {
+      'onReady': () => {
+        isPlayerReady = true;
+        playPauseBtn.disabled = false;
+      },
+      'onStateChange': onPlayerStateChange
+    }
+  });
+};
+
+function onPlayerStateChange(event) {
+  // YT.PlayerState.PLAYING = 1
+  if (event.data === 1) {
+    playIcon.classList.add('hidden');
+    pauseIcon.classList.remove('hidden');
+  } else {
+    playIcon.classList.remove('hidden');
+    pauseIcon.classList.add('hidden');
+  }
+}
+
+playPauseBtn.addEventListener('click', () => {
+  if (!isPlayerReady || !ytPlayer) return;
+  const state = ytPlayer.getPlayerState();
+  if (state === 1) { // Playing
+    ytPlayer.pauseVideo();
+  } else {
+    ytPlayer.playVideo();
+  }
+});
 
 // Fetch data
 async function init() {
@@ -143,37 +201,31 @@ function handleSort() {
   renderGrid();
 }
 
-let currentlyPlayingContainer = null;
-
 function handlePlayback(e) {
   const container = e.target.closest('.thumbnail-container');
   if (!container) return;
 
   const videoId = container.dataset.videoId;
   if (!videoId) return;
+  
+  // Find song details from allSongs or from closest elements
+  const card = container.closest('.song-card');
+  const title = card.querySelector('.song-title').innerText;
+  const artist = card.querySelector('.song-artist').innerText;
+  const thumbUrl = container.dataset.thumbnailUrl;
 
-  // If clicking on the already playing container, ignore or stop? 
-  // Let's just let the iframe handle its own pauses, so we do nothing if it's already playing.
-  if (container.classList.contains('playing')) return;
+  // Show player
+  bottomPlayer.classList.remove('hidden');
 
-  // Stop currently playing
-  if (currentlyPlayingContainer && currentlyPlayingContainer !== container) {
-    const oldThumbUrl = currentlyPlayingContainer.dataset.thumbnailUrl;
-    currentlyPlayingContainer.innerHTML = `
-      <img src="${oldThumbUrl}" class="thumbnail" loading="lazy" />
-      <div class="play-overlay">
-        <svg class="play-icon" viewBox="0 0 24 24">
-          <path d="M8 5v14l11-7z"/>
-        </svg>
-      </div>
-    `;
-    currentlyPlayingContainer.classList.remove('playing');
+  // Update UI
+  playerThumbnail.src = thumbUrl;
+  playerTitle.innerText = title;
+  playerArtist.innerText = artist;
+
+  // Load and play video using API
+  if (isPlayerReady && ytPlayer) {
+    ytPlayer.loadVideoById(videoId);
   }
-
-  // Play new one
-  container.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-  container.classList.add('playing');
-  currentlyPlayingContainer = container;
 }
 
 // Utilities

@@ -55,6 +55,26 @@
         </main>
       </div>
     </div>
+    
+    <div id="bottomPlayer" class="bottom-player hidden">
+      <div class="player-info" id="playerInfo">
+        <img src="" id="playerThumbnail" class="player-thumbnail" alt="" />
+        <div class="player-text">
+          <div id="playerTitle" class="player-title"></div>
+          <div id="playerArtist" class="player-artist"></div>
+        </div>
+      </div>
+      <div class="player-controls">
+        <button id="playPauseBtn" class="play-pause-btn" disabled>
+          <svg id="playIcon" viewBox="0 0 24 24" width="32" height="32" fill="white"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="pauseIcon" viewBox="0 0 24 24" width="32" height="32" fill="white" class="hidden"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+      </div>
+      <div id="ytplayerContainer" style="position: absolute; top: -9999px; width: 1px; height: 1px;">
+        <div id="ytplayer"></div>
+      </div>
+    </div>
+
     <script src="./main.js"></script>
   </body>
 </html>
