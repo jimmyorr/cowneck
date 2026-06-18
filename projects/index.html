@@ -370,6 +370,14 @@
         );
         --glow-shadow: rgba(245, 158, 11, 0.25);
       }
+      .card-music {
+        --hover-gradient: linear-gradient(
+          135deg,
+          rgba(16, 185, 129, 0.25) 0%,
+          rgba(4, 120, 87, 0.05) 100%
+        );
+        --glow-shadow: rgba(16, 185, 129, 0.25);
+      }
 
       /* Custom Scrollbar */
       ::-webkit-scrollbar {
@@ -617,6 +625,44 @@
           <div class="project-footer">
             <div class="tech-tags">
               <span class="tech-tag">Game Reskin</span>
+              <span class="tech-tag">Gallery</span>
+            </div>
+            <div class="project-link-arrow" aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- Card: Music -->
+        <a
+          href="../music/"
+          class="project-card card-music"
+          id="project-card-music"
+          role="listitem"
+        >
+          <div class="project-card-content">
+            <span class="project-icon" aria-hidden="true">🎧</span>
+            <h2 class="project-title">My Liked Music</h2>
+            <p class="project-description">
+              A curated, interactive gallery of my all-time favorite tracks, albums, and artists, blending personal taste with analytics.
+            </p>
+          </div>
+          <div class="project-footer">
+            <div class="tech-tags">
+              <span class="tech-tag">Audio</span>
               <span class="tech-tag">Gallery</span>
             </div>
             <div class="project-link-arrow" aria-hidden="true">
