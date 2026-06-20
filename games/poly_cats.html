@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Polyomino Cats</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes clear-block {
+            0% { transform: scale(1); opacity: 1; filter: brightness(1.2); }
+            50% { transform: scale(1.15) rotate(5deg); opacity: 0.9; filter: brightness(1.5); }
+            100% { transform: scale(0) rotate(-10deg); opacity: 0; filter: brightness(1); }
+        }
+        .animate-clear-block { animation: clear-block 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        
+        @keyframes drop-pulse {
+            0% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.05); filter: brightness(1.1); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+        .animate-drop-pulse { animation: drop-pulse 0.3s ease-out forwards; }
+
+        @keyframes spawn-bounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-spawn { animation: spawn-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+        @keyframes float-up {
+            0% { transform: translateY(0) scale(0.9); opacity: 0; }
+            20% { transform: translateY(-15px) scale(1.1); opacity: 1; }
+            80% { transform: translateY(-40px) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(0.9); opacity: 0; }
+        }
+        .animate-float-score { animation: float-up 1s ease-out forwards; pointer-events: none; }
+
+        @keyframes screen-shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(-2px, 1px) rotate(-0.5deg); }
+            50% { transform: translate(2px, -1px) rotate(0.5deg); }
+            75% { transform: translate(-1px, -2px) rotate(-0.5deg); }
+        }
+        .animate-shake { animation: screen-shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+        
+        @keyframes pulse-urgent {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+        }
+        .animate-pulse-urgent { animation: pulse-urgent 1.5s infinite; }
+
+        /* Ensure consistent touch behavior */
+        body {
+            overscroll-behavior: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        .dock-container-custom {
+            --cell-sz: min(6.5vw, 22px);
+        }
+    </style>
+</head>
+<body class="fixed inset-0 bg-slate-50 text-slate-800 flex flex-col items-center justify-center overflow-hidden font-sans select-none touch-none" id="app-body">
+
+    <div class="w-full max-w-[440px] h-[100dvh] flex flex-col pt-safe-top pb-safe-bottom">
+        
+        <!-- Header Area -->
+        <div class="w-full px-6 pt-6 pb-4 flex justify-between items-center shrink-0">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-slate-800 leading-none">
+                    Poly<span class="text-indigo-500">Cats</span>
+                </h1>
+                <button 
+                    id="reroll-btn"
+                    class="mt-2 flex items-center px-4 py-1.5 rounded-full font-bold text-sm transition-all border bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50 shadow-sm active:scale-95"
+                    onclick="handleReroll()"
+                >
+                    <svg viewBox="0 0 100 100" class="w-5 h-5 inline-block mr-1.5 drop-shadow-sm pointer-events-none">
+                        <path d="M 75 50 Q 50 20 20 50 Q 50 80 75 50 Z" fill="currentColor" />
+                        <path d="M 70 50 L 95 30 L 95 70 Z" fill="currentColor" />
+                        <circle cx="35" cy="45" r="4" fill="white" opacity="0.9" />
+                    </svg>
+                    Reroll <span class="ml-1 opacity-75" id="treats-count">(3)</span>
+                </button>
+            </div>
+            <div class="text-right flex flex-col items-end justify-center">
+                <div class="flex items-center space-x-2 h-5" id="combo-container">
+                    <!-- Combo generated dynamically here -->
+                    <p class="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase ml-auto">Score</p>
+                </div>
+                <div class="relative mt-0.5">
+                    <p id="score-display" class="text-5xl font-black tracking-tighter transition-transform duration-200 text-slate-800">
+                        0
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Board Area -->
+        <div class="flex-1 w-full flex items-center justify-center px-4 md:px-6">
+            <div class="relative w-full aspect-square max-w-[400px]">
+                
+                <!-- Floating Scores Overlay -->
+                <div id="floating-scores" class="absolute inset-0 z-50 pointer-events-none"></div>
+
+                <!-- Grid Container -->
+                <div id="grid-wrapper" class="w-full h-full bg-white rounded-[2rem] p-[10px] shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 transition-opacity duration-300 opacity-100">
+                    <div id="grid-inner" class="w-full h-full relative grid grid-cols-8 grid-rows-8 gap-0">
+                        <!-- Grid cells injected here -->
+                    </div>
+                    <!-- Faint preview when snapping -->
+                    <div id="preview-overlay" class="absolute pointer-events-none transition-all duration-75 z-20 hidden">
+                        <div id="preview-inner" class="relative w-full h-full"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dock Area Container -->
+        <div class="h-32 w-full shrink-0 flex justify-between items-center px-4 md:px-6 mb-6 mt-4 dock-container-custom">
+            <div id="dock-wrapper" class="w-full h-full bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex justify-evenly items-center px-2 transition-opacity duration-300 opacity-100">
+                <!-- Dock items injected here -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Fullscreen Interactive Drag Overlay -->
+    <div id="drag-overlay" class="fixed inset-0 z-[100] cursor-grabbing touch-none hidden pointer-events-auto">
+        <div id="dragged-piece" class="absolute pointer-events-none transition-transform duration-75 ease-out drop-shadow-[0_20px_25px_rgba(0,0,0,0.15)] origin-top-left">
+            <!-- Dragged blocks injected here -->
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal" class="fixed inset-0 z-[110] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6 animate-spawn hidden pointer-events-auto">
+        <div class="bg-white p-8 rounded-[2rem] shadow-2xl max-w-sm w-full text-center border border-white">
+            <div class="w-24 h-24 mx-auto bg-slate-100 rounded-[1.5rem] flex items-center justify-center mb-6 relative overflow-hidden shadow-inner border border-slate-200" id="game-over-cat">
+               <!-- SVG injected here -->
+            </div>
+            <h2 class="text-3xl font-black mb-2 text-slate-800 tracking-tight">Oh No!</h2>
+            <p class="text-slate-500 mb-8 font-medium">No space left for the kitties to sleep.</p>
+            <div class="bg-slate-50 rounded-2xl p-6 mb-8 border border-slate-100 shadow-inner">
+                <p class="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase mb-2">Final Score</p>
+                <p id="final-score" class="text-6xl font-black text-indigo-500 tracking-tighter">0</p>
+            </div>
+            <button 
+                onclick="restartGame()"
+                class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-black text-lg py-4 px-8 rounded-2xl shadow-[0_8px_20px_rgb(99,102,241,0.3)] transition-all active:scale-95 active:shadow-sm"
+            >
+                Play Again
+            </button>
+        </div>
+    </div>
+
+<script>
+// --- GAME CONFIGURATION & SHAPES ---
+const RAW_SHAPES = [
+  ["H"],                                 
+  ["HT"],                                
+  ["H", "T"],                            
+  ["HBT"],                               
+  ["H", "B", "T"],                       
+  ["HBBT"],                              
+  ["H", "B", "B", "T"],                  
+  ["HBBBT"],                             
+  ["H", "B", "B", "B", "T"],             
+  ["HB", "PT"],                          
+  ["HBB", "BBB", "PPT"],                 
+  ["HB", "P."],                          
+  ["HB", ".P"],                          
+  ["H.", "PB"],                          
+  [".H", "PB"],                          
+  ["HBB", "P..", "T.."],                 
+  ["HBB", "..P", "..T"],                 
+  ["H..", "B..", "BPT"],                 
+  ["..H", "..B", "PBT"]                  
+];
+
+const THEMES = [
+  { id: 'orange', fill: '#f97316', dark: '#c2410c', eye: '#431407', inner: '#ffedd5' }, 
+  { id: 'slate', fill: '#475569', dark: '#1e293b', eye: '#fef08a', inner: '#94a3b8' },  
+  { id: 'snow', fill: '#f8fafc', dark: '#94a3b8', eye: '#0ea5e9', inner: '#f1f5f9' },   
+  { id: 'sand', fill: '#e7e5e4', dark: '#78716c', eye: '#0284c7', inner: '#f5f5f4' },   
+  { id: 'indigo', fill: '#818cf8', dark: '#3730a3', eye: '#fef08a', inner: '#e0e7ff' }, 
+  { id: 'rose', fill: '#fb7185', dark: '#be123c', eye: '#4c0519', inner: '#ffe4e6' },   
+];
+
+const generateId = () => Math.random().toString(36).substr(2, 9);
+
+const parseShape = (templateStrings) => {
+  let blocks = [];
+  let w = templateStrings[0].length;
+  let h = templateStrings.length;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (templateStrings[y][x] !== '.') {
+        blocks.push({ x, y, type: templateStrings[y][x] });
+      }
+    }
+  }
+  return { blocks, w, h };
+};
+
+const SHAPES = RAW_SHAPES.map(parseShape);
+
+// --- SVG & HTML GENERATORS ---
+const getCatFaceSVG = (theme) => `
+  <svg viewBox="0 0 100 100" class="w-full h-full absolute inset-0 z-10 overflow-visible drop-shadow-sm pointer-events-none">
+    <path d="M 10 40 L 20 -5 L 45 25 Z" fill="${theme.dark}" />
+    <path d="M 90 40 L 80 -5 L 55 25 Z" fill="${theme.dark}" />
+    <path d="M 18 35 L 23 8 L 40 25 Z" fill="${theme.inner}" />
+    <path d="M 82 35 L 77 8 L 60 25 Z" fill="${theme.inner}" />
+    <ellipse cx="30" cy="55" rx="7" ry="9" fill="${theme.eye}" />
+    <ellipse cx="70" cy="55" rx="7" ry="9" fill="${theme.eye}" />
+    <circle cx="33" cy="51" r="2.5" fill="white" />
+    <circle cx="73" cy="51" r="2.5" fill="white" />
+    <path d="M 45 68 L 55 68 L 50 75 Z" fill="#f43f5e" opacity="0.8" />
+    <path d="M 50 75 Q 40 85 35 80" fill="none" stroke="${theme.dark}" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M 50 75 Q 60 85 65 80" fill="none" stroke="${theme.dark}" stroke-width="2.5" stroke-linecap="round" />
+    <line x1="22" y1="65" x2="2" y2="60" stroke="${theme.dark}" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+    <line x1="22" y1="72" x2="2" y2="75" stroke="${theme.dark}" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+    <line x1="78" y1="65" x2="98" y2="60" stroke="${theme.dark}" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+    <line x1="78" y1="72" x2="98" y2="75" stroke="${theme.dark}" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+  </svg>
+`;
+
+const getCatPawSVG = (theme) => `
+  <svg viewBox="0 0 100 100" class="w-full h-full absolute inset-0 z-10 opacity-90 drop-shadow-sm pointer-events-none">
+    <path d="M 30 65 Q 50 85 70 65 Q 85 40 50 45 Q 15 40 30 65 Z" fill="${theme.dark}" />
+    <circle cx="32" cy="32" r="11" fill="${theme.dark}" />
+    <circle cx="50" cy="20" r="13" fill="${theme.dark}" />
+    <circle cx="68" cy="32" r="11" fill="${theme.dark}" />
+    <circle cx="28" cy="28" r="3" fill="white" opacity="0.3" />
+    <circle cx="46" cy="16" r="4" fill="white" opacity="0.3" />
+    <circle cx="64" cy="28" r="3" fill="white" opacity="0.3" />
+  </svg>
+`;
+
+const getCatTailSVG = (theme) => `
+  <svg viewBox="0 0 100 100" class="w-full h-full absolute inset-0 z-10 drop-shadow-sm pointer-events-none">
+    <path d="M 50 50 Q 80 50 80 80 Q 80 20 40 20 Q 20 20 25 45 Q 30 60 45 50" 
+          fill="none" stroke="${theme.dark}" stroke-width="18" stroke-linecap="round" opacity="0.7" />
+  </svg>
+`;
+
+const getCatBodyTextureSVG = (theme) => `
+  <svg viewBox="0 0 100 100" class="w-full h-full absolute inset-0 z-0 opacity-10 pointer-events-none" preserveAspectRatio="none">
+     <path d="M -10 20 Q 50 60 110 20 M -10 50 Q 50 90 110 50 M -10 80 Q 50 120 110 80" 
+           fill="none" stroke="${theme.dark}" stroke-width="12" stroke-linecap="round" />
+  </svg>
+`;
+
+const getBorderClasses = (t, b, l, r) => {
+  let classes = "";
+  if (!t && !l) classes += " rounded-tl-[40%]";
+  if (!t && !r) classes += " rounded-tr-[40%]";
+  if (!b && !l) classes += " rounded-bl-[40%]";
+  if (!b && !r) classes += " rounded-br-[40%]";
+  return classes || "rounded-lg"; 
+};
+
+const getCatCellHTML = (theme, type, t, b, l, r, isPreview, isClearing, isPlacedPulse) => {
+  const borderClasses = getBorderClasses(t, b, l, r);
+  let animationClass = "";
+  if (isClearing) animationClass = "animate-clear-block";
+  else if (isPlacedPulse) animationClass = "animate-drop-pulse";
+
+  let innerHTML = getCatBodyTextureSVG(theme);
+  if (type === 'H') innerHTML += getCatFaceSVG(theme);
+  if (type === 'P') innerHTML += getCatPawSVG(theme);
+  if (type === 'T') innerHTML += getCatTailSVG(theme);
+
+  const shadow = isPreview ? 'none' : 'inset -2px -2px 6px rgba(0,0,0,0.1), inset 2px 2px 6px rgba(255,255,255,0.4)';
+  const opacity = isPreview ? 0.6 : 1;
+  const transform = isPreview ? 'scale(1.05)' : 'scale(1)';
+  const mt = t ? '-2px' : '0';
+  const mb = b ? '-2px' : '0';
+  const ml = l ? '-2px' : '0';
+  const mr = r ? '-2px' : '0';
+  const zIndex = type === 'H' ? 10 : 1;
+
+  return `
+    <div class="relative w-full h-full ${borderClasses} ${animationClass} overflow-hidden pointer-events-none"
+         style="background-color: ${theme.fill}; box-shadow: ${shadow}; opacity: ${opacity}; transform: ${transform}; margin-top: ${mt}; margin-bottom: ${mb}; margin-left: ${ml}; margin-right: ${mr}; z-index: ${zIndex}; transition: transform 0.2s, opacity 0.2s;">
+      ${innerHTML}
+    </div>
+  `;
+};
+
+// --- GAME LOGIC & STATE ---
+const getInitialGrid = () => Array(8).fill(null).map(() => Array(8).fill(null));
+
+const checkCanPlace = (shape, r, c, currentGrid) => {
+  for (let b of shape.blocks) {
+    const br = r + b.y;
+    const bc = c + b.x;
+    if (br < 0 || br >= 8 || bc < 0 || bc >= 8 || currentGrid[br][bc] !== null) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const getFriendlyPiece = (currentGrid, forceSmall = false) => {
+  let validShapes = SHAPES.filter(shape => {
+    if (forceSmall && shape.blocks.length > 3) return false;
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        if (checkCanPlace(shape, r, c, currentGrid)) return true;
+      }
+    }
+    return false;
+  });
+
+  const pool = validShapes.length > 0 ? validShapes : SHAPES;
+  const shape = pool[Math.floor(Math.random() * pool.length)];
+  const theme = THEMES[Math.floor(Math.random() * THEMES.length)];
+  return { ...shape, id: generateId(), theme, state: 'spawn' };
+};
+
+const vibrate = (pattern) => {
+  try { if (navigator && navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
+};
+
+// State Variables
+let grid = getInitialGrid();
+let dock = [getFriendlyPiece(grid), getFriendlyPiece(grid), getFriendlyPiece(grid, true)];
+let score = 0;
+let combo = 0;
+let comboGrace = 0;
+let treats = 3;
+let nextTreatScore = 1000;
+let gameOver = false;
+let needsReroll = false;
+let isAnimatingClear = false;
+let placedCells = []; // "y-x" format
+
+let dragState = null;
+let preview = null;
+let floatIdCounter = 0;
+
+// DOM Elements Cache
+const DOM = {
+    gridInner: document.getElementById('grid-inner'),
+    dockWrapper: document.getElementById('dock-wrapper'),
+    scoreDisplay: document.getElementById('score-display'),
+    comboContainer: document.getElementById('combo-container'),
+    treatsCount: document.getElementById('treats-count'),
+    rerollBtn: document.getElementById('reroll-btn'),
+    gridWrapper: document.getElementById('grid-wrapper'),
+    dragOverlay: document.getElementById('drag-overlay'),
+    draggedPiece: document.getElementById('dragged-piece'),
+    previewOverlay: document.getElementById('preview-overlay'),
+    previewInner: document.getElementById('preview-inner'),
+    floatingScores: document.getElementById('floating-scores'),
+    gameOverModal: document.getElementById('game-over-modal'),
+    finalScore: document.getElementById('final-score'),
+    gameOverCat: document.getElementById('game-over-cat'),
+    appBody: document.getElementById('app-body')
+};
+
+// --- RENDERING FUNCTIONS ---
+
+function renderGrid() {
+    let html = '';
+    for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+            const cell = grid[y][x];
+            if (!cell) {
+                html += `
+                  <div class="w-full h-full p-[2px]">
+                    <div class="w-full h-full bg-slate-100/60 rounded-lg"></div>
+                  </div>
+                `;
+                continue;
+            }
+            const t = y > 0 && grid[y-1][x]?.pieceId === cell.pieceId;
+            const b = y < 7 && grid[y+1][x]?.pieceId === cell.pieceId;
+            const l = x > 0 && grid[y][x-1]?.pieceId === cell.pieceId;
+            const r = x < 7 && grid[y][x+1]?.pieceId === cell.pieceId;
+            const isPlacedPulse = placedCells.includes(`${y}-${x}`);
+            
+            html += `
+              <div class="w-full h-full p-[1px] relative">
+                ${getCatCellHTML(cell.theme, cell.type, t, b, l, r, false, cell.isClearing, isPlacedPulse)}
+              </div>
+            `;
+        }
+    }
+    DOM.gridInner.innerHTML = html;
+}
+
+function renderDock() {
+    let html = '';
+    const cellSzStr = "var(--cell-sz)";
+    dock.forEach((piece, index) => {
+        html += `<div class="w-1/3 flex justify-center items-center h-full relative">`;
+        if (piece && (!dragState || dragState.dockIndex !== index)) {
+            const animationClass = piece.state === 'spawn' ? 'animate-spawn' : '';
+            let innerHTML = '';
+            piece.blocks.forEach(b => {
+                const t = piece.blocks.some(o => o.x === b.x && o.y === b.y - 1);
+                const bot = piece.blocks.some(o => o.x === b.x && o.y === b.y + 1);
+                const l = piece.blocks.some(o => o.x === b.x - 1 && o.y === b.y);
+                const r = piece.blocks.some(o => o.x === b.x + 1 && o.y === b.y);
+                innerHTML += `
+                  <div class="absolute p-[1px] pointer-events-none" 
+                       style="left: calc(${b.x} * ${cellSzStr}); top: calc(${b.y} * ${cellSzStr}); width: calc(${cellSzStr}); height: calc(${cellSzStr});">
+                    ${getCatCellHTML(piece.theme, b.type, t, bot, l, r, false, false, false)}
+                  </div>
+                `;
+            });
+            html += `
+              <div class="relative touch-none cursor-grab active:cursor-grabbing ${animationClass}"
+                   onpointerdown="handlePointerDown(event, ${index})"
+                   style="width: calc(${piece.w} * ${cellSzStr}); height: calc(${piece.h} * ${cellSzStr});">
+                  ${innerHTML}
+              </div>
+            `;
+        }
+        html += `</div>`;
+    });
+    DOM.dockWrapper.innerHTML = html;
+}
+
+function updateUI() {
+    DOM.scoreDisplay.innerText = score;
+    DOM.treatsCount.innerText = `(${treats})`;
+    
+    // Reroll UI states
+    if (needsReroll) {
+        DOM.rerollBtn.className = "mt-2 flex items-center px-4 py-1.5 rounded-full font-bold text-sm transition-all border bg-indigo-500 text-white border-indigo-600 animate-pulse-urgent shadow-lg";
+        DOM.gridWrapper.className = "w-full h-full bg-white rounded-[2rem] p-[10px] shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 transition-opacity duration-300 opacity-60 grayscale-[30%]";
+        DOM.dockWrapper.className = "w-full h-full bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex justify-evenly items-center px-2 transition-opacity duration-300 opacity-50 grayscale";
+    } else {
+        if (treats > 0) {
+            DOM.rerollBtn.className = "mt-2 flex items-center px-4 py-1.5 rounded-full font-bold text-sm transition-all border bg-white text-indigo-600 border-indigo-100 hover:bg-indigo-50 shadow-sm active:scale-95";
+        } else {
+            DOM.rerollBtn.className = "mt-2 flex items-center px-4 py-1.5 rounded-full font-bold text-sm transition-all border bg-slate-100 text-slate-400 border-slate-200 opacity-70";
+        }
+        DOM.gridWrapper.className = "w-full h-full bg-white rounded-[2rem] p-[10px] shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 transition-opacity duration-300 opacity-100";
+        DOM.dockWrapper.className = "w-full h-full bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex justify-evenly items-center px-2 transition-opacity duration-300 opacity-100";
+    }
+    DOM.rerollBtn.disabled = treats === 0 || isAnimatingClear;
+
+    // Combo UI
+    if (combo > 1) {
+        let dots = '';
+        for (let i = 0; i < 3; i++) {
+            dots += `<span class="w-1 h-1 rounded-full ${i < comboGrace ? 'bg-indigo-500' : 'bg-indigo-200/50'}"></span>`;
+        }
+        DOM.comboContainer.innerHTML = `
+            <span class="text-indigo-600 font-bold text-xs animate-spawn bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200 flex items-center space-x-1">
+                <span>🔥 x${combo}</span>
+                <span class="flex space-x-[2px] ml-1">${dots}</span>
+            </span>
+            <p class="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase ml-auto">Score</p>
+        `;
+    } else {
+        DOM.comboContainer.innerHTML = `<p class="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase ml-auto">Score</p>`;
+    }
+
+    if (gameOver) {
+        DOM.gameOverModal.classList.remove('hidden');
+        DOM.finalScore.innerText = score;
+        DOM.gameOverCat.innerHTML = getCatFaceSVG(THEMES[1]);
+    } else {
+        DOM.gameOverModal.classList.add('hidden');
+    }
+}
+
+function renderPreview() {
+    if (preview && dragState && !isAnimatingClear) {
+        DOM.previewOverlay.classList.remove('hidden');
+        DOM.previewOverlay.style.left = `${preview.col * 12.5}%`;
+        DOM.previewOverlay.style.top = `${preview.row * 12.5}%`;
+        DOM.previewOverlay.style.width = `12.5%`;
+        DOM.previewOverlay.style.height = `12.5%`;
+        
+        let html = '';
+        dragState.piece.blocks.forEach((b) => {
+            const t = dragState.piece.blocks.some(o => o.x === b.x && o.y === b.y - 1);
+            const bot = dragState.piece.blocks.some(o => o.x === b.x && o.y === b.y + 1);
+            const l = dragState.piece.blocks.some(o => o.x === b.x - 1 && o.y === b.y);
+            const r = dragState.piece.blocks.some(o => o.x === b.x + 1 && o.y === b.y);
+            html += `
+              <div class="absolute p-[1px]" style="left: ${b.x * 100}%; top: ${b.y * 100}%; width: 100%; height: 100%;">
+                ${getCatCellHTML(dragState.piece.theme, b.type, t, bot, l, r, true, false, false)}
+              </div>
+            `;
+        });
+        DOM.previewInner.innerHTML = html;
+    } else {
+        DOM.previewOverlay.classList.add('hidden');
+    }
+}
+
+function addFloatingScore(points, row, col, comboText = "") {
+    const id = floatIdCounter++;
+    const x = (col + 0.5) * 12.5; 
+    const y = (row + 0.5) * 12.5; 
+    
+    const div = document.createElement('div');
+    div.className = "absolute flex flex-col items-center animate-float-score pointer-events-none";
+    div.style.left = `${x}%`;
+    div.style.top = `${y}%`;
+    div.style.transform = `translate(-50%, -50%)`;
+    
+    let html = '';
+    if (comboText) html += `<span class="text-lg font-black text-indigo-400 drop-shadow-sm mb-0.5">${comboText}</span>`;
+    
+    const textColor = points === 0 ? 'text-blue-500 text-xl' : 'text-indigo-600';
+    const textContent = points > 0 ? `+${points}` : comboText;
+    
+    html += `<span class="text-4xl font-black drop-shadow-[0_4px_4px_rgba(255,255,255,0.9)] ${textColor}">${textContent}</span>`;
+    
+    div.innerHTML = html;
+    DOM.floatingScores.appendChild(div);
+    
+    setTimeout(() => {
+        if(DOM.floatingScores.contains(div)) {
+            DOM.floatingScores.removeChild(div);
+        }
+    }, 1000);
+}
+
+function triggerShake() {
+    DOM.appBody.classList.add('animate-shake');
+    setTimeout(() => DOM.appBody.classList.remove('animate-shake'), 300);
+}
+
+function triggerScorePop() {
+    DOM.scoreDisplay.classList.add('scale-110', 'text-indigo-500');
+    DOM.scoreDisplay.classList.remove('text-slate-800');
+    setTimeout(() => {
+        DOM.scoreDisplay.classList.remove('scale-110', 'text-indigo-500');
+        DOM.scoreDisplay.classList.add('text-slate-800');
+    }, 200);
+}
+
+// --- LOGIC ACTIONS ---
+
+function handleReroll() {
+    if (treats > 0 && !isAnimatingClear && !gameOver) {
+        vibrate([20, 40, 20]);
+        treats--;
+        dock = [getFriendlyPiece(grid, true), getFriendlyPiece(grid, true), getFriendlyPiece(grid, true)];
+        needsReroll = false;
+        renderDock();
+        updateUI();
+    }
+}
+
+function restartGame() {
+    grid = getInitialGrid();
+    dock = [getFriendlyPiece(grid), getFriendlyPiece(grid), getFriendlyPiece(grid, true)];
+    score = 0;
+    combo = 0;
+    comboGrace = 0;
+    treats = 3;
+    nextTreatScore = 1000;
+    gameOver = false;
+    needsReroll = false;
+    dragState = null;
+    DOM.floatingScores.innerHTML = '';
+    
+    renderGrid();
+    renderDock();
+    updateUI();
+}
+
+function checkGameOverState() {
+    if (!isAnimatingClear && dock.every(p => p === null)) {
+        dock = [getFriendlyPiece(grid), getFriendlyPiece(grid), getFriendlyPiece(grid, true)];
+        needsReroll = false;
+        renderDock();
+        updateUI();
+    } else if (!isAnimatingClear) {
+        let hasMoves = false;
+        for (let piece of dock) {
+            if (!piece) continue;
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (checkCanPlace(piece, r, c, grid)) hasMoves = true;
+                }
+            }
+        }
+        
+        if (!hasMoves && !dock.every(p => p === null)) {
+            if (treats > 0) {
+                needsReroll = true;
+            } else {
+                gameOver = true;
+            }
+        } else {
+            needsReroll = false;
+        }
+        updateUI();
+    }
+}
+
+// --- DRAG AND DROP LOGIC ---
+
+window.handlePointerDown = function(e, dockIndex) {
+    if (gameOver || isAnimatingClear || needsReroll) return;
+    e.preventDefault();
+    vibrate(15);
+
+    const piece = dock[dockIndex];
+    const rect = e.currentTarget.getBoundingClientRect();
+    const DOCK_CELL = rect.width / piece.w; 
+    
+    let relX = e.clientX - rect.left;
+    let relY = e.clientY - rect.top;
+    if(e.type === 'touchstart') {
+        relX = e.touches[0].clientX - rect.left;
+        relY = e.touches[0].clientY - rect.top;
+    }
+
+    let blockX = Math.floor(relX / DOCK_CELL);
+    let blockY = Math.floor(relY / DOCK_CELL);
+    blockX = Math.max(0, Math.min(blockX, piece.w - 1));
+    blockY = Math.max(0, Math.min(blockY, piece.h - 1));
+
+    const gridRect = DOM.gridInner.getBoundingClientRect();
+    const trueCellSize = gridRect.width / 8;
+
+    const isTouch = e.pointerType === 'touch' || e.type.startsWith('touch');
+    const shiftY = isTouch ? 60 : 30; 
+
+    const offsetX = (blockX + 0.5) * trueCellSize;
+    const offsetY = (blockY + 0.5) * trueCellSize + shiftY;
+
+    // Reset spawn animation state
+    dock[dockIndex].state = 'idle';
+    renderDock(); // visually removes it from dock temporarily while dragging
+
+    const clientX = e.clientX || e.touches?.[0].clientX;
+    const clientY = e.clientY || e.touches?.[0].clientY;
+
+    dragState = {
+        piece: dock[dockIndex], 
+        dockIndex, offsetX, offsetY,
+        currentX: clientX, 
+        currentY: clientY,
+        trueCellSize
+    };
+
+    // Render dragged piece HTML
+    let dragHtml = '';
+    dragState.piece.blocks.forEach((b) => {
+        const t = dragState.piece.blocks.some(o => o.x === b.x && o.y === b.y - 1);
+        const bot = dragState.piece.blocks.some(o => o.x === b.x && o.y === b.y + 1);
+        const l = dragState.piece.blocks.some(o => o.x === b.x - 1 && o.y === b.y);
+        const r = dragState.piece.blocks.some(o => o.x === b.x + 1 && o.y === b.y);
+        dragHtml += `
+          <div class="absolute p-[1px]" style="left: ${b.x * trueCellSize}px; top: ${b.y * trueCellSize}px; width: ${trueCellSize}px; height: ${trueCellSize}px;">
+            ${getCatCellHTML(dragState.piece.theme, b.type, t, bot, l, r, false, false, false)}
+          </div>
+        `;
+    });
+    DOM.draggedPiece.innerHTML = dragHtml;
+    DOM.draggedPiece.style.width = `${dragState.piece.w * trueCellSize}px`;
+    DOM.draggedPiece.style.height = `${dragState.piece.h * trueCellSize}px`;
+    
+    DOM.dragOverlay.classList.remove('hidden');
+    updateDragOverlayPosition();
+    renderPreview();
+};
+
+function handlePointerMove(e) {
+    if (!dragState || isAnimatingClear) return;
+    e.preventDefault();
+
+    const clientX = e.clientX || e.touches?.[0].clientX;
+    const clientY = e.clientY || e.touches?.[0].clientY;
+    
+    dragState.currentX = clientX;
+    dragState.currentY = clientY;
+
+    const gridRect = DOM.gridInner.getBoundingClientRect();
+    const { piece, offsetX, offsetY, trueCellSize } = dragState;
+
+    const dragX = clientX - offsetX;
+    const dragY = clientY - offsetY;
+
+    const relX = dragX - gridRect.left + (trueCellSize / 2);
+    const relY = dragY - gridRect.top + (trueCellSize / 2);
+
+    const col = Math.floor(relX / trueCellSize);
+    const row = Math.floor(relY / trueCellSize);
+
+    if (checkCanPlace(piece, row, col, grid)) {
+        if (!preview || preview.row !== row || preview.col !== col) vibrate(10); 
+        preview = { row, col };
+    } else {
+        preview = null;
+    }
+    
+    updateDragOverlayPosition();
+    renderPreview();
+}
+
+function updateDragOverlayPosition() {
+    if (!dragState) return;
+    
+    let renderLeft = dragState.currentX - dragState.offsetX;
+    let renderTop = dragState.currentY - dragState.offsetY;
+    let isSnapped = false;
+
+    if (preview && DOM.gridInner) {
+      const gridRect = DOM.gridInner.getBoundingClientRect();
+      renderLeft = gridRect.left + (preview.col * dragState.trueCellSize);
+      renderTop = gridRect.top + (preview.row * dragState.trueCellSize);
+      isSnapped = true;
+    }
+
+    DOM.draggedPiece.style.left = `${renderLeft}px`;
+    DOM.draggedPiece.style.top = `${renderTop}px`;
+    
+    const scale = isSnapped ? 1 : 1.05;
+    const rotate = isSnapped ? '0deg' : '3deg';
+    DOM.draggedPiece.style.transform = `scale(${scale}) rotate(${rotate})`;
+    DOM.draggedPiece.style.filter = isSnapped ? 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' : 'drop-shadow(0 20px 25px rgba(0,0,0,0.15))';
+}
+
+function handlePointerUp(e) {
+    if (!dragState || isAnimatingClear) return;
+
+    if (preview) {
+        vibrate(20);
+        const { piece, dockIndex } = dragState;
+        const { row, col } = preview;
+        
+        placedCells = [];
+        piece.blocks.forEach(b => {
+            grid[row + b.y][col + b.x] = {
+                pieceId: piece.id,
+                type: b.type,
+                theme: piece.theme,
+                isClearing: false
+            };
+            placedCells.push(`${row + b.y}-${col + b.x}`);
+        });
+
+        // Trigger placement pulse visually and cleanup after 300ms
+        renderGrid();
+        setTimeout(() => {
+            placedCells = [];
+            renderGrid();
+        }, 300);
+
+        let rowsToClear = [];
+        let colsToClear = [];
+
+        for (let r = 0; r < 8; r++) {
+            if (grid[r].every(c => c !== null)) rowsToClear.push(r);
+        }
+        for (let c = 0; c < 8; c++) {
+            let colFull = true;
+            for (let r = 0; r < 8; r++) {
+                if (grid[r][c] === null) { colFull = false; break; }
+            }
+            if (colFull) colsToClear.push(c);
+        }
+
+        let linesCleared = rowsToClear.length + colsToClear.length;
+        
+        if (linesCleared > 0) {
+            isAnimatingClear = true;
+            combo++;
+            comboGrace = 3;
+            
+            if (linesCleared >= 2 || combo >= 2) {
+                triggerShake();
+                vibrate([40, 50, 40, 50, 80]); 
+            } else {
+                vibrate([30, 40, 30]);
+            }
+            
+            let cellsToClearCoords = [];
+            rowsToClear.forEach(r => {
+                for (let c = 0; c < 8; c++) {
+                    if (grid[r][c]) { grid[r][c].isClearing = true; cellsToClearCoords.push({r, c}); }
+                }
+            });
+            colsToClear.forEach(c => {
+                for (let r = 0; r < 8; r++) {
+                    if (grid[r][c]) { grid[r][c].isClearing = true; cellsToClearCoords.push({r, c}); }
+                }
+            });
+            
+            renderGrid(); // Render clear animation
+
+            const comboMultiplier = combo > 0 ? combo : 1;
+            const points = (piece.blocks.length + (linesCleared * 10 * linesCleared)) * comboMultiplier;
+            
+            let centerR = rowsToClear.length > 0 ? rowsToClear[Math.floor(rowsToClear.length/2)] : cellsToClearCoords[0].r;
+            let centerC = colsToClear.length > 0 ? colsToClear[Math.floor(colsToClear.length/2)] : cellsToClearCoords[0].c;
+            addFloatingScore(points, centerR, centerC, combo > 1 ? `COMBO x${combo}!` : "");
+
+            setTimeout(() => {
+                rowsToClear.forEach(r => { for (let c = 0; c < 8; c++) grid[r][c] = null; });
+                colsToClear.forEach(c => { for (let r = 0; r < 8; r++) grid[r][c] = null; });
+                
+                score += points;
+                if(score >= nextTreatScore) {
+                   treats++;
+                   nextTreatScore += 1000;
+                   addFloatingScore(0, 4, 4, "TREAT UNLOCKED!"); 
+                }
+                
+                triggerScorePop();
+                isAnimatingClear = false;
+                
+                dock[dockIndex] = null;
+                renderGrid();
+                checkGameOverState();
+                
+            }, 350);
+
+        } else {
+            if (combo > 0) {
+                if (comboGrace > 1) {
+                    comboGrace--;
+                } else {
+                    combo = 0;
+                    comboGrace = 0;
+                }
+            }
+            score += piece.blocks.length;
+            if(score >= nextTreatScore) {
+                treats++;
+                nextTreatScore += 1000;
+                addFloatingScore(0, 4, 4, "TREAT UNLOCKED!"); 
+            }
+            triggerScorePop();
+            dock[dockIndex] = null;
+            renderGrid();
+            checkGameOverState();
+        }
+    } else {
+        vibrate(10); 
+        renderDock(); // restore dock visibility
+    }
+
+    dragState = null;
+    preview = null;
+    DOM.dragOverlay.classList.add('hidden');
+    renderPreview();
+}
+
+// Global Event Listeners for dragging
+document.addEventListener('pointermove', handlePointerMove, {passive: false});
+document.addEventListener('pointerup', handlePointerUp);
+document.addEventListener('pointercancel', handlePointerUp);
+
+// Also bind touch events specifically to prevent scrolling while dragging on some devices
+document.addEventListener('touchmove', (e) => {
+    if(dragState) handlePointerMove(e);
+}, {passive: false});
+document.addEventListener('touchend', handlePointerUp);
+document.addEventListener('touchcancel', handlePointerUp);
+
+// Prevent context menu
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// Initial Render
+renderGrid();
+renderDock();
+updateUI();
+
+</script>
+</body>
+</html>
