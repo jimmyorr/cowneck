@@ -1,0 +1,983 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, RotateCcw, Shield, Heart, Zap, Star, ChevronRight, AlertCircle, Search, Navigation, Coffee, Beaker, Crosshair } from 'lucide-react';
+
+// --- GAME DATA & STORY ---
+const CHARACTERS = {
+  WHISKERS: { name: 'Capt. Whiskers', icon: '😼', color: 'text-orange-400' },
+  LUNA: { name: 'Luna', icon: '🐈‍⬛', color: 'text-purple-400', role: 'Tech' },
+  REX: { name: 'Rex', icon: '🐅', color: 'text-yellow-500', role: 'Weapons' },
+  CLEO: { name: 'Cleo', icon: '🐆', color: 'text-green-400', role: 'Medic' },
+  COMPUTER: { name: 'Ship AI', icon: '🖥️', color: 'text-blue-300' },
+  // Bosses
+  BARKOR: { name: 'Lord Barkor', icon: '🐺', color: 'text-red-500' },
+  PUG: { name: 'Private Pug', icon: '🦮', color: 'text-stone-400' },
+  SCHNAUZER: { name: 'Sgt. Schnauzer', icon: '🐕‍🦺', color: 'text-gray-400' },
+  POODLE: { name: 'Admiral Poodle', icon: '🐩', color: 'text-pink-400' },
+  CORGI: { name: 'Cmdr. Corgi', icon: '🐕', color: 'text-orange-300' },
+  BEAGLE: { name: 'Baron Beagle', icon: '🐶', color: 'text-yellow-600' },
+  HUSKY: { name: 'The Husky Twins', icon: '🐺🐺', color: 'text-cyan-300' },
+  DALMATIAN: { name: 'Duchess Dalmatian', icon: '🐾', color: 'text-white' },
+  GOLDEN: { name: 'General Golden', icon: '🦮', color: 'text-yellow-400' },
+  MASTIFF: { name: 'Emperor Mastiff', icon: '🐕‍🦺', color: 'text-red-700' },
+  MECHA_BARKOR: { name: 'Mecha-Barkor', icon: '🤖🐺', color: 'text-red-600' }
+};
+
+const LEVELS = [
+  {
+    boss: { ...CHARACTERS.BARKOR, hp: 100, seqLen: 3, speed: 800, damage: 1 },
+    shooterTarget: 10,
+    story: [
+      { char: CHARACTERS.COMPUTER, text: "ALERT. HOSTILE CANINE FLEET DETECTED." },
+      { char: CHARACTERS.WHISKERS, text: "Red alert! Crew to stations. Barkor stole the Sacred Yarn!" },
+      { char: CHARACTERS.REX, text: "Guns are hot, Captain. I'll clear a path through his fighter drones!" },
+      { char: CHARACTERS.LUNA, text: "Once we break the blockade, I'll need to hack his color-frequency shields!" }
+    ]
+  },
+  {
+    boss: { ...CHARACTERS.PUG, hp: 125, seqLen: 3, speed: 750, damage: 1 },
+    shooterTarget: 12,
+    story: [
+      { char: CHARACTERS.WHISKERS, text: "Barkor fled into hyperspace, but he left a blockade." },
+      { char: CHARACTERS.CLEO, text: "It's Private Pug's frigate. He's deploying heavy fighters." },
+      { char: CHARACTERS.PUG, text: "Y-you won't get past me! The Yarn belongs to the dogs!" },
+      { char: CHARACTERS.REX, text: "I'll make him play dead. Engaging enemy fighters!" }
+    ]
+  },
+  {
+    boss: { ...CHARACTERS.SCHNAUZER, hp: 150, seqLen: 4, speed: 700, damage: 1 },
+    shooterTarget: 14,
+    story: [
+      { char: CHARACTERS.SCHNAUZER, text: "Achtung! This asteroid belt is restricted canine territory!" },
+      { char: CHARACTERS.LUNA, text: "Captain, it's Sgt. Schnauzer. His drone swarm is intercepting us." },
+      { char: CHARACTERS.CLEO, text: "Stay calm, everyone. Keep your tails steady and dodge their fire." }
+    ]
+  },
+  {
+    boss: { ...CHARACTERS.POODLE, hp: 175, seqLen: 4, speed: 650, damage: 1 },
+    shooterTarget: 16,
+    story: [
+      { char: CHARACTERS.POODLE, text: "Ugh, the smell of wet cat is ruining my upholstery. Fire the luxury lasers!" },
+      { char: CHARACTERS.WHISKERS, text: "Admiral Poodle. She's sending her elite poodle-drones." },
+      { char: CHARACTERS.REX, text: "Her ships are so shiny. I can't wait to put dents in them." }
+    ]
+  },
+  {
+    boss: { ...CHARACTERS.CORGI, hp: 200, seqLen: 4, speed: 600, damage: 1 },
+    shooterTarget: 18,
+    story: [
+      { char: CHARACTERS.COMPUTER, text: "WARNING. INCOMING SWARM." },
+      { char: CHARACTERS.CORGI, text: "Our legs may be short, but our fleet is endless! Yip yip!" },
+      { char: CHARACTERS.LUNA, text: "They're fast, Captain! We need to thin their numbers before we can reach the Commander!" }
+    ]
+  },
+  {
+    boss: { ...CHARACTERS.BEAGLE, hp: 225, seqLen: 5, speed: 550, damage: 1 },
+    shooterTarget: 20,
+    story: [
+      { char: CHARACTERS.BEAGLE, text: "Aroooo! My tracking sensors found you, felines. Deploying seekers!" },
+      { char: CHARACTERS.WHISKERS, text: "Baron Beagle. Evasive maneuvers! Blast those seekers!" },
+      { char: CHARACTERS.CLEO, text: "His acoustic weapons are hurting my ears. Please take his shields down, Luna!" }
+    ]
+  },
+  {
+    boss: { ...CHARACTERS.HUSKY, hp: 250, seqLen: 5, speed: 500, damage: 2 },
+    shooterTarget: 22,
+    story: [
+      { char: CHARACTERS.HUSKY, text: "We are the storm! We are the snow! You cannot defeat both of us!" },
+      { char: CHARACTERS.REX, text: "Two of them? And a massive drone escort. Good, twice the target practice." },
+      { char: CHARACTERS.LUNA, text: "Careful! Their dual-core shield generators deal double damage if we fail the hack!" }
+    ]
+  },
+  {
+    boss: { ...CHARACTERS.DALMATIAN, hp: 275, seqLen: 5, speed: 450, damage: 2 },
+    shooterTarget: 24,
+    story: [
+      { char: CHARACTERS.DALMATIAN, text: "I have 101 ways to destroy your little litter box." },
+      { char: CHARACTERS.CLEO, text: "Duchess Dalmatian... her stealth drones are decloaking all around us." },
+      { char: CHARACTERS.WHISKERS, text: "Focus up, team. Shoot them down, then we hack her core." }
+    ]
+  },
+  {
+    boss: { ...CHARACTERS.GOLDEN, hp: 300, seqLen: 6, speed: 450, damage: 2 },
+    shooterTarget: 26,
+    story: [
+      { char: CHARACTERS.GOLDEN, text: "I just wanted to be a good boy, but orders are orders! Launching heavy fighters." },
+      { char: CHARACTERS.LUNA, text: "General Golden's dreadnought has reinforced kinetic barriers. Six-tier sequences!" },
+      { char: CHARACTERS.REX, text: "He's too friendly. It's making me angry. Fire at will!" }
+    ]
+  },
+  {
+    boss: { ...CHARACTERS.MASTIFF, hp: 350, seqLen: 6, speed: 400, damage: 2 },
+    shooterTarget: 28,
+    story: [
+      { char: CHARACTERS.MASTIFF, text: "BOW BEFORE THE EMPEROR OF THE CANINE WORLDS. MY ARMADA WILL CRUSH YOU." },
+      { char: CHARACTERS.WHISKERS, text: "Emperor Mastiff. The biggest dog in the galaxy. His fleet is massive." },
+      { char: CHARACTERS.CLEO, text: "We have to survive this wave to even get close!" },
+      { char: CHARACTERS.LUNA, text: "I'll route auxiliary power to the hacking terminals. Get ready!" }
+    ]
+  },
+  {
+    boss: { ...CHARACTERS.MECHA_BARKOR, hp: 500, seqLen: 7, speed: 300, damage: 3 },
+    shooterTarget: 35,
+    story: [
+      { char: CHARACTERS.WHISKERS, text: "We finally caught you, Barkor! Hand over the Yarn!" },
+      { char: CHARACTERS.MECHA_BARKOR, text: "FOOLS! I HAVE MERGED WITH THE SHIP! I AM UNSTOPPABLE!" },
+      { char: CHARACTERS.REX, text: "He's firing everything he has! It's a bullet hell out there!" },
+      { char: CHARACTERS.CLEO, text: "Captain, his power levels are off the charts. Mistakes will be fatal." },
+      { char: CHARACTERS.LUNA, text: "Seven-tier cipher. Ultra-fast frequency. Break his vanguard, then we end this. For the universe!" }
+    ]
+  }
+];
+
+const ROOMS = [
+  { id: 'bridge', name: 'The Bridge', icon: <Navigation size={32} />, desc: 'The command center. Lots of blinking lights.' },
+  { id: 'engine', name: 'Engine Room', icon: <Zap size={32} />, desc: 'Warm and vibrating. A great place for a nap.' },
+  { id: 'quarters', name: 'Crew Quarters', icon: <Coffee size={32} />, desc: 'Cozy beds and half-eaten tuna cans.' },
+  { id: 'medbay', name: 'Medbay', icon: <Beaker size={32} />, desc: 'Smells sterile. Cleo keeps her supplies here.' }
+];
+
+const LORE_SNIPPETS = [
+  "You found a crumpled note: 'Don't let Rex near the laser calibration console.'",
+  "Luna's terminal has a game of Space-Tetris paused on a high score.",
+  "You discover a stash of illegal ultra-premium salmon treats.",
+  "There is a poster of 'The Great Catzby' on the wall.",
+  "You see a dog-shaped voodoo doll covered in claw marks.",
+  "Cleo's medical log: 'Whiskers furball incident #42 successfully contained.'",
+  "The warp core hums softly, sounding exactly like a giant purring cat."
+];
+
+// --- COMPONENTS ---
+
+const TypewriterText = ({ text, onComplete, speed = 20 }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  
+  useEffect(() => {
+    setDisplayedText('');
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayedText(text.substring(0, i + 1));
+      i++;
+      if (i >= text.length) {
+        clearInterval(interval);
+        if (onComplete) onComplete();
+      }
+    }, speed);
+    return () => clearInterval(interval);
+  }, [text, speed]);
+
+  return <span>{displayedText}</span>;
+};
+
+const Cutscene = ({ sceneData, onFinish }) => {
+  const [dialogueIndex, setDialogueIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(true);
+
+  const currentLine = sceneData[dialogueIndex];
+
+  const handleNext = () => {
+    if (isTyping) {
+      setIsTyping(false); 
+    } else {
+      if (dialogueIndex < sceneData.length - 1) {
+        setDialogueIndex(prev => prev + 1);
+        setIsTyping(true);
+      } else {
+        onFinish();
+      }
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full w-full bg-black/90 p-4 sm:p-8 relative justify-between border-4 border-gray-800 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(100,100,255,0.2)]">
+      <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+      
+      <div className="flex-1 flex items-center justify-center relative z-10">
+        <div className="text-8xl sm:text-9xl animate-bounce drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]">
+          {currentLine.char.icon}
+        </div>
+      </div>
+
+      <div 
+        onClick={handleNext}
+        className="h-48 sm:h-56 bg-gray-900 border-2 border-gray-700 rounded-lg p-4 sm:p-6 cursor-pointer hover:bg-gray-800 transition-colors relative z-10 shadow-2xl flex flex-col"
+      >
+        <div className={`font-bold text-xl sm:text-2xl mb-2 ${currentLine.char.color} tracking-wider uppercase flex items-center gap-2`}>
+          {currentLine.char.name}
+          {currentLine.char.role && <span className="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded-full">{currentLine.char.role}</span>}
+        </div>
+        <div className="text-white text-lg sm:text-xl font-mono leading-relaxed flex-1">
+          {isTyping ? (
+            <TypewriterText text={currentLine.text} onComplete={() => setIsTyping(false)} />
+          ) : (
+            currentLine.text
+          )}
+        </div>
+        <div className="text-gray-500 text-sm self-end animate-pulse flex items-center mt-2">
+          Click to continue <ChevronRight size={16} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ExploreShip = ({ onStartMission, catnip, setCatnip, level, shipHp, setShipHp, maxShipHp }) => {
+  const [searchedRooms, setSearchedRooms] = useState([]);
+  const [modalContent, setModalContent] = useState(null);
+  
+  // Guaranteed Catnip in one random room per level
+  const [catnipRoom] = useState(() => ROOMS[Math.floor(Math.random() * ROOMS.length)].id);
+
+  const handleSearch = (roomId) => {
+    if (searchedRooms.includes(roomId)) return;
+    
+    setSearchedRooms(prev => [...prev, roomId]);
+    
+    if (roomId === catnipRoom) {
+      setCatnip(c => c + 1);
+      setModalContent({
+        title: "Secret Found!",
+        text: "You sniffed out some highly potent Space Catnip! This can heal the ship during combat or right now.",
+        icon: "🌿",
+        color: "text-green-400"
+      });
+    } else {
+      const randomLore = LORE_SNIPPETS[Math.floor(Math.random() * LORE_SNIPPETS.length)];
+      setModalContent({
+        title: "Nothing useful...",
+        text: randomLore,
+        icon: "🔍",
+        color: "text-blue-300"
+      });
+    }
+  };
+
+  const useCatnip = () => {
+    if (catnip > 0 && shipHp < maxShipHp) {
+      setCatnip(c => c - 1);
+      setShipHp(p => Math.min(p + 2, maxShipHp));
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full w-full bg-slate-900 border-4 border-slate-700 rounded-xl overflow-hidden relative shadow-2xl">
+      {/* Header Info */}
+      <div className="p-4 bg-slate-800 border-b border-slate-600 flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-black text-white tracking-widest uppercase">Astro-Paws Cruiser</h2>
+          <p className="text-slate-400 text-sm font-mono">Status: Orbiting Sector {level + 1}</p>
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2 bg-slate-900 px-4 py-2 rounded-lg border border-slate-700">
+             <span className="text-green-400 text-xl">🌿</span>
+             <span className="text-white font-mono font-bold text-xl">x {catnip}</span>
+          </div>
+
+          <div className="flex flex-col gap-1 items-end bg-slate-900 px-4 py-2 rounded-lg border border-slate-700">
+             <div className="flex gap-1">
+              {[...Array(maxShipHp)].map((_, i) => (
+                <Heart key={i} size={18} className={i < shipHp ? "text-green-500 fill-green-500 drop-shadow-[0_0_5px_rgba(34,197,94,0.8)]" : "text-gray-700"} />
+              ))}
+            </div>
+            {shipHp < maxShipHp && catnip > 0 && (
+              <button onClick={useCatnip} className="text-xs text-green-400 hover:text-green-300 font-bold uppercase underline">
+                Heal Ship (+2 HP)
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Rooms */}
+      <div className="flex-1 p-4 sm:p-6 grid grid-cols-2 gap-4">
+        {ROOMS.map(room => {
+          const isSearched = searchedRooms.includes(room.id);
+          return (
+            <button
+              key={room.id}
+              onClick={() => handleSearch(room.id)}
+              disabled={isSearched}
+              className={`
+                flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all
+                ${isSearched 
+                  ? 'bg-slate-800 border-slate-700 opacity-50 cursor-not-allowed' 
+                  : 'bg-slate-700 border-slate-500 hover:bg-slate-600 hover:scale-105 active:scale-95 shadow-lg'}
+              `}
+            >
+              <div className={`mb-3 ${isSearched ? 'text-slate-500' : 'text-blue-400'}`}>
+                {room.icon}
+              </div>
+              <h3 className={`font-bold text-base sm:text-lg mb-1 ${isSearched ? 'text-slate-500' : 'text-white'}`}>{room.name}</h3>
+              <p className="text-xs text-center text-slate-400 hidden sm:block">{room.desc}</p>
+              {isSearched && <span className="mt-2 text-xs font-mono text-red-400 bg-red-900/30 px-2 py-1 rounded">SEARCHED</span>}
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="p-4 bg-slate-800 border-t border-slate-600 flex justify-center">
+        <button 
+          onClick={onStartMission}
+          className="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white font-black rounded-full text-xl sm:text-2xl transition-all shadow-[0_0_20px_rgba(249,115,22,0.4)] hover:shadow-[0_0_30px_rgba(249,115,22,0.6)] hover:scale-105 active:scale-95 flex items-center gap-3 uppercase tracking-wider w-full sm:w-auto justify-center"
+        >
+          <Play className="fill-white" />
+          START MISSION {level + 1}
+        </button>
+      </div>
+
+      {/* Modal */}
+      {modalContent && (
+        <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-[fadeIn_0.2s]">
+          <div className="bg-slate-800 border-2 border-slate-600 rounded-2xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl transform animate-[bounceIn_0.3s]">
+            <div className={`text-6xl mb-4 ${modalContent.color} animate-pulse`}>{modalContent.icon}</div>
+            <h3 className={`text-2xl font-black mb-4 uppercase ${modalContent.color}`}>{modalContent.title}</h3>
+            <p className="text-white text-lg font-mono mb-8">{modalContent.text}</p>
+            <button 
+              onClick={() => setModalContent(null)}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const SpaceShooter = ({ levelData, levelIndex, shipHp, setShipHp, maxShipHp, onWin, onLose }) => {
+  const canvasRef = useRef(null);
+  
+  // Local state for UI rendering only, actual logic runs in ref
+  const [uiScore, setUiScore] = useState(0);
+  const [uiHp, setUiHp] = useState(shipHp);
+  const targetScore = levelData.shooterTarget;
+
+  const stateRef = useRef({
+    player: { x: 50, y: 80, size: 30, lastShot: 0 },
+    bullets: [],
+    enemies: [],
+    particles: [],
+    lastEnemyTime: 0,
+    score: 0,
+    hp: shipHp,
+    isActive: true
+  });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    const resize = () => {
+      const parent = canvas.parentElement;
+      canvas.width = parent.clientWidth;
+      canvas.height = parent.clientHeight;
+      stateRef.current.player.y = canvas.height - 60;
+      if (stateRef.current.player.x > canvas.width) {
+        stateRef.current.player.x = canvas.width / 2;
+      }
+    };
+    
+    window.addEventListener('resize', resize);
+    resize();
+    stateRef.current.player.x = canvas.width / 2;
+
+    const createParticle = (x, y, color) => {
+      for(let i=0; i<6; i++) {
+        stateRef.current.particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 6,
+          vy: (Math.random() - 0.5) * 6,
+          life: 1,
+          color
+        });
+      }
+    };
+
+    const enemyIcons = ['🐶', '🐕', '🐩', '🐺', '🛸', '🤖'];
+    
+    const update = (time) => {
+      if (!stateRef.current.isActive) return;
+      const state = stateRef.current;
+      
+      // Auto Fire
+      if (time - state.player.lastShot > 250) {
+        state.bullets.push({ x: state.player.x - 10, y: state.player.y - state.player.size, speed: 12 });
+        state.bullets.push({ x: state.player.x + 10, y: state.player.y - state.player.size, speed: 12 });
+        state.player.lastShot = time;
+      }
+
+      // Spawn Enemies based on Level difficulty
+      const spawnRate = Math.max(300, 1000 - (levelIndex * 60)); // gets faster
+      if (time - state.lastEnemyTime > spawnRate) {
+        const baseSpeed = 2 + (levelIndex * 0.2);
+        state.enemies.push({
+          x: Math.random() * (canvas.width - 40) + 20,
+          y: -30,
+          speed: baseSpeed + Math.random() * 2,
+          hp: levelIndex > 5 && Math.random() > 0.8 ? 2 : 1, // occasional tough enemies
+          icon: enemyIcons[Math.floor(Math.random() * (levelIndex > 5 ? 6 : 4))]
+        });
+        state.lastEnemyTime = time;
+      }
+
+      // Update Bullets
+      state.bullets.forEach(b => b.y -= b.speed);
+      state.bullets = state.bullets.filter(b => b.y > -10);
+
+      // Update Particles
+      state.particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.05;
+      });
+      state.particles = state.particles.filter(p => p.life > 0);
+
+      // Update Enemies & Collisions
+      for (let i = state.enemies.length - 1; i >= 0; i--) {
+        const e = state.enemies[i];
+        e.y += e.speed;
+        
+        // Enemy escapes out of bounds -> player takes damage
+        if (e.y > canvas.height + 30) {
+          state.enemies.splice(i, 1);
+          state.hp -= 1;
+          setUiHp(state.hp);
+          setShipHp(state.hp);
+          if (state.hp <= 0) {
+            state.isActive = false;
+            onLose();
+          }
+          continue;
+        }
+
+        // Bullet hitting enemy
+        for (let j = state.bullets.length - 1; j >= 0; j--) {
+          const b = state.bullets[j];
+          const dist = Math.hypot(b.x - e.x, b.y - e.y);
+          if (dist < 30) {
+            state.bullets.splice(j, 1);
+            e.hp -= 1;
+            if (e.hp <= 0) {
+              state.enemies.splice(i, 1);
+              createParticle(e.x, e.y, '#fb923c'); 
+              state.score += 1;
+              setUiScore(state.score);
+              if (state.score >= targetScore) {
+                state.isActive = false;
+                onWin();
+              }
+            } else {
+                createParticle(e.x, e.y, '#9ca3af'); // armor spark
+            }
+            break;
+          }
+        }
+        
+        // Player colliding with enemy
+        if (state.isActive) {
+           const distToPlayer = Math.hypot(state.player.x - e.x, state.player.y - e.y);
+           if (distToPlayer < 35) {
+             state.enemies.splice(i, 1);
+             createParticle(e.x, e.y, '#ef4444');
+             state.hp -= 1;
+             setUiHp(state.hp);
+             setShipHp(state.hp);
+             if (state.hp <= 0) {
+                state.isActive = false;
+                onLose();
+             }
+           }
+        }
+      }
+
+      // -- DRAWING --
+      ctx.fillStyle = '#0f172a'; // space bg
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Starfield
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      for(let s=0; s<25; s++) {
+        const speed = 1 + (levelIndex * 0.1);
+        ctx.fillRect(
+            Math.random()*canvas.width, 
+            ((time * speed)/10 + s*80) % canvas.height, 
+            Math.random() > 0.8 ? 3 : 1, 
+            Math.random()*15 + 5
+        );
+      }
+
+      // Draw Player
+      ctx.font = "40px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("🚀", state.player.x, state.player.y);
+      ctx.fillText("😼", state.player.x, state.player.y - 10); 
+
+      // Draw Bullets
+      ctx.fillStyle = '#facc15'; // yellow lasers
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#facc15';
+      state.bullets.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.shadowBlur = 0;
+
+      // Draw Enemies
+      state.enemies.forEach(e => {
+        ctx.font = e.hp > 1 ? "50px Arial" : "35px Arial"; // bigger if tough
+        ctx.fillText(e.icon, e.x, e.y);
+      });
+
+      // Draw Particles
+      state.particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.life * 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1.0;
+
+      animationFrameId = requestAnimationFrame(update);
+    };
+
+    animationFrameId = requestAnimationFrame(update);
+
+    // Controls
+    const handleMove = (x) => {
+      if(!stateRef.current.isActive) return;
+      const rect = canvas.getBoundingClientRect();
+      let newX = x - rect.left;
+      newX = Math.max(20, Math.min(newX, canvas.width - 20));
+      stateRef.current.player.x = newX;
+    };
+
+    const onMouseMove = (e) => handleMove(e.clientX);
+    const onTouchMove = (e) => {
+      e.preventDefault();
+      handleMove(e.touches[0].clientX);
+    };
+
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      canvas.removeEventListener('mousemove', onMouseMove);
+      canvas.removeEventListener('touchmove', onTouchMove);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [levelIndex, targetScore, setShipHp, onWin, onLose]);
+
+  return (
+    <div className="flex flex-col w-full h-full bg-slate-900 rounded-xl overflow-hidden relative border-4 border-blue-900 shadow-[0_0_40px_rgba(0,100,255,0.3)]">
+      {/* Header UI */}
+      <div className="absolute top-0 w-full p-4 flex justify-between items-center text-white z-10 bg-gradient-to-b from-black/90 to-transparent pointer-events-none">
+        <div className="flex items-center gap-3">
+          <Crosshair className="text-red-400 animate-pulse" /> 
+          <div className="flex flex-col">
+            <span className="font-mono font-bold text-sm text-red-300">VANGUARD FLEET</span>
+            <span className="font-mono text-xl font-black">{uiScore} / {targetScore} DESTROYED</span>
+          </div>
+        </div>
+        <div className="flex flex-col items-end">
+            <span className="font-mono text-xs text-blue-300 mb-1">SHIP HULL</span>
+            <div className="flex gap-1">
+            {[...Array(maxShipHp)].map((_, i) => (
+                <Heart key={i} size={20} className={i < uiHp ? "text-green-500 fill-green-500 drop-shadow-[0_0_5px_rgba(34,197,94,0.8)]" : "text-gray-700"} />
+            ))}
+            </div>
+        </div>
+      </div>
+
+      <div className="flex-1 relative">
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full cursor-none touch-none block" />
+        
+        {/* Mobile instruction overlay */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-[fadeOut_3s_ease-in-out_forwards]">
+            <div className="bg-black/70 px-8 py-4 rounded-full text-white font-black uppercase tracking-widest flex items-center gap-3 border-2 border-blue-500/50 shadow-2xl">
+               Drag to fly!
+            </div>
+        </div>
+      </div>
+      <style>{`
+        @keyframes fadeOut {
+          0% { opacity: 1; scale: 1; }
+          70% { opacity: 1; scale: 1.1; }
+          100% { opacity: 0; scale: 1.2; }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+
+const BossBattle = ({ bossData, onWin, onLose, catnip, setCatnip, shipHp, setShipHp, maxShipHp }) => {
+  const [bossHp, setBossHp] = useState(bossData.hp);
+  const maxBossHp = bossData.hp;
+  
+  const [sequence, setSequence] = useState([]);
+  const [playerInput, setPlayerInput] = useState([]);
+  const [isShowingSequence, setIsShowingSequence] = useState(false);
+  const [message, setMessage] = useState("Vanguard cleared! Hack the core!");
+  
+  const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-400'];
+  const symbols = ['🔥', '⚡', '🌿', '⭐'];
+
+  const generateSequence = (length) => {
+    return Array.from({ length }, () => Math.floor(Math.random() * 4));
+  };
+
+  const startRound = () => {
+    const newSeq = generateSequence(bossData.seqLen);
+    setSequence(newSeq);
+    setPlayerInput([]);
+    setIsShowingSequence(true);
+    setMessage("Memorize the frequency!");
+    
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < newSeq.length) {
+        i++;
+      } else {
+        clearInterval(interval);
+        setTimeout(() => {
+          setIsShowingSequence(false);
+          setMessage("Hack the shields!");
+        }, 300);
+      }
+    }, bossData.speed);
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => startRound(), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleColorClick = (idx) => {
+    if (isShowingSequence) return;
+
+    const newInput = [...playerInput, idx];
+    setPlayerInput(newInput);
+
+    const isCorrect = newInput.every((val, index) => val === sequence[index]);
+
+    if (!isCorrect) {
+      setMessage("HACK FAILED!");
+      const newHp = shipHp - bossData.damage;
+      setShipHp(newHp);
+      
+      if (newHp <= 0) {
+        setTimeout(onLose, 1000);
+      } else {
+        setTimeout(() => startRound(), 1500);
+      }
+    } else if (newInput.length === sequence.length) {
+      setMessage("SHIELDS DOWN! Firing Lasers!");
+      const damage = 35; // increased damage to make phase shorter since there's a shooter phase too
+      const newBossHp = bossHp - damage;
+      setBossHp(newBossHp);
+      
+      if (newBossHp <= 0) {
+        setTimeout(onWin, 1500);
+      } else {
+        setTimeout(() => startRound(), 2000);
+      }
+    }
+  };
+
+  const useCatnip = () => {
+    if (catnip > 0 && shipHp < maxShipHp) {
+      setCatnip(c => c - 1);
+      setShipHp(p => Math.min(p + 2, maxShipHp)); 
+      setMessage("Used Catnip! Healed 2 HP!");
+    }
+  };
+
+  const [activeSeqIdx, setActiveSeqIdx] = useState(-1);
+  useEffect(() => {
+     if(isShowingSequence) {
+         let i = 0;
+         const int = setInterval(() => {
+             setActiveSeqIdx(sequence[i]);
+             setTimeout(() => setActiveSeqIdx(-1), bossData.speed * 0.6); 
+             i++;
+             if(i >= sequence.length) clearInterval(int);
+         }, bossData.speed);
+         return () => clearInterval(int);
+     } else {
+         setActiveSeqIdx(-1);
+     }
+  }, [isShowingSequence, sequence, bossData.speed]);
+
+  return (
+    <div className={`flex flex-col w-full h-full bg-[#1a0f2e] rounded-xl overflow-hidden relative border-4 ${bossData.hp >= 500 ? 'border-red-600 shadow-[0_0_50px_rgba(255,0,0,0.5)]' : 'border-purple-900 shadow-[0_0_40px_rgba(150,0,255,0.3)]'}`}>
+      {/* Header Stats */}
+      <div className="flex justify-between p-4 bg-black/60 border-b border-purple-800 z-10">
+        <div className="flex flex-col gap-1 w-2/5">
+          <span className={`${bossData.color} font-black text-sm sm:text-base tracking-widest uppercase truncate`}>{bossData.name}</span>
+          <div className="w-full h-4 sm:h-6 bg-gray-800 rounded-full overflow-hidden border border-gray-600 relative">
+            <div 
+              className="h-full bg-gradient-to-r from-red-700 to-orange-500 transition-all duration-300 ease-out"
+              style={{ width: `${Math.max(0, (bossHp/maxBossHp)*100)}%` }}
+            />
+            <span className="absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs text-white font-mono font-bold drop-shadow-md">
+              {Math.max(0, bossHp)} / {maxBossHp}
+            </span>
+          </div>
+        </div>
+        
+        <div className="flex flex-col gap-1 w-2/5 items-end">
+           <span className="text-blue-300 font-black text-sm sm:text-base tracking-widest uppercase">Astro-Paws Hull</span>
+           <div className="flex gap-1">
+            {[...Array(maxShipHp)].map((_, i) => (
+              <Heart key={i} size={24} className={i < shipHp ? "text-green-500 fill-green-500 drop-shadow-[0_0_5px_rgba(34,197,94,0.8)]" : "text-gray-700"} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Battlefield */}
+      <div className="flex-1 flex flex-col items-center justify-center relative p-4">
+        {/* Boss Visual */}
+        <div className="relative mb-6 sm:mb-12 mt-4 group">
+          <div className={`absolute inset-0 bg-red-500/20 blur-3xl rounded-full transition-opacity duration-1000 ${bossHp < bossData.hp/2 ? 'animate-pulse bg-red-500/40' : ''}`}></div>
+          <div className={`text-8xl sm:text-9xl relative z-10 drop-shadow-2xl ${bossHp <= 0 ? 'animate-[spin_1s_ease-out_forwards] opacity-0' : 'animate-[bounce_3s_infinite]'}`}>
+            {bossData.icon}
+          </div>
+          {/* Shields visual */}
+          {bossHp > 0 && (
+            <div className={`absolute inset-[-20px] border-4 rounded-full border-dashed transition-all duration-300
+              ${isShowingSequence ? 'border-purple-500 animate-[spin_2s_linear_infinite] shadow-[0_0_20px_rgba(168,85,247,0.5)]' : 'border-blue-400/50 animate-[spin_10s_linear_infinite]'}
+            `}></div>
+          )}
+        </div>
+
+        {/* Status Message */}
+        <div className={`text-lg sm:text-2xl font-mono font-bold text-white mb-6 text-center bg-black/60 px-6 py-3 rounded-lg border transition-colors duration-300
+          ${message.includes("FAILED") ? 'border-red-500 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.5)]' : 
+            message.includes("DOWN") ? 'border-green-500 text-green-400 shadow-[0_0_20px_rgba(34,197,94,0.5)]' : 
+            'border-purple-500/50'}
+        `}>
+          {message}
+        </div>
+
+        {/* Action Bar (Catnip) */}
+        <div className="absolute left-4 bottom-4 sm:left-8 sm:bottom-8 z-20">
+          <button 
+            onClick={useCatnip}
+            disabled={catnip <= 0 || shipHp >= maxShipHp || isShowingSequence}
+            className={`
+              flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-full font-bold transition-all shadow-lg border-2
+              ${(catnip > 0 && shipHp < maxShipHp && !isShowingSequence) 
+                ? 'bg-green-900/80 border-green-500 text-green-300 hover:bg-green-800 hover:scale-105 active:scale-95' 
+                : 'bg-gray-900 border-gray-700 text-gray-500 cursor-not-allowed opacity-70'}
+            `}
+          >
+            <span className="text-xl sm:text-2xl">🌿</span>
+            <span className="hidden sm:inline">Use Catnip</span>
+            <span className="bg-black/50 px-2 py-1 rounded-md ml-1">{catnip}</span>
+          </button>
+        </div>
+
+        {/* Hack Pad */}
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 w-full max-w-sm mb-4">
+          {colors.map((color, idx) => {
+            const isFlashing = isShowingSequence && activeSeqIdx === idx;
+            const isPressed = !isShowingSequence && playerInput[playerInput.length - 1] === idx && message.includes("Hack"); 
+
+            return (
+              <button
+                key={idx}
+                onClick={() => handleColorClick(idx)}
+                disabled={isShowingSequence || bossHp <= 0}
+                className={`
+                  h-20 sm:h-28 rounded-2xl flex items-center justify-center text-4xl sm:text-5xl shadow-lg transition-all duration-150
+                  ${color} 
+                  ${isFlashing ? 'brightness-150 scale-105 shadow-[0_0_40px_rgba(255,255,255,1)] ring-4 ring-white' : 'brightness-75'}
+                  ${(!isShowingSequence && bossHp > 0) ? 'hover:brightness-110 active:scale-95 active:brightness-150 active:ring-2 active:ring-white' : ''}
+                  border-b-8 border-black/40 active:border-b-0 active:translate-y-2
+                `}
+              >
+                {symbols[idx]}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+// --- MAIN APP ---
+
+export default function App() {
+  const [gameState, setGameState] = useState('MENU'); // MENU, EXPLORE, CUTSCENE, SHOOTER, BOSS, WIN, LOSE
+  const [currentLevel, setCurrentLevel] = useState(0);
+  
+  // Global Ship Stats
+  const [catnip, setCatnip] = useState(0);
+  const [shipHp, setShipHp] = useState(5);
+  const maxShipHp = 5;
+
+  const resetGame = () => {
+    setGameState('MENU');
+    setCurrentLevel(0);
+    setCatnip(0);
+    setShipHp(maxShipHp);
+  };
+
+  const advanceLevel = () => {
+    if (currentLevel + 1 >= LEVELS.length) {
+      setGameState('WIN');
+    } else {
+      setCurrentLevel(prev => prev + 1);
+      setGameState('EXPLORE');
+    }
+  };
+
+  const levelData = LEVELS[currentLevel];
+
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center p-2 sm:p-6 font-sans select-none overflow-hidden">
+      <div className="w-full max-w-5xl h-[90vh] sm:h-[850px] max-h-screen relative">
+        
+        {/* Main Menu */}
+        {gameState === 'MENU' && (
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-8 bg-gradient-to-b from-blue-950 via-purple-950 to-black rounded-2xl border-4 border-blue-500/30 p-4 sm:p-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+            
+            <div className="absolute top-10 left-10 text-6xl animate-[spin_20s_linear_infinite] opacity-30">☄️</div>
+            <div className="absolute bottom-20 right-10 text-8xl animate-[bounce_5s_infinite] opacity-30">🪐</div>
+            
+            <div className="relative z-10 space-y-4">
+              <h1 className="text-5xl sm:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-yellow-300 to-orange-500 drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] uppercase tracking-tighter">
+                Astro-Paws
+              </h1>
+              <h2 className="text-xl sm:text-3xl text-blue-300 font-mono tracking-widest uppercase">
+                The Galaxy Defenders
+              </h2>
+            </div>
+
+            <div className="flex gap-4 text-7xl sm:text-8xl my-8 drop-shadow-2xl z-10">
+              <span className="animate-[bounce_2s_infinite_0s]">{CHARACTERS.WHISKERS.icon}</span>
+              <span className="animate-[bounce_2s_infinite_0.2s]">{CHARACTERS.LUNA.icon}</span>
+              <span className="animate-[bounce_2s_infinite_0.4s]">{CHARACTERS.REX.icon}</span>
+              <span className="animate-[bounce_2s_infinite_0.6s]">{CHARACTERS.CLEO.icon}</span>
+            </div>
+
+            <button 
+              onClick={() => setGameState('EXPLORE')}
+              className="group relative px-10 py-5 bg-gradient-to-r from-orange-600 to-orange-400 hover:from-orange-500 hover:to-orange-300 text-white font-black rounded-full text-2xl sm:text-3xl transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(249,115,22,0.6)] z-10 flex items-center gap-4 uppercase"
+            >
+              <Play size={32} className="fill-white group-hover:animate-pulse" />
+              BEGIN CAMPAIGN
+            </button>
+            
+            <div className="text-gray-400 mt-8 max-w-lg mx-auto text-sm sm:text-base bg-black/50 p-6 rounded-xl border border-gray-800 z-10 shadow-inner">
+              <p className="mb-2 text-blue-300 uppercase font-bold tracking-wider">Mission Briefing:</p>
+              <p>Barkor and his 10 generals have stolen the Sacred Yarn! Explore the ship to find healing Catnip. Blast through enemy drone waves, then hack the boss shields. Save the galaxy!</p>
+            </div>
+          </div>
+        )}
+
+        {/* Core Loop */}
+        {gameState === 'EXPLORE' && (
+          <ExploreShip 
+            level={currentLevel}
+            catnip={catnip} 
+            setCatnip={setCatnip}
+            shipHp={shipHp}
+            setShipHp={setShipHp}
+            maxShipHp={maxShipHp}
+            onStartMission={() => setGameState('CUTSCENE')} 
+          />
+        )}
+        
+        {gameState === 'CUTSCENE' && (
+          <Cutscene 
+            sceneData={levelData.story} 
+            onFinish={() => setGameState('SHOOTER')} 
+          />
+        )}
+
+        {gameState === 'SHOOTER' && (
+           <SpaceShooter 
+            levelData={levelData}
+            levelIndex={currentLevel}
+            shipHp={shipHp}
+            setShipHp={setShipHp}
+            maxShipHp={maxShipHp}
+            onWin={() => setGameState('BOSS')} 
+            onLose={() => setGameState('LOSE')} 
+          />
+        )}
+        
+        {gameState === 'BOSS' && (
+           <BossBattle 
+            bossData={levelData.boss}
+            catnip={catnip}
+            setCatnip={setCatnip}
+            shipHp={shipHp}
+            setShipHp={setShipHp}
+            maxShipHp={maxShipHp}
+            onWin={advanceLevel} 
+            onLose={() => setGameState('LOSE')} 
+          />
+        )}
+
+        {/* Game Over States */}
+        {gameState === 'LOSE' && (
+          <div className="flex flex-col items-center justify-center h-full space-y-6 bg-red-950 rounded-2xl border-4 border-red-500 shadow-[0_0_50px_rgba(255,0,0,0.5)] p-4 text-center">
+            <AlertCircle size={100} className="text-red-500 mb-4 animate-bounce" />
+            <h2 className="text-5xl sm:text-7xl font-black text-red-500 uppercase tracking-widest drop-shadow-lg">Mission Failed</h2>
+            <p className="text-xl sm:text-2xl text-red-200 font-mono">The Sacred Yarn was unraveled...</p>
+            <p className="text-md text-red-400">You made it to Sector {currentLevel + 1} / 11</p>
+            <div className="text-8xl sm:text-9xl my-4 grayscale opacity-80">😿</div>
+            <button 
+              onClick={resetGame}
+              className="mt-8 px-8 py-4 bg-red-600 hover:bg-red-500 text-white font-black rounded-lg text-xl sm:text-2xl flex items-center gap-3 transition-all hover:scale-105 uppercase"
+            >
+              <RotateCcw size={28} /> Restart Campaign
+            </button>
+          </div>
+        )}
+
+        {gameState === 'WIN' && (
+          <div className="flex flex-col items-center justify-center h-full space-y-6 bg-gradient-to-t from-yellow-900 via-green-900 to-blue-900 rounded-2xl border-4 border-yellow-400 shadow-[0_0_60px_rgba(255,215,0,0.5)] p-4 text-center relative overflow-hidden">
+             <div className="absolute inset-0 opacity-50 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #ffd700 2px, transparent 2px)', backgroundSize: '50px 50px', animation: 'slideDown 10s linear infinite' }}></div>
+             <style>{`@keyframes slideDown { from { background-position: 0 0; } to { background-position: 0 100vh; } }`}</style>
+
+            <Star size={100} className="text-yellow-400 mb-4 animate-[spin_3s_linear_infinite]" />
+            <h2 className="text-5xl sm:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600 uppercase tracking-widest drop-shadow-lg z-10">
+              Universe Saved!
+            </h2>
+            <div className="bg-black/50 p-6 rounded-xl border border-yellow-500/30 z-10 max-w-xl">
+              <p className="text-xl sm:text-2xl text-green-200 mb-4">
+                Mecha-Barkor has been dismantled and the 10 Generals are in the galactic pound.
+              </p>
+              <p className="text-lg text-blue-300 font-mono">
+                The Sacred Yarn of Destiny is safe. The crew earned a well-deserved nap.
+              </p>
+            </div>
+            <div className="flex gap-4 text-7xl sm:text-8xl my-4 animate-bounce z-10">
+              😼🐈‍⬛🐅🐆🧶
+            </div>
+            <button 
+              onClick={resetGame}
+              className="mt-8 px-8 py-4 bg-yellow-500 hover:bg-yellow-400 text-black font-black rounded-lg text-xl sm:text-2xl flex items-center gap-3 transition-all hover:scale-105 uppercase shadow-xl z-10"
+            >
+              <RotateCcw size={28} /> Play Again
+            </button>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
