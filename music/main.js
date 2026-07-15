@@ -345,9 +345,28 @@ function renderGrid(reset = true) {
   }
 }
 
+function animateValue(obj, start, end, duration) {
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    // easeOutExpo for a really snappy but smooth slowdown
+    const easeOut = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+    const current = Math.floor(easeOut * (end - start) + start);
+    obj.innerText = current.toLocaleString();
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    } else {
+      obj.innerText = end.toLocaleString();
+    }
+  };
+  window.requestAnimationFrame(step);
+}
+
 // Update sidebar stats
 function updateStats() {
-  totalSongsCount.innerText = allSongs.length.toLocaleString();
+  const targetTotal = allSongs.length;
+  animateValue(totalSongsCount, 0, targetTotal, 800);
   
   const artistCounts = {};
   allSongs.forEach(song => {
