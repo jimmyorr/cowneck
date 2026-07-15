@@ -43,7 +43,11 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  padding-bottom: 90px; /* Space for the bottom player */
+  transition: padding-bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.player-active .app-container {
+  padding-bottom: 90px;
 }
 
 /* Header */
@@ -436,6 +440,16 @@ input:checked + .slider:before {
   align-items: center;
   padding: 0 24px;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  transform: translateY(calc(100% + 30px));
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.bottom-player.active {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .player-info {
@@ -541,7 +555,7 @@ input:checked + .slider:before {
   .player-info {
     width: auto;
   }
-  .app-container {
+  body.player-active .app-container {
     padding-bottom: 70px;
   }
   .player-thumbnail {

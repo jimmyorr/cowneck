@@ -56,14 +56,23 @@ window.onYouTubeIframeAPIReady = function() {
     playerVars: {
       'playsinline': 1,
       'autoplay': 1,
-      'controls': 0
+      'controls': 0,
+      'origin': 'https://cowneck.com'
     },
     events: {
       'onReady': () => {
         isPlayerReady = true;
         playPauseBtn.disabled = false;
       },
-      'onStateChange': onPlayerStateChange
+      'onStateChange': onPlayerStateChange,
+      'onError': (event) => {
+        console.error("YouTube API Error:", event.data);
+        if (event.data === 101 || event.data === 150) {
+          playerArtist.innerHTML = `<span style="color: #ff6b6b;">Playback restricted on external sites</span>`;
+        } else {
+          playerArtist.innerHTML = `<span style="color: #ff6b6b;">Video unavailable</span>`;
+        }
+      }
     }
   });
 };
@@ -470,7 +479,8 @@ function handlePlayback(e) {
   const thumbUrl = container.dataset.thumbnailUrl;
 
   // Show player
-  bottomPlayer.classList.remove('hidden');
+  bottomPlayer.classList.add('active');
+  document.body.classList.add('player-active');
 
   // Update UI
   playerThumbnail.src = thumbUrl;
