@@ -258,6 +258,47 @@ input:checked + .slider:before {
   margin-top: 4px;
 }
 
+/* Data Management Subtle Actions */
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.stats-header h2 {
+  margin-bottom: 0;
+}
+
+.data-actions-subtle {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn.subtle {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 6px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.icon-btn.subtle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.icon-btn.subtle.danger:hover {
+  background-color: rgba(255, 85, 85, 0.15);
+  color: #ff6b6b;
+}
+
 .artist-list {
   list-style: none;
   display: flex;

@@ -22,6 +22,11 @@ const sentinel = document.getElementById('sentinel');
 const chartContainer = document.getElementById('chartContainer');
 const tabButtons = document.querySelectorAll('.tab-btn');
 const hiddenGemsToggle = document.getElementById('hiddenGemsToggle');
+const appTitle = document.getElementById('appTitle');
+const docTitle = document.getElementById('docTitle');
+const fileUpload = document.getElementById('fileUpload');
+const uploadBtn = document.getElementById('uploadBtn');
+const clearDataBtn = document.getElementById('clearDataBtn');
 
 let currentView = 'grid';
 let chartInstance = null;
@@ -101,8 +106,20 @@ playPauseBtn.addEventListener('click', () => {
 // Fetch data
 async function init() {
   try {
-    const response = await fetch('./likes.json');
-    const data = await response.json();
+    let data;
+    const customData = localStorage.getItem('customLikes');
+    if (customData) {
+      data = JSON.parse(customData);
+      appTitle.innerText = "My Liked Music";
+      docTitle.innerText = "My Liked Music";
+      clearDataBtn.classList.remove('hidden');
+    } else {
+      const response = await fetch('./likes.json');
+      data = await response.json();
+      appTitle.innerText = "Jimmy's Liked Music";
+      docTitle.innerText = "Jimmy's Liked Music";
+      clearDataBtn.classList.add('hidden');
+    }
     
     // Filter out GPM locker tracks and clean up artist names
     const validSongs = data.filter(song => !song.title || !song.title.includes('TrackUniquenessId'));
@@ -517,6 +534,57 @@ function escapeHtml(unsafe) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+// Upload Custom Data via Button
+uploadBtn.addEventListener('click', () => {
+  fileUpload.click();
+});
+
+function handleFileUpload(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const jsonStr = event.target.result;
+      JSON.parse(jsonStr); // Validate it's JSON
+      localStorage.setItem('customLikes', jsonStr);
+      window.location.reload(); // Reload for clean state
+    } catch (err) {
+      alert("Invalid JSON file. Please try again or check file size.");
+      console.error(err);
+    }
+    fileUpload.value = ""; // Reset input
+  };
+  reader.readAsText(file);
+}
+
+fileUpload.addEventListener('change', (e) => {
+  handleFileUpload(e.target.files[0]);
+});
+
+// Drag and drop fallback for macOS picker issues
+document.body.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  document.body.style.opacity = '0.7';
+});
+
+document.body.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  document.body.style.opacity = '1';
+});
+
+document.body.addEventListener('drop', (e) => {
+  e.preventDefault();
+  document.body.style.opacity = '1';
+  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    handleFileUpload(e.dataTransfer.files[0]);
+  }
+});
+
+clearDataBtn.addEventListener('click', () => {
+  localStorage.removeItem('customLikes');
+  window.location.reload(); // Reload for clean state
+});
 
 // Start
 init();
