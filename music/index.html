@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Liked Music</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>Jimmy's Liked Music</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
@@ -12,12 +15,19 @@
       <header class="topbar">
         <div class="logo">
           <svg viewBox="0 0 24 24" fill="#ff0000" width="28" height="28">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"
+            />
           </svg>
-          <h1>My Liked Music</h1>
+          <h1>Jimmy's Liked Music</h1>
         </div>
         <div class="controls">
-          <input type="text" id="searchInput" class="search-input" placeholder="Search songs or artists..." />
+          <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="Search songs or artists..."
+          />
           <select id="sortSelect" class="sort-select">
             <option value="recent">Recently Liked</option>
             <option value="titleAsc">Title (A-Z)</option>
@@ -37,7 +47,7 @@
               <span class="stat-label">Total Tracks</span>
             </div>
           </div>
-          
+
           <div class="top-artists">
             <h2>Top Artists</h2>
             <ul id="topArtistsList" class="artist-list">
@@ -51,11 +61,13 @@
             <!-- Cards rendered via JS -->
           </div>
           <div id="loading" class="loading">Loading library...</div>
-          <div id="noResults" class="no-results hidden">No songs found matching your search.</div>
+          <div id="noResults" class="no-results hidden">
+            No songs found matching your search.
+          </div>
         </main>
       </div>
     </div>
-    
+
     <div id="bottomPlayer" class="bottom-player hidden">
       <div class="player-info" id="playerInfo">
         <img src="" id="playerThumbnail" class="player-thumbnail" alt="" />
@@ -66,11 +78,31 @@
       </div>
       <div class="player-controls">
         <button id="playPauseBtn" class="play-pause-btn" disabled>
-          <svg id="playIcon" viewBox="0 0 24 24" width="32" height="32" fill="white"><path d="M8 5v14l11-7z"/></svg>
-          <svg id="pauseIcon" viewBox="0 0 24 24" width="32" height="32" fill="white" class="hidden"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          <svg
+            id="playIcon"
+            viewBox="0 0 24 24"
+            width="32"
+            height="32"
+            fill="white"
+          >
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <svg
+            id="pauseIcon"
+            viewBox="0 0 24 24"
+            width="32"
+            height="32"
+            fill="white"
+            class="hidden"
+          >
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+          </svg>
         </button>
       </div>
-      <div id="ytplayerContainer" style="position: absolute; top: -9999px; width: 1px; height: 1px;">
+      <div
+        id="ytplayerContainer"
+        style="position: absolute; top: -9999px; width: 1px; height: 1px"
+      >
         <div id="ytplayer"></div>
       </div>
     </div>

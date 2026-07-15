@@ -265,16 +265,16 @@ input:checked + .slider:before {
 
 .songs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
 }
 
 .song-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   border-radius: 8px;
-  padding: 12px;
+  padding: 8px;
   background-color: transparent;
   transition: background-color var(--transition-speed);
 }
@@ -286,7 +286,7 @@ input:checked + .slider:before {
 .thumbnail-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1 / 1;
   border-radius: 8px;
   overflow: hidden;
   background-color: var(--bg-hover);
