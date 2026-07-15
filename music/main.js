@@ -21,6 +21,7 @@ const pauseIcon = document.getElementById('pauseIcon');
 const sentinel = document.getElementById('sentinel');
 const chartContainer = document.getElementById('chartContainer');
 const tabButtons = document.querySelectorAll('.tab-btn');
+const hiddenGemsToggle = document.getElementById('hiddenGemsToggle');
 
 let currentView = 'grid';
 let chartInstance = null;
@@ -142,6 +143,11 @@ async function init() {
           sentinel.classList.remove('hidden');
         }
       });
+    });
+    
+    // Hidden Gems Toggle
+    hiddenGemsToggle.addEventListener('change', () => {
+      handleSearch();
     });
     
   } catch (error) {
@@ -362,17 +368,38 @@ function updateStats() {
   `).join('');
 }
 
-// Handlers
-function handleSearch() {
-  const query = searchInput.value.toLowerCase();
-  filteredSongs = allSongs.filter(song => 
-    song.title.toLowerCase().includes(query) || 
-    song.artist.toLowerCase().includes(query)
-  );
-  handleSort(); // Re-apply sort after filtering
+// Filter and sort the songs array
+function filterAndSortSongs() {
+  const searchTerm = searchInput.value.toLowerCase();
+  const sortBy = sortSelect.value;
+  const isHiddenGems = hiddenGemsToggle.checked;
+
+  filteredSongs = allSongs.filter(song => {
+    // Hidden Gems filter (< 100k views)
+    if (isHiddenGems && parseViews(song.views) >= 100000) {
+      return false;
+    }
+    const matchesSearch = song.title.toLowerCase().includes(searchTerm) || 
+                          (song.artist && song.artist.toLowerCase().includes(searchTerm));
+    return matchesSearch;
+  });
+
+  handleSort(false); // Sort but don't re-render here
 }
 
-function handleSort() {
+// Handlers
+function handleSearch() {
+  currentPage = 1;
+  filterAndSortSongs();
+  renderGrid(true);
+  if (currentView === 'insights') {
+    renderChart();
+  } else if (currentView === 'artists') {
+    renderArtistChart();
+  }
+}
+
+function handleSort(shouldRender = true) {
   const sortBy = sortSelect.value;
   
   filteredSongs.sort((a, b) => {
@@ -390,12 +417,13 @@ function handleSort() {
         return a.originalIndex - b.originalIndex;
     }
   });
-  
-  renderGrid(true);
-  if (currentView === 'insights') {
-    renderChart();
-  } else if (currentView === 'artists') {
-    renderArtistChart();
+  if (shouldRender) {
+    renderGrid(true);
+    if (currentView === 'insights') {
+      renderChart();
+    } else if (currentView === 'artists') {
+      renderArtistChart();
+    }
   }
 }
 
