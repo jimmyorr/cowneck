@@ -262,7 +262,7 @@ function renderArtistChart() {
     data: {
       labels: topArtists.map(item => item.artist),
       datasets: [{
-        label: 'Number of Liked Songs',
+        label: 'Number of liked songs',
         data: topArtists.map(item => item.count),
         backgroundColor: topArtists.map(item => getArtistColor(item.artist)),
         borderWidth: 0,
@@ -275,7 +275,7 @@ function renderArtistChart() {
       maintainAspectRatio: false,
       scales: {
         x: {
-          title: { display: true, text: 'Number of Liked Songs' },
+          title: { display: true, text: 'Number of liked songs' },
           grid: { color: 'rgba(255,255,255,0.1)' }
         },
         y: {

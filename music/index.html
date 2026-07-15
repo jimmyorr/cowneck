@@ -30,14 +30,14 @@
             placeholder="Search songs or artists..."
           />
           <select id="sortSelect" class="sort-select">
-            <option value="recent">Recently Liked</option>
+            <option value="recent">Recently liked</option>
             <option value="titleAsc">Title (A-Z)</option>
             <option value="titleDesc">Title (Z-A)</option>
             <option value="artistAsc">Artist (A-Z)</option>
-            <option value="viewsDesc">Views (High to Low)</option>
+            <option value="viewsDesc">Views (high to low)</option>
           </select>
           <div class="toggle-container">
-            <span class="toggle-label">Hidden Gems</span>
+            <span class="toggle-label">Hidden gems</span>
             <label class="switch">
               <input type="checkbox" id="hiddenGemsToggle">
               <span class="slider round"></span>
@@ -46,7 +46,7 @@
           <div class="tabs-container">
             <button class="tab-btn active" data-view="grid">Gallery</button>
             <button class="tab-btn" data-view="insights">Hipster index</button>
-            <button class="tab-btn" data-view="artists">Top Artists</button>
+            <button class="tab-btn" data-view="artists">Top artists</button>
           </div>
         </div>
       </header>
@@ -54,15 +54,15 @@
       <div class="main-layout">
         <aside class="sidebar">
           <div class="stats-card">
-            <h2>Library Stats</h2>
+            <h2>Library stats</h2>
             <div class="stat-item">
               <span class="stat-value" id="totalSongsCount">0</span>
-              <span class="stat-label">Total Tracks</span>
+              <span class="stat-label">Total tracks</span>
             </div>
           </div>
 
           <div class="top-artists">
-            <h2>Top Artists</h2>
+            <h2>Top artists</h2>
             <ul id="topArtistsList" class="artist-list">
               <!-- Rendered via JS -->
             </ul>
