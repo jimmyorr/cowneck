@@ -131,6 +131,11 @@ async function init() {
           songsGrid.classList.add('hidden');
           sentinel.classList.add('hidden');
           renderChart();
+        } else if (currentView === 'artists') {
+          chartContainer.classList.remove('hidden');
+          songsGrid.classList.add('hidden');
+          sentinel.classList.add('hidden');
+          renderArtistChart();
         } else {
           chartContainer.classList.add('hidden');
           songsGrid.classList.remove('hidden');
@@ -213,6 +218,66 @@ function renderChart() {
             }
           }
         },
+        legend: { display: false }
+      }
+    }
+  });
+}
+
+// Render the Artist Bubble Chart
+function renderArtistChart() {
+  if (chartInstance) chartInstance.destroy();
+  
+  const ctx = document.getElementById('insightsChart').getContext('2d');
+  
+  // Group by artist
+  const artistMap = {};
+  filteredSongs.forEach(song => {
+    if (!song.artist || song.artist === "Unknown Artist") return;
+    if (!artistMap[song.artist]) {
+      artistMap[song.artist] = { count: 0, totalViews: 0, minIndex: song.originalIndex, maxIndex: song.originalIndex };
+    }
+    artistMap[song.artist].count += 1;
+    artistMap[song.artist].totalViews += parseViews(song.views);
+    if (song.originalIndex < artistMap[song.artist].minIndex) artistMap[song.artist].minIndex = song.originalIndex;
+    if (song.originalIndex > artistMap[song.artist].maxIndex) artistMap[song.artist].maxIndex = song.originalIndex;
+  });
+  
+  const topArtists = Object.entries(artistMap)
+    .map(([artist, stats]) => ({
+      artist: artist,
+      count: stats.count
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 25);
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: topArtists.map(item => item.artist),
+      datasets: [{
+        label: 'Number of Liked Songs',
+        data: topArtists.map(item => item.count),
+        backgroundColor: topArtists.map(item => getArtistColor(item.artist)),
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: { display: true, text: 'Number of Liked Songs' },
+          grid: { color: 'rgba(255,255,255,0.1)' }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { autoSkip: false }
+        }
+      },
+      plugins: {
         legend: { display: false }
       }
     }
@@ -329,6 +394,8 @@ function handleSort() {
   renderGrid(true);
   if (currentView === 'insights') {
     renderChart();
+  } else if (currentView === 'artists') {
+    renderArtistChart();
   }
 }
 
