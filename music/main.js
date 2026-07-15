@@ -95,8 +95,18 @@ async function init() {
     const response = await fetch('./likes.json');
     const data = await response.json();
     
-    // Add original index to preserve 'recently liked' order
-    allSongs = data.map((song, index) => ({ ...song, originalIndex: index }));
+    // Add original index and clean up artist names
+    allSongs = data.map((song, index) => {
+      let cleanArtist = song.artist || "Unknown Artist";
+      if (cleanArtist.endsWith(" - Topic")) {
+        cleanArtist = cleanArtist.substring(0, cleanArtist.length - 8);
+      }
+      return { 
+        ...song, 
+        artist: cleanArtist,
+        originalIndex: index 
+      };
+    });
     filteredSongs = [...allSongs];
     
     updateStats();
