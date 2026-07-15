@@ -104,8 +104,10 @@ async function init() {
     const response = await fetch('./likes.json');
     const data = await response.json();
     
-    // Add original index and clean up artist names
-    allSongs = data.map((song, index) => {
+    // Filter out GPM locker tracks and clean up artist names
+    const validSongs = data.filter(song => !song.title || !song.title.includes('TrackUniquenessId'));
+    
+    allSongs = validSongs.map((song, index) => {
       let cleanArtist = song.artist || "Unknown Artist";
       if (cleanArtist.endsWith(" - Topic")) {
         cleanArtist = cleanArtist.substring(0, cleanArtist.length - 8);
