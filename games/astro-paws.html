@@ -1,3 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Astro Paws</title>
+
+    <!-- Google Analytics (Required for all cowneck games) -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      gtag("js", new Date());
+      gtag("config", "G-6RNVL7JZVJ");
+    </script>
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Babel (Compiles JSX in the browser on the fly) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Import Map to ensure exact React version matches across all imports -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "lucide-react": "https://esm.sh/lucide-react@0.378.0?deps=react@18.2.0"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <!-- The root element where React will mount the game -->
+    <div id="root"></div>
+
+    <!-- React Code Block -->
+    <script type="text/babel" data-type="module">
+      import { createRoot } from "react-dom/client";
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, RotateCcw, Shield, Heart, Zap, Star, ChevronRight, AlertCircle, Search, Navigation, Coffee, Beaker, Crosshair } from 'lucide-react';
 
@@ -981,3 +1022,8 @@ export default function App() {
     </div>
   );
 }
+      const root = createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
