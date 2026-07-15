@@ -1,5 +1,7 @@
 let allSongs = [];
 let filteredSongs = [];
+let currentPage = 1;
+const pageSize = 50;
 
 // DOM Elements
 const songsGrid = document.getElementById('songsGrid');
@@ -16,6 +18,19 @@ const playerArtist = document.getElementById('playerArtist');
 const playPauseBtn = document.getElementById('playPauseBtn');
 const playIcon = document.getElementById('playIcon');
 const pauseIcon = document.getElementById('pauseIcon');
+const sentinel = document.getElementById('sentinel');
+
+const observer = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting) {
+    if (currentPage * pageSize < filteredSongs.length) {
+      currentPage++;
+      renderGrid(false);
+    }
+  }
+}, { rootMargin: '200px' });
+
+// Observe sentinel when available
+if (sentinel) observer.observe(sentinel);
 
 // YouTube Player Setup
 let ytPlayer;
@@ -79,7 +94,7 @@ async function init() {
     filteredSongs = [...allSongs];
     
     updateStats();
-    renderGrid();
+    renderGrid(true);
     
     // Event Listeners
     searchInput.addEventListener('input', handleSearch);
@@ -113,18 +128,26 @@ function getChannelUrl(channelId) {
 }
 
 // Render the grid of song cards
-function renderGrid() {
+function renderGrid(reset = true) {
+  if (reset) {
+    currentPage = 1;
+    songsGrid.innerHTML = '';
+  }
+
   loading.classList.add('hidden');
   
   if (filteredSongs.length === 0) {
-    songsGrid.innerHTML = '';
     noResults.classList.remove('hidden');
     return;
   }
   
   noResults.classList.add('hidden');
   
-  const html = filteredSongs.map(song => {
+  const start = (currentPage - 1) * pageSize;
+  const end = start + pageSize;
+  const pageSongs = filteredSongs.slice(start, end);
+  
+  const html = pageSongs.map(song => {
     const videoUrl = getVideoUrl(song.video_id);
     const channelUrl = getChannelUrl(song.channel_id);
     const thumbnailUrl = `https://i.ytimg.com/vi/${song.video_id}/mqdefault.jpg`;
@@ -152,7 +175,11 @@ function renderGrid() {
     `;
   }).join('');
   
-  songsGrid.innerHTML = html;
+  if (reset) {
+    songsGrid.innerHTML = html;
+  } else {
+    songsGrid.insertAdjacentHTML('beforeend', html);
+  }
 }
 
 // Update sidebar stats
@@ -207,7 +234,7 @@ function handleSort() {
     }
   });
   
-  renderGrid();
+  renderGrid(true);
 }
 
 function handlePlayback(e) {
