@@ -19,6 +19,11 @@ const playPauseBtn = document.getElementById('playPauseBtn');
 const playIcon = document.getElementById('playIcon');
 const pauseIcon = document.getElementById('pauseIcon');
 const sentinel = document.getElementById('sentinel');
+const chartContainer = document.getElementById('chartContainer');
+const tabButtons = document.querySelectorAll('.tab-btn');
+
+let currentView = 'grid';
+let chartInstance = null;
 
 const observer = new IntersectionObserver((entries) => {
   if (entries[0].isIntersecting) {
@@ -111,6 +116,28 @@ async function init() {
       searchInput.value = artistName;
       handleSearch();
     });
+
+    // Chart Toggle
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        // Update active tab styling
+        tabButtons.forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+
+        currentView = e.target.dataset.view;
+        
+        if (currentView === 'insights') {
+          chartContainer.classList.remove('hidden');
+          songsGrid.classList.add('hidden');
+          sentinel.classList.add('hidden');
+          renderChart();
+        } else {
+          chartContainer.classList.add('hidden');
+          songsGrid.classList.remove('hidden');
+          sentinel.classList.remove('hidden');
+        }
+      });
+    });
     
   } catch (error) {
     console.error("Failed to load likes.json", error);
@@ -125,6 +152,71 @@ function getVideoUrl(videoId) {
 
 function getChannelUrl(channelId) {
   return `https://music.youtube.com/channel/${channelId}`;
+}
+
+function getArtistColor(artistName) {
+  if (!artistName) return '#ff0000';
+  let hash = 0;
+  for (let i = 0; i < artistName.length; i++) {
+    hash = artistName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash % 360);
+  return `hsl(${hue}, 70%, 60%)`;
+}
+
+// Render the Insights Chart
+function renderChart() {
+  if (chartInstance) chartInstance.destroy();
+  
+  const ctx = document.getElementById('insightsChart').getContext('2d');
+  
+  const scatterData = filteredSongs
+    .map(song => ({
+      x: allSongs.length - song.originalIndex,
+      y: parseViews(song.views),
+      song: song
+    }))
+    .filter(item => item.y > 0);
+
+  chartInstance = new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Liked Songs',
+        data: scatterData,
+        backgroundColor: scatterData.map(item => getArtistColor(item.song.artist)),
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: { display: true, text: 'Chronological Order (Oldest → Newest)' },
+          grid: { color: 'rgba(255,255,255,0.1)' },
+          max: filteredSongs.length
+        },
+        y: {
+          type: 'logarithmic',
+          title: { display: true, text: 'Views' },
+          grid: { color: 'rgba(255,255,255,0.1)' }
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const item = context.raw.song;
+              return `${item.title} by ${item.artist} - ${item.views}`;
+            }
+          }
+        },
+        legend: { display: false }
+      }
+    }
+  });
 }
 
 // Render the grid of song cards
@@ -235,6 +327,9 @@ function handleSort() {
   });
   
   renderGrid(true);
+  if (currentView === 'insights') {
+    renderChart();
+  }
 }
 
 function handlePlayback(e) {

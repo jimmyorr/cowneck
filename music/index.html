@@ -9,6 +9,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <div class="app-container">
@@ -35,6 +36,10 @@
             <option value="artistAsc">Artist (A-Z)</option>
             <option value="viewsDesc">Views (High to Low)</option>
           </select>
+          <div class="tabs-container">
+            <button class="tab-btn active" data-view="grid">Gallery</button>
+            <button class="tab-btn" data-view="insights">Hipster index</button>
+          </div>
         </div>
       </header>
 
@@ -57,6 +62,9 @@
         </aside>
 
         <main class="content">
+          <div id="chartContainer" class="chart-container hidden">
+            <canvas id="insightsChart"></canvas>
+          </div>
           <div id="songsGrid" class="songs-grid">
             <!-- Cards rendered via JS -->
           </div>
