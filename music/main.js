@@ -370,7 +370,7 @@ function renderGrid(reset = true) {
           <a href="${channelUrl}" target="_blank" class="song-artist" title="${escapeHtml(song.artist)}">
             ${escapeHtml(song.artist)}
           </a>
-          ${song.views ? `<span class="song-meta">${escapeHtml(song.views)}</span>` : ''}
+          ${song.views !== undefined && song.views !== null ? `<span class="song-meta">${escapeHtml(formatViews(song.views))}</span>` : ''}
         </div>
       </div>
     `;
@@ -514,8 +514,9 @@ function handlePlayback(e) {
 
 // Utilities
 function parseViews(viewStr) {
-  if (!viewStr) return 0;
-  let numStr = viewStr.replace(/[^0-9.KMBkmb]/g, '');
+  if (viewStr === undefined || viewStr === null) return 0;
+  if (typeof viewStr === 'number') return viewStr;
+  let numStr = String(viewStr).replace(/[^0-9.KMBkmb]/g, '');
   let multiplier = 1;
   if (numStr.toUpperCase().includes('K')) multiplier = 1000;
   if (numStr.toUpperCase().includes('M')) multiplier = 1000000;
@@ -525,9 +526,19 @@ function parseViews(viewStr) {
   return isNaN(val) ? 0 : val * multiplier;
 }
 
+function formatViews(views) {
+  if (views === undefined || views === null) return '';
+  const num = typeof views === 'number' ? views : parseViews(views);
+  return new Intl.NumberFormat('en-US', {
+    notation: "compact",
+    compactDisplay: "short",
+    maximumFractionDigits: 1
+  }).format(num) + ' views';
+}
+
 function escapeHtml(unsafe) {
-  if (!unsafe) return '';
-  return unsafe
+  if (unsafe === undefined || unsafe === null) return '';
+  return String(unsafe)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
