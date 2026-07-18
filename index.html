@@ -63,6 +63,34 @@
             border-color: transparent;
         }
 
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #080d1a;
+                background-image:
+                  radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 45%),
+                  radial-gradient(circle at 90% 85%, rgba(244, 114, 182, 0.12) 0%, transparent 45%),
+                  radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.05) 0%, transparent 60%);
+                color: #e2e8f0;
+            }
+            .links {
+                color: #94a3b8;
+            }
+            .links a {
+                background: rgba(255, 255, 255, 0.05);
+                color: #f8fafc;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+            .links a:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+            #chester-link img {
+                box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 30px rgba(99, 102, 241, 0.2);
+            }
+        }
+
         #chester-link {
             display: inline-block;
             width: 400px;
@@ -75,6 +103,10 @@
             width: 100%;
             height: auto;
             display: block;
+            border-radius: 50%;
+            /* Fixes the artifact dots at the corners of the original image */
+            mask-image: radial-gradient(circle, white 100%, black 100%);
+            -webkit-mask-image: -webkit-radial-gradient(circle, white 100%, black 100%);
         }
 
         #chester-link.bouncing-chester {
