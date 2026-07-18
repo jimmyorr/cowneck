@@ -21,11 +21,12 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f8fafc;
+            background-color: #080d1a;
             background-image:
-              radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.25) 0%, transparent 45%),
-              radial-gradient(circle at 90% 85%, rgba(244, 114, 182, 0.2) 0%, transparent 45%),
-              radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.15) 0%, transparent 60%);
+              radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 45%),
+              radial-gradient(circle at 90% 85%, rgba(244, 114, 182, 0.12) 0%, transparent 45%),
+              radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.05) 0%, transparent 60%);
+            color: #e2e8f0;
         }
 
         .container {
@@ -35,7 +36,7 @@
         .links {
             margin-top: 30px;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
+            color: #94a3b8;
             font-size: 1.2rem;
             display: flex;
             gap: 20px;
@@ -44,12 +45,12 @@
 
         .links a {
             text-decoration: none;
-            color: #3b82f6;
+            color: #f8fafc;
             padding: 10px 18px;
-            border: 1px solid rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            background: #ffffff;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             font-weight: 500;
         }
@@ -58,7 +59,8 @@
             color: #fff;
             text-decoration: none;
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         .links a.link-games:hover {
@@ -69,34 +71,6 @@
         .links a.link-projects:hover {
             background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
             border-color: transparent;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: #080d1a;
-                background-image:
-                  radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 45%),
-                  radial-gradient(circle at 90% 85%, rgba(244, 114, 182, 0.12) 0%, transparent 45%),
-                  radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.05) 0%, transparent 60%);
-                color: #e2e8f0;
-            }
-            .links {
-                color: #94a3b8;
-            }
-            .links a {
-                background: rgba(255, 255, 255, 0.05);
-                color: #f8fafc;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            }
-            .links a:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-                border-color: rgba(255, 255, 255, 0.2);
-            }
-            #chester-link img {
-                box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 30px rgba(99, 102, 241, 0.2);
-            }
         }
 
         #chester-link {
@@ -115,7 +89,7 @@
             /* Fixes the artifact dots at the corners of the original image */
             mask-image: radial-gradient(circle, white 100%, black 100%);
             -webkit-mask-image: -webkit-radial-gradient(circle, white 100%, black 100%);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 30px rgba(99, 102, 241, 0.2);
         }
 
         #chester-link.bouncing-chester {
