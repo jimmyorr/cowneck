@@ -21,7 +21,11 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background-color: #f8fafc;
+            background-image:
+              radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.04) 0%, transparent 45%),
+              radial-gradient(circle at 90% 85%, rgba(244, 114, 182, 0.04) 0%, transparent 45%),
+              radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.03) 0%, transparent 60%);
         }
 
         .container {
@@ -40,17 +44,21 @@
 
         .links a {
             text-decoration: none;
-            color: #0066cc;
-            padding: 10px 15px;
-            border: 1px solid #0066cc22;
-            border-radius: 8px;
-            background: #fff;
-            transition: all 0.2s ease;
+            color: #3b82f6;
+            padding: 10px 18px;
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            font-weight: 500;
         }
 
         .links a:hover {
             color: #fff;
             text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
         }
 
         .links a.link-games:hover {
@@ -107,6 +115,7 @@
             /* Fixes the artifact dots at the corners of the original image */
             mask-image: radial-gradient(circle, white 100%, black 100%);
             -webkit-mask-image: -webkit-radial-gradient(circle, white 100%, black 100%);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
         }
 
         #chester-link.bouncing-chester {
