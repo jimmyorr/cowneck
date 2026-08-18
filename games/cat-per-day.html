@@ -373,8 +373,13 @@
                     <div>
                         <div class="flex justify-between items-center mb-3">
                             <h3 class="font-extrabold text-lg pl-1 dark:text-gray-100">Upcoming Queue</h3>
-                            <button onclick="testIOSNotification()" class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"><i class="fa-solid fa-stopwatch"></i> Test Alert (5s)</button>
+                            <button onclick="sendMorningPush()" class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"><i class="fa-solid fa-paper-plane"></i> Send Morning Push</button>
                         </div>
+                        <div class="mb-3 flex gap-2">
+                            <input type="password" id="adminPushToken" placeholder="Sender token" autocomplete="off" class="min-w-0 flex-1 bg-white dark:bg-gray-800 dark:text-white border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-xs outline-none focus:border-primary dark:focus:border-blue-500">
+                            <button onclick="sendMorningPush()" class="bg-dark dark:bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-black dark:hover:bg-blue-500" title="Send morning push"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                        <p id="pushSendStatus" class="hidden text-xs font-semibold mb-3"></p>
                         <div id="adminQueueList" class="space-y-3">
                             <!-- Populated by JS -->
                         </div>
@@ -1327,6 +1332,42 @@
                 }, 5000);
             } else {
                 showModal("Not Enabled", "Please enable notifications first using the bell icon on the main screen.", "fa-bell-slash", "text-red-500", "bg-red-100");
+            }
+        }
+
+        async function sendMorningPush() {
+            const tokenInput = document.getElementById('adminPushToken');
+            const status = document.getElementById('pushSendStatus');
+            const token = tokenInput.value.trim();
+
+            if (!PUSH_API_URL) {
+                showModal("Setup Incomplete", "Set PUSH_API_URL in this page before sending notifications.", "fa-triangle-exclamation", "text-yellow-500", "bg-yellow-100");
+                return;
+            }
+            if (!token) {
+                tokenInput.focus();
+                showModal("Sender Token Required", "Enter the sender token configured on the push server.", "fa-key", "text-yellow-500", "bg-yellow-100");
+                return;
+            }
+
+            status.className = 'text-xs font-semibold mb-3 text-blue-600 dark:text-blue-400';
+            status.innerText = 'Sending morning push...';
+
+            try {
+                const response = await fetch(`${PUSH_API_URL.replace(/\/$/, '')}/send-morning`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || `Server returned ${response.status}.`);
+
+                status.innerText = `Sent to ${result.sent} subscriber${result.sent === 1 ? '' : 's'}.`;
+                showModal("Push Sent", `The morning notification was sent to ${result.sent} subscriber${result.sent === 1 ? '' : 's'}.`, "fa-circle-check", "text-green-500", "bg-green-100");
+                tokenInput.value = '';
+            } catch (error) {
+                status.className = 'text-xs font-semibold mb-3 text-red-500';
+                status.innerText = error.message;
+                showModal("Push Failed", error.message, "fa-triangle-exclamation", "text-red-500", "bg-red-100");
             }
         }
 
