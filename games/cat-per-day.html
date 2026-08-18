@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cat of the Day</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#FF9A9E">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/FF9A9E/ffffff?text=Meow">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PWA Manifest embedded via data URI for single-file requirement -->
+    <link rel="manifest" id="manifest-link">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Nunito', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#FF9A9E',
+                        secondary: '#FECFEF',
+                        dark: '#4A4A4A',
+                        light: '#F8F9FA'
+                    },
+                    animation: {
+                        'bounce-slight': 'bounce-slight 1s infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                    },
+                    keyframes: {
+                        'bounce-slight': {
+                            '0%, 100%': { transform: 'translateY(-5%)' },
+                            '50%': { transform: 'translateY(0)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F8F9FA;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .active-tab {
+            color: #FF9A9E;
+            border-bottom: 3px solid #FF9A9E;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #FECFEF;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #FF9A9E;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+
+        .slider::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+        }
+
+        /* Confetti Canvas */
+        #confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body class="text-dark dark:text-gray-100 h-screen w-screen overflow-hidden flex flex-col items-center sm:bg-gray-200 dark:sm:bg-gray-950 transition-colors duration-300">
+
+    <!-- Confetti Overlay -->
+    <canvas id="confetti"></canvas>
+
+    <!-- Mobile Wrapper -->
+    <div class="w-full h-full max-w-md sm:h-[850px] sm:my-auto sm:rounded-3xl sm:shadow-2xl bg-light dark:bg-gray-900 relative overflow-hidden flex flex-col transition-colors duration-300">
+        
+        <!-- Header -->
+        <header class="pt-12 pb-4 px-6 glass-panel dark:bg-gray-900/85 dark:border-gray-800 rounded-b-3xl z-10 flex justify-between items-center sticky top-0 shadow-sm transition-colors duration-300">
+            <div>
+                <!-- Tap Paw 1 time for Admin -->
+                <h1 class="text-2xl font-extrabold text-primary dark:text-blue-500 flex items-center gap-2 select-none">
+                    <i id="adminTrigger" class="fa-solid fa-paw cursor-pointer hover:scale-110 transition-transform active:scale-95" title="Admin Login"></i> Daily Meow
+                </h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-semibold mt-1" id="currentDateDisplay">Loading...</p>
+            </div>
+            <div class="flex gap-2">
+                <button id="notifBtn" onclick="requestNotifications()" class="bg-white dark:bg-gray-800 text-gray-500 dark:text-blue-400 w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:scale-105 transition-all" title="Enable Alerts">
+                    <i class="fa-regular fa-bell"></i>
+                </button>
+                <button onclick="toggleTheme()" class="bg-white dark:bg-gray-800 text-gray-500 dark:text-blue-400 w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:scale-105 transition-all">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+                <button id="leaderboardBtn" class="bg-secondary dark:bg-blue-900/50 text-primary dark:text-blue-400 w-10 h-10 rounded-full flex items-center justify-center shadow-sm hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-trophy"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto hide-scrollbar pb-24 relative" id="mainContent">
+            
+            <!-- Install Prompt (PWA) -->
+            <div id="installPrompt" class="hidden mx-4 mt-4 bg-primary dark:bg-blue-600 text-white p-4 rounded-2xl shadow-lg animate-slide-up flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-arrow-down-to-square text-xl"></i>
+                    <div class="text-sm font-semibold">Install app to your home screen!</div>
+                </div>
+                <button id="closeInstall" class="text-white opacity-80 hover:opacity-100"><i class="fa-solid fa-times"></i></button>
+            </div>
+
+            <!-- Today's Cat Container -->
+            <div id="todayView" class="p-4 space-y-6 animate-fade-in">
+                
+                <!-- The Photo Card -->
+                <div class="bg-white dark:bg-gray-800 rounded-3xl p-3 shadow-xl relative group transition-colors duration-300">
+                    <div class="w-full aspect-square rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-700 relative">
+                        <img id="dailyCatImage" src="https://placehold.co/600x600/FECFEF/FF9A9E?text=Waiting+for+Cat..." alt="Cat of the Day" class="w-full h-full object-cover">
+                        <!-- Empty State Overlay -->
+                        <div id="emptyStateOverlay" class="absolute inset-0 bg-white/90 dark:bg-gray-900/90 flex flex-col items-center justify-center p-6 text-center z-10 transition-colors duration-300">
+                            <span class="text-6xl mb-4 opacity-75 drop-shadow-md">😿</span>
+                            <h3 class="text-xl font-bold text-gray-700 dark:text-gray-200 mb-2">No Cats in Queue!</h3>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">The creator hasn't uploaded any photos yet. Check back later!</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Floating Badge -->
+                    <div class="absolute -top-3 -right-3 bg-yellow-400 dark:bg-blue-500 text-white font-bold py-1 px-3 rounded-full shadow-lg border-2 border-white dark:border-gray-800 transform rotate-6 z-20">
+                        Day <span id="dayCounter">1</span>
+                    </div>
+                </div>
+
+                <!-- Would You Rather Section -->
+                <div class="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-extrabold text-lg flex items-center gap-2 dark:text-gray-100">
+                            <i class="fa-solid fa-circle-question text-primary dark:text-blue-500"></i> Would you rather?
+                        </h2>
+                    </div>
+                    
+                    <!-- Pre-vote State -->
+                    <div id="pollOptions" class="space-y-3">
+                        <button onclick="submitVote('optionA')" class="w-full bg-light dark:bg-gray-700 border-2 border-transparent hover:border-primary dark:hover:border-blue-500 text-left p-4 rounded-xl font-semibold transition-all relative overflow-hidden group">
+                            <span class="relative z-10 flex justify-between items-center dark:text-gray-100">
+                                <span id="optAText">Loading...</span>
+                                <i class="fa-regular fa-circle text-gray-400 group-hover:text-primary dark:group-hover:text-blue-500"></i>
+                            </span>
+                        </button>
+                        <button onclick="submitVote('optionB')" class="w-full bg-light dark:bg-gray-700 border-2 border-transparent hover:border-primary dark:hover:border-blue-500 text-left p-4 rounded-xl font-semibold transition-all relative overflow-hidden group">
+                            <span class="relative z-10 flex justify-between items-center dark:text-gray-100">
+                                <span id="optBText">Loading...</span>
+                                <i class="fa-regular fa-circle text-gray-400 group-hover:text-primary dark:group-hover:text-blue-500"></i>
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Post-vote State (Results) -->
+                    <div id="pollResults" class="space-y-4 hidden">
+                        <!-- Result A -->
+                        <div class="relative w-full bg-gray-100 dark:bg-gray-700 rounded-xl h-14 overflow-hidden flex items-center px-4 shadow-inner">
+                            <div id="barA" class="absolute left-0 top-0 h-full bg-primary/20 dark:bg-blue-500/30 transition-all duration-1000 w-0"></div>
+                            <div class="relative z-10 w-full flex justify-between items-center font-bold dark:text-gray-100">
+                                <span id="resAText">Pancakes</span>
+                                <span id="resAPct" class="text-primary dark:text-blue-400">0%</span>
+                            </div>
+                        </div>
+                        <!-- Result B -->
+                        <div class="relative w-full bg-gray-100 dark:bg-gray-700 rounded-xl h-14 overflow-hidden flex items-center px-4 shadow-inner">
+                            <div id="barB" class="absolute left-0 top-0 h-full bg-blue-400/20 dark:bg-indigo-500/30 transition-all duration-1000 w-0"></div>
+                            <div class="relative z-10 w-full flex justify-between items-center font-bold dark:text-gray-100">
+                                <span id="resBText">Waffles</span>
+                                <span id="resBPct" class="text-blue-500 dark:text-indigo-400">0%</span>
+                            </div>
+                        </div>
+                        <p class="text-center text-xs text-gray-400 font-semibold mt-2">Thanks for voting!</p>
+                    </div>
+                </div>
+
+                <!-- Rating Section -->
+                <div class="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-lg border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+                    <h2 class="font-extrabold text-lg text-center mb-1 dark:text-gray-100">Rate this cat</h2>
+                    
+                    <div id="ratingInputContainer" class="py-4">
+                        <div class="flex justify-between text-xs text-gray-400 font-bold mb-2 px-1">
+                            <span>1</span>
+                            <span>5</span>
+                            <span>10</span>
+                        </div>
+                        <input type="range" min="1" max="10" value="5" class="slider dark:bg-gray-700" id="ratingSlider" oninput="updateSliderValue(this.value)">
+                        <div class="flex justify-between items-center mt-6">
+                            <div class="text-3xl font-black text-primary dark:text-blue-500" id="sliderValueDisplay">5</div>
+                            <button onclick="submitRating()" class="bg-dark dark:bg-blue-600 text-white px-6 py-2 rounded-full font-bold shadow-md hover:bg-black dark:hover:bg-blue-500 transition-colors">Submit Score</button>
+                        </div>
+                    </div>
+
+                    <div id="ratingResultContainer" class="hidden py-4 text-center">
+                        <div class="text-4xl font-black text-primary dark:text-blue-500 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-star text-yellow-400 text-3xl"></i>
+                            <span id="averageScoreDisplay">--</span> <span class="text-lg text-gray-400">/ 10</span>
+                        </div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2 font-semibold">Today's Average Score</p>
+                    </div>
+                </div>
+
+                <!-- Reactions Section -->
+                <div class="flex justify-around items-center bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg mb-8 transition-colors duration-300">
+                    <button onclick="addReaction('love')" class="reaction-btn flex flex-col items-center p-2 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-all w-16">
+                        <span class="text-3xl filter drop-shadow-sm transition-transform group-hover:scale-125">😻</span>
+                        <span id="reactLove" class="text-xs font-bold text-gray-500 dark:text-gray-400 mt-1">0</span>
+                    </button>
+                    <button onclick="addReaction('paw')" class="reaction-btn flex flex-col items-center p-2 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-all w-16">
+                        <span class="text-3xl filter drop-shadow-sm transition-transform group-hover:scale-125">🐾</span>
+                        <span id="reactPaw" class="text-xs font-bold text-gray-500 dark:text-gray-400 mt-1">0</span>
+                    </button>
+                    <button onclick="addReaction('laugh')" class="reaction-btn flex flex-col items-center p-2 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-all w-16">
+                        <span class="text-3xl filter drop-shadow-sm transition-transform group-hover:scale-125">😹</span>
+                        <span id="reactLaugh" class="text-xs font-bold text-gray-500 dark:text-gray-400 mt-1">0</span>
+                    </button>
+                    <button onclick="addReaction('sleep')" class="reaction-btn flex flex-col items-center p-2 rounded-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-all w-16">
+                        <span class="text-3xl filter drop-shadow-sm transition-transform group-hover:scale-125">😴</span>
+                        <span id="reactSleep" class="text-xs font-bold text-gray-500 dark:text-gray-400 mt-1">0</span>
+                    </button>
+                </div>
+                
+                <!-- Spacer for scroll -->
+                <div class="h-8"></div>
+            </div>
+
+            <!-- Leaderboard View (Hidden by default) -->
+            <div id="leaderboardView" class="hidden p-4 space-y-4 animate-slide-up">
+                <div class="flex items-center justify-between mb-6 px-2">
+                    <h2 class="text-2xl font-black text-dark dark:text-gray-100"><i class="fa-solid fa-trophy text-yellow-500 mr-2"></i> Hall of Fame</h2>
+                    <button onclick="showTodayView()" class="text-gray-400 hover:text-primary dark:hover:text-blue-500 p-2 bg-white dark:bg-gray-800 rounded-full shadow-sm"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                
+                <p class="text-sm text-gray-500 dark:text-gray-400 font-semibold px-2 mb-2">Top 5 Highest Rated Cats of All Time</p>
+                
+                <div id="leaderboardList" class="space-y-4">
+                    <!-- Javascript will populate this -->
+                </div>
+            </div>
+
+            <!-- Admin Modal / Screen (Hidden by default) -->
+            <div id="adminPasscodeView" class="hidden absolute inset-0 bg-white dark:bg-gray-900 z-50 flex flex-col items-center justify-center p-6 animate-fade-in transition-colors duration-300">
+                <button onclick="closeAdmin()" class="absolute top-6 right-6 text-gray-400 text-2xl"><i class="fa-solid fa-xmark"></i></button>
+                
+                <div class="w-16 h-16 bg-primary/20 dark:bg-blue-500/20 text-primary dark:text-blue-500 rounded-2xl flex items-center justify-center text-3xl mb-6">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h2 class="text-2xl font-black mb-2 dark:text-gray-100">Admin Access</h2>
+                <p class="text-gray-500 dark:text-gray-400 text-center mb-8">Enter the secret passcode to manage the daily feed.</p>
+                
+                <input type="password" id="passcodeInput" placeholder="Enter Code" class="w-full max-w-xs bg-gray-100 dark:bg-gray-800 dark:text-white border-2 border-transparent focus:border-primary dark:focus:border-blue-500 rounded-xl px-4 py-3 text-center text-xl font-bold outline-none transition-all mb-4">
+                <button onclick="verifyPasscode()" class="w-full max-w-xs bg-primary dark:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all">Unlock Dashboard</button>
+                <p id="passcodeError" class="text-red-500 text-sm font-bold mt-4 opacity-0 transition-opacity">Incorrect passcode.</p>
+            </div>
+
+            <div id="adminDashboardView" class="hidden absolute inset-0 bg-light dark:bg-gray-950 z-50 flex flex-col animate-slide-up transition-colors duration-300">
+                <header class="pt-12 pb-4 px-6 bg-white dark:bg-gray-900 shadow-sm flex justify-between items-center border-b border-transparent dark:border-gray-800">
+                    <h2 class="text-xl font-black text-dark dark:text-gray-100"><i class="fa-solid fa-screwdriver-wrench text-primary dark:text-blue-500 mr-2"></i> Dashboard</h2>
+                    <div class="flex gap-2">
+                        <button onclick="lockAdmin()" class="bg-red-100 dark:bg-red-900/30 text-red-500 dark:text-red-400 w-10 h-10 rounded-full flex items-center justify-center hover:bg-red-200 dark:hover:bg-red-800/50 transition-colors" title="Lock Admin"><i class="fa-solid fa-lock"></i></button>
+                        <button onclick="closeAdmin()" class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-full text-sm font-bold hover:bg-gray-200 dark:hover:bg-gray-700">Exit</button>
+                    </div>
+                </header>
+                
+                <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                    
+                    <!-- Stats -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 relative">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-1">Queue Status</p>
+                            <p class="text-2xl font-black text-primary dark:text-blue-500"><span id="adminQueueCount">0</span> <span class="text-sm font-semibold text-gray-400">days left</span></p>
+                            <button onclick="skipDayForTesting()" class="absolute top-4 right-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 p-1.5 rounded-lg text-xs font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors" title="Skip to Next Day"><i class="fa-solid fa-forward-step"></i> Skip</button>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 font-bold mb-1">Total Photos</p>
+                            <p class="text-2xl font-black dark:text-gray-100"><span id="adminTotalPhotos">0</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Upload Section -->
+                    <div class="bg-white dark:bg-gray-800 p-5 rounded-3xl shadow-md border border-gray-100 dark:border-gray-700">
+                        <h3 class="font-extrabold text-lg mb-4 flex items-center gap-2 dark:text-gray-100"><i class="fa-solid fa-cloud-arrow-up text-blue-500"></i> Add to Queue</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 dark:text-gray-400 block mb-1">Upload from Phone</label>
+                                <input type="file" id="adminImgUpload" accept="image/*" class="w-full bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary dark:focus:border-blue-500">
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <hr class="flex-1 border-gray-200 dark:border-gray-600"><span class="text-xs text-gray-400 font-bold">OR</span><hr class="flex-1 border-gray-200 dark:border-gray-600">
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold text-gray-500 dark:text-gray-400 block mb-1">Image URL</label>
+                                <input type="text" id="adminImgUrl" placeholder="https://..." class="w-full bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary dark:focus:border-blue-500">
+                            </div>
+                            
+                            <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800/50">
+                                <p class="text-xs text-blue-800 dark:text-blue-300 font-semibold mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Would You Rather Generator</p>
+                                <button onclick="generateRandomPollForAdmin()" class="w-full bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 py-1.5 rounded-md text-sm font-bold hover:bg-blue-50 dark:hover:bg-gray-700">Generate Random Poll</button>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 dark:text-gray-400 block mb-1">Option A</label>
+                                    <input type="text" id="adminOptA" placeholder="Pancakes" class="w-full bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary dark:focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-gray-500 dark:text-gray-400 block mb-1">Option B</label>
+                                    <input type="text" id="adminOptB" placeholder="Waffles" class="w-full bg-gray-50 dark:bg-gray-700 dark:text-white border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary dark:focus:border-blue-500">
+                                </div>
+                            </div>
+                            
+                            <button onclick="addToQueue()" class="w-full bg-dark dark:bg-blue-600 text-white font-bold py-3 rounded-xl shadow hover:bg-black dark:hover:bg-blue-500 transition-colors mt-2">
+                                Add to Queue
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Manage Queue Section -->
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-extrabold text-lg pl-1 dark:text-gray-100">Upcoming Queue</h3>
+                            <button onclick="testIOSNotification()" class="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-lg text-xs font-bold hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"><i class="fa-solid fa-stopwatch"></i> Test Alert (5s)</button>
+                        </div>
+                        <div id="adminQueueList" class="space-y-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Message Modal for Alerts -->
+    <div id="messageModal" class="hidden fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+        <div class="bg-white dark:bg-gray-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center transform scale-95 transition-transform duration-300">
+            <div id="modalIcon" class="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl mb-4">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <h3 id="modalTitle" class="text-xl font-black mb-2 text-dark dark:text-gray-100">Notification</h3>
+            <p id="modalBody" class="text-gray-500 dark:text-gray-400 font-semibold mb-6">Message goes here</p>
+            <button onclick="closeModal()" class="w-full bg-primary dark:bg-blue-600 text-white font-bold py-3 rounded-xl shadow hover:shadow-lg transition-all">Got it</button>
+        </div>
+    </div>
+
+    <script>
+        const PASSCODE = "DaisyDoodle";
+        
+        // 100 WYR Questions
+        const WYR_POOL = [
+            ["Always eat pancakes", "Always eat waffles"],
+            ["Unlimited free pizza", "Unlimited free sushi"],
+            ["Only drink warm drinks", "Only drink iced drinks"],
+            ["Eat only sweet snacks", "Eat only salty snacks"],
+            ["Dip fries in ice cream", "Put pineapple on pizza"],
+            ["Give up cheese forever", "Give up chocolate forever"],
+            ["Have a personal chef", "Have a personal dessert baker"],
+            ["Drink sour milk by accident", "Bite into a raw onion"],
+            ["Eat cereal with water", "Eat potato chips with hot sauce"],
+            ["Eat only red food", "Eat only green food"],
+            ["Never eat fast food again", "Never eat home-cooked meals again"],
+            ["Endless bowl of popcorn", "Endless bag of chips"],
+            ["Always have slightly cold soup", "Always have melted ice cream"],
+            ["Eat a whole lemon", "Eat a spoonful of hot mustard"],
+            ["Drink melted milkshakes", "Drink slushes through paper straws"],
+            ["Be able to fly", "Be able to turn invisible"],
+            ["Speak every human language", "Talk to all animals"],
+            ["Read minds", "Predict the future"],
+            ["Teleport anywhere", "Pause time"],
+            ["Super strength", "Super speed"],
+            ["Breathe underwater", "Survive in outer space"],
+            ["Never need to sleep", "Never get tired from running"],
+            ["Control fire", "Control water"],
+            ["Always know when someone lies", "Always get away with lying"],
+            ["Change your appearance", "Change the shape of objects"],
+            ["A rewind button for life", "A pause button for the world"],
+            ["Talk to plants", "Make plants grow instantly"],
+            ["Night vision", "X-ray vision"],
+            ["Move objects with mind", "Levitate 2ft off ground"],
+            ["Master any instrument", "Master any sport"],
+            ["Always 10 mins early", "Always 5 mins late"],
+            ["Only wear pajamas", "Only wear formal clothes"],
+            ["No smartphone for a month", "No TV/streaming for a month"],
+            ["House cleans automatically", "Never do laundry again"],
+            ["Always have sticky hands", "Always have wet socks"],
+            ["Free luxury vacation yearly", "Free groceries for life"],
+            ["Live in a cozy cabin", "Live in a luxury penthouse"],
+            ["4-day work week (long days)", "5-day week (short days)"],
+            ["Sing instead of speaking", "Dance everywhere you walk"],
+            ["House with giant pool", "House with movie theater"],
+            ["Wake at 5 AM fully rested", "Stay up until 3 AM"],
+            ["Only be able to whisper", "Only be able to shout"],
+            ["Lose all your shoes", "Lose all your jackets"],
+            ["No AC in summer", "No heat in winter"],
+            ["Have a butler", "Have a personal chauffeur"],
+            ["Fight 1 horse-sized duck", "Fight 100 duck-sized horses"],
+            ["Have a dog tail", "Have cat whiskers"],
+            ["Laugh out loud at every joke", "Snort loudly when laughing"],
+            ["Live-stream your sleep", "Text wrong person weekly"],
+            ["Have feet for hands", "Have hands for feet"],
+            ["Smell like popcorn", "Smell like lavender"],
+            ["Dog-sized pet dragon", "Cat-sized pet elephant"],
+            ["Glow in the dark", "Make squeaky noises walking"],
+            ["Life narrated by Morgan Freeman", "Dramatic theme song playing"],
+            ["Drop phone on face in bed", "Stub toe on couch"],
+            ["Permanent bedhead", "Wear clown nose everywhere"],
+            ["Popcorn in teeth forever", "Mild itch on back forever"],
+            ["Communicate via emojis", "Speak in rhymes"],
+            ["Infinite bubble wrap", "Infinite silly string"],
+            ["Swap lives with a celeb", "Swap lives with your pet"],
+            ["Play games all day", "Watch movies all day"],
+            ["Only 1980s music", "Only music from last 2 years"],
+            ["Famous movie star", "Famous game developer"],
+            ["Live in Harry Potter universe", "Live in Marvel universe"],
+            ["Give up social media", "Give up video games"],
+            ["Robot best friend", "Time-traveling car"],
+            ["Action movie hero", "Comedy funny sidekick"],
+            ["Win an Oscar", "Win Olympic gold"],
+            ["Know movie endings beforehand", "Never re-watch a movie"],
+            ["Always summer", "Always winter"],
+            ["Travel 100 yrs to past", "Travel 100 yrs to future"],
+            ["Explore deepest ocean", "Explore new planet"],
+            ["Month on deserted island", "Month in snowy castle"],
+            ["Road trip in camper van", "Luxury cruise around world"],
+            ["Treehouse in rainforest", "Igloo in the Arctic"],
+            ["Visit Seven Wonders", "Safari in Africa"],
+            ["Fluent in alien languages", "Read ancient scripts"],
+            ["Hike massive volcano", "Scuba with giant turtles"],
+            ["Lost in corn maze", "Lost in amusement park at night"],
+            ["Rollercoaster with 10 loops", "Massive cliff waterslide"],
+            ["Super lucky with small things", "Moderately lucky with huge things"],
+            ["Infinite patience", "Incredible memory"],
+            ["Funniest person in room", "Smartest person in room"],
+            ["Endless supply of fresh socks", "Endless supply of fresh towels"],
+            ["Song stuck in head", "Slight itch in ear"],
+            ["Forget names upon meeting", "Forget what you were saying"],
+            ["Live without music", "Live without movies"],
+            ["Dog with human personality", "Human friend acting like dog"],
+            ["Free coffee/tea forever", "Free soft drinks forever"],
+            ["Magic carpet (10 mph)", "Bicycle (100 mph)"],
+            ["Rain out while safe in", "Starry night at campfire"],
+            ["Read physical book", "Listen to audiobook"],
+            ["Fuzzy slippers", "Weighted blanket"],
+            ["Hot cocoa with marshmallows", "Hot apple cider"],
+            ["Lazy Sunday no plans", "Action-packed Saturday"],
+            ["Sleep on cloud mattress", "Sleep in giant hammock"],
+            ["Smell fresh cookies", "Smell fresh rain"],
+            ["Cozy fireplace in room", "Giant skylight for stars"],
+            ["Pet that cuddles", "Pet that does tricks"],
+            ["Wake early for sunrise", "Stay late for full moon"]
+        ];
+
+        // Database simulation using LocalStorage
+        let appState = {
+            photos: [], // { id, url, optA, optB, votesA, votesB, totalScore, ratingCount, reactions: {love, paw, laugh, sleep}, dateShown }
+            currentDayIndex: 0,
+            hasVotedToday: false,
+            hasRatedToday: false,
+            hasReactedToday: false,
+            reactionType: null,
+            lastLoginDate: null,
+            isDarkMode: false,
+            isAdminLoggedIn: false
+        };
+
+        let swRegistration = null; // Holds the Service Worker for iOS Notifications
+
+        // DOM Elements
+        const el = {
+            date: document.getElementById('currentDateDisplay'),
+            img: document.getElementById('dailyCatImage'),
+            dayCounter: document.getElementById('dayCounter'),
+            optAText: document.getElementById('optAText'),
+            optBText: document.getElementById('optBText'),
+            pollOptions: document.getElementById('pollOptions'),
+            pollResults: document.getElementById('pollResults'),
+            barA: document.getElementById('barA'),
+            barB: document.getElementById('barB'),
+            resAText: document.getElementById('resAText'),
+            resBText: document.getElementById('resBText'),
+            resAPct: document.getElementById('resAPct'),
+            resBPct: document.getElementById('resBPct'),
+            sliderDisplay: document.getElementById('sliderValueDisplay'),
+            ratingInput: document.getElementById('ratingInputContainer'),
+            ratingResult: document.getElementById('ratingResultContainer'),
+            avgScore: document.getElementById('averageScoreDisplay'),
+            reactions: {
+                love: document.getElementById('reactLove'),
+                paw: document.getElementById('reactPaw'),
+                laugh: document.getElementById('reactLaugh'),
+                sleep: document.getElementById('reactSleep')
+            },
+            emptyState: document.getElementById('emptyStateOverlay')
+        };
+
+        function initApp() {
+            // Load state
+            const savedState = localStorage.getItem('catOfTheDayState');
+            if (savedState) {
+                appState = JSON.parse(savedState);
+                
+                // Migrate older local storage to support new vars
+                if(appState.hasReactedToday === undefined) appState.hasReactedToday = false;
+                if(appState.reactionType === undefined) appState.reactionType = null;
+                if(appState.isDarkMode === undefined) appState.isDarkMode = false;
+                if(appState.isAdminLoggedIn === undefined) appState.isAdminLoggedIn = false;
+            }
+
+            // Apply theme on launch
+            applyTheme();
+
+            // Set Date
+            const options = { weekday: 'long', month: 'long', day: 'numeric' };
+            el.date.innerText = new Date().toLocaleDateString('en-US', options);
+
+            // Check if day rolled over
+            checkDayRollover();
+            
+            // Setup secret trigger for admin (1 tap on the paw)
+            const triggerEl = document.getElementById('adminTrigger');
+            
+            triggerEl.addEventListener('click', () => {
+                // Visual feedback
+                triggerEl.style.opacity = '0.5';
+                setTimeout(() => triggerEl.style.opacity = '1', 100);
+
+                if (appState.isAdminLoggedIn) {
+                    // Bypass passcode if already logged in
+                    document.getElementById('adminDashboardView').classList.remove('hidden');
+                    renderAdminDashboard();
+                } else {
+                    // Show passcode screen
+                    document.getElementById('adminPasscodeView').classList.remove('hidden');
+                    document.getElementById('passcodeInput').focus();
+                }
+            });
+
+            // Set up PWA Manifest
+            setupManifest();
+            
+            // Show fake install prompt after a short delay
+            setTimeout(() => {
+                if(!window.matchMedia('(display-mode: standalone)').matches && appState.photos.length > 0) {
+                   document.getElementById('installPrompt').classList.remove('hidden');
+                }
+            }, 3000);
+            
+            document.getElementById('closeInstall').addEventListener('click', () => {
+                document.getElementById('installPrompt').classList.add('hidden');
+            });
+
+            // Load UI
+            renderTodayView();
+            
+            // Setup notification simulation if in demo mode
+            setupDemoNotification();
+            
+            // Setup iOS Service Worker
+            setupServiceWorker();
+        }
+
+        function saveState() {
+            localStorage.setItem('catOfTheDayState', JSON.stringify(appState));
+        }
+
+        function seedInitialData() {
+            appState.photos = [
+                {
+                    id: "seed1",
+                    url: "https://cdn2.thecatapi.com/images/0XYvRd7oD.jpg",
+                    optA: "Sleep in late",
+                    optB: "Wake up early",
+                    votesA: 0, votesB: 0,
+                    totalScore: 0, ratingCount: 0,
+                    reactions: {love: 0, paw: 0, laugh: 0, sleep: 0}
+                }
+            ];
+            saveState();
+        }
+
+        function checkDayRollover() {
+            const todayStr = new Date().toDateString();
+            if (appState.lastLoginDate !== todayStr) {
+                // New day!
+                if (appState.photos.length > 0) {
+                    appState.currentDayIndex++;
+                    // Loop back to beginning if we hit the end
+                    if (appState.currentDayIndex >= appState.photos.length) {
+                        appState.currentDayIndex = 0;
+                    }
+                }
+                appState.hasVotedToday = false;
+                appState.hasRatedToday = false;
+                appState.hasReactedToday = false;
+                appState.reactionType = null;
+                appState.lastLoginDate = todayStr;
+                saveState();
+            }
+        }
+
+        function renderTodayView() {
+            if (appState.photos.length === 0) {
+                el.emptyState.classList.remove('hidden');
+                el.img.src = "https://placehold.co/600x600/f3f4f6/d1d5db?text=%F0%9F%98%BF";
+                disableInteractions();
+                return;
+            }
+            
+            el.emptyState.classList.add('hidden');
+            enableInteractions();
+
+            const currentPhoto = appState.photos[appState.currentDayIndex];
+            
+            el.img.src = currentPhoto.url;
+            el.dayCounter.innerText = appState.currentDayIndex + 1;
+            
+            // Text updates
+            el.optAText.innerText = currentPhoto.optA;
+            el.optBText.innerText = currentPhoto.optB;
+            el.resAText.innerText = currentPhoto.optA;
+            el.resBText.innerText = currentPhoto.optB;
+
+            // Poll State
+            if (appState.hasVotedToday) {
+                showPollResults(currentPhoto);
+            } else {
+                el.pollOptions.classList.remove('hidden');
+                el.pollResults.classList.add('hidden');
+            }
+
+            // Rating State
+            if (appState.hasRatedToday) {
+                el.ratingInput.classList.add('hidden');
+                el.ratingResult.classList.remove('hidden');
+                updateAverageScoreDisplay(currentPhoto);
+            } else {
+                el.ratingInput.classList.remove('hidden');
+                el.ratingResult.classList.add('hidden');
+                document.getElementById('ratingSlider').value = 5;
+                updateSliderValue(5);
+            }
+
+            // Reactions
+            renderReactions();
+        }
+
+        function renderReactions() {
+            if (appState.photos.length === 0) return;
+            const photo = appState.photos[appState.currentDayIndex];
+            
+            ['love', 'paw', 'laugh', 'sleep'].forEach(type => {
+                el.reactions[type].innerText = photo.reactions[type];
+                const btn = el.reactions[type].parentElement;
+                
+                // Apply active highlight to the current selected reaction
+                if (appState.hasReactedToday && appState.reactionType === type) {
+                    btn.classList.add('bg-primary/20', 'dark:bg-blue-500/30');
+                } else {
+                    btn.classList.remove('bg-primary/20', 'dark:bg-blue-500/30');
+                }
+            });
+        }
+
+        function disableInteractions() {
+             document.getElementById('pollOptions').style.opacity = '0.5';
+             document.getElementById('pollOptions').style.pointerEvents = 'none';
+             document.getElementById('ratingInputContainer').style.opacity = '0.5';
+             document.getElementById('ratingInputContainer').style.pointerEvents = 'none';
+        }
+        function enableInteractions() {
+             document.getElementById('pollOptions').style.opacity = '1';
+             document.getElementById('pollOptions').style.pointerEvents = 'auto';
+             document.getElementById('ratingInputContainer').style.opacity = '1';
+             document.getElementById('ratingInputContainer').style.pointerEvents = 'auto';
+        }
+
+        function submitVote(option) {
+            if (appState.photos.length === 0 || appState.hasVotedToday) return;
+            
+            const currentPhoto = appState.photos[appState.currentDayIndex];
+            if (option === 'optionA') currentPhoto.votesA++;
+            if (option === 'optionB') currentPhoto.votesB++;
+            
+            appState.hasVotedToday = true;
+            saveState();
+            
+            // Animation transition
+            el.pollOptions.classList.add('hidden');
+            el.pollResults.classList.remove('hidden');
+            
+            // Tiny delay to let DOM render before animating widths
+            setTimeout(() => {
+                showPollResults(currentPhoto);
+            }, 50);
+        }
+
+        function showPollResults(photo) {
+            el.pollOptions.classList.add('hidden');
+            el.pollResults.classList.remove('hidden');
+            
+            const total = photo.votesA + photo.votesB;
+            let pctA = 0;
+            let pctB = 0;
+            
+            if (total > 0) {
+                pctA = Math.round((photo.votesA / total) * 100);
+                pctB = 100 - pctA;
+            } else {
+                pctA = 50; pctB = 50; // Edge case
+            }
+
+            el.resAPct.innerText = `${pctA}%`;
+            el.resBPct.innerText = `${pctB}%`;
+            
+            el.barA.style.width = `${pctA}%`;
+            el.barB.style.width = `${pctB}%`;
+        }
+
+        function updateSliderValue(val) {
+            el.sliderDisplay.innerText = val;
+        }
+
+        function submitRating() {
+            if (appState.photos.length === 0 || appState.hasRatedToday) return;
+            
+            const score = parseInt(document.getElementById('ratingSlider').value);
+            const currentPhoto = appState.photos[appState.currentDayIndex];
+            
+            currentPhoto.totalScore += score;
+            currentPhoto.ratingCount++;
+            
+            appState.hasRatedToday = true;
+            saveState();
+            
+            el.ratingInput.classList.add('hidden');
+            el.ratingResult.classList.remove('hidden');
+            
+            fireConfetti();
+            updateAverageScoreDisplay(currentPhoto);
+            
+            // Check if it hit the leaderboard
+            checkLeaderboardQualification(currentPhoto);
+        }
+
+        function updateAverageScoreDisplay(photo) {
+            let avg = 0;
+            if (photo.ratingCount > 0) {
+                avg = (photo.totalScore / photo.ratingCount).toFixed(1);
+            }
+            el.avgScore.innerText = avg;
+        }
+
+        function addReaction(type) {
+            if (appState.photos.length === 0) return;
+            
+            const currentPhoto = appState.photos[appState.currentDayIndex];
+            
+            // Allow one reaction per day - swap logic
+            if (appState.hasReactedToday) {
+                if (appState.reactionType === type) return; // Ignore if tapping the same one
+                
+                // Decrement old reaction
+                if (appState.reactionType && currentPhoto.reactions[appState.reactionType] > 0) {
+                    currentPhoto.reactions[appState.reactionType]--;
+                }
+            }
+
+            // Increment new reaction
+            currentPhoto.reactions[type]++;
+            
+            appState.hasReactedToday = true;
+            appState.reactionType = type;
+            
+            saveState();
+            renderReactions();
+            
+            // Visual feedback on button
+            const btn = el.reactions[type].parentElement;
+            btn.classList.add('scale-110');
+            setTimeout(() => btn.classList.remove('scale-110'), 300);
+        }
+
+        document.getElementById('leaderboardBtn').addEventListener('click', () => {
+            document.getElementById('mainContent').scrollTop = 0;
+            document.getElementById('todayView').classList.add('hidden');
+            document.getElementById('leaderboardView').classList.remove('hidden');
+            renderLeaderboard();
+        });
+
+        function showTodayView() {
+            document.getElementById('leaderboardView').classList.add('hidden');
+            document.getElementById('todayView').classList.remove('hidden');
+        }
+
+        function renderLeaderboard() {
+            const listEl = document.getElementById('leaderboardList');
+            listEl.innerHTML = '';
+            
+            // Calculate averages and sort
+            const rankedPhotos = appState.photos
+                .filter(p => p.ratingCount > 0)
+                .map(p => ({
+                    ...p,
+                    avg: parseFloat((p.totalScore / p.ratingCount).toFixed(1))
+                }))
+                .sort((a, b) => {
+                    if (b.avg !== a.avg) return b.avg - a.avg;
+                    return b.ratingCount - a.ratingCount; // Tiebreaker
+                })
+                .slice(0, 5); // Top 5
+
+            if (rankedPhotos.length === 0) {
+                listEl.innerHTML = `
+                    <div class="text-center py-10 bg-white rounded-2xl shadow-sm border border-gray-100">
+                        <i class="fa-solid fa-ghost text-4xl text-gray-300 mb-2"></i>
+                        <p class="text-gray-500 font-bold">No ratings yet!</p>
+                    </div>`;
+                return;
+            }
+
+            rankedPhotos.forEach((photo, index) => {
+                const medals = ['text-yellow-400', 'text-gray-400', 'text-amber-600', 'text-blue-300', 'text-blue-200'];
+                const rankColor = medals[index];
+                
+                const html = `
+                    <div class="bg-white dark:bg-gray-800 rounded-2xl p-3 shadow-md border border-gray-100 dark:border-gray-700 flex items-center gap-4 transition-colors duration-300">
+                        <div class="w-8 flex justify-center text-xl font-black ${rankColor}">#${index + 1}</div>
+                        <div class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
+                            <img src="${photo.url}" class="w-full h-full object-cover" loading="lazy">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-1 text-lg font-black text-dark dark:text-gray-100">
+                                <i class="fa-solid fa-star text-yellow-400 text-sm"></i> ${photo.avg}
+                            </div>
+                            <p class="text-xs text-gray-400 font-bold">${photo.ratingCount} votes</p>
+                        </div>
+                    </div>
+                `;
+                listEl.innerHTML += html;
+            });
+        }
+        
+        function checkLeaderboardQualification(photo) {
+            // For a real app, this would check server state.
+            // Here we just notify if it's rated very high
+            const avg = parseFloat((photo.totalScore / photo.ratingCount).toFixed(1));
+            if(photo.ratingCount === 1 && avg >= 9) {
+                showModal("Hot Start!", "Wow! Today's cat is starting off with an amazing score. Let's see if it holds up!", "fa-fire", "text-orange-500", "bg-orange-100");
+            }
+        }
+
+        function verifyPasscode() {
+            const input = document.getElementById('passcodeInput');
+            const error = document.getElementById('passcodeError');
+            
+            if (input.value === PASSCODE) {
+                input.value = '';
+                error.style.opacity = '0';
+                
+                // Save login state forever
+                appState.isAdminLoggedIn = true;
+                saveState();
+                
+                document.getElementById('adminPasscodeView').classList.add('hidden');
+                document.getElementById('adminDashboardView').classList.remove('hidden');
+                renderAdminDashboard();
+            } else {
+                error.style.opacity = '1';
+                input.classList.add('border-red-500', 'animate-bounce-slight');
+                setTimeout(() => input.classList.remove('border-red-500', 'animate-bounce-slight'), 1000);
+            }
+        }
+
+        function closeAdmin() {
+            document.getElementById('adminPasscodeView').classList.add('hidden');
+            document.getElementById('adminDashboardView').classList.add('hidden');
+            document.getElementById('passcodeInput').value = '';
+            document.getElementById('passcodeError').style.opacity = '0';
+        }
+
+        function lockAdmin() {
+            appState.isAdminLoggedIn = false;
+            saveState();
+            closeAdmin();
+            showModal("Locked", "Admin dashboard has been secured.", "fa-lock", "text-gray-500", "bg-gray-100");
+        }
+
+        function skipDayForTesting() {
+            if (appState.photos.length === 0) {
+                showModal("Queue Empty", "Upload some photos before skipping.", "fa-triangle-exclamation", "text-yellow-500", "bg-yellow-100");
+                return;
+            }
+
+            // Advance index to the next photo
+            appState.currentDayIndex++;
+            
+            // Loop back to the start if we reach the end of the queue
+            if (appState.currentDayIndex >= appState.photos.length) {
+                appState.currentDayIndex = 0; 
+            }
+
+            // Reset subscriber interaction states for the new day
+            appState.hasVotedToday = false;
+            appState.hasRatedToday = false;
+            appState.hasReactedToday = false;
+            appState.reactionType = null;
+            
+            // Reset today's login string so normal rollover doesn't double-skip
+            appState.lastLoginDate = new Date().toDateString();
+
+            saveState();
+            renderAdminDashboard();
+            renderTodayView();
+
+            showModal("Time Travel Success!", "Skipped ahead to the next cat in the queue.", "fa-forward-step", "text-blue-500", "bg-blue-100");
+        }
+
+        function generateRandomPollForAdmin() {
+            const randomPair = WYR_POOL[Math.floor(Math.random() * WYR_POOL.length)];
+            document.getElementById('adminOptA').value = randomPair[0];
+            document.getElementById('adminOptB').value = randomPair[1];
+            
+            // Visual feedback
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Generated!';
+            btn.classList.replace('text-blue-600', 'text-green-600');
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.replace('text-green-600', 'text-blue-600');
+            }, 1000);
+        }
+
+        function addToQueue() {
+            const fileInput = document.getElementById('adminImgUpload');
+            const urlInput = document.getElementById('adminImgUrl');
+            const optAInput = document.getElementById('adminOptA');
+            const optBInput = document.getElementById('adminOptB');
+            
+            if (!optAInput.value || !optBInput.value) {
+                showModal("Missing Info", "Please fill out both poll options.", "fa-triangle-exclamation", "text-red-500", "bg-red-100");
+                return;
+            }
+
+            // Handle Photo Selection directly from the phone using Canvas compression
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        // Resize heavily to avoid crashing local storage limits
+                        const MAX_WIDTH = 800;
+                        const MAX_HEIGHT = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Compress back to a safe base64 URL format
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        finalizeAddToQueue(compressedDataUrl, optAInput.value, optBInput.value);
+                        
+                        fileInput.value = ''; // clear out after saving
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            } 
+            // Fallback to text URL if they didn't upload a file
+            else if (urlInput.value) {
+                finalizeAddToQueue(urlInput.value, optAInput.value, optBInput.value);
+            } 
+            else {
+                showModal("Missing Info", "Please upload an image from your phone or provide a URL.", "fa-triangle-exclamation", "text-red-500", "bg-red-100");
+                return;
+            }
+        }
+
+        function finalizeAddToQueue(imgData, optA, optB) {
+            const newPhoto = {
+                id: Date.now().toString(),
+                url: imgData,
+                optA: optA,
+                optB: optB,
+                votesA: 0, 
+                votesB: 0,
+                totalScore: 0,
+                ratingCount: 0,
+                reactions: {
+                    love: 0,
+                    paw: 0,
+                    laugh: 0,
+                    sleep: 0
+                }
+            };
+            
+            appState.photos.push(newPhoto);
+            saveState();
+            
+            // Clear form
+            document.getElementById('adminImgUrl').value = '';
+            document.getElementById('adminOptA').value = '';
+            document.getElementById('adminOptB').value = '';
+            
+            renderAdminDashboard();
+            
+            // If this was the first photo, re-render the main view
+            if (appState.photos.length === 1) {
+                renderTodayView();
+            }
+            
+            showModal("Success!", "Photo added to the queue.", "fa-circle-check", "text-green-500", "bg-green-100");
+        }
+
+        function renderAdminDashboard() {
+            document.getElementById('adminTotalPhotos').innerText = appState.photos.length;
+            
+            const queueLeft = Math.max(0, appState.photos.length - appState.currentDayIndex - 1);
+            document.getElementById('adminQueueCount').innerText = queueLeft;
+            
+            const queueList = document.getElementById('adminQueueList');
+            queueList.innerHTML = '';
+            
+            if (appState.photos.length === 0) {
+                queueList.innerHTML = '<p class="text-sm text-gray-500 italic">Queue is empty.</p>';
+                return;
+            }
+            
+            // Show upcoming photos starting from today
+            for (let i = appState.currentDayIndex; i < Math.min(appState.currentDayIndex + 5, appState.photos.length); i++) {
+                const photo = appState.photos[i];
+                const isToday = i === appState.currentDayIndex;
+                
+                const html = `
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-2 shadow-sm border ${isToday ? 'border-primary dark:border-blue-500' : 'border-gray-100 dark:border-gray-700'} flex items-center gap-3 transition-colors duration-300">
+                        <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
+                            <img src="${photo.url}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 overflow-hidden">
+                            <p class="text-xs font-bold text-dark dark:text-gray-100 truncate">A: ${photo.optA}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">B: ${photo.optB}</p>
+                        </div>
+                        ${isToday ? '<span class="text-[10px] bg-primary dark:bg-blue-600 text-white font-bold px-2 py-1 rounded">TODAY</span>' : `<span class="text-xs text-gray-400 font-bold">Day ${i+1}</span>`}
+                        <button onclick="removePhoto('${photo.id}')" class="text-red-400 hover:text-red-600 p-2"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                queueList.innerHTML += html;
+            }
+        }
+        
+        function removePhoto(id) {
+             appState.photos = appState.photos.filter(p => p.id !== id);
+             // Safety check for index
+             if (appState.currentDayIndex >= appState.photos.length) {
+                 appState.currentDayIndex = Math.max(0, appState.photos.length - 1);
+             }
+             saveState();
+             renderAdminDashboard();
+             renderTodayView();
+        }
+
+        function showModal(title, body, iconClass, iconColorClass, iconBgClass) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerText = body;
+            
+            const iconContainer = document.getElementById('modalIcon');
+            iconContainer.className = `w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl mb-4 ${iconColorClass} ${iconBgClass}`;
+            iconContainer.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+            
+            document.getElementById('messageModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('messageModal').classList.add('hidden');
+        }
+
+        // Theme Toggle Logic
+        function toggleTheme() {
+            appState.isDarkMode = !appState.isDarkMode;
+            saveState();
+            applyTheme();
+        }
+
+        function applyTheme() {
+            const icon = document.getElementById('themeIcon');
+            if (appState.isDarkMode) {
+                document.documentElement.classList.add('dark');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                // Adjust PWA status bar styling to match dark theme
+                document.querySelector('meta[name="theme-color"]').setAttribute("content", "#0f172a");
+            } else {
+                document.documentElement.classList.remove('dark');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                document.querySelector('meta[name="theme-color"]').setAttribute("content", "#FF9A9E");
+            }
+        }
+
+        // PWA Manifest generator for Single File constraint
+        function setupManifest() {
+            const manifest = {
+                "name": "Daily Meow",
+                "short_name": "DailyMeow",
+                "start_url": ".",
+                "display": "standalone",
+                "background_color": "#FF9A9E",
+                "theme_color": "#FF9A9E",
+                "icons": [
+                    {
+                        "src": "https://placehold.co/192x192/FF9A9E/ffffff?text=Meow",
+                        "sizes": "192x192",
+                        "type": "image/png"
+                    },
+                    {
+                        "src": "https://placehold.co/512x512/FF9A9E/ffffff?text=Meow",
+                        "sizes": "512x512",
+                        "type": "image/png"
+                    }
+                ]
+            };
+            const stringManifest = JSON.stringify(manifest);
+            const blob = new Blob([stringManifest], {type: 'application/json'});
+            const manifestURL = URL.createObjectURL(blob);
+            document.getElementById('manifest-link').setAttribute('href', manifestURL);
+        }
+
+        // Lightweight Confetti
+        function fireConfetti() {
+            const canvas = document.getElementById('confetti');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const particles = [];
+            const colors = ['#FF9A9E', '#FECFEF', '#ffffff', '#FFD700', '#87CEFA'];
+            
+            for(let i=0; i<50; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2 + 100,
+                    r: Math.random() * 6 + 2,
+                    dx: Math.random() * 10 - 5,
+                    dy: Math.random() * -10 - 5,
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                });
+            }
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                
+                let active = false;
+                particles.forEach(p => {
+                    p.x += p.dx;
+                    p.y += p.dy;
+                    p.dy += 0.5; // gravity
+                    
+                    if(p.y < canvas.height) active = true;
+                    
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                });
+                
+                if(!active) {
+                    ctx.clearRect(0,0,canvas.width,canvas.height);
+                }
+            }
+            animate();
+        }
+        
+        // --- iOS Web Push & Notification Logic ---
+        
+        async function setupServiceWorker() {
+            if ('serviceWorker' in navigator && 'Notification' in window) {
+                try {
+                    // Create an inline service worker using a Blob for single-file support
+                    const swCode = `
+                        self.addEventListener('notificationclick', function(event) {
+                            event.notification.close();
+                            event.waitUntil(
+                                clients.matchAll({ type: 'window' }).then(windowClients => {
+                                    if (windowClients.length > 0) {
+                                        windowClients[0].focus();
+                                    } else {
+                                        clients.openWindow('/');
+                                    }
+                                })
+                            );
+                        });
+                    `;
+                    const blob = new Blob([swCode], { type: 'text/javascript' });
+                    const swUrl = URL.createObjectURL(blob);
+                    swRegistration = await navigator.serviceWorker.register(swUrl);
+                    
+                    if(Notification.permission === 'granted') {
+                        document.getElementById('notifBtn').innerHTML = '<i class="fa-solid fa-bell text-yellow-400"></i>';
+                    }
+                } catch (e) {
+                    console.log('SW registration failed: ', e);
+                }
+            }
+        }
+
+        async function requestNotifications() {
+            if (!('Notification' in window)) {
+                showModal("Not Supported", "Your browser does not support notifications.", "fa-bell-slash", "text-red-500", "bg-red-100");
+                return;
+            }
+
+            // iOS Rule: Web push ONLY works if the app is added to the Home Screen
+            const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+
+            if (isIOS && !isStandalone) {
+                showModal("Install Required", "Apple requires you to add this app to your Home Screen before enabling alerts. Tap the 'Share' icon below and select 'Add to Home Screen', then open the app from there!", "fa-arrow-up-from-bracket", "text-blue-500", "bg-blue-100");
+                return;
+            }
+
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                showModal("Alerts Enabled!", "You are all set. Note: Real scheduled morning pushes require a connected backend server, but you can test how they look in the Admin panel!", "fa-bell", "text-green-500", "bg-green-100");
+                document.getElementById('notifBtn').innerHTML = '<i class="fa-solid fa-bell text-yellow-400"></i>';
+            } else {
+                showModal("Permission Denied", "You have blocked notifications.", "fa-bell-slash", "text-red-500", "bg-red-100");
+            }
+        }
+
+        function testIOSNotification() {
+            if (Notification.permission === 'granted' && swRegistration) {
+                showModal("Test Started", "Quick, close the app and go to your home screen! The notification will fire in 5 seconds.", "fa-stopwatch", "text-blue-500", "bg-blue-100");
+                setTimeout(() => {
+                    swRegistration.showNotification('Good meow-ning! 🐾', {
+                        body: "Tap to see today's cat and answer the new Would You Rather!",
+                        icon: 'https://placehold.co/192x192/FF9A9E/ffffff?text=Meow',
+                        vibrate: [200, 100, 200]
+                    });
+                }, 5000);
+            } else {
+                showModal("Not Enabled", "Please enable notifications first using the bell icon on the main screen.", "fa-bell-slash", "text-red-500", "bg-red-100");
+            }
+        }
+
+        // Demo Push Notification Simulator (In-App)
+        function setupDemoNotification() {
+             setTimeout(() => {
+                 if(appState.photos.length > 0 && !appState.hasVotedToday) {
+                    // Simulating a system push notification via our modal
+                    showModal(
+                        "Good meow-ning! 🐾", 
+                        "Tap to see today's cat and answer the new Would You Rather poll!", 
+                        "fa-cat", 
+                        "text-primary", 
+                        "bg-secondary"
+                    );
+                 }
+             }, 1000);
+        }
+
+        // Initialize on load
+        window.onload = initApp;
+
+    </script>
+</body>
+</html>
