@@ -524,8 +524,16 @@
         };
 
         let swRegistration = null;
-        const PUSH_API_URL = 'https://your-push-server.example.com'; // Set to your deployed push-server URL.
-        const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE'; // Set to the push server's VAPID public key.
+        const PUSH_API_URL = 'http://localhost:8787'; // Default local push-server URL.
+        const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE'; // Replace with the server's VAPID public key.
+
+        function isPlaceholderPushConfig() {
+            return !PUSH_API_URL ||
+                PUSH_API_URL.includes('your-push-server') ||
+                PUSH_API_URL.includes('your-real-push-server') ||
+                PUSH_API_URL.includes('example.com') ||
+                VAPID_PUBLIC_KEY.includes('YOUR_VAPID_PUBLIC_KEY_HERE');
+        }
 
         // DOM Elements
         const el = {
@@ -1280,8 +1288,8 @@
         }
 
         async function subscribeToPush() {
-            if (!PUSH_API_URL || !VAPID_PUBLIC_KEY) {
-                throw new Error('Push server is not configured.');
+            if (isPlaceholderPushConfig()) {
+                throw new Error('Push server is not configured. Set the real PUSH_API_URL and VAPID_PUBLIC_KEY in this page.');
             }
 
             const registration = swRegistration || await navigator.serviceWorker.ready;
@@ -1366,8 +1374,8 @@
             const status = document.getElementById('pushSendStatus');
             const token = tokenInput.value.trim();
 
-            if (!PUSH_API_URL) {
-                showModal("Setup Incomplete", "Set PUSH_API_URL in this page before sending notifications.", "fa-triangle-exclamation", "text-yellow-500", "bg-yellow-100");
+            if (isPlaceholderPushConfig()) {
+                showModal("Setup Incomplete", "Set the real push-server URL in this page before sending notifications.", "fa-triangle-exclamation", "text-yellow-500", "bg-yellow-100");
                 return;
             }
             if (!token) {
