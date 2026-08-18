@@ -1,0 +1,19 @@
+name: Send Daily Meow
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send morning push
+        env:
+          PUSH_SERVER_URL: ${{ secrets.PUSH_SERVER_URL }}
+          PUSH_SENDER_TOKEN: ${{ secrets.PUSH_SENDER_TOKEN }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X POST "$PUSH_SERVER_URL/send-morning" \
+            -H "Authorization: Bearer $PUSH_SENDER_TOKEN"

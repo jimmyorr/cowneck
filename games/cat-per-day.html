@@ -517,7 +517,9 @@
             isAdminLoggedIn: false
         };
 
-        let swRegistration = null; // Holds the Service Worker for iOS Notifications
+        let swRegistration = null;
+        const PUSH_API_URL = ''; // Set this to the deployed push-server URL.
+        const VAPID_PUBLIC_KEY = ''; // Set this to the push server's VAPID public key.
 
         // DOM Elements
         const el = {
@@ -605,9 +607,6 @@
 
             // Load UI
             renderTodayView();
-            
-            // Setup notification simulation if in demo mode
-            setupDemoNotification();
             
             // Setup iOS Service Worker
             setupServiceWorker();
@@ -1245,34 +1244,46 @@
         // --- iOS Web Push & Notification Logic ---
         
         async function setupServiceWorker() {
-            if ('serviceWorker' in navigator && 'Notification' in window) {
-                try {
-                    // Create an inline service worker using a Blob for single-file support
-                    const swCode = `
-                        self.addEventListener('notificationclick', function(event) {
-                            event.notification.close();
-                            event.waitUntil(
-                                clients.matchAll({ type: 'window' }).then(windowClients => {
-                                    if (windowClients.length > 0) {
-                                        windowClients[0].focus();
-                                    } else {
-                                        clients.openWindow('/');
-                                    }
-                                })
-                            );
-                        });
-                    `;
-                    const blob = new Blob([swCode], { type: 'text/javascript' });
-                    const swUrl = URL.createObjectURL(blob);
-                    swRegistration = await navigator.serviceWorker.register(swUrl);
-                    
-                    if(Notification.permission === 'granted') {
-                        document.getElementById('notifBtn').innerHTML = '<i class="fa-solid fa-bell text-yellow-400"></i>';
-                    }
-                } catch (e) {
-                    console.log('SW registration failed: ', e);
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+            try {
+                swRegistration = await navigator.serviceWorker.register('/games/cat-per-day-sw.js', {
+                    scope: '/games/'
+                });
+                await navigator.serviceWorker.ready;
+
+                if (Notification.permission === 'granted') {
+                    document.getElementById('notifBtn').innerHTML = '<i class="fa-solid fa-bell text-yellow-400"></i>';
                 }
+            } catch (error) {
+                console.error('Service worker registration failed:', error);
             }
+        }
+
+        function urlBase64ToUint8Array(value) {
+            const padding = '='.repeat((4 - value.length % 4) % 4);
+            const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+            return Uint8Array.from(atob(base64), character => character.charCodeAt(0));
+        }
+
+        async function subscribeToPush() {
+            if (!PUSH_API_URL || !VAPID_PUBLIC_KEY) {
+                throw new Error('Push server is not configured.');
+            }
+
+            const registration = swRegistration || await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+            });
+
+            const response = await fetch(`${PUSH_API_URL.replace(/\/$/, '')}/subscriptions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(subscription)
+            });
+
+            if (!response.ok) throw new Error(`Subscription server returned ${response.status}.`);
         }
 
         async function requestNotifications() {
@@ -1292,8 +1303,13 @@
 
             const permission = await Notification.requestPermission();
             if (permission === 'granted') {
-                showModal("Alerts Enabled!", "You are all set. Note: Real scheduled morning pushes require a connected backend server, but you can test how they look in the Admin panel!", "fa-bell", "text-green-500", "bg-green-100");
-                document.getElementById('notifBtn').innerHTML = '<i class="fa-solid fa-bell text-yellow-400"></i>';
+                try {
+                    await subscribeToPush();
+                    showModal("Alerts Enabled!", "Daily Meow will send a push notification each morning.", "fa-bell", "text-green-500", "bg-green-100");
+                    document.getElementById('notifBtn').innerHTML = '<i class="fa-solid fa-bell text-yellow-400"></i>';
+                } catch (error) {
+                    showModal("Setup Incomplete", error.message, "fa-triangle-exclamation", "text-yellow-500", "bg-yellow-100");
+                }
             } else {
                 showModal("Permission Denied", "You have blocked notifications.", "fa-bell-slash", "text-red-500", "bg-red-100");
             }
@@ -1312,22 +1328,6 @@
             } else {
                 showModal("Not Enabled", "Please enable notifications first using the bell icon on the main screen.", "fa-bell-slash", "text-red-500", "bg-red-100");
             }
-        }
-
-        // Demo Push Notification Simulator (In-App)
-        function setupDemoNotification() {
-             setTimeout(() => {
-                 if(appState.photos.length > 0 && !appState.hasVotedToday) {
-                    // Simulating a system push notification via our modal
-                    showModal(
-                        "Good meow-ning! 🐾", 
-                        "Tap to see today's cat and answer the new Would You Rather poll!", 
-                        "fa-cat", 
-                        "text-primary", 
-                        "bg-secondary"
-                    );
-                 }
-             }, 1000);
         }
 
         // Initialize on load
