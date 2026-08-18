@@ -524,8 +524,8 @@
         };
 
         let swRegistration = null;
-        const PUSH_API_URL = ''; // Set this to the deployed push-server URL.
-        const VAPID_PUBLIC_KEY = ''; // Set this to the push server's VAPID public key.
+        const PUSH_API_URL = 'https://your-push-server.example.com'; // Set to your deployed push-server URL.
+        const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE'; // Set to the push server's VAPID public key.
 
         // DOM Elements
         const el = {
@@ -556,6 +556,9 @@
         };
 
         function initApp() {
+            const tokenInput = document.getElementById('adminPushToken');
+            if (tokenInput) tokenInput.value = 'DaisyDoodle';
+
             // Load state
             const savedState = localStorage.getItem('catOfTheDayState');
             if (savedState) {
