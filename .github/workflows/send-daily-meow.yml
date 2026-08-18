@@ -14,6 +14,13 @@ jobs:
           PUSH_SERVER_URL: ${{ secrets.PUSH_SERVER_URL }}
           PUSH_SENDER_TOKEN: ${{ secrets.PUSH_SENDER_TOKEN }}
         run: |
-          curl --fail-with-body --silent --show-error \
-            -X POST "$PUSH_SERVER_URL/send-morning" \
-            -H "Authorization: Bearer $PUSH_SENDER_TOKEN"
+          for attempt in 1 2 3 4 5; do
+            if curl --fail-with-body --silent --show-error --max-time 60 \
+              -X POST "$PUSH_SERVER_URL/send-morning" \
+              -H "Authorization: Bearer $PUSH_SENDER_TOKEN"; then
+              exit 0
+            fi
+            echo "Push attempt $attempt failed; retrying..."
+            sleep 15
+          done
+          exit 1

@@ -32,7 +32,23 @@ async function readSubscriptions() {
 }
 
 async function writeSubscriptions(subscriptions) {
-    await fs.writeFile(subscriptionsFile, JSON.stringify(subscriptions, null, 2));
+    const temporaryFile = `${subscriptionsFile}.tmp`;
+    await fs.writeFile(temporaryFile, JSON.stringify(subscriptions, null, 2));
+    await fs.rename(temporaryFile, subscriptionsFile);
+}
+
+async function sendWithRetry(subscription, payload) {
+    let lastError;
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            return await webpush.sendNotification(subscription, JSON.stringify(payload));
+        } catch (error) {
+            lastError = error;
+            if (error.statusCode === 404 || error.statusCode === 410 || error.statusCode < 500) throw error;
+            await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+        }
+    }
+    throw lastError;
 }
 
 app.get('/health', (_request, response) => response.json({ ok: true }));
@@ -67,7 +83,7 @@ app.post('/send-morning', async (request, response) => {
 
     for (const subscription of subscriptions) {
         try {
-            await webpush.sendNotification(subscription, JSON.stringify(payload));
+            await sendWithRetry(subscription, payload);
             activeSubscriptions.push(subscription);
             sent++;
         } catch (error) {

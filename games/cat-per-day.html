@@ -81,6 +81,7 @@
 
         .slider {
             -webkit-appearance: none;
+            appearance: none;
             width: 100%;
             height: 8px;
             border-radius: 5px;
@@ -1257,6 +1258,10 @@
                 });
                 await navigator.serviceWorker.ready;
 
+                if (Notification.permission === 'granted' && PUSH_API_URL && VAPID_PUBLIC_KEY) {
+                    await syncPushSubscription();
+                }
+
                 if (Notification.permission === 'granted') {
                     document.getElementById('notifBtn').innerHTML = '<i class="fa-solid fa-bell text-yellow-400"></i>';
                 }
@@ -1277,10 +1282,22 @@
             }
 
             const registration = swRegistration || await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.subscribe({
+            const subscription = await getOrCreatePushSubscription(registration);
+
+            await sendPushSubscription(subscription);
+        }
+
+        async function getOrCreatePushSubscription(registration) {
+            const existingSubscription = await registration.pushManager.getSubscription();
+            if (existingSubscription) return existingSubscription;
+
+            return registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
             });
+        }
+
+        async function sendPushSubscription(subscription) {
 
             const response = await fetch(`${PUSH_API_URL.replace(/\/$/, '')}/subscriptions`, {
                 method: 'POST',
@@ -1289,6 +1306,12 @@
             });
 
             if (!response.ok) throw new Error(`Subscription server returned ${response.status}.`);
+        }
+
+        async function syncPushSubscription() {
+            const registration = swRegistration || await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) await sendPushSubscription(subscription);
         }
 
         async function requestNotifications() {
