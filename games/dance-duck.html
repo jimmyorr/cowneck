@@ -1,0 +1,1365 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dance Duck: Revolution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+      body {
+        font-family: "Press Start 2P", cursive;
+        background-color: #000;
+        color: #fff;
+        overflow: hidden;
+        touch-action: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      #game-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transition: background 1s ease;
+      }
+
+      /* --- Level Backgrounds (Theaters) --- */
+
+      .bg-alley {
+        background-color: #1a1a2e;
+        background-image:
+          linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9)),
+          repeating-linear-gradient(
+            45deg,
+            #222 25%,
+            transparent 25%,
+            transparent 75%,
+            #222 75%,
+            #222
+          ),
+          repeating-linear-gradient(
+            45deg,
+            #222 25%,
+            transparent 25%,
+            transparent 75%,
+            #222 75%,
+            #222
+          );
+        background-position:
+          0 0,
+          10px 10px;
+        background-size: 20px 20px;
+      }
+
+      .bg-neon {
+        background-color: #0b001a;
+        background-image:
+          linear-gradient(
+            to bottom,
+            transparent 60%,
+            rgba(255, 0, 255, 0.3) 100%
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(0, 255, 255, 0.1) 0,
+            rgba(0, 255, 255, 0.1) 2px,
+            transparent 2px,
+            transparent 40px
+          );
+        box-shadow: inset 0 0 100px rgba(255, 0, 255, 0.2);
+      }
+
+      .bg-forest {
+        background-color: #001a0b;
+        background-image:
+          radial-gradient(circle at 50% 80%, #004d26 0%, #001a0b 70%),
+          radial-gradient(
+            circle at 20% 20%,
+            rgba(100, 255, 100, 0.1) 1px,
+            transparent 2px
+          ),
+          radial-gradient(
+            circle at 80% 40%,
+            rgba(100, 255, 100, 0.1) 1px,
+            transparent 2px
+          );
+      }
+
+      .bg-opera {
+        background-color: #330000;
+        background-image: linear-gradient(
+          90deg,
+          #5c0000 0%,
+          #290000 20%,
+          #290000 80%,
+          #5c0000 100%
+        );
+        border-left: 5vw solid #8b0000;
+        border-right: 5vw solid #8b0000;
+        box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8);
+      }
+
+      .bg-space {
+        background-color: #000;
+        background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+        background-size: 50px 50px;
+        animation: stars 5s linear infinite;
+      }
+
+      @keyframes stars {
+        from {
+          background-position: 0 0;
+        }
+        to {
+          background-position: 0 50px;
+        }
+      }
+
+      .track {
+        position: absolute;
+        top: 0;
+        bottom: 150px;
+        width: 320px;
+        display: flex;
+        justify-content: space-around;
+        background-color: rgba(0, 0, 0, 0.6);
+        border-left: 2px solid rgba(255, 255, 255, 0.2);
+        border-right: 2px solid rgba(255, 255, 255, 0.2);
+        z-index: 2;
+        overflow: hidden;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+      }
+
+      .column {
+        position: relative;
+        width: 25%;
+        height: 100%;
+        border-right: 1px dashed rgba(255, 255, 255, 0.1);
+      }
+      .column:last-child {
+        border-right: none;
+      }
+
+      .target-zone {
+        position: absolute;
+        bottom: 20px;
+        width: 100%;
+        height: 60px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 3;
+        border-top: 2px solid rgba(255, 255, 255, 0.5);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.1) 0%,
+          rgba(255, 255, 255, 0.3) 50%,
+          rgba(255, 255, 255, 0.1) 100%
+        );
+      }
+
+      .target {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: 4px solid #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5rem;
+        transition: all 0.05s;
+        background-color: rgba(0, 0, 0, 0.8);
+      }
+
+      .target.left {
+        border-color: #ff007f;
+        color: #ff007f;
+      }
+      .target.up {
+        border-color: #00f0ff;
+        color: #00f0ff;
+      }
+      .target.down {
+        border-color: #ffaa00;
+        color: #ffaa00;
+      }
+      .target.right {
+        border-color: #00ff00;
+        color: #00ff00;
+      }
+
+      .target.active {
+        transform: scale(0.85);
+        box-shadow: 0 0 20px currentColor;
+        background-color: currentColor;
+        color: #000;
+      }
+
+      .note {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+        box-shadow:
+          inset 0 0 10px rgba(0, 0, 0, 0.5),
+          0 0 15px currentColor;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 4;
+      }
+
+      .note.left {
+        background: linear-gradient(135deg, #ff66b2, #ff007f);
+      }
+      .note.up {
+        background: linear-gradient(135deg, #66f5ff, #00f0ff);
+      }
+      .note.down {
+        background: linear-gradient(135deg, #ffcc66, #ffaa00);
+      }
+      .note.right {
+        background: linear-gradient(135deg, #66ff66, #00ff00);
+      }
+
+      .particle {
+        position: absolute;
+        pointer-events: none;
+        border-radius: 50%;
+        z-index: 10;
+        animation: particleAnim 0.4s ease-out forwards;
+      }
+
+      @keyframes particleAnim {
+        0% {
+          transform: scale(1) translate(0, 0);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(0) translate(var(--tx), var(--ty));
+          opacity: 0;
+        }
+      }
+
+      #duck-stage {
+        position: absolute;
+        bottom: 20px;
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .duck {
+        font-size: 6rem;
+        line-height: 1;
+        filter: drop-shadow(0 0 15px rgba(255, 255, 0, 0.4));
+        transition: transform 0.1s;
+        user-select: none;
+      }
+
+      .duck.idle {
+        animation: bob 0.8s infinite alternate ease-in-out;
+      }
+      .duck.dance-left {
+        transform: translateX(-30px) rotate(-15deg) scale(1.1);
+        filter: drop-shadow(0 0 20px #ff007f);
+      }
+      .duck.dance-up {
+        transform: translateY(-40px) scale(1.1);
+        filter: drop-shadow(0 0 20px #00f0ff);
+      }
+      .duck.dance-down {
+        transform: translateY(15px) scale(1.1);
+        filter: drop-shadow(0 0 20px #ffaa00);
+      }
+      .duck.dance-right {
+        transform: translateX(30px) rotate(15deg) scale(1.1);
+        filter: drop-shadow(0 0 20px #00ff00);
+      }
+      .duck.miss {
+        filter: grayscale(100%);
+        transform: scale(0.9);
+      }
+
+      @keyframes bob {
+        0% {
+          transform: translateY(0);
+        }
+        100% {
+          transform: translateY(-15px);
+        }
+      }
+
+      #ui-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 20;
+      }
+
+      .screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        pointer-events: auto;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .btn {
+        margin-top: 2rem;
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+        font-family: "Press Start 2P", cursive;
+        background: linear-gradient(135deg, #e94560, #ff007f);
+        color: white;
+        border: 4px solid #fff;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 5px 0 #8b0000;
+        transition:
+          transform 0.1s,
+          box-shadow 0.1s;
+      }
+
+      .btn:active {
+        transform: translateY(5px);
+        box-shadow: 0 0 0 #8b0000;
+      }
+
+      /* Way Too Much Health Display */
+      .mega-health-box {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        border: 4px solid #ff007f;
+        border-radius: 10px;
+        padding: 10px 20px;
+        text-align: right;
+        box-shadow: 0 0 20px rgba(255, 0, 127, 0.5);
+      }
+
+      #feedback {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 3rem;
+        font-weight: bold;
+        opacity: 0;
+      }
+
+      @keyframes popOut {
+        0% {
+          transform: translate(-50%, -50%) scale(0.5);
+          opacity: 1;
+        }
+        50% {
+          transform: translate(-50%, -60%) scale(1.2);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(-50%, -70%) scale(1);
+          opacity: 0;
+        }
+      }
+      .feedback-anim {
+        animation: popOut 0.5s ease-out forwards;
+      }
+      .feedback-perfect {
+        color: #00ffff;
+        text-shadow:
+          0 0 10px #00ffff,
+          2px 2px 0 #000;
+      }
+      .feedback-great {
+        color: #00ff00;
+        text-shadow:
+          0 0 10px #00ff00,
+          2px 2px 0 #000;
+      }
+      .feedback-good {
+        color: #ffff00;
+        text-shadow:
+          0 0 10px #ffff00,
+          2px 2px 0 #000;
+      }
+      .feedback-miss {
+        color: #ff0000;
+        text-shadow:
+          0 0 10px #ff0000,
+          2px 2px 0 #000;
+      }
+
+      #mobile-controls {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        max-width: 400px;
+        display: flex;
+        justify-content: space-around;
+        z-index: 30;
+        padding: 0 10px;
+      }
+
+      .mobile-btn {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2rem;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .mobile-btn:active,
+      .mobile-btn.active {
+        background-color: rgba(255, 255, 255, 0.4);
+        transform: scale(0.9);
+      }
+
+      @media (min-width: 768px) {
+        #mobile-controls {
+          display: none;
+        }
+        .track {
+          width: 400px;
+        }
+        .target {
+          width: 60px;
+          height: 60px;
+          font-size: 2rem;
+        }
+        .note {
+          width: 60px;
+          height: 60px;
+          font-size: 2rem;
+        }
+        .duck {
+          font-size: 8rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container" class="bg-alley">
+      <!-- The Track Area -->
+      <div class="track" id="track">
+        <div class="column" id="col-left"></div>
+        <div class="column" id="col-up"></div>
+        <div class="column" id="col-down"></div>
+        <div class="column" id="col-right"></div>
+
+        <div class="target-zone" id="target-zone">
+          <div class="target left" id="target-0">⇦</div>
+          <div class="target up" id="target-1">⇧</div>
+          <div class="target down" id="target-2">⇩</div>
+          <div class="target right" id="target-3">⇨</div>
+        </div>
+      </div>
+
+      <!-- The Star of the Show -->
+      <div id="duck-stage">
+        <div id="duck" class="duck idle">🦆</div>
+        <div
+          class="mt-4 text-sm text-pink-300 animate-pulse bg-black bg-opacity-50 px-4 py-1 rounded"
+        >
+          DANCE DUCK
+        </div>
+      </div>
+
+      <!-- In-Game UI Overlay -->
+      <div id="ui-layer">
+        <div
+          class="absolute top-6 left-6 text-2xl text-white font-bold"
+          style="text-shadow: 2px 2px 0 #000"
+        >
+          SCORE: <span id="score" class="text-yellow-400">0</span>
+        </div>
+
+        <div
+          class="absolute top-16 left-6 text-xl text-cyan-300 font-bold hidden"
+          id="combo-container"
+          style="text-shadow: 2px 2px 0 #000"
+        >
+          COMBO: <span id="combo">0</span>x
+        </div>
+
+        <!-- Health Bar Display -->
+        <div
+          class="mega-health-box"
+          style="width: 250px; top: 20px; right: 20px"
+        >
+          <div class="text-xs text-pink-400 mb-1 flex justify-between">
+            <span>HP</span>
+            <span id="health-value-text">100/100</span>
+          </div>
+          <div class="w-full bg-gray-800 rounded-full h-4 border border-white">
+            <div
+              id="health-bar-fill"
+              class="bg-pink-500 h-full rounded-full transition-all duration-200"
+              style="width: 100%"
+            ></div>
+          </div>
+        </div>
+
+        <div id="feedback">PERFECT!</div>
+      </div>
+
+      <div id="mobile-controls">
+        <div class="mobile-btn" data-key="0">⇦</div>
+        <div class="mobile-btn" data-key="1">⇧</div>
+        <div class="mobile-btn" data-key="2">⇩</div>
+        <div class="mobile-btn" data-key="3">⇨</div>
+      </div>
+
+      <!-- Title Screen -->
+      <div id="start-screen" class="screen">
+        <h1
+          class="text-4xl md:text-6xl text-center mb-4 text-pink-500 font-bold"
+          style="
+            text-shadow:
+              4px 4px 0 #000,
+              0 0 20px #ff007f;
+          "
+        >
+          DANCE DUCK<br />REVOLUTION
+        </h1>
+        <div class="text-8xl mb-8 animate-bounce">🦆</div>
+
+        <p
+          class="text-sm md:text-base text-center max-w-md mb-8 text-blue-200 bg-black bg-opacity-60 p-4 rounded border-2 border-blue-500"
+        >
+          Help the Duck conquer the universe through dance!<br /><br />
+          Feel the rhythm, and press the keys (Arrow Keys or D, F, J, K) when
+          the notes hit the targets. Don't let your HP drop to 0!
+        </p>
+
+        <button class="btn" id="start-btn">PLAY</button>
+      </div>
+
+      <!-- Level Select Screen -->
+      <div id="level-select-screen" class="screen hidden">
+        <h2
+          class="text-4xl md:text-6xl text-center mb-8 text-pink-500 font-bold"
+          style="text-shadow: 4px 4px 0 #000"
+        >
+          SELECT STAGE
+        </h2>
+        <div class="flex flex-col gap-4 w-full max-w-md px-4">
+          <button class="btn level-btn" data-level="0">
+            1. THE BACK ALLEY
+          </button>
+          <button class="btn level-btn" data-level="1">2. NEON CLUB</button>
+          <button class="btn level-btn" data-level="2">3. MAGIC FOREST</button>
+          <button class="btn level-btn" data-level="3">4. GRAND OPERA</button>
+          <button class="btn level-btn" data-level="4">5. COSMIC ARENA</button>
+        </div>
+        <button
+          class="btn mt-8"
+          style="
+            background: linear-gradient(135deg, #4b5563, #374151);
+            box-shadow: 0 5px 0 #1f2937;
+          "
+          id="back-to-title-btn"
+        >
+          BACK
+        </button>
+      </div>
+
+      <!-- Difficulty Screen -->
+      <div id="difficulty-screen" class="screen hidden">
+        <h2
+          class="text-4xl md:text-6xl text-center mb-8 text-yellow-400 font-bold"
+          style="text-shadow: 4px 4px 0 #000"
+        >
+          DIFFICULTY
+        </h2>
+        <div class="flex flex-col gap-4 w-full max-w-md px-4">
+          <button
+            class="btn diff-btn"
+            style="
+              background: linear-gradient(135deg, #22c55e, #16a34a);
+              box-shadow: 0 5px 0 #14532d;
+            "
+            data-diff="easy"
+          >
+            EASY
+          </button>
+          <button
+            class="btn diff-btn"
+            style="
+              background: linear-gradient(135deg, #3b82f6, #2563eb);
+              box-shadow: 0 5px 0 #1e3a8a;
+            "
+            data-diff="normal"
+          >
+            NORMAL
+          </button>
+          <button
+            class="btn diff-btn"
+            style="
+              background: linear-gradient(135deg, #ef4444, #dc2626);
+              box-shadow: 0 5px 0 #7f1d1d;
+            "
+            data-diff="hard"
+          >
+            HARD
+          </button>
+        </div>
+        <button
+          class="btn mt-8"
+          style="
+            background: linear-gradient(135deg, #4b5563, #374151);
+            box-shadow: 0 5px 0 #1f2937;
+          "
+          id="back-to-levels-btn"
+        >
+          BACK
+        </button>
+      </div>
+
+      <!-- Story Intermission Screen -->
+      <div id="story-screen" class="screen hidden">
+        <h2
+          id="story-title"
+          class="text-4xl md:text-6xl text-yellow-400 mb-6 font-bold text-center"
+          style="text-shadow: 4px 4px 0 #000"
+        >
+          STAGE 1
+        </h2>
+        <div class="text-8xl mb-8">🦆💭</div>
+        <p
+          id="story-text"
+          class="text-lg md:text-2xl mb-10 max-w-2xl text-center leading-relaxed bg-black bg-opacity-70 p-6 rounded-lg border-2 border-white"
+        ></p>
+        <button id="story-next-btn" class="btn">LET'S DANCE!</button>
+      </div>
+
+      <!-- Level Clear Screen -->
+      <div id="clear-screen" class="screen hidden">
+        <h2
+          class="text-5xl md:text-7xl text-green-400 mb-6 font-bold"
+          style="text-shadow: 4px 4px 0 #000"
+        >
+          STAGE CLEARED!
+        </h2>
+        <div class="text-8xl mb-8">🦆🎉</div>
+        <p class="text-2xl mb-4">
+          Total Score: <span id="clear-score" class="text-yellow-400">0</span>
+        </p>
+        <p class="text-xl mb-10 text-pink-300">
+          Max Combo: <span id="clear-combo">0</span>
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <button
+            id="clear-levels-btn"
+            class="btn"
+            style="
+              background: linear-gradient(135deg, #4b5563, #374151);
+              box-shadow: 0 5px 0 #1f2937;
+              margin-top: 0;
+            "
+          >
+            LEVELS
+          </button>
+          <button id="clear-next-btn" class="btn" style="margin-top: 0">
+            NEXT STAGE
+          </button>
+        </div>
+      </div>
+
+      <!-- Final Victory Screen -->
+      <div id="victory-screen" class="screen hidden">
+        <h2
+          class="text-5xl md:text-7xl text-cyan-400 mb-6 font-bold text-center"
+          style="text-shadow: 4px 4px 0 #000"
+        >
+          UNIVERSE<br />CONQUERED!
+        </h2>
+        <div class="text-8xl mb-8 animate-bounce">🦆👑</div>
+        <p
+          class="text-2xl mb-4 bg-black bg-opacity-50 p-4 rounded text-center max-w-lg"
+        >
+          The Duck is officially the greatest dancer in the cosmos!
+        </p>
+        <p class="text-4xl mb-10 text-yellow-400">
+          Final Score: <span id="victory-score">0</span>
+        </p>
+        <button id="victory-levels-btn" class="btn">BACK TO LEVELS</button>
+      </div>
+    </div>
+
+    <script>
+      // --- Game Constants ---
+      const DIRECTIONS = ["left", "up", "down", "right"];
+      const SYMBOLS = ["⇦", "⇧", "⇩", "⇨"];
+      const KEYS = [
+        ["ArrowLeft", "d", "D"],
+        ["ArrowUp", "f", "F"],
+        ["ArrowDown", "j", "J"],
+        ["ArrowRight", "k", "K"],
+      ];
+
+      // Level Configurations for Story and Audio
+      const levels = [
+        {
+          name: "STAGE 1: THE BACK ALLEY",
+          bgClass: "bg-alley",
+          storyText:
+            "Our duck starts from the bottom. Just a boombox and a dream in a grimy city alleyway...",
+          bpm: 100,
+          beatsToFall: 4, // Notes take exactly 4 beats to fall
+          spawnChance: 0.45,
+          bassNotes: ["C2", "C2", "Eb2", "C2", "F2", "F2", "Eb2", "C2"],
+          leadNotes: ["C4", null, "G4", "Eb4", "C4", "G4", "Bb4", "G4"],
+          drumPattern: {
+            kick: [1, 0, 0, 0, 1, 0, 0, 0],
+            snare: [0, 0, 1, 0, 0, 0, 1, 0],
+            hat: [1, 0, 1, 0, 1, 0, 1, 0],
+          },
+        },
+        {
+          name: "STAGE 2: NEON CLUB",
+          bgClass: "bg-neon",
+          storyText:
+            "Gaining traction! The local club let our duck on stage. The neon lights are blinding!",
+          bpm: 125,
+          beatsToFall: 4,
+          spawnChance: 0.55,
+          bassNotes: ["A1", "A1", "A1", "A1", "F1", "F1", "G1", "G1"],
+          leadNotes: ["A4", "C5", "E5", "C5", "F5", "E5", "C5", "B4"],
+          drumPattern: {
+            kick: [1, 0, 1, 0, 1, 0, 1, 0],
+            snare: [0, 0, 1, 0, 0, 0, 1, 0],
+            hat: [1, 1, 1, 1, 1, 1, 1, 1],
+          },
+        },
+        {
+          name: "STAGE 3: MAGIC FOREST",
+          bgClass: "bg-forest",
+          storyText:
+            "A wrong turn leads to a mystical forest. The fairy ducks demand a dance battle!",
+          bpm: 140,
+          beatsToFall: 4,
+          spawnChance: 0.65,
+          bassNotes: ["E2", null, "G2", null, "D2", null, "A2", null],
+          leadNotes: ["E5", "B4", "G4", "B4", "D5", "A4", "F#4", "A4"],
+          drumPattern: {
+            kick: [1, 0, 0, 1, 0, 0, 1, 0],
+            snare: [0, 0, 1, 0, 0, 0, 1, 0],
+            hat: [1, 0, 1, 1, 1, 0, 1, 1],
+          },
+        },
+        {
+          name: "STAGE 4: GRAND OPERA",
+          bgClass: "bg-opera",
+          storyText:
+            "Scouted by aristocrats! Time to perform classical moves at the prestigious Grand Opera.",
+          bpm: 160,
+          beatsToFall: 4,
+          spawnChance: 0.75,
+          bassNotes: ["D2", "A2", "D3", "A2", "C2", "G2", "C3", "G2"],
+          leadNotes: ["D5", "F5", "A5", "F5", "C5", "E5", "G5", "E5"],
+          drumPattern: {
+            kick: [1, 0, 0, 0, 1, 0, 0, 0],
+            snare: [0, 0, 0, 0, 0, 0, 0, 0],
+            hat: [1, 0, 1, 0, 1, 0, 1, 0],
+          },
+        },
+        {
+          name: "STAGE 5: COSMIC ARENA",
+          bgClass: "bg-space",
+          storyText:
+            "The final frontier. Aliens have abducted the duck for the Ultimate Universal Dance-Off!",
+          bpm: 180,
+          beatsToFall: 4,
+          spawnChance: 0.85,
+          bassNotes: ["G1", "G1", "G1", "G1", "Bb1", "Bb1", "F1", "F1"],
+          leadNotes: ["G5", "D5", "Bb4", "D5", "F5", "C5", "A4", "C5"],
+          drumPattern: {
+            kick: [1, 1, 1, 1, 1, 1, 1, 1],
+            snare: [0, 0, 1, 0, 0, 0, 1, 0],
+            hat: [1, 1, 1, 1, 1, 1, 1, 1],
+          },
+        },
+      ];
+
+      const SCORES = { perfect: 100, great: 50, good: 20 };
+      const MAX_STEPS = 128; // 16 measures of 8th notes
+      const MAX_HEALTH = 100;
+
+      // --- Game State ---
+      let currentLevelIndex = 0;
+      let selectedDifficulty = "normal";
+      let isPlaying = false;
+      let activeNotes = [];
+      let score = 0;
+      let combo = 0;
+      let maxCombo = 0;
+      let health = MAX_HEALTH;
+
+      let targetCenterY = 0;
+      let gameLoopFrame;
+      let currentAudioStep = 0;
+      let toneEventId = null;
+
+      // --- DOM Elements ---
+      const columns = [
+        document.getElementById("col-left"),
+        document.getElementById("col-up"),
+        document.getElementById("col-down"),
+        document.getElementById("col-right"),
+      ];
+      const targets = [
+        document.getElementById("target-0"),
+        document.getElementById("target-1"),
+        document.getElementById("target-2"),
+        document.getElementById("target-3"),
+      ];
+      const duckEl = document.getElementById("duck");
+      const feedbackEl = document.getElementById("feedback");
+
+      let kick, snare, hihat, bass, lead;
+      let audioInitialized = false;
+
+      async function initAudio() {
+        if (audioInitialized) return;
+        await Tone.start();
+
+        Tone.Destination.volume.value = -4;
+
+        kick = new Tone.MembraneSynth().toDestination();
+        snare = new Tone.NoiseSynth({
+          noise: { type: "white" },
+          envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 },
+        }).toDestination();
+
+        hihat = new Tone.MetalSynth({
+          frequency: 200,
+          envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
+          harmonicity: 5.1,
+          modulationIndex: 32,
+          resonance: 4000,
+          octaves: 1.5,
+        }).toDestination();
+        hihat.volume.value = -12;
+
+        bass = new Tone.FMSynth({
+          modulationIndex: 12.22,
+          envelope: { attack: 0.01, decay: 0.2 },
+          modulation: { type: "square" },
+          modulationEnvelope: { attack: 0.2, decay: 0.01 },
+        }).toDestination();
+        bass.volume.value = -5;
+
+        lead = new Tone.Synth({
+          oscillator: { type: "square" },
+          envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.5 },
+        }).toDestination();
+        lead.volume.value = -8;
+
+        audioInitialized = true;
+      }
+
+      function updateLayout() {
+        const trackRect = document
+          .getElementById("track")
+          .getBoundingClientRect();
+        const targetZone = document.getElementById("target-zone");
+        // Center of the target area relative to the track
+        targetCenterY = targetZone.offsetTop + targetZone.offsetHeight / 2;
+      }
+      window.addEventListener("resize", updateLayout);
+
+      function updateUI() {
+        document.getElementById("score").innerText = score.toLocaleString();
+
+        // Update Health Bar UI
+        const healthPercent = Math.max(0, (health / MAX_HEALTH) * 100);
+        document.getElementById("health-bar-fill").style.width =
+          `${healthPercent}%`;
+        document.getElementById("health-value-text").innerText =
+          `${health}/${MAX_HEALTH}`;
+
+        const comboContainer = document.getElementById("combo-container");
+        if (combo >= 5) {
+          comboContainer.classList.remove("hidden");
+          document.getElementById("combo").innerText = combo;
+        } else {
+          comboContainer.classList.add("hidden");
+        }
+      }
+
+      function showFeedback(type) {
+        feedbackEl.innerText = type.toUpperCase();
+        feedbackEl.className = "";
+        void feedbackEl.offsetWidth; // trigger reflow
+        feedbackEl.classList.add("feedback-anim", `feedback-${type}`);
+      }
+
+      let duckAnimTimeout = null;
+      function animateDuck(action) {
+        clearTimeout(duckAnimTimeout);
+        duckEl.className = "duck";
+
+        if (action === "miss") {
+          duckEl.classList.add("miss");
+          duckEl.innerText = "🦆💦";
+        } else if (action >= 0 && action <= 3) {
+          duckEl.classList.add(`dance-${DIRECTIONS[action]}`);
+          const faces = ["🦆✨", "🦆🎵", "🦆😎", "🦆🔥"];
+          duckEl.innerText = faces[Math.floor(Math.random() * faces.length)];
+        } else {
+          duckEl.classList.add("idle");
+          duckEl.innerText = "🦆";
+        }
+
+        if (action !== "idle") {
+          duckAnimTimeout = setTimeout(() => {
+            if (isPlaying) animateDuck("idle");
+          }, 300);
+        }
+      }
+
+      function createParticles(colIndex, colorClass) {
+        const targetRect = targets[colIndex].getBoundingClientRect();
+        const trackRect = document
+          .getElementById("track")
+          .getBoundingClientRect();
+
+        const x = targetRect.left - trackRect.left + targetRect.width / 2;
+        const y = targetRect.top - trackRect.top + targetRect.height / 2;
+        const colors = ["#ff007f", "#00f0ff", "#ffaa00", "#00ff00"];
+
+        for (let i = 0; i < 8; i++) {
+          const particle = document.createElement("div");
+          particle.className = "particle";
+          particle.style.width = "10px";
+          particle.style.height = "10px";
+          particle.style.backgroundColor = colors[colIndex];
+          particle.style.left = `${x}px`;
+          particle.style.top = `${y}px`;
+
+          const angle = Math.random() * Math.PI * 2;
+          const distance = 40 + Math.random() * 60;
+          particle.style.setProperty("--tx", `${Math.cos(angle) * distance}px`);
+          particle.style.setProperty("--ty", `${Math.sin(angle) * distance}px`);
+
+          document.getElementById("track").appendChild(particle);
+          setTimeout(() => particle.remove(), 400);
+        }
+      }
+
+      function spawnVisualNote(colIndex, spawnTime, targetTime) {
+        const noteEl = document.createElement("div");
+        noteEl.className = `note ${DIRECTIONS[colIndex]}`;
+        noteEl.innerText = SYMBOLS[colIndex];
+        noteEl.style.top = "-60px"; // start slightly above screen
+
+        columns[colIndex].appendChild(noteEl);
+
+        activeNotes.push({
+          id: Date.now() + Math.random(),
+          el: noteEl,
+          col: colIndex,
+          spawnTime: spawnTime,
+          targetTime: targetTime,
+          hit: false,
+          missed: false,
+        });
+      }
+
+      function handleInput(colIndex) {
+        if (!isPlaying) return;
+
+        // Visual feedback on the target button
+        const targetEl = targets[colIndex];
+        targetEl.classList.add("active");
+        setTimeout(() => targetEl.classList.remove("active"), 100);
+
+        animateDuck(colIndex);
+
+        // Use audio context time for precise hit detection
+        let now = Tone.now();
+        let hitNote = null;
+        let hitType = "miss";
+        let minTimeDiff = Infinity;
+
+        activeNotes.forEach((note) => {
+          if (note.col === colIndex && !note.hit && !note.missed) {
+            let timeDiff = Math.abs(note.targetTime - now);
+            // 200ms is our widest acceptable hit window (Good)
+            if (timeDiff <= 0.2 && timeDiff < minTimeDiff) {
+              minTimeDiff = timeDiff;
+              hitNote = note;
+            }
+          }
+        });
+
+        if (hitNote) {
+          if (minTimeDiff <= 0.06)
+            hitType = "perfect"; // 60ms window
+          else if (minTimeDiff <= 0.12)
+            hitType = "great"; // 120ms window
+          else hitType = "good"; // 200ms window
+
+          hitNote.hit = true;
+          hitNote.el.remove();
+
+          createParticles(colIndex, hitType);
+
+          combo++;
+          if (combo > maxCombo) maxCombo = combo;
+
+          const baseScore = SCORES[hitType];
+          const comboMultiplier = 1 + Math.floor(combo / 10) * 0.1;
+          score += Math.floor(baseScore * comboMultiplier);
+
+          // Heal slightly on hits
+          health = Math.min(MAX_HEALTH, health + 2);
+
+          showFeedback(hitType);
+        } else {
+          // Pressed but missed
+          combo = 0;
+          let damage =
+            selectedDifficulty === "hard"
+              ? 10
+              : selectedDifficulty === "easy"
+                ? 2
+                : 5;
+          health -= damage;
+          if (health <= 0) endLevel(true);
+        }
+
+        updateUI();
+      }
+
+      function handleMiss(note) {
+        combo = 0;
+        let damage =
+          selectedDifficulty === "hard"
+            ? 15
+            : selectedDifficulty === "easy"
+              ? 5
+              : 10;
+        health -= damage; // Punish misses significantly
+
+        note.el.style.opacity = "0.4";
+        note.el.style.filter = "grayscale(100%)";
+        showFeedback("miss");
+        animateDuck("miss");
+        updateUI();
+
+        if (health <= 0) {
+          endLevel(true);
+        }
+      }
+
+      function visualUpdate() {
+        if (!isPlaying) return;
+
+        let now = Tone.now();
+        let notesToRemove = [];
+
+        activeNotes.forEach((note) => {
+          if (note.hit) return;
+
+          let totalDuration = note.targetTime - note.spawnTime;
+          let elapsed = now - note.spawnTime;
+          let progress = elapsed / totalDuration;
+
+          // Interpolate position. Target line is at progress = 1
+          let startY = -60;
+          let currentY = startY + (targetCenterY - startY) * progress;
+          note.el.style.top = `${currentY}px`;
+
+          // If it falls 250ms past target, mark as miss
+          if (now > note.targetTime + 0.25 && !note.missed) {
+            note.missed = true;
+            handleMiss(note);
+          }
+
+          // Clean up when it's offscreen
+          if (progress > 1.3) {
+            notesToRemove.push(note.id);
+            note.el.remove();
+          }
+        });
+
+        activeNotes = activeNotes.filter((n) => !notesToRemove.includes(n.id));
+        gameLoopFrame = requestAnimationFrame(visualUpdate);
+      }
+
+      function startStage() {
+        const level = levels[currentLevelIndex];
+
+        // Apply Difficulty Modifiers
+        let currentSpawnChance = level.spawnChance;
+        let currentBeatsToFall = level.beatsToFall;
+
+        if (selectedDifficulty === "easy") {
+          currentSpawnChance *= 0.6;
+          currentBeatsToFall += 2;
+        } else if (selectedDifficulty === "hard") {
+          currentSpawnChance = Math.min(0.95, currentSpawnChance * 1.3);
+          currentBeatsToFall = Math.max(2, currentBeatsToFall - 1);
+        }
+
+        // Setup Background
+        const gameContainer = document.getElementById("game-container");
+        gameContainer.className = "";
+        gameContainer.classList.add(level.bgClass);
+
+        updateLayout();
+
+        // Reset state
+        isPlaying = true;
+        currentAudioStep = 0;
+        activeNotes = [];
+        combo = 0;
+        health = MAX_HEALTH; // Reset health for the new stage
+        updateUI();
+        animateDuck("idle");
+
+        // Setup Audio Scheduler
+        Tone.Transport.stop();
+        if (toneEventId !== null) Tone.Transport.clear(toneEventId);
+        Tone.Transport.bpm.value = level.bpm;
+
+        toneEventId = Tone.Transport.scheduleRepeat((time) => {
+          let step8 = currentAudioStep % 8;
+
+          // Play Drum Synthesizers
+          if (level.drumPattern.kick[step8])
+            kick.triggerAttackRelease("C1", "8n", time);
+          if (level.drumPattern.snare[step8])
+            snare.triggerAttackRelease("16n", time);
+          if (level.drumPattern.hat[step8])
+            hihat.triggerAttackRelease("32n", time);
+
+          // Play Melodies
+          let bNote = level.bassNotes[step8];
+          if (bNote) bass.triggerAttackRelease(bNote, "8n", time);
+
+          let lNote = level.leadNotes[step8];
+          if (lNote) lead.triggerAttackRelease(lNote, "16n", time);
+
+          // Game Logic: Spawn Notes
+          // Stop spawning slightly before song ends so notes have time to fall
+          if (currentAudioStep < MAX_STEPS - 16) {
+            if (Math.random() < currentSpawnChance) {
+              let col = Math.floor(Math.random() * 4);
+              // The exact audio time this note should hit the target
+              // 1 beat = 60/BPM seconds
+              let hitTime = time + currentBeatsToFall * (60 / level.bpm);
+
+              Tone.Draw.schedule(() => {
+                spawnVisualNote(col, time, hitTime);
+              }, time);
+            }
+          }
+
+          currentAudioStep++;
+
+          // End Level condition
+          if (currentAudioStep >= MAX_STEPS) {
+            Tone.Transport.stop();
+            Tone.Transport.clear(toneEventId);
+            Tone.Draw.schedule(() => {
+              endLevel(false);
+            }, time);
+          }
+        }, "8n"); // Tick every 8th note
+
+        Tone.Transport.start();
+        gameLoopFrame = requestAnimationFrame(visualUpdate);
+      }
+
+      function endLevel(died) {
+        isPlaying = false;
+        cancelAnimationFrame(gameLoopFrame);
+
+        activeNotes.forEach((n) => n.el.remove());
+        activeNotes = [];
+
+        kick.triggerRelease();
+        bass.triggerRelease();
+        lead.triggerRelease();
+
+        if (died) {
+          alert("Game Over! The duck tripped too many times.");
+          document
+            .getElementById("level-select-screen")
+            .classList.remove("hidden");
+          return;
+        }
+
+        document.getElementById("clear-score").innerText =
+          score.toLocaleString();
+        document.getElementById("clear-combo").innerText = maxCombo;
+        document.getElementById("clear-screen").classList.remove("hidden");
+      }
+
+      window.addEventListener("keydown", (e) => {
+        if (e.repeat) return;
+        const key = e.key;
+        const colIndex = KEYS.findIndex((keySet) => keySet.includes(key));
+        if (colIndex !== -1) {
+          handleInput(colIndex);
+        }
+      });
+
+      document.querySelectorAll(".mobile-btn").forEach((btn) => {
+        btn.addEventListener("pointerdown", (e) => {
+          e.preventDefault();
+          const colIndex = parseInt(btn.getAttribute("data-key"));
+          handleInput(colIndex);
+          btn.classList.add("active");
+        });
+        btn.addEventListener("pointerup", () => btn.classList.remove("active"));
+        btn.addEventListener("pointerleave", () =>
+          btn.classList.remove("active"),
+        );
+      });
+
+      function showStoryScreen() {
+        const level = levels[currentLevelIndex];
+        document.getElementById("story-title").innerText = level.name;
+        document.getElementById("story-text").innerText = level.storyText;
+        document.getElementById("story-screen").classList.remove("hidden");
+      }
+
+      // Flow Wiring
+      document
+        .getElementById("start-btn")
+        .addEventListener("click", async () => {
+          document.getElementById("start-screen").classList.add("hidden");
+          await initAudio();
+          document
+            .getElementById("level-select-screen")
+            .classList.remove("hidden");
+        });
+
+      document
+        .getElementById("back-to-title-btn")
+        .addEventListener("click", () => {
+          document
+            .getElementById("level-select-screen")
+            .classList.add("hidden");
+          document.getElementById("start-screen").classList.remove("hidden");
+        });
+
+      document.querySelectorAll(".level-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          currentLevelIndex = parseInt(e.target.getAttribute("data-level"));
+          document
+            .getElementById("level-select-screen")
+            .classList.add("hidden");
+          document
+            .getElementById("difficulty-screen")
+            .classList.remove("hidden");
+        });
+      });
+
+      document
+        .getElementById("back-to-levels-btn")
+        .addEventListener("click", () => {
+          document.getElementById("difficulty-screen").classList.add("hidden");
+          document
+            .getElementById("level-select-screen")
+            .classList.remove("hidden");
+        });
+
+      document.querySelectorAll(".diff-btn").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          selectedDifficulty = e.target.getAttribute("data-diff");
+          document.getElementById("difficulty-screen").classList.add("hidden");
+          score = 0;
+          maxCombo = 0;
+          health = MAX_HEALTH;
+          showStoryScreen();
+        });
+      });
+
+      document
+        .getElementById("story-next-btn")
+        .addEventListener("click", () => {
+          document.getElementById("story-screen").classList.add("hidden");
+          startStage();
+        });
+
+      document
+        .getElementById("clear-next-btn")
+        .addEventListener("click", () => {
+          document.getElementById("clear-screen").classList.add("hidden");
+          currentLevelIndex++;
+
+          if (currentLevelIndex >= levels.length) {
+            document.getElementById("victory-score").innerText =
+              score.toLocaleString();
+            document
+              .getElementById("victory-screen")
+              .classList.remove("hidden");
+          } else {
+            showStoryScreen();
+          }
+        });
+
+      document
+        .getElementById("clear-levels-btn")
+        .addEventListener("click", () => {
+          document.getElementById("clear-screen").classList.add("hidden");
+          document
+            .getElementById("level-select-screen")
+            .classList.remove("hidden");
+        });
+
+      document
+        .getElementById("victory-levels-btn")
+        .addEventListener("click", () => {
+          document.getElementById("victory-screen").classList.add("hidden");
+          document
+            .getElementById("level-select-screen")
+            .classList.remove("hidden");
+        });
+
+      // Initialize early layout
+      updateLayout();
+    </script>
+  </body>
+</html>
