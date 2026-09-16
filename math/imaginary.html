@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-6RNVL7JZVJ');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>An Imaginary Problem</title>
+    <meta name="description" content="A brief and slightly absurd history of how mathematicians named things.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b1120;
+            --text-color: #f8fafc;
+            --accent-color: #6366f1;
+            --glass-bg: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(244, 114, 182, 0.15) 0%, transparent 50%);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            line-height: 1.8;
+            font-size: 1.125rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 3rem 1rem;
+        }
+
+        .container {
+            max-width: 680px;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            margin-bottom: 1.6rem;
+            color: #cbd5e1;
+            font-weight: 400;
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        p:first-of-type {
+            font-size: 1.25rem;
+            color: #f8fafc;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        em {
+            color: #f1f5f9;
+            font-style: italic;
+        }
+
+        .accent-text {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        /* Links styling */
+        a {
+            color: #818cf8;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(129, 140, 248, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        a:hover {
+            color: #c084fc;
+            border-bottom-color: #c084fc;
+            background: rgba(192, 132, 252, 0.05);
+            border-radius: 2px;
+        }
+
+        /* Micro-interactions */
+        p {
+            transition: color 0.2s ease;
+        }
+
+        p:hover {
+            color: #f1f5f9;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem 0.75rem;
+                font-size: 1.05rem;
+            }
+            .container {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+            h1 {
+                font-size: 2.25rem;
+                margin-bottom: 1.5rem;
+            }
+            p:first-of-type {
+                font-size: 1.15rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <article class="container">
+        <h1>An Imaginary Problem</h1>
+        
+        <p>If there is one thing mathematicians are worse at than conflict resolution, it is naming things. You would think a profession dedicated to absolute precision would excel at terminology, but history suggests otherwise.</p>
+
+        <p>For a long time, numbers were simple. If you were a prehistoric herdsman, you had sheep. You could have one sheep, two sheep, or three sheep. These are the <strong>Natural numbers</strong>. They are intuitive, comforting, and frankly, they never hurt anyone.</p>
+
+        <p>But humans are never satisfied. Soon they realized you could have half a sheep (usually after dinner), which gave birth to fractions. Mathematicians eventually termed these <a href="https://en.wikipedia.org/wiki/Rational_number" target="_blank" rel="noopener noreferrer"><strong>Rational numbers</strong></a>, meaning any number that can be expressed as a neat, tidy ratio. The ancient Greeks, especially <a href="https://en.wikipedia.org/wiki/Pythagoras" target="_blank" rel="noopener noreferrer">Pythagoras</a> and his cult of followers, <em>loved</em> rational numbers. They believed the universe was built entirely on perfect, harmonious ratios.</p>
+
+        <p>This worldview worked wonderfully until someone tried to find the length of the diagonal of a 1-by-1 square. They discovered the square root of 2, a number that goes on forever without repeating and cannot possibly be written as a neat ratio. The Pythagoreans were so deeply offended by this mathematical monstrosity that, according to legend, they threw the man who proved its existence (<a href="https://en.wikipedia.org/wiki/Hippasus" target="_blank" rel="noopener noreferrer">Hippasus of Metapontum</a>) off a boat and drowned him. They called these numbers <a href="https://en.wikipedia.org/wiki/Irrational_number" target="_blank" rel="noopener noreferrer"><strong>Irrational</strong></a>. Today, calling a number "irrational" sounds like it's throwing a tantrum in a grocery store, but it simply means "without ratio."</p>
+
+        <p>For a long time, the math world stabilized. But then, during the Renaissance, Italian mathematicians were trying to solve complex cubic equations and kept accidentally calculating the square roots of negative numbers. Since a negative times a negative is a positive, a square root of a negative shouldn't exist. It was mathematically offensive.</p>
+
+        <p>Enter <a href="https://en.wikipedia.org/wiki/Ren%C3%A9_Descartes" target="_blank" rel="noopener noreferrer"><strong>René Descartes</strong></a>, the 17th-century philosopher who gave us the coordinate plane and the existential crisis of "I think therefore I am." When Descartes looked at these negative square roots, he essentially rolled his eyes. He coined the term <a href="https://en.wikipedia.org/wiki/Imaginary_number" target="_blank" rel="noopener noreferrer" class="accent-text"><strong>Imaginary</strong></a> as a deliberate insult. He thought they were fictitious, useless, and essentially mathematical garbage.</p>
+
+        <p>The derogatory name stuck, mostly because mathematicians are terrible at rebranding. Fortunately, the ever-prolific <a href="https://en.wikipedia.org/wiki/Leonhard_Euler" target="_blank" rel="noopener noreferrer"><strong>Leonhard Euler</strong></a> came along in the 18th century, shrugged, and said, <em>"Let's just call it i."</em> He treated these so-called imaginary numbers like normal numbers, and suddenly they were solving impossible problems left and right.</p>
+
+        <p>By the early 19th century, titans like <a href="https://en.wikipedia.org/wiki/Augustin-Louis_Cauchy" target="_blank" rel="noopener noreferrer">Augustin-Louis Cauchy</a> and <a href="https://en.wikipedia.org/wiki/Carl_Friedrich_Gauss" target="_blank" rel="noopener noreferrer">Carl Friedrich Gauss</a> proved that imaginary numbers weren't just useful; they were absolutely essential to understanding the universe. But the damage was done. To distinguish the normal, everyday numbers from Descartes's so-called "imaginary" ones, mathematicians retroactively named the regular numbers <a href="https://en.wikipedia.org/wiki/Real_number" target="_blank" rel="noopener noreferrer"><strong>Real numbers</strong></a>.</p>
+
+        <p>So now we are stuck with a system where "Real" numbers sound like they physically exist in nature (they don't; you can't hold a "3" in your hand), "Imaginary" numbers sound like fairy dust (even though they are actively used to build airplanes, design cell phones, and study quantum mechanics), and "Irrational" numbers sound like they need a therapist.</p>
+
+        <p>It just goes to show: never let a grumpy 17th-century philosopher name your mathematical breakthroughs.</p>
+    </article>
+</body>
+</html>
