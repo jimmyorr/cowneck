@@ -91,10 +91,10 @@
                     🚗 Rush Hour
                 </button>
                 <button id="preset-zipper" class="py-1 px-1 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 transition text-center border border-slate-700/60 active:scale-95">
-                    ⚡ Zipper 80%
+                    🟢 Zipper 80%
                 </button>
                 <button id="preset-early" class="py-1 px-1 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 transition text-center border border-slate-700/60 active:scale-95">
-                    🐢 Early 90%
+                    🔵 Early 90%
                 </button>
             </div>
         </div>
@@ -252,7 +252,7 @@
                             <div id="lane-bar-right" class="bg-sky-400 h-full transition-all duration-300" style="width: 50%" title="Right lane usage"></div>
                         </div>
                         <div class="flex items-center justify-between text-[9.5px] pt-1 border-t border-slate-800/60 font-mono leading-none">
-                            <span class="text-slate-400">Zipper Advantage:</span>
+                            <span class="text-slate-400">Merge Delta:</span>
                             <span id="stat-advantage" class="font-semibold text-slate-400 truncate">Awaiting data...</span>
                         </div>
                     </div>
@@ -417,16 +417,6 @@
             </div>
         </div>
 
-        <!-- Dynamic Corridor Insight Card (Educational & balances layout) -->
-        <div id="corridor-insight-card" class="p-2.5 bg-slate-900/70 rounded-xl border border-slate-800/80 flex items-start gap-2.5 text-slate-300">
-            <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
-                <i class="fa-solid fa-lightbulb"></i>
-            </span>
-            <div class="min-w-0">
-                <span id="insight-title" class="font-bold text-white block text-[11px] leading-tight">Zipper Principle</span>
-                <p id="insight-text" class="text-slate-400 text-[10px] mt-0.5 leading-snug">Filling both lanes to the merge point cuts queue length by up to 40%.</p>
-            </div>
-        </div>
 
         <!-- Action Buttons (mt-auto pushes gracefully to bottom of panel) -->
         <div class="mt-auto pt-1 flex flex-col gap-1.5">
@@ -1092,7 +1082,7 @@
             const earlyCountEl = document.getElementById('stat-early-count');
             if (earlyCountEl) earlyCountEl.innerText = `${earlyCount} cars`;
 
-            // Zipper Advantage
+            // Merge Delta Comparison
             const advEl = document.getElementById('stat-advantage');
             if (advEl) {
                 if (zipperCount >= 3 && earlyCount >= 3) {
@@ -1102,11 +1092,12 @@
                         let diff = (eNum - zNum).toFixed(1);
                         if (eNum > zNum) {
                             let pct = Math.round(((eNum - zNum) / eNum) * 100);
-                            advEl.innerHTML = `<span class="text-emerald-400 font-bold">⚡ Zipper +${diff}s faster (${pct}%)</span>`;
+                            advEl.innerHTML = `<span class="text-emerald-400 font-bold">Late Merge +${diff}s faster (${pct}%)</span>`;
                         } else if (zNum > eNum) {
-                            advEl.innerHTML = `<span class="text-sky-400 font-bold">🐢 Early +${Math.abs(diff)}s faster</span>`;
+                            let pct = Math.round(((zNum - eNum) / zNum) * 100);
+                            advEl.innerHTML = `<span class="text-sky-400 font-bold">Early Merge +${Math.abs(diff)}s faster (${pct}%)</span>`;
                         } else {
-                            advEl.innerHTML = `<span class="text-slate-300">Even performance</span>`;
+                            advEl.innerHTML = `<span class="text-slate-300">Even corridor times</span>`;
                         }
                     }
                 } else {
@@ -1251,39 +1242,20 @@
                     temperEl.innerText = "Polite";
                     temperEl.className = "font-mono text-sm lg:text-base font-bold text-emerald-300";
                     temperLabelEl.innerText = "Cooperative drivers";
-                    moodSummaryEl.innerText = "High Cooperation (Zipper Success)";
+                    moodSummaryEl.innerText = "High Courtesy & Cooperation";
                     moodSummaryEl.className = "font-semibold text-emerald-400";
                 } else if (frustPct < 60) {
                     temperEl.innerText = "Cautious";
                     temperEl.className = "font-mono text-sm lg:text-base font-bold text-sky-300";
                     temperLabelEl.innerText = "Normal commute";
-                    moodSummaryEl.innerText = "Typical Merge Behavior";
+                    moodSummaryEl.innerText = "Steady Merge Flow";
                     moodSummaryEl.className = "font-semibold text-sky-400";
                 } else {
                     temperEl.innerText = "Aggressive";
                     temperEl.className = "font-mono text-sm lg:text-base font-bold text-rose-400";
-                    temperLabelEl.innerText = "Single-file queue strain";
-                    moodSummaryEl.innerText = "Frustrated Line (Early Merge Stress)";
+                    temperLabelEl.innerText = "Corridor queue strain";
+                    moodSummaryEl.innerText = "Heavy Congestion Delays";
                     moodSummaryEl.className = "font-semibold text-rose-400";
-                }
-            }
-
-            // Dynamic Corridor Insight
-            const insightTitleEl = document.getElementById('insight-title');
-            const insightTextEl = document.getElementById('insight-text');
-            if (insightTitleEl && insightTextEl) {
-                if (zipperRatio >= 0.7) {
-                    insightTitleEl.innerText = "⚡ Zipper Efficiency High";
-                    insightTextEl.innerText = "Drivers use both lanes fully until the cones, keeping Mill Pond backup shortest.";
-                } else if (earlyMergeRatio >= 0.7) {
-                    insightTitleEl.innerText = "🐢 Single-File Bottleneck";
-                    insightTextEl.innerText = "Leaving the right lane empty early extends queue backup twice as far upstream.";
-                } else if (backupCount > 12) {
-                    insightTitleEl.innerText = "🚗 Heavy Congestion";
-                    insightTextEl.innerText = "Alternate 1-to-1 merging at the pinch point maximizes corridor throughput.";
-                } else {
-                    insightTitleEl.innerText = "💡 Zipper Principle";
-                    insightTextEl.innerText = "Filling both lanes until the merge point cuts queue backup length by up to 40%.";
                 }
             }
         }
