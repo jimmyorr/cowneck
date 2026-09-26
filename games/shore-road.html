@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shore Road Merge Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        canvas {
+            background-color: #4b5563; /* Road color */
+            display: block;
+            margin: 0 auto;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+        input[type=range] {
+            width: 100%;
+            accent-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row p-4 gap-4 box-border">
+
+    <div class="w-full md:w-1/3 bg-white p-6 rounded-xl shadow-lg flex flex-col gap-6 overflow-y-auto">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Shore Road Simulator</h1>
+            <p class="text-sm text-gray-600">Simulate the southbound merge near Mill Pond Rd. Adjust driver behaviors to see the impact on traffic.</p>
+        </div>
+
+        <div class="space-y-4">
+            <h2 class="text-lg font-semibold border-b pb-1">Driver Personalities</h2>
+            
+            <!-- Zipper Merge Slider -->
+            <div>
+                <div class="slider-label">
+                    <span><i class="fa-solid fa-car text-green-500 mr-1"></i> Zipper Mergers</span>
+                    <span id="val-zipper">50%</span>
+                </div>
+                <input type="range" id="slider-zipper" min="0" max="100" value="50">
+                <p class="text-xs text-gray-500 mt-1">Stays in lane until the end, then takes turns.</p>
+            </div>
+
+            <!-- Early Merge Slider -->
+            <div>
+                <div class="slider-label">
+                    <span><i class="fa-solid fa-car text-blue-500 mr-1"></i> Early Mergers</span>
+                    <span id="val-early">50%</span>
+                </div>
+                <input type="range" id="slider-early" min="0" max="100" value="50">
+                <p class="text-xs text-gray-500 mt-1">Gets in the continuing lane miles in advance.</p>
+            </div>
+            
+            <p class="text-xs text-red-600 font-bold hidden" id="warning-total">Total exceeds 100%! Auto-adjusting...</p>
+        </div>
+
+        <div class="space-y-4">
+            <h2 class="text-lg font-semibold border-b pb-1">Environment</h2>
+            <div>
+                <div class="slider-label">
+                    <span>Traffic Volume</span>
+                    <span id="val-volume">High</span>
+                </div>
+                <input type="range" id="slider-volume" min="1" max="100" value="70">
+            </div>
+            <!-- Simulation Speed Slider -->
+            <div>
+                <div class="slider-label">
+                    <span>Simulation Speed</span>
+                    <span id="val-speed">1x</span>
+                </div>
+                <input type="range" id="slider-speed" min="1" max="10" value="1">
+            </div>
+        </div>
+
+        <!-- Simulation Stats -->
+        <div class="mt-auto bg-gray-100 p-4 rounded-lg">
+            <h3 class="font-bold text-gray-700 mb-2">Live Stats</h3>
+            <div class="flex justify-between text-sm">
+                <span>Throughput:</span>
+                <span id="stat-throughput" class="font-mono font-bold">0 cars/min</span>
+            </div>
+            <div class="flex justify-between text-sm mt-1">
+                <span>Avg Line Length:</span>
+                <span id="stat-backup" class="font-mono font-bold">0 cars</span>
+            </div>
+            <div class="flex justify-between text-sm mt-1">
+                <span class="text-green-700 font-semibold">Avg Time (Zipper):</span>
+                <span id="stat-zipper-time" class="font-mono font-bold text-green-700">0.0s</span>
+            </div>
+            <div class="flex justify-between text-sm mt-1">
+                <span class="text-blue-700 font-semibold">Avg Time (Early):</span>
+                <span id="stat-early-time" class="font-mono font-bold text-blue-700">0.0s</span>
+            </div>
+        </div>
+
+        <button id="btn-reset" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+            Clear Traffic & Restart
+        </button>
+    </div>
+
+    <div id="sim-container" class="w-full md:w-2/3 h-[600px] md:h-full overflow-y-auto relative bg-[#e5e7eb] border-l border-gray-300">
+        <canvas id="simCanvas" class="shadow-lg"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const simContainer = document.getElementById('sim-container');
+        
+        let width, height;
+        const roadWidth = 160;
+        const laneWidth = roadWidth / 2;
+        let leftLaneX, rightLaneX;
+        const mergePointY = 2500; // 5x longer distance
+        const constructionLength = 500;
+
+        // Settings
+        let pZipper = 0.5;
+        let pEarly = 0.5;
+        let trafficVolume = 0.05; // probability of spawn per frame
+        let simSpeed = 1; // 1x to 10x multiplier
+
+        // State
+        let cars = [];
+        let carsPassed = 0;
+        let simTime = 0; // Internal simulation clock (in ms)
+        let frameCount = 0;
+        let visualFrameCount = 0;
+        
+        let zipperTotalTime = 0;
+        let zipperCount = 0;
+        let earlyTotalTime = 0;
+        let earlyCount = 0;
+
+        function resizeCanvas() {
+            width = Math.min(simContainer.clientWidth - 20, 400);
+            height = 3000; // Fixed 5x height to allow scrolling long backups
+            canvas.width = width;
+            canvas.height = height;
+            
+            leftLaneX = (width / 2) - (laneWidth / 2);
+            rightLaneX = (width / 2) + (laneWidth / 2);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const CAR_TYPES = {
+            ZIPPER: { color: '#22c55e', name: 'Zipper' },   // Green
+            EARLY: { color: '#3b82f6', name: 'Early' }      // Blue
+        };
+
+        class Car {
+            constructor(laneIndex, type, spawnTime) {
+                this.width = 24;
+                this.height = 40;
+                // Target lane (0 = left, 1 = right)
+                this.targetLane = laneIndex; 
+                this.currentLane = laneIndex;
+                
+                // x position smoothly interpolates to target x
+                this.x = laneIndex === 0 ? leftLaneX : rightLaneX;
+                this.y = -this.height; // Start off screen top
+                
+                this.type = type;
+                this.maxSpeed = 3 + (Math.random() * 1); // Slight speed variations
+                this.speed = this.maxSpeed;
+                this.accel = 0.05;
+                
+                this.state = 'driving'; // driving, merging
+                this.hasMerged = false;
+                this.spawnTime = spawnTime; // Track when the car was created in simTime
+            }
+
+            update(allCars) {
+                // 1. Determine target lane behavior based on personality
+                this.decideBehavior(allCars);
+
+                // 2. Find car ahead to control speed
+                let carAhead = this.findCarAhead(allCars);
+                
+                // 3. Adjust speed (kinematics)
+                let safeDist = 20;
+
+                if (carAhead) {
+                    let dist = (carAhead.y - carAhead.height/2) - (this.y + this.height/2);
+                    if (dist < safeDist) {
+                        // Brake
+                        this.speed = Math.max(0, this.speed - (this.accel * 3));
+                        // Match speed if close
+                        if (dist < safeDist * 0.8) {
+                            this.speed = Math.min(this.speed, carAhead.speed);
+                        }
+                    } else {
+                        // Accelerate
+                        this.speed = Math.min(this.maxSpeed, this.speed + this.accel);
+                    }
+                } else {
+                    // Open road
+                    this.speed = Math.min(this.maxSpeed, this.speed + this.accel);
+                }
+
+                // Courtesy yield: Driver's left lane (visual right, lane 1) cars slow down slightly near merge point if driver's right lane (visual left, lane 0) car needs in
+                if (this.currentLane === 1 && this.y > mergePointY - 150 && this.y < mergePointY) {
+                    let carToRight = allCars.find(c => c.currentLane === 0 && c.y > this.y - 10 && c.y < this.y + 40);
+                    if (carToRight && carToRight.type === CAR_TYPES.ZIPPER) {
+                        this.speed = Math.max(1, this.speed - 0.02); // Slow down to yield
+                    }
+                }
+
+                // 4. Move Y
+                this.y += this.speed;
+
+                // 5. Move X (Merging)
+                let targetX = this.targetLane === 0 ? leftLaneX : rightLaneX;
+
+                if (Math.abs(this.x - targetX) > 1) {
+                    this.x += (targetX - this.x) * 0.05; // Smooth slide
+                } else {
+                    this.x = targetX;
+                    if (this.state === 'merging') this.state = 'driving';
+                }
+            }
+
+            decideBehavior(allCars) {
+                // Everyone must merge to driver's left (visual right, lane 1) eventually
+                if (this.y > mergePointY - 50 && this.currentLane === 0) {
+                    this.targetLane = 1;
+                    this.state = 'merging';
+                }
+
+                if (this.type === CAR_TYPES.ZIPPER && this.currentLane === 0 && !this.hasMerged) {
+                    // Wait until closer to merge point
+                    if (this.y > mergePointY - 100) {
+                        if (this.canMerge(1, allCars)) {
+                            this.targetLane = 1;
+                            this.state = 'merging';
+                            this.hasMerged = true;
+                        }
+                    }
+                }
+            }
+
+            canMerge(targetLaneIdx, allCars) {
+                let targetX = targetLaneIdx === 0 ? leftLaneX : rightLaneX;
+                // Check for collisions in target lane space
+                let safe = true;
+                for (let c of allCars) {
+                    if (c === this) continue;
+                    // If car is overlapping our target X area
+                    if (Math.abs(c.x - targetX) < roadWidth/2) {
+                        // Check Y gap
+                        if (Math.abs(c.y - this.y) < this.height * 1.5) {
+                            safe = false;
+                            break;
+                        }
+                    }
+                }
+                return safe;
+            }
+
+            findCarAhead(allCars) {
+                let nearest = null;
+                let minDist = Infinity;
+
+                for (let c of allCars) {
+                    if (c === this) continue;
+                    if (c.y > this.y) {
+                        let dist = c.y - this.y;
+                        
+                        // Check if the car is in our path (X overlap)
+                        // This naturally handles blockers! Because a blocker's X is in the middle,
+                        // it overlaps with BOTH left and right lanes.
+                        if (Math.abs(c.x - this.x) < this.width) {
+                            if (dist < minDist) {
+                                minDist = dist;
+                                nearest = c;
+                            }
+                        }
+                    }
+                }
+                return nearest;
+            }
+
+            draw(ctx, currentSimTime) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                
+                // Shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(-this.width/2 + 2, -this.height/2 + 2, this.width, this.height);
+
+                // Car body
+                ctx.fillStyle = this.type.color;
+                ctx.beginPath();
+                ctx.roundRect(-this.width/2, -this.height/2, this.width, this.height, 4);
+                ctx.fill();
+
+                // Windshield
+                ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                ctx.fillRect(-this.width/2 + 3, this.height/2 - 12, this.width - 6, 8);
+                
+                // Headlights
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(-this.width/2 + 2, this.height/2 - 2, 4, 3);
+                ctx.fillRect(this.width/2 - 6, this.height/2 - 2, 4, 3);
+
+                // Brake lights
+                if (this.speed < this.maxSpeed * 0.5) {
+                    ctx.fillStyle = '#ff0000';
+                    ctx.shadowBlur = 5;
+                    ctx.shadowColor = "red";
+                    ctx.fillRect(-this.width/2 + 2, -this.height/2, 6, 3);
+                    ctx.fillRect(this.width/2 - 8, -this.height/2, 6, 3);
+                }
+
+                // Turn signal if merging (merging to driver's left)
+                if (this.state === 'merging') {
+                    if (Math.floor(currentSimTime / 300) % 2 === 0) {
+                        ctx.fillStyle = '#f97316';
+                        ctx.shadowBlur = 5;
+                        ctx.shadowColor = "orange";
+                        // Left blinker (driver's left is visual right when facing down)
+                        ctx.fillRect(this.width/2 - 4, this.height/2 - 4, 4, 6);
+                        ctx.fillRect(this.width/2 - 4, -this.height/2, 4, 4);
+                    }
+                }
+
+                ctx.restore();
+            }
+        }
+
+        function drawEnvironment() {
+            // Grass
+            ctx.fillStyle = '#4ade80';
+            ctx.fillRect(0, 0, width, height);
+
+            // Water (Mill Pond to the left/bottom)
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath();
+            ctx.moveTo(0, height);
+            ctx.lineTo(width/4, height);
+            ctx.lineTo(0, height - 200);
+            ctx.fill();
+
+            // Road Base
+            const roadX = (width / 2) - (roadWidth / 2);
+            ctx.fillStyle = '#4b5563';
+            ctx.fillRect(roadX, 0, roadWidth, height);
+
+            // Center dashed line (only up to merge)
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([20, 20]);
+            ctx.beginPath();
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, mergePointY);
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset
+
+            // Shoulder lines
+            ctx.strokeStyle = '#facc15'; // Yellow left shoulder
+            ctx.beginPath();
+            ctx.moveTo(roadX, 0);
+            ctx.lineTo(roadX, height);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#ffffff'; // White right shoulder
+            ctx.beginPath();
+            ctx.moveTo(roadX + roadWidth, 0);
+            ctx.lineTo(roadX + roadWidth, height);
+            ctx.stroke();
+
+            // Construction Zone
+            const startConst = mergePointY;
+            ctx.fillStyle = '#f97316'; // Orange
+            
+            // Draw cones/barrels on driver's right (visual left)
+            for(let y = startConst; y < height; y += 40) {
+                // Cone base
+                ctx.fillStyle = '#ea580c';
+                ctx.fillRect(leftLaneX - 10, y, 20, 10);
+                // Cone top
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(leftLaneX - 6, y+2, 12, 6);
+                
+                // Crosshatch area
+                if (y < height - 40) {
+                    ctx.strokeStyle = 'rgba(255, 165, 0, 0.3)';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(roadX, y); // Starts from left edge
+                    ctx.lineTo(roadX + roadWidth/2, y + 40); // To center line
+                    ctx.stroke();
+                }
+            }
+
+            // "Merge Left" Sign on road (in driver's right lane / visual left)
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('MERGE', leftLaneX, mergePointY - 40);
+            ctx.fillText('LEFT', leftLaneX, mergePointY - 20);
+            
+            // Arrow pointing left (driver's left, visual right)
+            ctx.beginPath();
+            ctx.moveTo(leftLaneX - 10, mergePointY - 60);
+            ctx.lineTo(leftLaneX + 10, mergePointY - 60);
+            ctx.lineTo(leftLaneX + 10, mergePointY - 70);
+            ctx.lineTo(leftLaneX + 25, mergePointY - 55);
+            ctx.lineTo(leftLaneX + 10, mergePointY - 40);
+            ctx.lineTo(leftLaneX + 10, mergePointY - 50);
+            ctx.lineTo(leftLaneX - 10, mergePointY - 50);
+            ctx.fill();
+
+        }
+
+        function getCarType() {
+            let r = Math.random();
+            if (r < pZipper) return CAR_TYPES.ZIPPER;
+            return CAR_TYPES.EARLY;
+        }
+
+        function updateStats() {
+            let elapsedMin = simTime / 60000;
+            let tput = elapsedMin > 0 ? (carsPassed / elapsedMin).toFixed(1) : 0;
+            document.getElementById('stat-throughput').innerText = `${tput} cars/min`;
+
+            // Calculate average line length (cars currently on screen)
+            document.getElementById('stat-backup').innerText = `${cars.length} cars`;
+
+            // Calculate and display average times
+            let avgZipper = zipperCount > 0 ? (zipperTotalTime / zipperCount).toFixed(1) : "0.0";
+            let avgEarly = earlyCount > 0 ? (earlyTotalTime / earlyCount).toFixed(1) : "0.0";
+            
+            document.getElementById('stat-zipper-time').innerText = `${avgZipper}s`;
+            document.getElementById('stat-early-time').innerText = `${avgEarly}s`;
+        }
+
+        function loop() {
+            visualFrameCount++;
+
+            // Run logic multiple times per visual frame based on simSpeed
+            for (let step = 0; step < simSpeed; step++) {
+                simTime += 16.666; // 1 frame at 60fps in milliseconds
+                frameCount++;
+
+                // Spawn Cars
+                if (Math.random() < trafficVolume) {
+                    let leftSpace = !cars.some(c => c.currentLane === 0 && c.y < 50);
+                    let rightSpace = !cars.some(c => c.currentLane === 1 && c.y < 50);
+                    
+                    let lane = -1;
+                    let type = getCarType();
+
+                    if (type === CAR_TYPES.EARLY) {
+                        // Early Mergers ALWAYS start in driver's left lane (visual right, lane 1)
+                        if (rightSpace) lane = 1;
+                    } else {
+                        // Zippers use both lanes, preferably the empty ending lane
+                        if (leftSpace && rightSpace) {
+                            lane = Math.random() < 0.6 ? 0 : 1; 
+                        } else if (leftSpace) {
+                            lane = 0;
+                        } else if (rightSpace) {
+                            lane = 1;
+                        }
+                    }
+
+                    if (lane !== -1) {
+                        let car = new Car(lane, type, simTime);
+                        if (type === CAR_TYPES.EARLY) car.hasMerged = true;
+                        cars.push(car);
+                    }
+                }
+
+                // Update Cars
+                for (let i = cars.length - 1; i >= 0; i--) {
+                    let car = cars[i];
+                    car.update(cars);
+
+                    // Remove cars that passed
+                    if (car.y > height + car.height) {
+                        // Record travel time
+                        let travelTimeSecs = (simTime - car.spawnTime) / 1000;
+                        if (car.type === CAR_TYPES.ZIPPER) {
+                            zipperTotalTime += travelTimeSecs;
+                            zipperCount++;
+                        } else if (car.type === CAR_TYPES.EARLY) {
+                            earlyTotalTime += travelTimeSecs;
+                            earlyCount++;
+                        }
+
+                        cars.splice(i, 1);
+                        carsPassed++;
+                    }
+                }
+            }
+
+            // Draw everything ONCE per visual frame to save resources
+            ctx.clearRect(0, 0, width, height);
+            drawEnvironment();
+            for (let i = 0; i < cars.length; i++) {
+                cars[i].draw(ctx, simTime);
+            }
+
+            if (visualFrameCount % 30 === 0) updateStats();
+
+            requestAnimationFrame(loop);
+        }
+
+        function setupUI() {
+            const zSlider = document.getElementById('slider-zipper');
+            const eSlider = document.getElementById('slider-early');
+            const vSlider = document.getElementById('slider-volume');
+            const sSlider = document.getElementById('slider-speed');
+            const warning = document.getElementById('warning-total');
+
+            function syncSliders(changed) {
+                let z = parseInt(zSlider.value);
+                let e = parseInt(eSlider.value);
+                
+                let total = z + e;
+                if (total > 100) {
+                    warning.classList.remove('hidden');
+                    // Normalize
+                    let scale = 100 / total;
+                    z = Math.round(z * scale);
+                    e = 100 - z; // ensure exact 100
+                    
+                    zSlider.value = z;
+                    eSlider.value = e;
+                    
+                    setTimeout(() => warning.classList.add('hidden'), 2000);
+                }
+
+                document.getElementById('val-zipper').innerText = z + '%';
+                document.getElementById('val-early').innerText = e + '%';
+
+                pZipper = z / 100;
+                pEarly = e / 100;
+            }
+
+            zSlider.addEventListener('input', syncSliders);
+            eSlider.addEventListener('input', syncSliders);
+
+            vSlider.addEventListener('input', (e) => {
+                let val = e.target.value;
+                trafficVolume = val / 1000; // Map 1-100 to 0.001 - 0.1
+                let label = val > 80 ? 'Gridlock' : (val > 50 ? 'Heavy' : 'Light');
+                document.getElementById('val-volume').innerText = label;
+            });
+
+            sSlider.addEventListener('input', (e) => {
+                simSpeed = parseInt(e.target.value);
+                document.getElementById('val-speed').innerText = simSpeed + 'x';
+            });
+
+            document.getElementById('btn-reset').addEventListener('click', () => {
+                cars = [];
+                carsPassed = 0;
+                simTime = 0;
+                frameCount = 0;
+                visualFrameCount = 0;
+                zipperTotalTime = 0;
+                zipperCount = 0;
+                earlyTotalTime = 0;
+                earlyCount = 0;
+                document.getElementById('stat-zipper-time').innerText = `0.0s`;
+                document.getElementById('stat-early-time').innerText = `0.0s`;
+            });
+            
+            // Trigger initial sync
+            syncSliders();
+            vSlider.dispatchEvent(new Event('input'));
+
+            // Auto-scroll to the merge point on load
+            setTimeout(() => {
+                simContainer.scrollTop = mergePointY - (simContainer.clientHeight / 2);
+            }, 100);
+        }
+
+        // Start
+        setupUI();
+        requestAnimationFrame(loop);
+
+    </script>
+</body>
+</html>
