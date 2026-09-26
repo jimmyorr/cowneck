@@ -65,194 +65,380 @@
     <!-- MOBILE BACKDROP FOR 90% BOTTOM SHEET -->
     <div id="sheet-backdrop" class="fixed inset-0 bg-black/65 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none md:hidden"></div>
 
-    <!-- CONTROLS & STATS PANEL: 90% MODAL SHEET ON MOBILE, SIDEBAR ON DESKTOP -->
-    <aside id="controls-panel" class="fixed inset-x-0 bottom-0 z-50 h-[90vh] max-h-[90vh] rounded-t-3xl custom-glass p-5 shadow-2xl transition-transform duration-300 ease-out transform translate-y-full md:translate-y-0 md:static md:w-80 lg:w-[340px] md:h-full md:rounded-2xl md:p-4 md:flex md:flex-col md:justify-between shrink-0 overflow-y-auto md:overflow-y-auto">
+    <!-- CONTROLS & STATS PANEL: 90% MODAL SHEET ON MOBILE, COMPACT SIDEBAR ON DESKTOP -->
+    <aside id="controls-panel" class="fixed inset-x-0 bottom-0 z-50 h-[90vh] max-h-[90vh] rounded-t-3xl custom-glass p-4 md:p-3.5 shadow-2xl transition-transform duration-300 ease-out transform translate-y-full md:translate-y-0 md:static md:w-80 lg:w-[335px] md:h-full md:rounded-2xl md:flex md:flex-col md:justify-start md:gap-2.5 shrink-0 overflow-y-auto md:overflow-y-hidden">
         
         <!-- Mobile Pull Handle -->
-        <div class="w-12 h-1.5 bg-slate-600/80 rounded-full mx-auto mb-3 md:hidden"></div>
+        <div class="w-12 h-1 bg-slate-600/80 rounded-full mx-auto mb-2 md:hidden"></div>
 
         <!-- Header -->
         <div>
             <div class="flex items-center">
                 <div class="flex items-center gap-2">
-                    <span class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-sm shadow-inner">
+                    <span class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs shadow-inner">
                         <i class="fa-solid fa-road"></i>
                     </span>
                     <div>
-                        <h1 class="text-base lg:text-lg font-bold text-white tracking-tight leading-tight">Shore Road Simulator</h1>
-                        <p class="text-[11px] text-slate-400 font-medium">Southbound merge @ Mill Pond Rd</p>
+                        <h1 class="text-sm lg:text-base font-bold text-white tracking-tight leading-none">Shore Road Simulator</h1>
+                        <p class="text-[10px] text-slate-400 font-medium mt-0.5">Southbound merge @ Mill Pond Rd</p>
                     </div>
                 </div>
             </div>
 
             <!-- Quick Presets -->
-            <div class="grid grid-cols-3 gap-1.5 mt-3">
-                <button id="preset-rush" class="py-1.5 md:py-1 px-1.5 text-[11px] md:text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-center border border-slate-700/60 active:scale-95">
+            <div class="grid grid-cols-3 gap-1 mt-2">
+                <button id="preset-rush" class="py-1 px-1 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-center border border-slate-700/60 active:scale-95">
                     🚗 Rush Hour
                 </button>
-                <button id="preset-zipper" class="py-1.5 md:py-1 px-1.5 text-[11px] md:text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 transition text-center border border-slate-700/60 active:scale-95">
+                <button id="preset-zipper" class="py-1 px-1 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 transition text-center border border-slate-700/60 active:scale-95">
                     ⚡ Zipper 80%
                 </button>
-                <button id="preset-early" class="py-1.5 md:py-1 px-1.5 text-[11px] md:text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 transition text-center border border-slate-700/60 active:scale-95">
+                <button id="preset-early" class="py-1 px-1 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 transition text-center border border-slate-700/60 active:scale-95">
                     🐢 Early 90%
                 </button>
             </div>
         </div>
 
-        <!-- Sliders Group -->
-        <div class="space-y-2.5 my-3 md:my-auto py-1">
+        <!-- Sliders Group (Compact, no redundant text blocks) -->
+        <div class="space-y-1.5 my-2">
             <!-- Zipper Slider -->
-            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/80">
-                <div class="slider-label">
-                    <span class="flex items-center gap-1.5 text-emerald-400">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800/80">
+                <div class="slider-label !mb-1">
+                    <span class="flex items-center gap-1.5 text-emerald-400 text-[11px]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                         Zipper Mergers
                     </span>
-                    <span id="val-zipper" class="font-mono text-xs px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">50%</span>
+                    <span id="val-zipper" class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-bold">50%</span>
                 </div>
                 <input type="range" id="slider-zipper" min="0" max="100" value="50" class="!accent-emerald-400">
-                <p class="text-[10px] text-slate-400 mt-1 leading-tight">Uses ending lane until cones, then alternates.</p>
             </div>
 
             <!-- Early Merge Slider -->
-            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/80">
-                <div class="slider-label">
-                    <span class="flex items-center gap-1.5 text-sky-400">
-                        <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+            <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800/80">
+                <div class="slider-label !mb-1">
+                    <span class="flex items-center gap-1.5 text-sky-400 text-[11px]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
                         Early Mergers
                     </span>
-                    <span id="val-early" class="font-mono text-xs px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-bold">50%</span>
+                    <span id="val-early" class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-400 font-bold">50%</span>
                 </div>
                 <input type="range" id="slider-early" min="0" max="100" value="50" class="!accent-sky-400">
-                <p class="text-[10px] text-slate-400 mt-1 leading-tight">Merges miles before merge point into continuing lane.</p>
             </div>
 
             <!-- Traffic Volume & Sim Speed (2 columns) -->
-            <div class="grid grid-cols-2 gap-2">
-                <div class="bg-slate-900/60 p-2.5 md:p-2 rounded-xl border border-slate-800/80">
-                    <div class="slider-label">
-                        <span>Traffic Volume</span>
-                        <span id="val-volume" class="font-mono text-[11px] text-amber-400 font-bold">Heavy</span>
+            <div class="grid grid-cols-2 gap-1.5">
+                <div class="bg-slate-900/60 p-1.5 rounded-xl border border-slate-800/80">
+                    <div class="slider-label !mb-1">
+                        <span class="text-[10px]">Volume</span>
+                        <span id="val-volume" class="font-mono text-[10px] text-amber-400 font-bold">Heavy</span>
                     </div>
                     <input type="range" id="slider-volume" min="1" max="100" value="70" class="!accent-amber-400">
                 </div>
-                <div class="bg-slate-900/60 p-2.5 md:p-2 rounded-xl border border-slate-800/80">
-                    <div class="slider-label">
-                        <span>Sim Speed</span>
-                        <span id="val-speed" class="font-mono text-[11px] text-purple-400 font-bold">1x</span>
+                <div class="bg-slate-900/60 p-1.5 rounded-xl border border-slate-800/80">
+                    <div class="slider-label !mb-1">
+                        <span class="text-[10px]">Speed</span>
+                        <span id="val-speed" class="font-mono text-[10px] text-purple-400 font-bold">1x</span>
                     </div>
                     <input type="range" id="slider-speed" min="1" max="10" value="1" class="!accent-purple-400">
                 </div>
             </div>
             
-            <p class="text-[10px] text-red-400 font-semibold text-center hidden" id="warning-total">Total adjusted to 100%</p>
+            <p class="text-[9px] text-red-400 font-semibold text-center hidden" id="warning-total">Total adjusted to 100%</p>
         </div>
 
-        <!-- Live Performance Dashboard (6-Metric Grid + Lane Balance) -->
+        <!-- Live Performance Dashboard (Modular Tabs: Flow, Eco, Driver Mood) -->
         <div>
-            <div class="flex items-center justify-between mb-1.5">
-                <span class="text-[10px] font-bold tracking-wider uppercase text-slate-400 flex items-center gap-1">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-[9.5px] font-bold tracking-wider uppercase text-slate-400 flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Live Metrics
                 </span>
-                <span id="stat-backup-ft" class="text-[10px] font-mono text-slate-400">Queue: 0 ft</span>
+                <span id="stat-backup-ft" class="text-[9.5px] font-mono text-slate-400">Queue: 0 ft</span>
+            </div>
+
+            <!-- Category Tab Switcher -->
+            <div class="grid grid-cols-3 gap-1 bg-slate-950/70 p-0.5 rounded-lg border border-slate-800/80 text-[9.5px] font-semibold mb-1.5">
+                <button id="tab-btn-flow" class="py-1 px-1 rounded-md bg-sky-500/20 text-sky-400 border border-sky-500/30 transition flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-gauge-high text-[8.5px]"></i> Flow
+                </button>
+                <button id="tab-btn-eco" class="py-1 px-1 rounded-md text-slate-400 hover:text-white border border-transparent transition flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-leaf text-[8.5px]"></i> Eco
+                </button>
+                <button id="tab-btn-mood" class="py-1 px-1 rounded-md text-slate-400 hover:text-white border border-transparent transition flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-face-smile text-[8.5px]"></i> Mood
+                </button>
             </div>
             
-            <div class="grid grid-cols-2 gap-1.5">
-                <!-- 1. Total Cars (Requested) -->
-                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-center">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] text-slate-400">Total Cars</span>
-                        <span id="stat-sim-clock" class="text-[9px] font-mono text-slate-500">00:00</span>
+            <!-- Fixed Height Metrics Panels Wrapper to prevent any bouncing or vertical shifting -->
+            <div id="metrics-panels-wrapper" class="h-[228px] min-h-[228px]">
+                <!-- PANEL 1: FLOW & QUEUE (Default View) -->
+                <div id="panel-metrics-flow" class="space-y-1.5">
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <!-- 1. Total Cars -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <div class="flex items-center justify-between text-[10px] leading-none">
+                                <span class="text-slate-400">Total Cars</span>
+                                <span id="stat-sim-clock" class="font-mono text-[9px] text-slate-500">00:00</span>
+                            </div>
+                            <div class="flex items-baseline gap-1 leading-none">
+                                <span id="stat-total-cars" class="font-mono text-sm font-bold text-white">0</span>
+                                <span class="text-[9.5px] text-slate-400">passed</span>
+                            </div>
+                            <span id="stat-active-cars" class="text-[9px] font-mono text-slate-500 leading-none">0 on road</span>
+                        </div>
+
+                        <!-- 2. Throughput -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Throughput</span>
+                            <div class="leading-none">
+                                <span id="stat-throughput" class="font-mono text-sm font-bold text-white">0.0 <span class="text-[9.5px] text-slate-400 font-normal">c/m</span></span>
+                            </div>
+                            <span id="stat-total-spawned" class="text-[9px] font-mono text-slate-500 leading-none">0 spawned</span>
+                        </div>
+
+                        <!-- 3. Cars in Queue -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Cars in Queue</span>
+                            <div class="leading-none">
+                                <span id="stat-backup" class="font-mono text-sm font-bold text-amber-300">0 cars</span>
+                            </div>
+                            <span id="stat-backup-peak" class="text-[9px] font-mono text-amber-400/70 leading-none">Peak: 0 cars</span>
+                        </div>
+
+                        <!-- 4. Avg Corridor Speed -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Avg Speed</span>
+                            <div class="leading-none">
+                                <span id="stat-avg-speed" class="font-mono text-sm font-bold text-cyan-300">35 <span class="text-[9.5px] text-slate-400 font-normal">mph</span></span>
+                            </div>
+                            <span id="stat-speed-label" class="text-[9px] font-mono text-emerald-400 leading-none">Free Flow</span>
+                        </div>
+
+                        <!-- 5. Avg Zipper Time -->
+                        <div class="bg-emerald-950/40 p-2 rounded-xl border border-emerald-900/40 flex flex-col justify-between h-[52px]">
+                            <div class="flex items-center justify-between text-[10px] leading-none">
+                                <span class="text-emerald-300">Zipper Time</span>
+                                <span id="stat-zipper-count" class="font-mono text-[9px] text-emerald-400/80">0 cars</span>
+                            </div>
+                            <div class="leading-none">
+                                <span id="stat-zipper-time" class="font-mono text-sm font-bold text-emerald-400">0.0s</span>
+                            </div>
+                            <span class="text-[9px] font-mono text-emerald-400/70 leading-none">late merge zone</span>
+                        </div>
+
+                        <!-- 6. Avg Early Time -->
+                        <div class="bg-sky-950/40 p-2 rounded-xl border border-sky-900/40 flex flex-col justify-between h-[52px]">
+                            <div class="flex items-center justify-between text-[10px] leading-none">
+                                <span class="text-sky-300">Early Time</span>
+                                <span id="stat-early-count" class="font-mono text-[9px] text-sky-400/80">0 cars</span>
+                            </div>
+                            <div class="leading-none">
+                                <span id="stat-early-time" class="font-mono text-sm font-bold text-sky-400">0.0s</span>
+                            </div>
+                            <span class="text-[9px] font-mono text-sky-400/70 leading-none">early corridor</span>
+                        </div>
                     </div>
-                    <div class="flex items-baseline gap-1 mt-0.5">
-                        <span id="stat-total-cars" class="font-mono text-sm lg:text-base font-bold text-white">0</span>
-                        <span class="text-[10px] text-slate-400 font-normal">passed</span>
+
+                    <!-- Pre-Merge Lane Balance & Zipper Advantage -->
+                    <div class="p-2 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-1.5 h-[52px] flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-[10px] leading-none">
+                            <span class="text-slate-400 flex items-center gap-1">
+                                <i class="fa-solid fa-arrows-split-up-and-left text-[9px] text-slate-500"></i>
+                                Lane Balance (Pre-Merge)
+                            </span>
+                            <span id="stat-lane-balance" class="font-mono text-[9.5px] text-slate-300">50% Left / 50% Right</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
+                            <div id="lane-bar-left" class="bg-emerald-400 h-full transition-all duration-300" style="width: 50%" title="Left lane usage"></div>
+                            <div id="lane-bar-right" class="bg-sky-400 h-full transition-all duration-300" style="width: 50%" title="Right lane usage"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[9.5px] pt-1 border-t border-slate-800/60 font-mono leading-none">
+                            <span class="text-slate-400">Zipper Advantage:</span>
+                            <span id="stat-advantage" class="font-semibold text-slate-400 truncate">Awaiting data...</span>
+                        </div>
                     </div>
-                    <span id="stat-active-cars" class="text-[9px] font-mono text-slate-500">0 on road</span>
                 </div>
 
-                <!-- 2. Throughput -->
-                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-center">
-                    <span class="text-[10px] text-slate-400">Throughput</span>
-                    <div class="mt-0.5">
-                        <span id="stat-throughput" class="font-mono text-sm lg:text-base font-bold text-white">0.0 <span class="text-[10px] text-slate-400 font-normal">c/m</span></span>
+                <!-- PANEL 2: ECO & DELAY (Environmental & Delay Impact) -->
+                <div id="panel-metrics-eco" class="hidden space-y-1.5">
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <!-- 1. Total Wait / Idle Time -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Total Idle Wait</span>
+                            <div class="leading-none">
+                                <span id="stat-idle-time" class="font-mono text-sm font-bold text-amber-300">0.0m</span>
+                            </div>
+                            <span class="text-[9px] font-mono text-slate-500 leading-none">cumulative wait</span>
+                        </div>
+
+                        <!-- 2. Fuel Wasted -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Fuel Wasted</span>
+                            <div class="leading-none">
+                                <span id="stat-fuel-wasted" class="font-mono text-sm font-bold text-orange-400">0.00 <span class="text-[9.5px] text-slate-400 font-normal">gal</span></span>
+                            </div>
+                            <span id="stat-fuel-cost" class="text-[9px] font-mono text-slate-500 leading-none">~$0.00 cost</span>
+                        </div>
+
+                        <!-- 3. CO2 Generated -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">CO₂ Emitted</span>
+                            <div class="leading-none">
+                                <span id="stat-co2-emitted" class="font-mono text-sm font-bold text-rose-400">0.0 <span class="text-[9.5px] text-slate-400 font-normal">lbs</span></span>
+                            </div>
+                            <span class="text-[9px] font-mono text-slate-500 leading-none">idle tailpipe</span>
+                        </div>
+
+                        <!-- 4. Capacity Efficiency -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Road Capacity</span>
+                            <div class="leading-none">
+                                <span id="stat-capacity-pct" class="font-mono text-sm font-bold text-emerald-400">0%</span>
+                            </div>
+                            <span class="text-[9px] font-mono text-slate-500 leading-none">vs 28 c/m ideal</span>
+                        </div>
+
+                        <!-- 5. Avg Delay Per Car -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Avg Idle Delay</span>
+                            <div class="leading-none">
+                                <span id="stat-avg-idle" class="font-mono text-sm font-bold text-cyan-300">0.0s</span>
+                            </div>
+                            <span class="text-[9px] font-mono text-slate-500 leading-none">per car delay</span>
+                        </div>
+
+                        <!-- 6. Eco Grade -->
+                        <div class="bg-emerald-950/40 p-2 rounded-xl border border-emerald-900/40 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-emerald-300 leading-none">Eco Efficiency</span>
+                            <div class="leading-none">
+                                <span id="stat-eco-grade" class="font-mono text-sm font-bold text-emerald-400">A+</span>
+                            </div>
+                            <span id="stat-eco-grade-label" class="text-[9px] font-mono text-emerald-400/80 leading-none">Optimal Flow</span>
+                        </div>
                     </div>
-                    <span id="stat-total-spawned" class="text-[9px] font-mono text-slate-500">0 spawned</span>
+
+                    <!-- Environmental Impact Banner (Matched 3-line layout) -->
+                    <div class="p-2 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-1.5 h-[52px] flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-[10px] leading-none">
+                            <span class="text-slate-400 flex items-center gap-1">
+                                <i class="fa-solid fa-leaf text-emerald-400 text-[8px]"></i>
+                                Idle Eco Impact
+                            </span>
+                            <span id="stat-eco-summary" class="font-mono text-[9.5px] text-emerald-400 font-semibold truncate max-w-[170px]">Near Zero Idling</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
+                            <div id="bar-eco-eff" class="bg-emerald-400 h-full transition-all duration-300" style="width: 90%" title="Corridor eco efficiency"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[9.5px] pt-1 border-t border-slate-800/60 font-mono leading-none">
+                            <span class="text-slate-400">Idle Fuel Penalty:</span>
+                            <span id="stat-eco-penalty" class="font-semibold text-slate-300 truncate">Low Congestion Waste</span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- 3. Cars in Queue -->
-                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-center">
-                    <span class="text-[10px] text-slate-400">Cars in Queue</span>
-                    <div class="mt-0.5">
-                        <span id="stat-backup" class="font-mono text-sm lg:text-base font-bold text-amber-300">0 cars</span>
-                    </div>
-                    <span id="stat-backup-peak" class="text-[9px] font-mono text-amber-400/70">Peak: 0 cars</span>
-                </div>
+                <!-- PANEL 3: DRIVER MOOD (Frustration, Yields & Courtesy) -->
+                <div id="panel-metrics-mood" class="hidden space-y-1.5">
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <!-- 1. Frustration Index -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <div class="flex items-center justify-between text-[10px] leading-none">
+                                <span class="text-slate-400">Frustration</span>
+                                <span id="stat-frustration-emoji" class="text-xs">😌</span>
+                            </div>
+                            <div class="leading-none">
+                                <span id="stat-frustration" class="font-mono text-sm font-bold text-emerald-400">0%</span>
+                            </div>
+                            <span id="stat-frustration-label" class="text-[9px] font-mono text-emerald-400/80 leading-none">Calm Commute</span>
+                        </div>
 
-                <!-- 4. Avg Corridor Speed -->
-                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-center">
-                    <span class="text-[10px] text-slate-400">Avg Speed</span>
-                    <div class="mt-0.5">
-                        <span id="stat-avg-speed" class="font-mono text-sm lg:text-base font-bold text-cyan-300">35 <span class="text-[10px] text-slate-400 font-normal">mph</span></span>
-                    </div>
-                    <span id="stat-speed-label" class="text-[9px] font-mono text-emerald-400">Free Flow</span>
-                </div>
+                        <!-- 2. Courtesy Yield Rate -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Courtesy Yields</span>
+                            <div class="leading-none">
+                                <span id="stat-courtesy-rate" class="font-mono text-sm font-bold text-sky-400">100%</span>
+                            </div>
+                            <span id="stat-yields-sub" class="text-[9px] font-mono text-slate-500 leading-none">0 gaps given</span>
+                        </div>
 
-                <!-- 5. Avg Zipper Time -->
-                <div class="bg-emerald-950/40 p-2 rounded-xl border border-emerald-900/40 flex flex-col justify-center">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] text-emerald-300">Avg Zipper Time</span>
-                        <span id="stat-zipper-count" class="text-[9px] font-mono text-emerald-400/80">0 cars</span>
-                    </div>
-                    <div class="mt-0.5">
-                        <span id="stat-zipper-time" class="font-mono text-sm lg:text-base font-bold text-emerald-400">0.0s</span>
-                    </div>
-                </div>
+                        <!-- 3. Forced Stops at Cones -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Forced Stops</span>
+                            <div class="leading-none">
+                                <span id="stat-forced-stops" class="font-mono text-sm font-bold text-amber-300">0 cars</span>
+                            </div>
+                            <span id="stat-forced-sub" class="text-[9px] font-mono text-slate-500 leading-none">blocked @ cones</span>
+                        </div>
 
-                <!-- 6. Avg Early Time -->
-                <div class="bg-sky-950/40 p-2 rounded-xl border border-sky-900/40 flex flex-col justify-center">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] text-sky-300">Avg Early Time</span>
-                        <span id="stat-early-count" class="text-[9px] font-mono text-sky-400/80">0 cars</span>
+                        <!-- 4. Smooth Merges -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Smooth Merges</span>
+                            <div class="leading-none">
+                                <span id="stat-smooth-merges" class="font-mono text-sm font-bold text-emerald-400">0 cars</span>
+                            </div>
+                            <span class="text-[9px] font-mono text-slate-500 leading-none">seamless merge</span>
+                        </div>
+
+                        <!-- 5. Honk Alerts -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Honk Alerts</span>
+                            <div class="leading-none">
+                                <span id="stat-honk-count" class="font-mono text-sm font-bold text-yellow-300">0</span>
+                            </div>
+                            <span class="text-[9px] font-mono text-slate-500 leading-none">horns sounded</span>
+                        </div>
+
+                        <!-- 6. Road Temperament -->
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
+                            <span class="text-[10px] text-slate-400 leading-none">Temperament</span>
+                            <div class="leading-none">
+                                <span id="stat-temperament" class="font-mono text-sm font-bold text-emerald-300">Peaceful</span>
+                            </div>
+                            <span id="stat-temperament-label" class="text-[9px] font-mono text-slate-500 leading-none">Shore Rd mood</span>
+                        </div>
                     </div>
-                    <div class="mt-0.5">
-                        <span id="stat-early-time" class="font-mono text-sm lg:text-base font-bold text-sky-400">0.0s</span>
+
+                    <!-- Driver Mood Banner (Matched 3-line layout) -->
+                    <div class="p-2 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-1.5 h-[52px] flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-[10px] leading-none">
+                            <span class="text-slate-400 flex items-center gap-1">
+                                <i class="fa-solid fa-bullhorn text-sky-400 text-[9px]"></i>
+                                Driver Sentiment
+                            </span>
+                            <span id="stat-mood-summary" class="font-mono text-[9.5px] text-emerald-400 font-semibold truncate max-w-[170px]">Relaxed Commute</span>
+                        </div>
+                        <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden flex">
+                            <div id="bar-mood-calm" class="bg-emerald-400 h-full transition-all duration-300" style="width: 100%" title="Calm commute ratio"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[9.5px] pt-1 border-t border-slate-800/60 font-mono leading-none">
+                            <span class="text-slate-400">Road Harmony:</span>
+                            <span id="stat-harmony-label" class="font-semibold text-slate-300 truncate">High Driver Courtesy</span>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Pre-Merge Lane Balance & Zipper Advantage -->
-            <div class="mt-1.5 p-2 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-1.5">
-                <div>
-                    <div class="flex items-center justify-between text-[10px] mb-1">
-                        <span class="text-slate-400 flex items-center gap-1">
-                            <i class="fa-solid fa-arrows-split-up-and-left text-[9px] text-slate-500"></i>
-                            Lane Balance (Pre-Merge)
-                        </span>
-                        <span id="stat-lane-balance" class="font-mono text-[10px] text-slate-300">50% Left / 50% Right</span>
-                    </div>
-                    <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
-                        <div id="lane-bar-left" class="bg-emerald-400 h-full transition-all duration-300" style="width: 50%" title="Left lane usage"></div>
-                        <div id="lane-bar-right" class="bg-sky-400 h-full transition-all duration-300" style="width: 50%" title="Right lane usage"></div>
-                    </div>
-                </div>
-                <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800/60 font-mono">
-                    <span class="text-slate-400">Zipper Advantage:</span>
-                    <span id="stat-advantage" class="font-semibold text-slate-400">Awaiting data...</span>
-                </div>
+        <!-- Dynamic Corridor Insight Card (Educational & balances layout) -->
+        <div id="corridor-insight-card" class="p-2.5 bg-slate-900/70 rounded-xl border border-slate-800/80 flex items-start gap-2.5 text-slate-300">
+            <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs shrink-0 mt-0.5">
+                <i class="fa-solid fa-lightbulb"></i>
+            </span>
+            <div class="min-w-0">
+                <span id="insight-title" class="font-bold text-white block text-[11px] leading-tight">Zipper Principle</span>
+                <p id="insight-text" class="text-slate-400 text-[10px] mt-0.5 leading-snug">Filling both lanes to the merge point cuts queue length by up to 40%.</p>
             </div>
+        </div>
 
-            <!-- Action Buttons -->
-            <button id="btn-reset" class="w-full mt-2.5 py-2.5 md:py-2 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-1.5">
+        <!-- Action Buttons (mt-auto pushes gracefully to bottom of panel) -->
+        <div class="mt-auto pt-1 flex flex-col gap-1.5">
+            <button id="btn-reset" class="w-full py-2.5 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-1.5 shrink-0">
                 <i class="fa-solid fa-rotate-right text-[11px]"></i> Clear Traffic & Restart
             </button>
 
             <!-- Close Sheet Button (Mobile Only) -->
-            <button id="btn-close-sheet" class="w-full mt-2 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-slate-200 text-xs font-bold rounded-xl border border-slate-700/80 md:hidden flex items-center justify-center gap-1.5">
+            <button id="btn-close-sheet" class="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-slate-200 text-xs font-bold rounded-xl border border-slate-700/80 md:hidden flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-chevron-down text-[11px]"></i> Close & Watch Traffic
             </button>
         </div>
-
     </aside>
 
     <!-- RIGHT/MAIN PANEL: SIMULATOR CANVAS (FULL SCREEN ON MOBILE) -->
@@ -361,6 +547,13 @@
         let earlyCount = 0;
         let peakQueueCars = 0;
         let peakQueueFt = 0;
+        let totalIdleTimeSecs = 0;
+        let courtesyYieldCount = 0;
+        let forcedStopCount = 0;
+        let smoothMergeCount = 0;
+        let honkCount = 0;
+        let honkBubbles = [];
+        let activeMetricsTab = 'flow';
 
         const CAR_TYPES = {
             ZIPPER: { color: '#22c55e', name: 'Zipper', dotColor: '#4ade80' },
@@ -412,6 +605,12 @@
                 this.state = 'driving';
                 this.hasMerged = false;
                 this.spawnTime = spawnTime;
+                this.stoppedDuration = 0;
+                this.hasHonked = false;
+                this.idleTime = 0;
+                this.wasBlockedAtCones = false;
+                this.mergedSmoothly = false;
+                this.hasYieldedForCar = null;
             }
 
             update(allCars) {
@@ -433,6 +632,25 @@
                     this.speed = Math.min(this.maxSpeed, this.speed + this.accel);
                 }
 
+                if (this.speed < 0.5) {
+                    this.stoppedDuration += 0.01666 * simSpeed;
+                    this.idleTime += 0.01666 * simSpeed;
+                    totalIdleTimeSecs += 0.01666 * simSpeed;
+                    if (this.stoppedDuration > 2.8 && !this.hasHonked && Math.random() < 0.025) {
+                        this.hasHonked = true;
+                        honkCount++;
+                        honkBubbles.push({
+                            x: this.x,
+                            y: this.y - 14,
+                            text: Math.random() < 0.5 ? 'HONK!' : 'BEEP!',
+                            life: 45
+                        });
+                    }
+                } else {
+                    this.stoppedDuration = 0;
+                    this.hasHonked = false;
+                }
+
                 // Courtesy Zipper Yield
                 const coneStopY = mergePointY - (this.height / 2) - 10;
                 if (this.currentLane === 1 && this.y > mergePointY - 300 && this.y < coneStopY - 20) {
@@ -447,6 +665,10 @@
                         let bumperDist = (mergingCar.y - mergingCar.height / 2) - (this.y + this.height / 2);
                         let desiredBuffer = safeDist + 6;
                         if (bumperDist < desiredBuffer + 40) {
+                            if (this.hasYieldedForCar !== mergingCar) {
+                                this.hasYieldedForCar = mergingCar;
+                                courtesyYieldCount++;
+                            }
                             if (bumperDist <= desiredBuffer) {
                                 this.speed = 0;
                             } else {
@@ -464,6 +686,10 @@
                         if (distToCones <= 0) {
                             this.y = coneStopY;
                             this.speed = 0;
+                            if (!this.wasBlockedAtCones) {
+                                this.wasBlockedAtCones = true;
+                                forcedStopCount++;
+                            }
                         } else {
                             let targetSpeed = Math.max(0, (distToCones / (safeDist * 2)) * this.maxSpeed);
                             this.speed = Math.min(this.speed, targetSpeed);
@@ -493,6 +719,9 @@
                         if (this.canMerge(1, allCars)) {
                             this.targetLane = 1;
                             this.hasMerged = true;
+                            if (!this.wasBlockedAtCones && this.speed > 1.2) {
+                                smoothMergeCount++;
+                            }
                         }
                     }
                 }
@@ -906,6 +1135,157 @@
                     barRight.style.width = `50%`;
                 }
             }
+
+            // --- Eco & Delay Metrics ---
+            const idleTimeEl = document.getElementById('stat-idle-time');
+            const fuelWastedEl = document.getElementById('stat-fuel-wasted');
+            const fuelCostEl = document.getElementById('stat-fuel-cost');
+            const co2El = document.getElementById('stat-co2-emitted');
+            const capacityEl = document.getElementById('stat-capacity-pct');
+            const avgIdleEl = document.getElementById('stat-avg-idle');
+            const ecoGradeEl = document.getElementById('stat-eco-grade');
+            const ecoGradeLabelEl = document.getElementById('stat-eco-grade-label');
+            const ecoSummaryEl = document.getElementById('stat-eco-summary');
+
+            let idleMins = (totalIdleTimeSecs / 60).toFixed(1);
+            let idleHours = totalIdleTimeSecs / 3600;
+            let fuelGal = idleHours * 0.25; // ~0.25 gal/hr avg idling vehicle
+            let fuelCost = fuelGal * 3.65;
+            let co2Lbs = fuelGal * 19.6; // 19.6 lbs CO2 per gallon
+            let tputNum = parseFloat(tput);
+            let capPct = Math.min(100, Math.round((tputNum / 28) * 100));
+            let totalVehicles = carsPassed + cars.length;
+            let avgIdlePerCarSec = totalVehicles > 0 ? (totalIdleTimeSecs / totalVehicles).toFixed(1) : "0.0";
+
+            if (idleTimeEl) idleTimeEl.innerText = `${idleMins}m`;
+            if (fuelWastedEl) fuelWastedEl.innerHTML = `${fuelGal < 0.1 ? fuelGal.toFixed(3) : fuelGal.toFixed(2)} <span class="text-[10px] text-slate-400 font-normal">gal</span>`;
+            if (fuelCostEl) fuelCostEl.innerText = `~$${fuelCost.toFixed(2)} cost`;
+            if (co2El) co2El.innerHTML = `${co2Lbs.toFixed(1)} <span class="text-[10px] text-slate-400 font-normal">lbs</span>`;
+            if (capacityEl) capacityEl.innerText = `${capPct}%`;
+            if (avgIdleEl) avgIdleEl.innerText = `${avgIdlePerCarSec}s`;
+
+            const ecoBar = document.getElementById('bar-eco-eff');
+            if (ecoBar) ecoBar.style.width = `${Math.max(8, Math.min(100, capPct))}%`;
+
+            if (ecoGradeEl && ecoGradeLabelEl && ecoSummaryEl) {
+                if (capPct >= 60 && parseFloat(avgIdlePerCarSec) < 6) {
+                    ecoGradeEl.innerText = "A+";
+                    ecoGradeEl.className = "font-mono text-sm lg:text-base font-bold text-emerald-400";
+                    ecoGradeLabelEl.innerText = "Optimal Flow";
+                    ecoGradeLabelEl.className = "text-[9px] font-mono text-emerald-400/80";
+                    ecoSummaryEl.innerText = "Clean Flow: Near-Zero Idling";
+                    ecoSummaryEl.className = "font-semibold text-emerald-400";
+                } else if (capPct >= 40 && parseFloat(avgIdlePerCarSec) < 15) {
+                    ecoGradeEl.innerText = "B";
+                    ecoGradeEl.className = "font-mono text-sm lg:text-base font-bold text-cyan-400";
+                    ecoGradeLabelEl.innerText = "Moderate Idle";
+                    ecoGradeLabelEl.className = "text-[9px] font-mono text-cyan-400/80";
+                    ecoSummaryEl.innerText = "Acceptable: Light Fuel Penalty";
+                    ecoSummaryEl.className = "font-semibold text-cyan-400";
+                } else if (capPct >= 20) {
+                    ecoGradeEl.innerText = "C";
+                    ecoGradeEl.className = "font-mono text-sm lg:text-base font-bold text-amber-400";
+                    ecoGradeLabelEl.innerText = "Heavy Idling";
+                    ecoGradeLabelEl.className = "text-[9px] font-mono text-amber-400/80";
+                    ecoSummaryEl.innerText = "Warning: Long Idle Queue Burning Gas";
+                    ecoSummaryEl.className = "font-semibold text-amber-400";
+                } else {
+                    ecoGradeEl.innerText = "F";
+                    ecoGradeEl.className = "font-mono text-sm lg:text-base font-bold text-rose-400";
+                    ecoGradeLabelEl.innerText = "Gridlock Smog";
+                    ecoGradeLabelEl.className = "text-[9px] font-mono text-rose-400/80";
+                    ecoSummaryEl.innerText = "Severe: Massive Tailpipe Waste";
+                    ecoSummaryEl.className = "font-semibold text-rose-400";
+                }
+            }
+
+            // --- Driver Mood Metrics ---
+            const frustEl = document.getElementById('stat-frustration');
+            const frustEmojiEl = document.getElementById('stat-frustration-emoji');
+            const frustLabelEl = document.getElementById('stat-frustration-label');
+            const courtesyEl = document.getElementById('stat-courtesy-rate');
+            const yieldsSubEl = document.getElementById('stat-yields-sub');
+            const forcedStopsEl = document.getElementById('stat-forced-stops');
+            const smoothMergesEl = document.getElementById('stat-smooth-merges');
+            const honkEl = document.getElementById('stat-honk-count');
+            const temperEl = document.getElementById('stat-temperament');
+            const temperLabelEl = document.getElementById('stat-temperament-label');
+            const moodSummaryEl = document.getElementById('stat-mood-summary');
+
+            let frustPct = cars.length > 0 ? Math.min(100, Math.round((backupCount / cars.length) * 100)) : 0;
+            if (frustEl) frustEl.innerText = `${frustPct}%`;
+
+            const moodBar = document.getElementById('bar-mood-calm');
+            if (moodBar) moodBar.style.width = `${Math.max(8, 100 - frustPct)}%`;
+
+            if (frustEmojiEl && frustLabelEl) {
+                if (frustPct < 20) {
+                    frustEmojiEl.innerText = "😌";
+                    frustLabelEl.innerText = "Calm Commute";
+                    frustLabelEl.className = "text-[9px] font-mono text-emerald-400/80";
+                } else if (frustPct < 50) {
+                    frustEmojiEl.innerText = "😐";
+                    frustLabelEl.innerText = "Mild Delay";
+                    frustLabelEl.className = "text-[9px] font-mono text-sky-400/80";
+                } else if (frustPct < 75) {
+                    frustEmojiEl.innerText = "😠";
+                    frustLabelEl.innerText = "Irritated";
+                    frustLabelEl.className = "text-[9px] font-mono text-amber-400/80";
+                } else {
+                    frustEmojiEl.innerText = "🤬";
+                    frustLabelEl.innerText = "Road Rage";
+                    frustLabelEl.className = "text-[9px] font-mono text-rose-400 font-bold";
+                }
+            }
+
+            let totalYieldEvents = courtesyYieldCount + forcedStopCount;
+            let courtesyPct = totalYieldEvents > 0 ? Math.min(100, Math.round((courtesyYieldCount / totalYieldEvents) * 100)) : 100;
+            if (courtesyEl) courtesyEl.innerText = `${courtesyPct}%`;
+            if (yieldsSubEl) yieldsSubEl.innerText = `${courtesyYieldCount} gaps given`;
+            if (forcedStopsEl) forcedStopsEl.innerText = `${forcedStopCount} cars`;
+            if (smoothMergesEl) smoothMergesEl.innerText = `${smoothMergeCount} cars`;
+            if (honkEl) honkEl.innerText = honkCount;
+
+            if (temperEl && moodSummaryEl && temperLabelEl) {
+                if (courtesyPct >= 80 && frustPct < 30) {
+                    temperEl.innerText = "Polite";
+                    temperEl.className = "font-mono text-sm lg:text-base font-bold text-emerald-300";
+                    temperLabelEl.innerText = "Cooperative drivers";
+                    moodSummaryEl.innerText = "High Cooperation (Zipper Success)";
+                    moodSummaryEl.className = "font-semibold text-emerald-400";
+                } else if (frustPct < 60) {
+                    temperEl.innerText = "Cautious";
+                    temperEl.className = "font-mono text-sm lg:text-base font-bold text-sky-300";
+                    temperLabelEl.innerText = "Normal commute";
+                    moodSummaryEl.innerText = "Typical Merge Behavior";
+                    moodSummaryEl.className = "font-semibold text-sky-400";
+                } else {
+                    temperEl.innerText = "Aggressive";
+                    temperEl.className = "font-mono text-sm lg:text-base font-bold text-rose-400";
+                    temperLabelEl.innerText = "Single-file queue strain";
+                    moodSummaryEl.innerText = "Frustrated Line (Early Merge Stress)";
+                    moodSummaryEl.className = "font-semibold text-rose-400";
+                }
+            }
+
+            // Dynamic Corridor Insight
+            const insightTitleEl = document.getElementById('insight-title');
+            const insightTextEl = document.getElementById('insight-text');
+            if (insightTitleEl && insightTextEl) {
+                if (zipperRatio >= 0.7) {
+                    insightTitleEl.innerText = "⚡ Zipper Efficiency High";
+                    insightTextEl.innerText = "Drivers use both lanes fully until the cones, keeping Mill Pond backup shortest.";
+                } else if (earlyMergeRatio >= 0.7) {
+                    insightTitleEl.innerText = "🐢 Single-File Bottleneck";
+                    insightTextEl.innerText = "Leaving the right lane empty early extends queue backup twice as far upstream.";
+                } else if (backupCount > 12) {
+                    insightTitleEl.innerText = "🚗 Heavy Congestion";
+                    insightTextEl.innerText = "Alternate 1-to-1 merging at the pinch point maximizes corridor throughput.";
+                } else {
+                    insightTitleEl.innerText = "💡 Zipper Principle";
+                    insightTextEl.innerText = "Filling both lanes until the merge point cuts queue backup length by up to 40%.";
+                }
+            }
         }
 
         function loop() {
@@ -981,6 +1361,31 @@
             for (let i = 0; i < cars.length; i++) {
                 cars[i].draw(ctx, simTime, drawScale);
             }
+
+            // Floating Honk / Horn Bubbles
+            for (let i = honkBubbles.length - 1; i >= 0; i--) {
+                let b = honkBubbles[i];
+                b.y -= 0.45;
+                b.life--;
+                let alpha = Math.min(1, b.life / 15);
+                ctx.save();
+                ctx.translate(b.x, b.y);
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = '#facc15';
+                ctx.beginPath();
+                ctx.roundRect(-16, -14, 32, 14, 4);
+                ctx.fill();
+                ctx.strokeStyle = '#ca8a04';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 8.5px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(b.text, 0, -6.5);
+                ctx.restore();
+                if (b.life <= 0) honkBubbles.splice(i, 1);
+            }
             ctx.restore();
 
             drawMiniMap();
@@ -1048,10 +1453,48 @@
                 earlyCount = 0;
                 peakQueueCars = 0;
                 peakQueueFt = 0;
+                totalIdleTimeSecs = 0;
+                courtesyYieldCount = 0;
+                forcedStopCount = 0;
+                smoothMergeCount = 0;
+                honkCount = 0;
+                honkBubbles = [];
                 updateStats();
             }
 
             document.getElementById('btn-reset').addEventListener('click', resetSimulation);
+
+            // Metric Category Tabs
+            const tabFlow = document.getElementById('tab-btn-flow');
+            const tabEco = document.getElementById('tab-btn-eco');
+            const tabMood = document.getElementById('tab-btn-mood');
+
+            const panelFlow = document.getElementById('panel-metrics-flow');
+            const panelEco = document.getElementById('panel-metrics-eco');
+            const panelMood = document.getElementById('panel-metrics-mood');
+
+            function switchMetricsTab(tab) {
+                activeMetricsTab = tab;
+                [tabFlow, tabEco, tabMood].forEach(b => {
+                    b.className = "py-1 px-1.5 rounded-lg text-slate-400 hover:text-white border border-transparent transition flex items-center justify-center gap-1";
+                });
+                [panelFlow, panelEco, panelMood].forEach(p => p.classList.add('hidden'));
+
+                if (tab === 'flow') {
+                    tabFlow.className = "py-1 px-1.5 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30 transition flex items-center justify-center gap-1";
+                    panelFlow.classList.remove('hidden');
+                } else if (tab === 'eco') {
+                    tabEco.className = "py-1 px-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition flex items-center justify-center gap-1";
+                    panelEco.classList.remove('hidden');
+                } else if (tab === 'mood') {
+                    tabMood.className = "py-1 px-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 transition flex items-center justify-center gap-1";
+                    panelMood.classList.remove('hidden');
+                }
+            }
+
+            if (tabFlow) tabFlow.addEventListener('click', () => switchMetricsTab('flow'));
+            if (tabEco) tabEco.addEventListener('click', () => switchMetricsTab('eco'));
+            if (tabMood) tabMood.addEventListener('click', () => switchMetricsTab('mood'));
 
             // Presets
             document.getElementById('preset-rush').addEventListener('click', () => {
