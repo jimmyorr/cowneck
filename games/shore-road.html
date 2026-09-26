@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Shore Road Merge Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -13,12 +13,17 @@
         * {
             box-sizing: border-box;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0f172a;
+            background-color: #0b1120;
             color: #e2e8f0;
             overflow: hidden;
+            touch-action: none;
+        }
+        canvas {
+            touch-action: none;
         }
         .slider-label {
             display: flex;
@@ -40,28 +45,35 @@
         }
         input[type=range]::-webkit-slider-thumb {
             appearance: none;
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             background: #38bdf8;
-            box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
             cursor: pointer;
         }
         .custom-glass {
-            background: rgba(30, 41, 59, 0.75);
-            backdrop-filter: blur(12px);
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
     </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col md:flex-row p-2.5 md:p-3.5 gap-3 box-border bg-[#0b1120]">
+<body class="h-screen w-screen overflow-hidden flex flex-col md:flex-row p-0 md:p-3.5 gap-0 md:gap-3 box-border bg-[#0b1120]">
 
-    <!-- LEFT PANEL: CONTROLS & STATS (NO SCROLLBAR) -->
-    <aside class="w-full md:w-80 lg:w-[340px] h-full flex flex-col justify-between custom-glass p-4 rounded-2xl shadow-2xl shrink-0 overflow-hidden z-10">
+    <!-- MOBILE BACKDROP FOR 90% BOTTOM SHEET -->
+    <div id="sheet-backdrop" class="fixed inset-0 bg-black/65 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none md:hidden"></div>
+
+    <!-- CONTROLS & STATS PANEL: 90% MODAL SHEET ON MOBILE, SIDEBAR ON DESKTOP -->
+    <aside id="controls-panel" class="fixed inset-x-0 bottom-0 z-50 h-[90vh] max-h-[90vh] rounded-t-3xl custom-glass p-5 shadow-2xl transition-transform duration-300 ease-out transform translate-y-full md:translate-y-0 md:static md:w-80 lg:w-[340px] md:h-full md:rounded-2xl md:p-4 md:flex md:flex-col md:justify-between shrink-0 overflow-y-auto md:overflow-hidden">
         
+        <!-- Mobile Pull Handle -->
+        <div class="w-12 h-1.5 bg-slate-600/80 rounded-full mx-auto mb-3 md:hidden"></div>
+
         <!-- Header -->
         <div>
-            <div class="flex items-center justify-between">
+            <div class="flex items-center">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-sm shadow-inner">
                         <i class="fa-solid fa-road"></i>
@@ -71,27 +83,24 @@
                         <p class="text-[11px] text-slate-400 font-medium">Southbound merge @ Mill Pond Rd</p>
                     </div>
                 </div>
-                <a href="index.html" title="Back to Games" class="text-slate-400 hover:text-white transition text-xs p-1.5 rounded-lg hover:bg-slate-800">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </a>
             </div>
 
             <!-- Quick Presets -->
             <div class="grid grid-cols-3 gap-1.5 mt-3">
-                <button id="preset-rush" class="py-1 px-1.5 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-center border border-slate-700/60 active:scale-95">
+                <button id="preset-rush" class="py-1.5 md:py-1 px-1.5 text-[11px] md:text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-center border border-slate-700/60 active:scale-95">
                     🚗 Rush Hour
                 </button>
-                <button id="preset-zipper" class="py-1 px-1.5 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 transition text-center border border-slate-700/60 active:scale-95">
+                <button id="preset-zipper" class="py-1.5 md:py-1 px-1.5 text-[11px] md:text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 transition text-center border border-slate-700/60 active:scale-95">
                     ⚡ Zipper 80%
                 </button>
-                <button id="preset-early" class="py-1 px-1.5 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 transition text-center border border-slate-700/60 active:scale-95">
+                <button id="preset-early" class="py-1.5 md:py-1 px-1.5 text-[11px] md:text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 transition text-center border border-slate-700/60 active:scale-95">
                     🐢 Early 90%
                 </button>
             </div>
         </div>
 
         <!-- Sliders Group -->
-        <div class="space-y-2.5 my-auto py-1">
+        <div class="space-y-2.5 my-3 md:my-auto py-1">
             <!-- Zipper Slider -->
             <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/80">
                 <div class="slider-label">
@@ -120,14 +129,14 @@
 
             <!-- Traffic Volume & Sim Speed (2 columns) -->
             <div class="grid grid-cols-2 gap-2">
-                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800/80">
+                <div class="bg-slate-900/60 p-2.5 md:p-2 rounded-xl border border-slate-800/80">
                     <div class="slider-label">
                         <span>Traffic Volume</span>
                         <span id="val-volume" class="font-mono text-[11px] text-amber-400 font-bold">Heavy</span>
                     </div>
                     <input type="range" id="slider-volume" min="1" max="100" value="70" class="!accent-amber-400">
                 </div>
-                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800/80">
+                <div class="bg-slate-900/60 p-2.5 md:p-2 rounded-xl border border-slate-800/80">
                     <div class="slider-label">
                         <span>Sim Speed</span>
                         <span id="val-speed" class="font-mono text-[11px] text-purple-400 font-bold">1x</span>
@@ -166,19 +175,24 @@
                 </div>
             </div>
 
-            <!-- Action Button -->
-            <button id="btn-reset" class="w-full mt-2.5 py-2 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-1.5">
+            <!-- Action Buttons -->
+            <button id="btn-reset" class="w-full mt-2.5 py-2.5 md:py-2 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-1.5">
                 <i class="fa-solid fa-rotate-right text-[11px]"></i> Clear Traffic & Restart
+            </button>
+
+            <!-- Close Sheet Button (Mobile Only) -->
+            <button id="btn-close-sheet" class="w-full mt-2 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-slate-200 text-xs font-bold rounded-xl border border-slate-700/80 md:hidden flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-chevron-down text-[11px]"></i> Close & Watch Traffic
             </button>
         </div>
 
     </aside>
 
-    <!-- RIGHT PANEL: SIMULATOR CANVAS & RADAR (ZERO SCROLLBARS) -->
-    <main id="sim-container" class="flex-1 h-full rounded-2xl shadow-2xl relative bg-[#1e293b] border border-slate-800/80 overflow-hidden flex items-center justify-center">
+    <!-- RIGHT/MAIN PANEL: SIMULATOR CANVAS (FULL SCREEN ON MOBILE) -->
+    <main id="sim-container" class="flex-1 w-full h-full rounded-none md:rounded-2xl shadow-2xl relative bg-[#1e293b] border-0 md:border md:border-slate-800/80 overflow-hidden flex items-center justify-center">
         
-        <!-- View Mode Segmented Controls (Floating at Top) -->
-        <div class="absolute top-3 left-3 z-20 flex items-center gap-1 bg-slate-900/85 backdrop-blur-md p-1 rounded-xl border border-slate-700/60 shadow-lg text-xs">
+        <!-- View Mode Segmented Controls (Floating at Top-Left) -->
+        <div class="absolute top-2.5 md:top-3 left-2.5 md:left-3 z-20 flex items-center gap-1 bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-slate-700/60 shadow-lg text-[11px] md:text-xs">
             <button id="view-full" class="px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 bg-sky-500 text-white shadow-sm" title="Show entire road from spawn to merge">
                 <i class="fa-solid fa-up-down-left-right text-[10px]"></i>
                 <span>Full Corridor</span>
@@ -189,14 +203,38 @@
             </button>
         </div>
 
-        <!-- Floating Queue Length Banner -->
-        <div id="queue-banner" class="absolute top-3 right-16 z-20 hidden md:flex items-center gap-2 bg-slate-900/85 backdrop-blur-md px-3 py-1 rounded-xl border border-slate-700/60 shadow-lg text-xs font-mono">
+        <!-- Floating Queue Length Banner (Top-Right) -->
+        <div id="queue-banner" class="absolute top-2.5 md:top-3 right-2.5 md:right-16 z-20 flex items-center gap-1.5 md:gap-2 bg-slate-900/90 backdrop-blur-md px-2.5 md:px-3 py-1 rounded-xl border border-slate-700/60 shadow-lg text-[11px] md:text-xs font-mono">
             <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-            <span id="queue-banner-text" class="text-slate-200 font-semibold">Queue: 0 cars (0 ft)</span>
+            <span id="queue-banner-text" class="text-slate-200 font-semibold">Queue: 0 cars</span>
         </div>
 
-        <!-- Canvas -->
+        <!-- Canvas (Supports Pan, Pinch-to-Zoom, Double-Tap) -->
         <canvas id="simCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+
+        <!-- MOBILE COLLAPSED BOTTOM BAR (PINNED AT BOTTOM) -->
+        <div id="mobile-bottom-bar" class="fixed bottom-3 inset-x-3 md:hidden z-30 custom-glass p-2.5 rounded-2xl shadow-2xl flex items-center justify-between cursor-pointer border border-white/10 active:scale-[0.99] transition">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs shadow-inner">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs font-bold text-white tracking-tight">Controls & Stats</span>
+                        <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-semibold">LIVE</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5">
+                        <span id="mobile-stat-tput">0.0 c/m</span>
+                        <span>•</span>
+                        <span id="mobile-stat-queue" class="text-amber-300 font-bold">0 cars</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700/80 text-xs font-semibold text-sky-400 shadow-sm">
+                <span>Expand</span>
+                <i class="fa-solid fa-chevron-up text-[10px]"></i>
+            </div>
+        </div>
 
     </main>
 
@@ -229,7 +267,7 @@
             targetY: mergePointY
         };
 
-        // User Pan / Drag on Canvas
+        // User Pan / Drag / Touch
         let isDragging = false;
         let dragStartY = 0;
         let dragCameraStartY = 0;
@@ -237,8 +275,8 @@
         // Settings
         let pZipper = 0.5;
         let pEarly = 0.5;
-        let trafficVolume = 0.07; // probability of spawn per frame
-        let simSpeed = 1; // 1x to 10x multiplier
+        let trafficVolume = 0.07;
+        let simSpeed = 1;
 
         // State
         let cars = [];
@@ -253,8 +291,8 @@
         let earlyCount = 0;
 
         const CAR_TYPES = {
-            ZIPPER: { color: '#22c55e', name: 'Zipper', dotColor: '#4ade80' }, // Green
-            EARLY: { color: '#38bdf8', name: 'Early', dotColor: '#60a5fa' }     // Sky Blue
+            ZIPPER: { color: '#22c55e', name: 'Zipper', dotColor: '#4ade80' },
+            EARLY: { color: '#38bdf8', name: 'Early', dotColor: '#60a5fa' }
         };
 
         function resizeCanvas() {
@@ -274,15 +312,13 @@
 
         function updateCameraTargets() {
             if (viewMode === 'full') {
-                // Fit entire worldHeight comfortably in screenHeight
-                const availableH = screenHeight - 20;
+                const availableH = screenHeight - (screenWidth < 768 ? 90 : 30);
                 const fitScale = availableH / worldHeight;
                 camera.targetScale = fitScale;
-                camera.targetY = worldHeight / 2;
+                camera.targetY = worldHeight / 2 - (screenWidth < 768 ? 40 : 0);
             } else if (viewMode === 'focus') {
-                // Focused on merge point
-                camera.targetScale = Math.min(1.1, (screenHeight / 900));
-                camera.targetY = mergePointY - 100;
+                camera.targetScale = Math.min(1.1, (screenHeight / 850));
+                camera.targetY = mergePointY - (screenWidth < 768 ? 140 : 100);
             }
         }
 
@@ -301,19 +337,14 @@
                 this.speed = this.maxSpeed;
                 this.accel = 0.06;
                 
-                this.state = 'driving'; // driving, merging
+                this.state = 'driving';
                 this.hasMerged = false;
                 this.spawnTime = spawnTime;
             }
 
             update(allCars) {
-                // 1. Determine lane behavior
                 this.decideBehavior(allCars);
-
-                // 2. Find car ahead to control speed
                 let carAhead = this.findCarAhead(allCars);
-                
-                // 3. Adjust speed
                 let safeDist = 18;
 
                 if (carAhead) {
@@ -330,7 +361,7 @@
                     this.speed = Math.min(this.maxSpeed, this.speed + this.accel);
                 }
 
-                // Courtesy Zipper Yield: Lane 1 cars approaching merge point yield to waiting Lane 0 cars
+                // Courtesy Zipper Yield
                 const coneStopY = mergePointY - (this.height / 2) - 10;
                 if (this.currentLane === 1 && this.y > mergePointY - 300 && this.y < coneStopY - 20) {
                     let mergingCar = allCars.find(c => 
@@ -354,7 +385,7 @@
                     }
                 }
 
-                // Construction Zone Barrier for Lane 0: cars cannot drive into cones unless merging
+                // Construction Zone Barrier for Lane 0
                 if (this.currentLane === 0 && this.targetLane === 0) {
                     let distToCones = coneStopY - this.y;
                     if (distToCones <= safeDist * 2) {
@@ -368,12 +399,9 @@
                     }
                 }
 
-                // 4. Move Y
                 this.y += this.speed;
 
-                // 5. Move X (Merging)
                 let targetX = this.targetLane === 0 ? leftLaneX : rightLaneX;
-
                 if (Math.abs(this.x - targetX) > 1) {
                     this.x += (targetX - this.x) * 0.08;
                 } else {
@@ -448,14 +476,13 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
 
-                // If zoomed out significantly (Full Corridor view), render high-contrast crisp vehicle markers
+                // High-contrast marker when zoomed out
                 if (renderScale < 0.45) {
                     ctx.fillStyle = this.type.color;
                     ctx.beginPath();
                     ctx.roundRect(-this.width/2, -this.height/2, this.width, this.height, 3);
                     ctx.fill();
 
-                    // Roof tint
                     ctx.fillStyle = '#ffffff';
                     ctx.globalAlpha = 0.35;
                     ctx.fillRect(-this.width/2 + 3, -this.height/4, this.width - 6, this.height/2);
@@ -470,26 +497,21 @@
                 }
                 
                 // Detailed Close-Up Render
-                // Shadow
                 ctx.fillStyle = 'rgba(0,0,0,0.35)';
                 ctx.fillRect(-this.width/2 + 2, -this.height/2 + 2, this.width, this.height);
 
-                // Car body
                 ctx.fillStyle = this.type.color;
                 ctx.beginPath();
                 ctx.roundRect(-this.width/2, -this.height/2, this.width, this.height, 4);
                 ctx.fill();
 
-                // Windshield
                 ctx.fillStyle = 'rgba(255,255,255,0.7)';
                 ctx.fillRect(-this.width/2 + 3, this.height/2 - 12, this.width - 6, 7);
                 
-                // Headlights
                 ctx.fillStyle = '#fef08a';
                 ctx.fillRect(-this.width/2 + 2, this.height/2 - 2, 4, 2);
                 ctx.fillRect(this.width/2 - 6, this.height/2 - 2, 4, 2);
 
-                // Brake lights
                 if (this.speed < this.maxSpeed * 0.5) {
                     ctx.fillStyle = '#ff2222';
                     ctx.shadowBlur = 6;
@@ -499,7 +521,6 @@
                     ctx.shadowBlur = 0;
                 }
 
-                // Turn signal if merging
                 if (this.state === 'merging') {
                     if (Math.floor(currentSimTime / 250) % 2 === 0) {
                         ctx.fillStyle = '#fb923c';
@@ -516,11 +537,10 @@
         }
 
         function drawEnvironment() {
-            // Surrounding Grass / Terrain
-            ctx.fillStyle = '#1e3a2f'; // Sleek dark green foliage
+            ctx.fillStyle = '#1e3a2f';
             ctx.fillRect(0, 0, worldWidth, worldHeight);
 
-            // Water (Mill Pond along the lower-left shoreline)
+            // Water (Mill Pond)
             ctx.fillStyle = '#0284c7';
             ctx.beginPath();
             ctx.moveTo(0, worldHeight);
@@ -530,12 +550,10 @@
             ctx.closePath();
             ctx.fill();
 
-            // Water ripple shore accent
             ctx.strokeStyle = '#38bdf8';
             ctx.lineWidth = 3;
             ctx.stroke();
 
-            // Shoreline label
             ctx.save();
             ctx.fillStyle = 'rgba(255,255,255,0.45)';
             ctx.font = 'bold 13px sans-serif';
@@ -549,7 +567,7 @@
             ctx.fillStyle = '#334155';
             ctx.fillRect(roadX, 0, roadWidth, worldHeight);
 
-            // Center dashed line (up to merge point)
+            // Center dashed line
             ctx.strokeStyle = '#f8fafc';
             ctx.lineWidth = 2.5;
             ctx.setLineDash([18, 18]);
@@ -574,16 +592,13 @@
             ctx.lineTo(roadX + roadWidth, worldHeight);
             ctx.stroke();
 
-            // Construction Zone (Orange cones & barrels on driver's right / visual left)
+            // Cones in Construction Zone
             for(let y = mergePointY; y < worldHeight; y += 36) {
-                // Base
                 ctx.fillStyle = '#ea580c';
                 ctx.fillRect(leftLaneX - 10, y, 20, 9);
-                // Reflective cone stripe
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(leftLaneX - 6, y + 2, 12, 5);
                 
-                // Diagonal crosshatch hazard lines
                 if (y < worldHeight - 36) {
                     ctx.strokeStyle = 'rgba(249, 115, 22, 0.25)';
                     ctx.lineWidth = 3;
@@ -594,14 +609,13 @@
                 }
             }
 
-            // "MERGE LEFT" Road Markings
+            // Road Markings
             ctx.fillStyle = 'rgba(255,255,255,0.85)';
             ctx.font = 'bold 15px sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('MERGE', leftLaneX, mergePointY - 45);
             ctx.fillText('LEFT', leftLaneX, mergePointY - 25);
             
-            // Stenciled directional arrow pointing to continuing lane
             ctx.beginPath();
             ctx.moveTo(leftLaneX - 10, mergePointY - 65);
             ctx.lineTo(leftLaneX + 10, mergePointY - 65);
@@ -613,7 +627,6 @@
             ctx.closePath();
             ctx.fill();
 
-            // Continuing lane directional arrow
             ctx.beginPath();
             ctx.moveTo(rightLaneX - 4, mergePointY - 50);
             ctx.lineTo(rightLaneX + 4, mergePointY - 50);
@@ -626,14 +639,15 @@
             ctx.fill();
         }
 
-        // Draw Interactive Mini-Map / Radar on Screen
         function drawMiniMap() {
+            // Hide Radar on Mobile (< 768px) to maximize road width
+            if (screenWidth < 768) return;
+
             const radarW = 28;
             const radarH = Math.min(screenHeight - 80, 480);
             const radarX = screenWidth - radarW - 14;
             const radarY = 48;
 
-            // Background Container
             ctx.save();
             ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
@@ -643,19 +657,16 @@
             ctx.fill();
             ctx.stroke();
 
-            // Road Strip in Radar
             const roadStripW = 12;
             const roadStripX = radarX + (radarW - roadStripW) / 2;
             ctx.fillStyle = '#334155';
             ctx.fillRect(roadStripX, radarY + 6, roadStripW, radarH - 12);
 
-            // Cones Mark in Radar
             const coneNormY = mergePointY / worldHeight;
             const radarConeY = (radarY + 6) + coneNormY * (radarH - 12);
             ctx.fillStyle = '#ea580c';
             ctx.fillRect(roadStripX, radarConeY, roadStripW / 2, (radarH - 12) * (constructionLength / worldHeight));
 
-            // Cars as Blips
             for (let c of cars) {
                 let normY = Math.max(0, Math.min(1, c.y / worldHeight));
                 let py = (radarY + 6) + normY * (radarH - 12);
@@ -664,7 +675,6 @@
                 ctx.fillRect(px - 1, py - 1, 3, 3);
             }
 
-            // Current Camera Viewport indicator box
             const viewWorldH = screenHeight / camera.scale;
             const topWorldY = camera.y - (viewWorldH / 2);
             const normTop = Math.max(0, topWorldY / worldHeight);
@@ -677,7 +687,6 @@
             ctx.lineWidth = 1.5;
             ctx.strokeRect(radarX + 1, camBoxY, radarW - 2, Math.max(8, camBoxH));
 
-            // Radar Label
             ctx.fillStyle = '#94a3b8';
             ctx.font = '9px monospace';
             ctx.textAlign = 'center';
@@ -696,14 +705,13 @@
             let elapsedMin = simTime / 60000;
             let tput = elapsedMin > 0 ? (carsPassed / elapsedMin).toFixed(1) : "0.0";
             document.getElementById('stat-throughput').innerHTML = `${tput} <span class="text-[10px] text-slate-400 font-normal">c/m</span>`;
+            document.getElementById('mobile-stat-tput').innerText = `${tput} c/m`;
 
-            // Calculate active queue length (cars moving under 1.0 speed or within backup)
             let queuedCars = cars.filter(c => c.speed < 1.0 && c.y < mergePointY + 50);
             let backupCount = queuedCars.length;
             document.getElementById('stat-backup').innerText = `${backupCount} cars`;
+            document.getElementById('mobile-stat-queue').innerText = `${backupCount} cars`;
 
-            // Calculate backup distance in simulated feet (1 px ≈ 1.5 ft)
-            let maxBackupY = mergePointY;
             if (queuedCars.length > 0) {
                 let earliestY = Math.min(...queuedCars.map(c => c.y));
                 let backupFt = Math.round((mergePointY - earliestY) * 1.5);
@@ -714,6 +722,7 @@
                 document.getElementById('queue-banner-text').innerText = `Queue: ${backupCount} cars (${Math.max(0, backupFt)} ft)`;
             } else {
                 document.getElementById('stat-backup-ft').innerText = `Queue: 0 ft`;
+                document.getElementById('queue-banner-text').innerText = `Queue: 0 cars`;
             }
 
             let avgZipper = zipperCount > 0 ? (zipperTotalTime / zipperCount).toFixed(1) : "0.0";
@@ -726,16 +735,13 @@
         function loop() {
             visualFrameCount++;
 
-            // Smooth camera lerp
             camera.scale += (camera.targetScale - camera.scale) * 0.08;
             camera.y += (camera.targetY - camera.y) * 0.08;
 
-            // Run simulation steps
             for (let step = 0; step < simSpeed; step++) {
                 simTime += 16.666;
                 frameCount++;
 
-                // Spawn Cars
                 if (Math.random() < trafficVolume) {
                     let leftSpace = !cars.some(c => c.currentLane === 0 && c.y < 50);
                     let rightSpace = !cars.some(c => c.currentLane === 1 && c.y < 50);
@@ -762,12 +768,10 @@
                     }
                 }
 
-                // Update Cars
                 for (let i = cars.length - 1; i >= 0; i--) {
                     let car = cars[i];
                     car.update(cars);
 
-                    // Remove cars that passed
                     if (car.y > worldHeight + car.height) {
                         let travelTimeSecs = (simTime - car.spawnTime) / 1000;
                         if (car.type === CAR_TYPES.ZIPPER) {
@@ -784,12 +788,10 @@
                 }
             }
 
-            // Render World
             ctx.save();
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, screenWidth, screenHeight);
 
-            // World transform
             const drawScale = camera.scale;
             const panX = (screenWidth / 2) - (worldWidth / 2) * drawScale;
             const panY = (screenHeight / 2) - (camera.y) * drawScale;
@@ -804,13 +806,10 @@
             }
             ctx.restore();
 
-            // Draw HUD Mini-Map Radar
             drawMiniMap();
-
             ctx.restore();
 
             if (visualFrameCount % 20 === 0) updateStats();
-
             requestAnimationFrame(loop);
         }
 
@@ -849,7 +848,7 @@
 
             vSlider.addEventListener('input', (e) => {
                 let val = parseInt(e.target.value);
-                trafficVolume = (val / 1000) * 1.1; // Balanced spawn rate
+                trafficVolume = (val / 1000) * 1.1;
                 let label = val > 80 ? 'Gridlock' : (val > 50 ? 'Heavy' : (val > 25 ? 'Moderate' : 'Light'));
                 document.getElementById('val-volume').innerText = label;
             });
@@ -923,7 +922,31 @@
             btnFull.addEventListener('click', () => setViewMode('full'));
             btnFocus.addEventListener('click', () => setViewMode('focus'));
 
-            // Canvas Drag / Pan
+            // Mobile Bottom Sheet Interactions
+            const bottomBar = document.getElementById('mobile-bottom-bar');
+            const sheetBackdrop = document.getElementById('sheet-backdrop');
+            const controlsPanel = document.getElementById('controls-panel');
+            const btnCloseSheet = document.getElementById('btn-close-sheet');
+
+            function openSheet() {
+                controlsPanel.classList.remove('translate-y-full');
+                controlsPanel.classList.add('translate-y-0');
+                sheetBackdrop.classList.remove('pointer-events-none', 'opacity-0');
+                sheetBackdrop.classList.add('opacity-100');
+            }
+
+            function closeSheet() {
+                controlsPanel.classList.add('translate-y-full');
+                controlsPanel.classList.remove('translate-y-0');
+                sheetBackdrop.classList.remove('opacity-100');
+                sheetBackdrop.classList.add('opacity-0', 'pointer-events-none');
+            }
+
+            if (bottomBar) bottomBar.addEventListener('click', openSheet);
+            if (btnCloseSheet) btnCloseSheet.addEventListener('click', closeSheet);
+            if (sheetBackdrop) sheetBackdrop.addEventListener('click', closeSheet);
+
+            // Canvas Mouse Drag / Pan
             canvas.addEventListener('mousedown', (e) => {
                 isDragging = true;
                 dragStartY = e.clientY;
@@ -941,12 +964,68 @@
                 isDragging = false;
             });
 
-            // Mouse wheel zoom
             canvas.addEventListener('wheel', (e) => {
                 e.preventDefault();
                 const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
                 camera.targetScale = Math.max(0.2, Math.min(1.8, camera.targetScale * zoomFactor));
             }, { passive: false });
+
+            // Mobile Touch Gestures: 1-finger pan, 2-finger pinch, double-tap toggle
+            let touchStartY = 0;
+            let touchStartDist = 0;
+            let touchStartScale = 1;
+            let lastTapTime = 0;
+
+            function getTouchDistance(e) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    const now = Date.now();
+                    if (now - lastTapTime < 300) {
+                        // Double-tap to toggle view mode
+                        setViewMode(viewMode === 'full' ? 'focus' : 'full');
+                        lastTapTime = 0;
+                        return;
+                    }
+                    lastTapTime = now;
+
+                    isDragging = true;
+                    touchStartY = e.touches[0].clientY;
+                    dragCameraStartY = camera.targetY;
+                } else if (e.touches.length === 2) {
+                    isDragging = false;
+                    touchStartDist = getTouchDistance(e);
+                    touchStartScale = camera.targetScale;
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (e.touches.length === 1 && isDragging) {
+                    const deltaY = (e.touches[0].clientY - touchStartY) / camera.scale;
+                    camera.targetY = Math.max(300, Math.min(worldHeight - 300, dragCameraStartY - deltaY));
+                } else if (e.touches.length === 2 && touchStartDist > 0) {
+                    const currentDist = getTouchDistance(e);
+                    const ratio = currentDist / touchStartDist;
+                    camera.targetScale = Math.max(0.18, Math.min(1.8, touchStartScale * ratio));
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', (e) => {
+                if (e.touches.length === 0) {
+                    isDragging = false;
+                    touchStartDist = 0;
+                }
+            });
+
+            canvas.addEventListener('touchcancel', () => {
+                isDragging = false;
+                touchStartDist = 0;
+            });
 
             // Initialize
             syncSliders();
