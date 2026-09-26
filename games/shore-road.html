@@ -229,6 +229,7 @@
                     this.x += (targetX - this.x) * 0.05; // Smooth slide
                 } else {
                     this.x = targetX;
+                    this.currentLane = this.targetLane;
                     if (this.state === 'merging') this.state = 'driving';
                 }
             }
