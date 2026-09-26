@@ -52,24 +52,46 @@
             box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
             cursor: pointer;
         }
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            margin: 0;
+            padding: 0;
+        }
         .custom-glass {
-            background: rgba(15, 23, 42, 0.88);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        @media (max-width: 767px) {
+            #controls-panel {
+                top: auto;
+                bottom: 0;
+                /* Keep drawer comfortably below Safari address bar and dynamic island */
+                max-height: calc(100dvh - max(56px, calc(env(safe-area-inset-top) + 12px)));
+                max-height: calc(100svh - max(56px, calc(env(safe-area-inset-top) + 12px)));
+                height: auto;
+                padding-bottom: max(1.25rem, calc(env(safe-area-inset-bottom) + 0.75rem));
+                overscroll-behavior: contain;
+                -webkit-overflow-scrolling: touch;
+            }
+            #mobile-bottom-bar {
+                bottom: max(0.75rem, env(safe-area-inset-bottom));
+            }
         }
     </style>
 </head>
 <body class="h-screen w-screen overflow-hidden flex flex-col md:flex-row p-0 md:p-3.5 gap-0 md:gap-3 box-border bg-[#0b1120]">
 
-    <!-- MOBILE BACKDROP FOR 90% BOTTOM SHEET -->
+    <!-- MOBILE BACKDROP FOR BOTTOM SHEET -->
     <div id="sheet-backdrop" class="fixed inset-0 bg-black/65 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none md:hidden"></div>
 
-    <!-- CONTROLS & STATS PANEL: 90% MODAL SHEET ON MOBILE, COMPACT SIDEBAR ON DESKTOP -->
-    <aside id="controls-panel" class="fixed inset-x-0 bottom-0 z-50 h-[90vh] max-h-[90vh] rounded-t-3xl custom-glass p-4 md:p-3.5 shadow-2xl transition-transform duration-300 ease-out transform translate-y-full md:translate-y-0 md:static md:w-80 lg:w-[335px] md:h-full md:rounded-2xl md:flex md:flex-col md:justify-start md:gap-2.5 shrink-0 overflow-y-auto md:overflow-y-hidden">
+    <!-- CONTROLS & STATS PANEL: MODAL SHEET ON MOBILE, COMPACT SIDEBAR ON DESKTOP -->
+    <aside id="controls-panel" class="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl custom-glass p-4 md:p-3.5 shadow-2xl transition-transform duration-300 ease-out transform translate-y-full md:translate-y-0 md:static md:w-80 lg:w-[335px] md:h-full md:rounded-2xl md:flex md:flex-col md:justify-start md:gap-2.5 shrink-0 overflow-y-auto md:overflow-y-hidden">
         
         <!-- Mobile Pull Handle -->
-        <div class="w-12 h-1 bg-slate-600/80 rounded-full mx-auto mb-2 md:hidden"></div>
+        <div id="mobile-pull-handle" class="w-12 h-1.5 bg-slate-600 hover:bg-slate-500 rounded-full mx-auto mb-2.5 md:hidden cursor-pointer shrink-0"></div>
 
         <!-- Header -->
         <div>
@@ -434,22 +456,25 @@
     <!-- RIGHT/MAIN PANEL: SIMULATOR CANVAS (FULL SCREEN ON MOBILE) -->
     <main id="sim-container" class="flex-1 w-full h-full rounded-none md:rounded-2xl shadow-2xl relative bg-[#1e293b] border-0 md:border md:border-slate-800/80 overflow-hidden flex items-center justify-center">
         
-        <!-- View Mode Segmented Controls (Floating at Top-Left) -->
-        <div class="absolute top-2.5 md:top-3 left-2.5 md:left-3 z-20 flex items-center gap-1 bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-slate-700/60 shadow-lg text-[11px] md:text-xs">
-            <button id="view-full" class="px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 bg-sky-500 text-white shadow-sm" title="Show entire road from spawn to merge">
-                <i class="fa-solid fa-up-down-left-right text-[10px]"></i>
-                <span>Full Corridor</span>
-            </button>
-            <button id="view-focus" class="px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Zoom in on merge point">
-                <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
-                <span>Merge Zone</span>
-            </button>
-        </div>
+        <!-- Floating Top Bar (View Controls & Queue Banner - Never Collide) -->
+        <div class="absolute top-2.5 md:top-3 inset-x-2.5 md:left-3 md:right-16 z-20 flex items-center justify-between pointer-events-none gap-2">
+            <!-- View Mode Segmented Controls -->
+            <div class="pointer-events-auto flex items-center gap-1 bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-slate-700/60 shadow-lg text-[10px] sm:text-xs shrink-0">
+                <button id="view-full" class="px-2 sm:px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 bg-sky-500 text-white shadow-sm" title="Show entire road from spawn to merge">
+                    <i class="fa-solid fa-up-down-left-right text-[10px]"></i>
+                    <span>Full<span class="hidden sm:inline"> Corridor</span></span>
+                </button>
+                <button id="view-focus" class="px-2 sm:px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Zoom in on merge point">
+                    <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+                    <span>Merge<span class="hidden sm:inline"> Zone</span></span>
+                </button>
+            </div>
 
-        <!-- Floating Queue Length Banner (Top-Right) -->
-        <div id="queue-banner" class="absolute top-2.5 md:top-3 right-2.5 md:right-16 z-20 flex items-center gap-1.5 md:gap-2 bg-slate-900/90 backdrop-blur-md px-2.5 md:px-3 py-1 rounded-xl border border-slate-700/60 shadow-lg text-[11px] md:text-xs font-mono">
-            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-            <span id="queue-banner-text" class="text-slate-200 font-semibold">Queue: 0 cars</span>
+            <!-- Floating Queue Length Banner -->
+            <div id="queue-banner" class="pointer-events-auto flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-xl border border-slate-700/60 shadow-lg text-[10px] sm:text-xs font-mono shrink-0">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                <span id="queue-banner-text" class="text-slate-200 font-semibold">Queue: 0 cars</span>
+            </div>
         </div>
 
         <!-- Canvas (Supports Pan, Pinch-to-Zoom, Double-Tap) -->
@@ -1040,7 +1065,11 @@
             const banner = document.getElementById('queue-banner');
             if (backupCount > 0) {
                 banner.classList.remove('hidden');
-                document.getElementById('queue-banner-text').innerText = `Queue: ${backupCount} cars (${backupFt} ft)`;
+                if (window.innerWidth < 640) {
+                    document.getElementById('queue-banner-text').innerText = `Queue: ${backupCount} cars`;
+                } else {
+                    document.getElementById('queue-banner-text').innerText = `Queue: ${backupCount} cars (${backupFt} ft)`;
+                }
             } else {
                 document.getElementById('queue-banner-text').innerText = `Queue: 0 cars`;
             }
@@ -1537,9 +1566,27 @@
                 sheetBackdrop.classList.add('opacity-0', 'pointer-events-none');
             }
 
+            const pullHandle = document.getElementById('mobile-pull-handle');
             if (bottomBar) bottomBar.addEventListener('click', openSheet);
             if (btnCloseSheet) btnCloseSheet.addEventListener('click', closeSheet);
+            if (pullHandle) pullHandle.addEventListener('click', closeSheet);
             if (sheetBackdrop) sheetBackdrop.addEventListener('click', closeSheet);
+
+            // Pull-down gesture to dismiss bottom sheet
+            let sheetTouchStartY = 0;
+            if (controlsPanel) {
+                controlsPanel.addEventListener('touchstart', (e) => {
+                    sheetTouchStartY = e.touches[0].clientY;
+                }, { passive: true });
+                controlsPanel.addEventListener('touchmove', (e) => {
+                    if (controlsPanel.scrollTop <= 0) {
+                        const deltaY = e.touches[0].clientY - sheetTouchStartY;
+                        if (deltaY > 60) {
+                            closeSheet();
+                        }
+                    }
+                }, { passive: true });
+            }
 
             // Canvas Mouse Drag / Pan
             canvas.addEventListener('mousedown', (e) => {
