@@ -5,136 +5,245 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shore Road Merge Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+        * {
+            box-sizing: border-box;
+            user-select: none;
         }
-        canvas {
-            background-color: #4b5563; /* Road color */
-            display: block;
-            margin: 0 auto;
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            overflow: hidden;
         }
         .slider-label {
             display: flex;
             justify-content: space-between;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
             margin-bottom: 0.25rem;
         }
         input[type=range] {
             width: 100%;
-            accent-color: #3b82f6;
+            height: 6px;
+            background: #334155;
+            border-radius: 9999px;
+            appearance: none;
+            cursor: pointer;
+            accent-color: #38bdf8;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #38bdf8;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+            cursor: pointer;
+        }
+        .custom-glass {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
     </style>
 </head>
-<body class="h-screen flex flex-col md:flex-row p-4 gap-4 box-border">
+<body class="h-screen w-screen overflow-hidden flex flex-col md:flex-row p-2.5 md:p-3.5 gap-3 box-border bg-[#0b1120]">
 
-    <div class="w-full md:w-1/3 bg-white p-6 rounded-xl shadow-lg flex flex-col gap-6 overflow-y-auto">
+    <!-- LEFT PANEL: CONTROLS & STATS (NO SCROLLBAR) -->
+    <aside class="w-full md:w-80 lg:w-[340px] h-full flex flex-col justify-between custom-glass p-4 rounded-2xl shadow-2xl shrink-0 overflow-hidden z-10">
+        
+        <!-- Header -->
         <div>
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Shore Road Simulator</h1>
-            <p class="text-sm text-gray-600">Simulate the southbound merge near Mill Pond Rd. Adjust driver behaviors to see the impact on traffic.</p>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-sm shadow-inner">
+                        <i class="fa-solid fa-road"></i>
+                    </span>
+                    <div>
+                        <h1 class="text-base lg:text-lg font-bold text-white tracking-tight leading-tight">Shore Road Simulator</h1>
+                        <p class="text-[11px] text-slate-400 font-medium">Southbound merge @ Mill Pond Rd</p>
+                    </div>
+                </div>
+                <a href="index.html" title="Back to Games" class="text-slate-400 hover:text-white transition text-xs p-1.5 rounded-lg hover:bg-slate-800">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+            </div>
+
+            <!-- Quick Presets -->
+            <div class="grid grid-cols-3 gap-1.5 mt-3">
+                <button id="preset-rush" class="py-1 px-1.5 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-center border border-slate-700/60 active:scale-95">
+                    🚗 Rush Hour
+                </button>
+                <button id="preset-zipper" class="py-1 px-1.5 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 transition text-center border border-slate-700/60 active:scale-95">
+                    ⚡ Zipper 80%
+                </button>
+                <button id="preset-early" class="py-1 px-1.5 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 transition text-center border border-slate-700/60 active:scale-95">
+                    🐢 Early 90%
+                </button>
+            </div>
         </div>
 
-        <div class="space-y-4">
-            <h2 class="text-lg font-semibold border-b pb-1">Driver Personalities</h2>
-            
-            <!-- Zipper Merge Slider -->
-            <div>
+        <!-- Sliders Group -->
+        <div class="space-y-2.5 my-auto py-1">
+            <!-- Zipper Slider -->
+            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/80">
                 <div class="slider-label">
-                    <span><i class="fa-solid fa-car text-green-500 mr-1"></i> Zipper Mergers</span>
-                    <span id="val-zipper">50%</span>
+                    <span class="flex items-center gap-1.5 text-emerald-400">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        Zipper Mergers
+                    </span>
+                    <span id="val-zipper" class="font-mono text-xs px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">50%</span>
                 </div>
-                <input type="range" id="slider-zipper" min="0" max="100" value="50">
-                <p class="text-xs text-gray-500 mt-1">Stays in lane until the end, then takes turns.</p>
+                <input type="range" id="slider-zipper" min="0" max="100" value="50" class="!accent-emerald-400">
+                <p class="text-[10px] text-slate-400 mt-1 leading-tight">Uses ending lane until cones, then alternates.</p>
             </div>
 
             <!-- Early Merge Slider -->
-            <div>
+            <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/80">
                 <div class="slider-label">
-                    <span><i class="fa-solid fa-car text-blue-500 mr-1"></i> Early Mergers</span>
-                    <span id="val-early">50%</span>
+                    <span class="flex items-center gap-1.5 text-sky-400">
+                        <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                        Early Mergers
+                    </span>
+                    <span id="val-early" class="font-mono text-xs px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-bold">50%</span>
                 </div>
-                <input type="range" id="slider-early" min="0" max="100" value="50">
-                <p class="text-xs text-gray-500 mt-1">Gets in the continuing lane miles in advance.</p>
+                <input type="range" id="slider-early" min="0" max="100" value="50" class="!accent-sky-400">
+                <p class="text-[10px] text-slate-400 mt-1 leading-tight">Merges miles before merge point into continuing lane.</p>
+            </div>
+
+            <!-- Traffic Volume & Sim Speed (2 columns) -->
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800/80">
+                    <div class="slider-label">
+                        <span>Traffic Volume</span>
+                        <span id="val-volume" class="font-mono text-[11px] text-amber-400 font-bold">Heavy</span>
+                    </div>
+                    <input type="range" id="slider-volume" min="1" max="100" value="70" class="!accent-amber-400">
+                </div>
+                <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800/80">
+                    <div class="slider-label">
+                        <span>Sim Speed</span>
+                        <span id="val-speed" class="font-mono text-[11px] text-purple-400 font-bold">1x</span>
+                    </div>
+                    <input type="range" id="slider-speed" min="1" max="10" value="1" class="!accent-purple-400">
+                </div>
             </div>
             
-            <p class="text-xs text-red-600 font-bold hidden" id="warning-total">Total exceeds 100%! Auto-adjusting...</p>
+            <p class="text-[10px] text-red-400 font-semibold text-center hidden" id="warning-total">Total adjusted to 100%</p>
         </div>
 
-        <div class="space-y-4">
-            <h2 class="text-lg font-semibold border-b pb-1">Environment</h2>
-            <div>
-                <div class="slider-label">
-                    <span>Traffic Volume</span>
-                    <span id="val-volume">High</span>
+        <!-- Live Performance Dashboard (2x2 Grid) -->
+        <div>
+            <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-bold tracking-wider uppercase text-slate-400 flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Live Metrics
+                </span>
+                <span id="stat-backup-ft" class="text-[10px] font-mono text-slate-400">Queue: 0 ft</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5">
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-center">
+                    <span class="text-[10px] text-slate-400">Throughput</span>
+                    <span id="stat-throughput" class="font-mono text-sm lg:text-base font-bold text-white">0.0 <span class="text-[10px] text-slate-400 font-normal">c/m</span></span>
                 </div>
-                <input type="range" id="slider-volume" min="1" max="100" value="70">
-            </div>
-            <!-- Simulation Speed Slider -->
-            <div>
-                <div class="slider-label">
-                    <span>Simulation Speed</span>
-                    <span id="val-speed">1x</span>
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-center">
+                    <span class="text-[10px] text-slate-400">Cars in Queue</span>
+                    <span id="stat-backup" class="font-mono text-sm lg:text-base font-bold text-amber-300">0 cars</span>
                 </div>
-                <input type="range" id="slider-speed" min="1" max="10" value="1">
+                <div class="bg-emerald-950/40 p-2 rounded-xl border border-emerald-900/40 flex flex-col justify-center">
+                    <span class="text-[10px] text-emerald-300">Avg Zipper Time</span>
+                    <span id="stat-zipper-time" class="font-mono text-sm lg:text-base font-bold text-emerald-400">0.0s</span>
+                </div>
+                <div class="bg-sky-950/40 p-2 rounded-xl border border-sky-900/40 flex flex-col justify-center">
+                    <span class="text-[10px] text-sky-300">Avg Early Time</span>
+                    <span id="stat-early-time" class="font-mono text-sm lg:text-base font-bold text-sky-400">0.0s</span>
+                </div>
             </div>
+
+            <!-- Action Button -->
+            <button id="btn-reset" class="w-full mt-2.5 py-2 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-rotate-right text-[11px]"></i> Clear Traffic & Restart
+            </button>
         </div>
 
-        <!-- Simulation Stats -->
-        <div class="mt-auto bg-gray-100 p-4 rounded-lg">
-            <h3 class="font-bold text-gray-700 mb-2">Live Stats</h3>
-            <div class="flex justify-between text-sm">
-                <span>Throughput:</span>
-                <span id="stat-throughput" class="font-mono font-bold">0 cars/min</span>
-            </div>
-            <div class="flex justify-between text-sm mt-1">
-                <span>Avg Line Length:</span>
-                <span id="stat-backup" class="font-mono font-bold">0 cars</span>
-            </div>
-            <div class="flex justify-between text-sm mt-1">
-                <span class="text-green-700 font-semibold">Avg Time (Zipper):</span>
-                <span id="stat-zipper-time" class="font-mono font-bold text-green-700">0.0s</span>
-            </div>
-            <div class="flex justify-between text-sm mt-1">
-                <span class="text-blue-700 font-semibold">Avg Time (Early):</span>
-                <span id="stat-early-time" class="font-mono font-bold text-blue-700">0.0s</span>
-            </div>
+    </aside>
+
+    <!-- RIGHT PANEL: SIMULATOR CANVAS & RADAR (ZERO SCROLLBARS) -->
+    <main id="sim-container" class="flex-1 h-full rounded-2xl shadow-2xl relative bg-[#1e293b] border border-slate-800/80 overflow-hidden flex items-center justify-center">
+        
+        <!-- View Mode Segmented Controls (Floating at Top) -->
+        <div class="absolute top-3 left-3 z-20 flex items-center gap-1 bg-slate-900/85 backdrop-blur-md p-1 rounded-xl border border-slate-700/60 shadow-lg text-xs">
+            <button id="view-full" class="px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 bg-sky-500 text-white shadow-sm" title="Show entire road from spawn to merge">
+                <i class="fa-solid fa-up-down-left-right text-[10px]"></i>
+                <span>Full Corridor</span>
+            </button>
+            <button id="view-focus" class="px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Zoom in on merge point">
+                <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+                <span>Merge Zone</span>
+            </button>
         </div>
 
-        <button id="btn-reset" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
-            Clear Traffic & Restart
-        </button>
-    </div>
+        <!-- Floating Queue Length Banner -->
+        <div id="queue-banner" class="absolute top-3 right-16 z-20 hidden md:flex items-center gap-2 bg-slate-900/85 backdrop-blur-md px-3 py-1 rounded-xl border border-slate-700/60 shadow-lg text-xs font-mono">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            <span id="queue-banner-text" class="text-slate-200 font-semibold">Queue: 0 cars (0 ft)</span>
+        </div>
 
-    <div id="sim-container" class="w-full md:w-2/3 h-[600px] md:h-full overflow-y-auto relative bg-[#e5e7eb] border-l border-gray-300">
-        <canvas id="simCanvas" class="shadow-lg"></canvas>
-    </div>
+        <!-- Canvas -->
+        <canvas id="simCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+
+    </main>
 
     <script>
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
         const simContainer = document.getElementById('sim-container');
         
-        let width, height;
-        const roadWidth = 160;
+        // World Dimensions (in simulation units)
+        const worldWidth = 360;
+        const worldHeight = 2800; // Total road length in world units
+        const roadWidth = 140;
         const laneWidth = roadWidth / 2;
-        let leftLaneX, rightLaneX;
-        const mergePointY = 2500; // 5x longer distance
-        const constructionLength = 500;
+        const leftLaneX = (worldWidth / 2) - (laneWidth / 2);
+        const rightLaneX = (worldWidth / 2) + (laneWidth / 2);
+        const mergePointY = 2250;
+        const constructionLength = 550;
+
+        // Viewport & Camera State
+        let screenWidth = 0;
+        let screenHeight = 0;
+        let dpr = window.devicePixelRatio || 1;
+        let viewMode = 'full'; // 'full', 'focus'
+        
+        let camera = {
+            x: worldWidth / 2,
+            y: mergePointY,
+            scale: 1,
+            targetScale: 1,
+            targetY: mergePointY
+        };
+
+        // User Pan / Drag on Canvas
+        let isDragging = false;
+        let dragStartY = 0;
+        let dragCameraStartY = 0;
 
         // Settings
         let pZipper = 0.5;
         let pEarly = 0.5;
-        let trafficVolume = 0.05; // probability of spawn per frame
+        let trafficVolume = 0.07; // probability of spawn per frame
         let simSpeed = 1; // 1x to 10x multiplier
 
         // State
         let cars = [];
         let carsPassed = 0;
-        let simTime = 0; // Internal simulation clock (in ms)
+        let simTime = 0;
         let frameCount = 0;
         let visualFrameCount = 0;
         
@@ -143,76 +252,85 @@
         let earlyTotalTime = 0;
         let earlyCount = 0;
 
+        const CAR_TYPES = {
+            ZIPPER: { color: '#22c55e', name: 'Zipper', dotColor: '#4ade80' }, // Green
+            EARLY: { color: '#38bdf8', name: 'Early', dotColor: '#60a5fa' }     // Sky Blue
+        };
+
         function resizeCanvas() {
-            width = Math.min(simContainer.clientWidth - 20, 400);
-            height = 3000; // Fixed 5x height to allow scrolling long backups
-            canvas.width = width;
-            canvas.height = height;
-            
-            leftLaneX = (width / 2) - (laneWidth / 2);
-            rightLaneX = (width / 2) + (laneWidth / 2);
+            screenWidth = simContainer.clientWidth;
+            screenHeight = simContainer.clientHeight;
+            dpr = window.devicePixelRatio || 1;
+
+            canvas.width = screenWidth * dpr;
+            canvas.height = screenHeight * dpr;
+            canvas.style.width = `${screenWidth}px`;
+            canvas.style.height = `${screenHeight}px`;
+
+            updateCameraTargets();
         }
 
         window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
 
-        const CAR_TYPES = {
-            ZIPPER: { color: '#22c55e', name: 'Zipper' },   // Green
-            EARLY: { color: '#3b82f6', name: 'Early' }      // Blue
-        };
+        function updateCameraTargets() {
+            if (viewMode === 'full') {
+                // Fit entire worldHeight comfortably in screenHeight
+                const availableH = screenHeight - 20;
+                const fitScale = availableH / worldHeight;
+                camera.targetScale = fitScale;
+                camera.targetY = worldHeight / 2;
+            } else if (viewMode === 'focus') {
+                // Focused on merge point
+                camera.targetScale = Math.min(1.1, (screenHeight / 900));
+                camera.targetY = mergePointY - 100;
+            }
+        }
 
         class Car {
             constructor(laneIndex, type, spawnTime) {
-                this.width = 24;
-                this.height = 40;
-                // Target lane (0 = left, 1 = right)
+                this.width = 22;
+                this.height = 38;
                 this.targetLane = laneIndex; 
                 this.currentLane = laneIndex;
                 
-                // x position smoothly interpolates to target x
                 this.x = laneIndex === 0 ? leftLaneX : rightLaneX;
-                this.y = -this.height; // Start off screen top
+                this.y = -this.height;
                 
                 this.type = type;
-                this.maxSpeed = 3 + (Math.random() * 1); // Slight speed variations
+                this.maxSpeed = 3.2 + (Math.random() * 0.8);
                 this.speed = this.maxSpeed;
-                this.accel = 0.05;
+                this.accel = 0.06;
                 
                 this.state = 'driving'; // driving, merging
                 this.hasMerged = false;
-                this.spawnTime = spawnTime; // Track when the car was created in simTime
+                this.spawnTime = spawnTime;
             }
 
             update(allCars) {
-                // 1. Determine target lane behavior based on personality
+                // 1. Determine lane behavior
                 this.decideBehavior(allCars);
 
                 // 2. Find car ahead to control speed
                 let carAhead = this.findCarAhead(allCars);
                 
-                // 3. Adjust speed (kinematics)
-                let safeDist = 20;
+                // 3. Adjust speed
+                let safeDist = 18;
 
                 if (carAhead) {
                     let dist = (carAhead.y - carAhead.height/2) - (this.y + this.height/2);
                     if (dist < safeDist) {
-                        // Brake
-                        this.speed = Math.max(0, this.speed - (this.accel * 3));
-                        // Match speed if close
-                        if (dist < safeDist * 0.8) {
+                        this.speed = Math.max(0, this.speed - (this.accel * 4));
+                        if (dist < safeDist * 0.75) {
                             this.speed = Math.min(this.speed, carAhead.speed);
                         }
                     } else {
-                        // Accelerate
                         this.speed = Math.min(this.maxSpeed, this.speed + this.accel);
                     }
                 } else {
-                    // Open road
                     this.speed = Math.min(this.maxSpeed, this.speed + this.accel);
                 }
 
-                // Courtesy Zipper Yield: Lane 1 cars approaching merge point yield to let waiting Lane 0 cars merge
-                // Only yield if strictly behind the waiting car (if already alongside, continue through to clear the lane)
+                // Courtesy Zipper Yield: Lane 1 cars approaching merge point yield to waiting Lane 0 cars
                 const coneStopY = mergePointY - (this.height / 2) - 10;
                 if (this.currentLane === 1 && this.y > mergePointY - 300 && this.y < coneStopY - 20) {
                     let mergingCar = allCars.find(c => 
@@ -220,14 +338,14 @@
                         c.y > mergePointY - 200 &&
                         c.y <= coneStopY + 5 &&
                         (c.currentLane === 0 || (c.targetLane === 1 && c.x < rightLaneX - 10)) &&
-                        c.y > this.y + (this.height * 0.8) // strictly ahead of us
+                        c.y > this.y + (this.height * 0.8)
                     );
                     if (mergingCar) {
                         let bumperDist = (mergingCar.y - mergingCar.height / 2) - (this.y + this.height / 2);
-                        let desiredBuffer = safeDist + 5; // 25px bumper-to-bumper gap
+                        let desiredBuffer = safeDist + 6;
                         if (bumperDist < desiredBuffer + 40) {
                             if (bumperDist <= desiredBuffer) {
-                                this.speed = 0; // Hold position and yield turn
+                                this.speed = 0;
                             } else {
                                 let brakeFactor = Math.max(0, (bumperDist - desiredBuffer) / 40);
                                 this.speed = Math.min(this.speed, this.maxSpeed * brakeFactor);
@@ -257,7 +375,7 @@
                 let targetX = this.targetLane === 0 ? leftLaneX : rightLaneX;
 
                 if (Math.abs(this.x - targetX) > 1) {
-                    this.x += (targetX - this.x) * 0.08; // Smooth slide
+                    this.x += (targetX - this.x) * 0.08;
                 } else {
                     this.x = targetX;
                     this.currentLane = this.targetLane;
@@ -267,12 +385,10 @@
 
             decideBehavior(allCars) {
                 if (this.currentLane === 0 && this.targetLane === 0) {
-                    // Turn on left blinker approaching the merge point
                     if (this.y > mergePointY - 250) {
                         this.state = 'merging';
                     }
 
-                    // Attempt merge once within merge zone and a safe gap exists
                     if (this.y > mergePointY - 150 && !this.hasMerged) {
                         if (this.canMerge(1, allCars)) {
                             this.targetLane = 1;
@@ -286,16 +402,12 @@
                 let targetX = targetLaneIdx === 0 ? leftLaneX : rightLaneX;
                 for (let c of allCars) {
                     if (c === this) continue;
-                    // Check cars in or entering the target lane
                     let isNearTargetLane = Math.abs(c.x - targetX) < (laneWidth * 0.5) || (c.targetLane === targetLaneIdx && Math.abs(c.x - targetX) < laneWidth * 0.7);
                     if (isNearTargetLane) {
                         if (c.y > this.y) {
-                            // Car in target lane is ahead of us
                             let frontGap = (c.y - c.height / 2) - (this.y + this.height / 2);
                             if (frontGap < 5) return false;
                         } else {
-                            // Car in target lane is behind or alongside us
-                            // If the car is yielding/stopped (speed <= 0.5), we have right-of-way!
                             if (c.speed > 0.5) {
                                 let rearGap = (this.y - this.height / 2) - (c.y + c.height / 2);
                                 if (rearGap < 10) return false;
@@ -314,12 +426,9 @@
                     if (c === this) continue;
                     if (c.y > this.y) {
                         let dist = c.y - this.y;
-                        
-                        // Check if the car is in our path (X overlap)
                         let xDist = Math.abs(c.x - this.x);
                         let inPath = xDist < (this.width + 6);
 
-                        // If both are heading to lane 1, treat them as in-path
                         if (!inPath && this.targetLane === 1 && c.targetLane === 1) {
                             if (Math.abs(c.x - rightLaneX) < laneWidth * 0.7 && Math.abs(this.x - rightLaneX) < laneWidth * 0.7) {
                                 inPath = true;
@@ -335,12 +444,34 @@
                 return nearest;
             }
 
-            draw(ctx, currentSimTime) {
+            draw(ctx, currentSimTime, renderScale) {
                 ctx.save();
                 ctx.translate(this.x, this.y);
+
+                // If zoomed out significantly (Full Corridor view), render high-contrast crisp vehicle markers
+                if (renderScale < 0.45) {
+                    ctx.fillStyle = this.type.color;
+                    ctx.beginPath();
+                    ctx.roundRect(-this.width/2, -this.height/2, this.width, this.height, 3);
+                    ctx.fill();
+
+                    // Roof tint
+                    ctx.fillStyle = '#ffffff';
+                    ctx.globalAlpha = 0.35;
+                    ctx.fillRect(-this.width/2 + 3, -this.height/4, this.width - 6, this.height/2);
+                    ctx.globalAlpha = 1.0;
+
+                    if (this.speed < 0.8) {
+                        ctx.fillStyle = '#ef4444';
+                        ctx.fillRect(-this.width/2 + 2, -this.height/2, this.width - 4, 3);
+                    }
+                    ctx.restore();
+                    return;
+                }
                 
+                // Detailed Close-Up Render
                 // Shadow
-                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillStyle = 'rgba(0,0,0,0.35)';
                 ctx.fillRect(-this.width/2 + 2, -this.height/2 + 2, this.width, this.height);
 
                 // Car body
@@ -350,32 +481,33 @@
                 ctx.fill();
 
                 // Windshield
-                ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                ctx.fillRect(-this.width/2 + 3, this.height/2 - 12, this.width - 6, 8);
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.fillRect(-this.width/2 + 3, this.height/2 - 12, this.width - 6, 7);
                 
                 // Headlights
                 ctx.fillStyle = '#fef08a';
-                ctx.fillRect(-this.width/2 + 2, this.height/2 - 2, 4, 3);
-                ctx.fillRect(this.width/2 - 6, this.height/2 - 2, 4, 3);
+                ctx.fillRect(-this.width/2 + 2, this.height/2 - 2, 4, 2);
+                ctx.fillRect(this.width/2 - 6, this.height/2 - 2, 4, 2);
 
                 // Brake lights
                 if (this.speed < this.maxSpeed * 0.5) {
-                    ctx.fillStyle = '#ff0000';
-                    ctx.shadowBlur = 5;
+                    ctx.fillStyle = '#ff2222';
+                    ctx.shadowBlur = 6;
                     ctx.shadowColor = "red";
-                    ctx.fillRect(-this.width/2 + 2, -this.height/2, 6, 3);
-                    ctx.fillRect(this.width/2 - 8, -this.height/2, 6, 3);
+                    ctx.fillRect(-this.width/2 + 2, -this.height/2, 5, 3);
+                    ctx.fillRect(this.width/2 - 7, -this.height/2, 5, 3);
+                    ctx.shadowBlur = 0;
                 }
 
-                // Turn signal if merging (merging to driver's left)
+                // Turn signal if merging
                 if (this.state === 'merging') {
-                    if (Math.floor(currentSimTime / 300) % 2 === 0) {
-                        ctx.fillStyle = '#f97316';
-                        ctx.shadowBlur = 5;
+                    if (Math.floor(currentSimTime / 250) % 2 === 0) {
+                        ctx.fillStyle = '#fb923c';
+                        ctx.shadowBlur = 6;
                         ctx.shadowColor = "orange";
-                        // Left blinker (driver's left is visual right when facing down)
-                        ctx.fillRect(this.width/2 - 4, this.height/2 - 4, 4, 6);
+                        ctx.fillRect(this.width/2 - 4, this.height/2 - 4, 4, 5);
                         ctx.fillRect(this.width/2 - 4, -this.height/2, 4, 4);
+                        ctx.shadowBlur = 0;
                     }
                 }
 
@@ -384,88 +516,174 @@
         }
 
         function drawEnvironment() {
-            // Grass
-            ctx.fillStyle = '#4ade80';
-            ctx.fillRect(0, 0, width, height);
+            // Surrounding Grass / Terrain
+            ctx.fillStyle = '#1e3a2f'; // Sleek dark green foliage
+            ctx.fillRect(0, 0, worldWidth, worldHeight);
 
-            // Water (Mill Pond to the left/bottom)
-            ctx.fillStyle = '#38bdf8';
+            // Water (Mill Pond along the lower-left shoreline)
+            ctx.fillStyle = '#0284c7';
             ctx.beginPath();
-            ctx.moveTo(0, height);
-            ctx.lineTo(width/4, height);
-            ctx.lineTo(0, height - 200);
+            ctx.moveTo(0, worldHeight);
+            ctx.lineTo(worldWidth * 0.28, worldHeight);
+            ctx.lineTo(worldWidth * 0.15, mergePointY);
+            ctx.lineTo(0, mergePointY - 300);
+            ctx.closePath();
             ctx.fill();
 
-            // Road Base
-            const roadX = (width / 2) - (roadWidth / 2);
-            ctx.fillStyle = '#4b5563';
-            ctx.fillRect(roadX, 0, roadWidth, height);
-
-            // Center dashed line (only up to merge)
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([20, 20]);
-            ctx.beginPath();
-            ctx.moveTo(width / 2, 0);
-            ctx.lineTo(width / 2, mergePointY);
+            // Water ripple shore accent
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
             ctx.stroke();
-            ctx.setLineDash([]); // Reset
 
-            // Shoulder lines
-            ctx.strokeStyle = '#facc15'; // Yellow left shoulder
+            // Shoreline label
+            ctx.save();
+            ctx.fillStyle = 'rgba(255,255,255,0.45)';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.translate(22, mergePointY + 120);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('MILL POND', 0, 0);
+            ctx.restore();
+
+            // Road Base Asphalt
+            const roadX = (worldWidth / 2) - (roadWidth / 2);
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(roadX, 0, roadWidth, worldHeight);
+
+            // Center dashed line (up to merge point)
+            ctx.strokeStyle = '#f8fafc';
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([18, 18]);
+            ctx.beginPath();
+            ctx.moveTo(worldWidth / 2, 0);
+            ctx.lineTo(worldWidth / 2, mergePointY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Yellow left shoulder
+            ctx.strokeStyle = '#facc15';
+            ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(roadX, 0);
-            ctx.lineTo(roadX, height);
+            ctx.lineTo(roadX, worldHeight);
             ctx.stroke();
 
-            ctx.strokeStyle = '#ffffff'; // White right shoulder
+            // White right shoulder
+            ctx.strokeStyle = '#f8fafc';
             ctx.beginPath();
             ctx.moveTo(roadX + roadWidth, 0);
-            ctx.lineTo(roadX + roadWidth, height);
+            ctx.lineTo(roadX + roadWidth, worldHeight);
             ctx.stroke();
 
-            // Construction Zone
-            const startConst = mergePointY;
-            ctx.fillStyle = '#f97316'; // Orange
-            
-            // Draw cones/barrels on driver's right (visual left)
-            for(let y = startConst; y < height; y += 40) {
-                // Cone base
+            // Construction Zone (Orange cones & barrels on driver's right / visual left)
+            for(let y = mergePointY; y < worldHeight; y += 36) {
+                // Base
                 ctx.fillStyle = '#ea580c';
-                ctx.fillRect(leftLaneX - 10, y, 20, 10);
-                // Cone top
+                ctx.fillRect(leftLaneX - 10, y, 20, 9);
+                // Reflective cone stripe
                 ctx.fillStyle = '#ffffff';
-                ctx.fillRect(leftLaneX - 6, y+2, 12, 6);
+                ctx.fillRect(leftLaneX - 6, y + 2, 12, 5);
                 
-                // Crosshatch area
-                if (y < height - 40) {
-                    ctx.strokeStyle = 'rgba(255, 165, 0, 0.3)';
-                    ctx.lineWidth = 4;
+                // Diagonal crosshatch hazard lines
+                if (y < worldHeight - 36) {
+                    ctx.strokeStyle = 'rgba(249, 115, 22, 0.25)';
+                    ctx.lineWidth = 3;
                     ctx.beginPath();
-                    ctx.moveTo(roadX, y); // Starts from left edge
-                    ctx.lineTo(roadX + roadWidth/2, y + 40); // To center line
+                    ctx.moveTo(roadX, y);
+                    ctx.lineTo(roadX + laneWidth, y + 36);
                     ctx.stroke();
                 }
             }
 
-            // "Merge Left" Sign on road (in driver's right lane / visual left)
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 16px sans-serif';
+            // "MERGE LEFT" Road Markings
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.font = 'bold 15px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('MERGE', leftLaneX, mergePointY - 40);
-            ctx.fillText('LEFT', leftLaneX, mergePointY - 20);
+            ctx.fillText('MERGE', leftLaneX, mergePointY - 45);
+            ctx.fillText('LEFT', leftLaneX, mergePointY - 25);
             
-            // Arrow pointing left (driver's left, visual right)
+            // Stenciled directional arrow pointing to continuing lane
             ctx.beginPath();
-            ctx.moveTo(leftLaneX - 10, mergePointY - 60);
-            ctx.lineTo(leftLaneX + 10, mergePointY - 60);
-            ctx.lineTo(leftLaneX + 10, mergePointY - 70);
-            ctx.lineTo(leftLaneX + 25, mergePointY - 55);
-            ctx.lineTo(leftLaneX + 10, mergePointY - 40);
-            ctx.lineTo(leftLaneX + 10, mergePointY - 50);
-            ctx.lineTo(leftLaneX - 10, mergePointY - 50);
+            ctx.moveTo(leftLaneX - 10, mergePointY - 65);
+            ctx.lineTo(leftLaneX + 10, mergePointY - 65);
+            ctx.lineTo(leftLaneX + 10, mergePointY - 75);
+            ctx.lineTo(leftLaneX + 24, mergePointY - 60);
+            ctx.lineTo(leftLaneX + 10, mergePointY - 45);
+            ctx.lineTo(leftLaneX + 10, mergePointY - 55);
+            ctx.lineTo(leftLaneX - 10, mergePointY - 55);
+            ctx.closePath();
             ctx.fill();
 
+            // Continuing lane directional arrow
+            ctx.beginPath();
+            ctx.moveTo(rightLaneX - 4, mergePointY - 50);
+            ctx.lineTo(rightLaneX + 4, mergePointY - 50);
+            ctx.lineTo(rightLaneX + 4, mergePointY - 65);
+            ctx.lineTo(rightLaneX + 10, mergePointY - 65);
+            ctx.lineTo(rightLaneX, mergePointY - 80);
+            ctx.lineTo(rightLaneX - 10, mergePointY - 65);
+            ctx.lineTo(rightLaneX - 4, mergePointY - 65);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Draw Interactive Mini-Map / Radar on Screen
+        function drawMiniMap() {
+            const radarW = 28;
+            const radarH = Math.min(screenHeight - 80, 480);
+            const radarX = screenWidth - radarW - 14;
+            const radarY = 48;
+
+            // Background Container
+            ctx.save();
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(radarX, radarY, radarW, radarH, 8);
+            ctx.fill();
+            ctx.stroke();
+
+            // Road Strip in Radar
+            const roadStripW = 12;
+            const roadStripX = radarX + (radarW - roadStripW) / 2;
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(roadStripX, radarY + 6, roadStripW, radarH - 12);
+
+            // Cones Mark in Radar
+            const coneNormY = mergePointY / worldHeight;
+            const radarConeY = (radarY + 6) + coneNormY * (radarH - 12);
+            ctx.fillStyle = '#ea580c';
+            ctx.fillRect(roadStripX, radarConeY, roadStripW / 2, (radarH - 12) * (constructionLength / worldHeight));
+
+            // Cars as Blips
+            for (let c of cars) {
+                let normY = Math.max(0, Math.min(1, c.y / worldHeight));
+                let py = (radarY + 6) + normY * (radarH - 12);
+                let px = c.x === leftLaneX ? roadStripX + 2 : roadStripX + roadStripW - 4;
+                ctx.fillStyle = c.type.dotColor;
+                ctx.fillRect(px - 1, py - 1, 3, 3);
+            }
+
+            // Current Camera Viewport indicator box
+            const viewWorldH = screenHeight / camera.scale;
+            const topWorldY = camera.y - (viewWorldH / 2);
+            const normTop = Math.max(0, topWorldY / worldHeight);
+            const normSpan = Math.min(1, viewWorldH / worldHeight);
+
+            const camBoxY = (radarY + 6) + normTop * (radarH - 12);
+            const camBoxH = Math.min((radarH - 12) - (camBoxY - (radarY + 6)), normSpan * (radarH - 12));
+
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(radarX + 1, camBoxY, radarW - 2, Math.max(8, camBoxH));
+
+            // Radar Label
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '9px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('RADAR', radarX + radarW/2, radarY + radarH + 12);
+
+            ctx.restore();
         }
 
         function getCarType() {
@@ -476,13 +694,28 @@
 
         function updateStats() {
             let elapsedMin = simTime / 60000;
-            let tput = elapsedMin > 0 ? (carsPassed / elapsedMin).toFixed(1) : 0;
-            document.getElementById('stat-throughput').innerText = `${tput} cars/min`;
+            let tput = elapsedMin > 0 ? (carsPassed / elapsedMin).toFixed(1) : "0.0";
+            document.getElementById('stat-throughput').innerHTML = `${tput} <span class="text-[10px] text-slate-400 font-normal">c/m</span>`;
 
-            // Calculate average line length (cars currently on screen)
-            document.getElementById('stat-backup').innerText = `${cars.length} cars`;
+            // Calculate active queue length (cars moving under 1.0 speed or within backup)
+            let queuedCars = cars.filter(c => c.speed < 1.0 && c.y < mergePointY + 50);
+            let backupCount = queuedCars.length;
+            document.getElementById('stat-backup').innerText = `${backupCount} cars`;
 
-            // Calculate and display average times
+            // Calculate backup distance in simulated feet (1 px ≈ 1.5 ft)
+            let maxBackupY = mergePointY;
+            if (queuedCars.length > 0) {
+                let earliestY = Math.min(...queuedCars.map(c => c.y));
+                let backupFt = Math.round((mergePointY - earliestY) * 1.5);
+                document.getElementById('stat-backup-ft').innerText = `Queue: ${Math.max(0, backupFt)} ft`;
+                
+                const banner = document.getElementById('queue-banner');
+                banner.classList.remove('hidden');
+                document.getElementById('queue-banner-text').innerText = `Queue: ${backupCount} cars (${Math.max(0, backupFt)} ft)`;
+            } else {
+                document.getElementById('stat-backup-ft').innerText = `Queue: 0 ft`;
+            }
+
             let avgZipper = zipperCount > 0 ? (zipperTotalTime / zipperCount).toFixed(1) : "0.0";
             let avgEarly = earlyCount > 0 ? (earlyTotalTime / earlyCount).toFixed(1) : "0.0";
             
@@ -493,9 +726,13 @@
         function loop() {
             visualFrameCount++;
 
-            // Run logic multiple times per visual frame based on simSpeed
+            // Smooth camera lerp
+            camera.scale += (camera.targetScale - camera.scale) * 0.08;
+            camera.y += (camera.targetY - camera.y) * 0.08;
+
+            // Run simulation steps
             for (let step = 0; step < simSpeed; step++) {
-                simTime += 16.666; // 1 frame at 60fps in milliseconds
+                simTime += 16.666;
                 frameCount++;
 
                 // Spawn Cars
@@ -507,10 +744,8 @@
                     let type = getCarType();
 
                     if (type === CAR_TYPES.EARLY) {
-                        // Early Mergers ALWAYS start in driver's left lane (visual right, lane 1)
                         if (rightSpace) lane = 1;
                     } else {
-                        // Zippers use both lanes, preferably the empty ending lane
                         if (leftSpace && rightSpace) {
                             lane = Math.random() < 0.6 ? 0 : 1; 
                         } else if (leftSpace) {
@@ -533,8 +768,7 @@
                     car.update(cars);
 
                     // Remove cars that passed
-                    if (car.y > height + car.height) {
-                        // Record travel time
+                    if (car.y > worldHeight + car.height) {
                         let travelTimeSecs = (simTime - car.spawnTime) / 1000;
                         if (car.type === CAR_TYPES.ZIPPER) {
                             zipperTotalTime += travelTimeSecs;
@@ -550,14 +784,32 @@
                 }
             }
 
-            // Draw everything ONCE per visual frame to save resources
-            ctx.clearRect(0, 0, width, height);
+            // Render World
+            ctx.save();
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, screenWidth, screenHeight);
+
+            // World transform
+            const drawScale = camera.scale;
+            const panX = (screenWidth / 2) - (worldWidth / 2) * drawScale;
+            const panY = (screenHeight / 2) - (camera.y) * drawScale;
+
+            ctx.save();
+            ctx.translate(panX, panY);
+            ctx.scale(drawScale, drawScale);
+
             drawEnvironment();
             for (let i = 0; i < cars.length; i++) {
-                cars[i].draw(ctx, simTime);
+                cars[i].draw(ctx, simTime, drawScale);
             }
+            ctx.restore();
 
-            if (visualFrameCount % 30 === 0) updateStats();
+            // Draw HUD Mini-Map Radar
+            drawMiniMap();
+
+            ctx.restore();
+
+            if (visualFrameCount % 20 === 0) updateStats();
 
             requestAnimationFrame(loop);
         }
@@ -569,21 +821,19 @@
             const sSlider = document.getElementById('slider-speed');
             const warning = document.getElementById('warning-total');
 
-            function syncSliders(changed) {
+            function syncSliders() {
                 let z = parseInt(zSlider.value);
                 let e = parseInt(eSlider.value);
                 
                 let total = z + e;
                 if (total > 100) {
                     warning.classList.remove('hidden');
-                    // Normalize
                     let scale = 100 / total;
                     z = Math.round(z * scale);
-                    e = 100 - z; // ensure exact 100
+                    e = 100 - z;
                     
                     zSlider.value = z;
                     eSlider.value = e;
-                    
                     setTimeout(() => warning.classList.add('hidden'), 2000);
                 }
 
@@ -598,9 +848,9 @@
             eSlider.addEventListener('input', syncSliders);
 
             vSlider.addEventListener('input', (e) => {
-                let val = e.target.value;
-                trafficVolume = val / 1000; // Map 1-100 to 0.001 - 0.1
-                let label = val > 80 ? 'Gridlock' : (val > 50 ? 'Heavy' : 'Light');
+                let val = parseInt(e.target.value);
+                trafficVolume = (val / 1000) * 1.1; // Balanced spawn rate
+                let label = val > 80 ? 'Gridlock' : (val > 50 ? 'Heavy' : (val > 25 ? 'Moderate' : 'Light'));
                 document.getElementById('val-volume').innerText = label;
             });
 
@@ -609,7 +859,7 @@
                 document.getElementById('val-speed').innerText = simSpeed + 'x';
             });
 
-            document.getElementById('btn-reset').addEventListener('click', () => {
+            function resetSimulation() {
                 cars = [];
                 carsPassed = 0;
                 simTime = 0;
@@ -619,18 +869,89 @@
                 zipperCount = 0;
                 earlyTotalTime = 0;
                 earlyCount = 0;
-                document.getElementById('stat-zipper-time').innerText = `0.0s`;
-                document.getElementById('stat-early-time').innerText = `0.0s`;
+                updateStats();
+            }
+
+            document.getElementById('btn-reset').addEventListener('click', resetSimulation);
+
+            // Presets
+            document.getElementById('preset-rush').addEventListener('click', () => {
+                zSlider.value = 35;
+                eSlider.value = 65;
+                vSlider.value = 75;
+                syncSliders();
+                vSlider.dispatchEvent(new Event('input'));
+                resetSimulation();
             });
-            
-            // Trigger initial sync
+
+            document.getElementById('preset-zipper').addEventListener('click', () => {
+                zSlider.value = 80;
+                eSlider.value = 20;
+                vSlider.value = 75;
+                syncSliders();
+                vSlider.dispatchEvent(new Event('input'));
+                resetSimulation();
+            });
+
+            document.getElementById('preset-early').addEventListener('click', () => {
+                zSlider.value = 10;
+                eSlider.value = 90;
+                vSlider.value = 75;
+                syncSliders();
+                vSlider.dispatchEvent(new Event('input'));
+                resetSimulation();
+            });
+
+            // View Mode Controls
+            const btnFull = document.getElementById('view-full');
+            const btnFocus = document.getElementById('view-focus');
+
+            function setViewMode(mode) {
+                viewMode = mode;
+                [btnFull, btnFocus].forEach(b => {
+                    b.className = "px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800";
+                });
+
+                if (mode === 'full') {
+                    btnFull.className = "px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 bg-sky-500 text-white shadow-sm";
+                } else if (mode === 'focus') {
+                    btnFocus.className = "px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 bg-sky-500 text-white shadow-sm";
+                }
+                updateCameraTargets();
+            }
+
+            btnFull.addEventListener('click', () => setViewMode('full'));
+            btnFocus.addEventListener('click', () => setViewMode('focus'));
+
+            // Canvas Drag / Pan
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                dragStartY = e.clientY;
+                dragCameraStartY = camera.targetY;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaY = (e.clientY - dragStartY) / camera.scale;
+                    camera.targetY = Math.max(300, Math.min(worldHeight - 300, dragCameraStartY - deltaY));
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            // Mouse wheel zoom
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+                camera.targetScale = Math.max(0.2, Math.min(1.8, camera.targetScale * zoomFactor));
+            }, { passive: false });
+
+            // Initialize
             syncSliders();
             vSlider.dispatchEvent(new Event('input'));
-
-            // Auto-scroll to the merge point on load
-            setTimeout(() => {
-                simContainer.scrollTop = mergePointY - (simContainer.clientHeight / 2);
-            }, 100);
+            resizeCanvas();
         }
 
         // Start
