@@ -250,13 +250,13 @@
                         <!-- 6. Avg Early Time -->
                         <div class="bg-sky-950/40 p-2 rounded-xl border border-sky-900/40 flex flex-col justify-between h-[52px]">
                             <div class="flex items-center justify-between text-[10px] leading-none">
-                                <span class="text-sky-300">Early Time</span>
+                                <span class="text-sky-300">Early / Thru</span>
                                 <span id="stat-early-count" class="font-mono text-[9px] text-sky-400/80">0 cars</span>
                             </div>
                             <div class="leading-none">
                                 <span id="stat-early-time" class="font-mono text-sm font-bold text-sky-400">0.0s</span>
                             </div>
-                            <span class="text-[9px] font-mono text-sky-400/70 leading-none">early corridor</span>
+                            <span class="text-[9px] font-mono text-sky-400/70 leading-none">continuing lane</span>
                         </div>
                     </div>
 
@@ -608,6 +608,7 @@
                 this.height = 38;
                 this.targetLane = laneIndex; 
                 this.currentLane = laneIndex;
+                this.initialLane = laneIndex;
                 
                 this.x = laneIndex === 0 ? leftLaneX : rightLaneX;
                 this.y = -this.height;
@@ -618,7 +619,8 @@
                 this.accel = 0.06;
                 
                 this.state = 'driving';
-                this.hasMerged = false;
+                this.hasMerged = laneIndex === 1;
+                this.didMerge = false;
                 this.spawnTime = spawnTime;
                 this.stoppedDuration = 0;
                 this.hasHonked = false;
@@ -734,6 +736,7 @@
                         if (this.canMerge(1, allCars)) {
                             this.targetLane = 1;
                             this.hasMerged = true;
+                            this.didMerge = true;
                             if (!this.wasBlockedAtCones && this.speed > 1.2) {
                                 smoothMergeCount++;
                             }
@@ -1124,7 +1127,7 @@
                             advEl.innerHTML = `<span class="text-emerald-400 font-bold">Late Merge +${diff}s faster (${pct}%)</span>`;
                         } else if (zNum > eNum) {
                             let pct = Math.round(((zNum - eNum) / zNum) * 100);
-                            advEl.innerHTML = `<span class="text-sky-400 font-bold">Early Merge +${Math.abs(diff)}s faster (${pct}%)</span>`;
+                            advEl.innerHTML = `<span class="text-sky-400 font-bold">Thru Lane +${Math.abs(diff)}s faster (${pct}%)</span>`;
                         } else {
                             advEl.innerHTML = `<span class="text-slate-300">Even corridor times</span>`;
                         }
@@ -1306,21 +1309,22 @@
                     let lane = -1;
                     let type = getCarType();
 
-                    if (type === CAR_TYPES.EARLY) {
-                        if (rightSpace) lane = 1;
-                    } else {
-                        if (leftSpace && rightSpace) {
-                            lane = Math.random() < 0.6 ? 0 : 1; 
-                        } else if (leftSpace) {
+                    if (type === CAR_TYPES.ZIPPER) {
+                        if (leftSpace) {
                             lane = 0;
                         } else if (rightSpace) {
+                            // Lane 0 is blocked at spawn; enter continuing lane as through traffic
+                            lane = 1;
+                            type = CAR_TYPES.EARLY;
+                        }
+                    } else { // CAR_TYPES.EARLY
+                        if (rightSpace) {
                             lane = 1;
                         }
                     }
 
                     if (lane !== -1) {
                         let car = new Car(lane, type, simTime);
-                        if (type === CAR_TYPES.EARLY) car.hasMerged = true;
                         cars.push(car);
                         totalSpawnedCars++;
                     }
@@ -1332,10 +1336,10 @@
 
                     if (car.y > worldHeight + car.height) {
                         let travelTimeSecs = (simTime - car.spawnTime) / 1000;
-                        if (car.type === CAR_TYPES.ZIPPER) {
+                        if (car.didMerge) {
                             zipperTotalTime += travelTimeSecs;
                             zipperCount++;
-                        } else if (car.type === CAR_TYPES.EARLY) {
+                        } else {
                             earlyTotalTime += travelTimeSecs;
                             earlyCount++;
                         }
