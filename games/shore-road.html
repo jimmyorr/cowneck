@@ -66,7 +66,7 @@
     <div id="sheet-backdrop" class="fixed inset-0 bg-black/65 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none md:hidden"></div>
 
     <!-- CONTROLS & STATS PANEL: 90% MODAL SHEET ON MOBILE, SIDEBAR ON DESKTOP -->
-    <aside id="controls-panel" class="fixed inset-x-0 bottom-0 z-50 h-[90vh] max-h-[90vh] rounded-t-3xl custom-glass p-5 shadow-2xl transition-transform duration-300 ease-out transform translate-y-full md:translate-y-0 md:static md:w-80 lg:w-[340px] md:h-full md:rounded-2xl md:p-4 md:flex md:flex-col md:justify-between shrink-0 overflow-y-auto md:overflow-hidden">
+    <aside id="controls-panel" class="fixed inset-x-0 bottom-0 z-50 h-[90vh] max-h-[90vh] rounded-t-3xl custom-glass p-5 shadow-2xl transition-transform duration-300 ease-out transform translate-y-full md:translate-y-0 md:static md:w-80 lg:w-[340px] md:h-full md:rounded-2xl md:p-4 md:flex md:flex-col md:justify-between shrink-0 overflow-y-auto md:overflow-y-auto">
         
         <!-- Mobile Pull Handle -->
         <div class="w-12 h-1.5 bg-slate-600/80 rounded-full mx-auto mb-3 md:hidden"></div>
@@ -148,7 +148,7 @@
             <p class="text-[10px] text-red-400 font-semibold text-center hidden" id="warning-total">Total adjusted to 100%</p>
         </div>
 
-        <!-- Live Performance Dashboard (2x2 Grid) -->
+        <!-- Live Performance Dashboard (6-Metric Grid + Lane Balance) -->
         <div>
             <div class="flex items-center justify-between mb-1.5">
                 <span class="text-[10px] font-bold tracking-wider uppercase text-slate-400 flex items-center gap-1">
@@ -156,22 +156,89 @@
                 </span>
                 <span id="stat-backup-ft" class="text-[10px] font-mono text-slate-400">Queue: 0 ft</span>
             </div>
+            
             <div class="grid grid-cols-2 gap-1.5">
+                <!-- 1. Total Cars (Requested) -->
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-center">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] text-slate-400">Total Cars</span>
+                        <span id="stat-sim-clock" class="text-[9px] font-mono text-slate-500">00:00</span>
+                    </div>
+                    <div class="flex items-baseline gap-1 mt-0.5">
+                        <span id="stat-total-cars" class="font-mono text-sm lg:text-base font-bold text-white">0</span>
+                        <span class="text-[10px] text-slate-400 font-normal">passed</span>
+                    </div>
+                    <span id="stat-active-cars" class="text-[9px] font-mono text-slate-500">0 on road</span>
+                </div>
+
+                <!-- 2. Throughput -->
                 <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-center">
                     <span class="text-[10px] text-slate-400">Throughput</span>
-                    <span id="stat-throughput" class="font-mono text-sm lg:text-base font-bold text-white">0.0 <span class="text-[10px] text-slate-400 font-normal">c/m</span></span>
+                    <div class="mt-0.5">
+                        <span id="stat-throughput" class="font-mono text-sm lg:text-base font-bold text-white">0.0 <span class="text-[10px] text-slate-400 font-normal">c/m</span></span>
+                    </div>
+                    <span id="stat-total-spawned" class="text-[9px] font-mono text-slate-500">0 spawned</span>
                 </div>
+
+                <!-- 3. Cars in Queue -->
                 <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-center">
                     <span class="text-[10px] text-slate-400">Cars in Queue</span>
-                    <span id="stat-backup" class="font-mono text-sm lg:text-base font-bold text-amber-300">0 cars</span>
+                    <div class="mt-0.5">
+                        <span id="stat-backup" class="font-mono text-sm lg:text-base font-bold text-amber-300">0 cars</span>
+                    </div>
+                    <span id="stat-backup-peak" class="text-[9px] font-mono text-amber-400/70">Peak: 0 cars</span>
                 </div>
+
+                <!-- 4. Avg Corridor Speed -->
+                <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-center">
+                    <span class="text-[10px] text-slate-400">Avg Speed</span>
+                    <div class="mt-0.5">
+                        <span id="stat-avg-speed" class="font-mono text-sm lg:text-base font-bold text-cyan-300">35 <span class="text-[10px] text-slate-400 font-normal">mph</span></span>
+                    </div>
+                    <span id="stat-speed-label" class="text-[9px] font-mono text-emerald-400">Free Flow</span>
+                </div>
+
+                <!-- 5. Avg Zipper Time -->
                 <div class="bg-emerald-950/40 p-2 rounded-xl border border-emerald-900/40 flex flex-col justify-center">
-                    <span class="text-[10px] text-emerald-300">Avg Zipper Time</span>
-                    <span id="stat-zipper-time" class="font-mono text-sm lg:text-base font-bold text-emerald-400">0.0s</span>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] text-emerald-300">Avg Zipper Time</span>
+                        <span id="stat-zipper-count" class="text-[9px] font-mono text-emerald-400/80">0 cars</span>
+                    </div>
+                    <div class="mt-0.5">
+                        <span id="stat-zipper-time" class="font-mono text-sm lg:text-base font-bold text-emerald-400">0.0s</span>
+                    </div>
                 </div>
+
+                <!-- 6. Avg Early Time -->
                 <div class="bg-sky-950/40 p-2 rounded-xl border border-sky-900/40 flex flex-col justify-center">
-                    <span class="text-[10px] text-sky-300">Avg Early Time</span>
-                    <span id="stat-early-time" class="font-mono text-sm lg:text-base font-bold text-sky-400">0.0s</span>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] text-sky-300">Avg Early Time</span>
+                        <span id="stat-early-count" class="text-[9px] font-mono text-sky-400/80">0 cars</span>
+                    </div>
+                    <div class="mt-0.5">
+                        <span id="stat-early-time" class="font-mono text-sm lg:text-base font-bold text-sky-400">0.0s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pre-Merge Lane Balance & Zipper Advantage -->
+            <div class="mt-1.5 p-2 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-1.5">
+                <div>
+                    <div class="flex items-center justify-between text-[10px] mb-1">
+                        <span class="text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-arrows-split-up-and-left text-[9px] text-slate-500"></i>
+                            Lane Balance (Pre-Merge)
+                        </span>
+                        <span id="stat-lane-balance" class="font-mono text-[10px] text-slate-300">50% Left / 50% Right</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
+                        <div id="lane-bar-left" class="bg-emerald-400 h-full transition-all duration-300" style="width: 50%" title="Left lane usage"></div>
+                        <div id="lane-bar-right" class="bg-sky-400 h-full transition-all duration-300" style="width: 50%" title="Right lane usage"></div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800/60 font-mono">
+                    <span class="text-slate-400">Zipper Advantage:</span>
+                    <span id="stat-advantage" class="font-semibold text-slate-400">Awaiting data...</span>
                 </div>
             </div>
 
@@ -223,10 +290,12 @@
                         <span class="text-xs font-bold text-white tracking-tight">Controls & Stats</span>
                         <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-semibold">LIVE</span>
                     </div>
-                    <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5">
+                    <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono mt-0.5">
+                        <span id="mobile-stat-total" class="text-white font-semibold">0 cars</span>
+                        <span>•</span>
                         <span id="mobile-stat-tput">0.0 c/m</span>
                         <span>•</span>
-                        <span id="mobile-stat-queue" class="text-amber-300 font-bold">0 cars</span>
+                        <span id="mobile-stat-queue" class="text-amber-300 font-bold">0 queue</span>
                     </div>
                 </div>
             </div>
@@ -281,6 +350,7 @@
         // State
         let cars = [];
         let carsPassed = 0;
+        let totalSpawnedCars = 0;
         let simTime = 0;
         let frameCount = 0;
         let visualFrameCount = 0;
@@ -289,6 +359,8 @@
         let zipperCount = 0;
         let earlyTotalTime = 0;
         let earlyCount = 0;
+        let peakQueueCars = 0;
+        let peakQueueFt = 0;
 
         const CAR_TYPES = {
             ZIPPER: { color: '#22c55e', name: 'Zipper', dotColor: '#4ade80' },
@@ -703,33 +775,137 @@
 
         function updateStats() {
             let elapsedMin = simTime / 60000;
+            let elapsedSec = Math.floor(simTime / 1000);
+            let clockMin = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
+            let clockSec = String(elapsedSec % 60).padStart(2, '0');
+            const clockEl = document.getElementById('stat-sim-clock');
+            if (clockEl) clockEl.innerText = `${clockMin}:${clockSec}`;
+
+            // Total Cars & Active Cars
+            const totalCarsEl = document.getElementById('stat-total-cars');
+            if (totalCarsEl) totalCarsEl.innerText = carsPassed;
+            const activeCarsEl = document.getElementById('stat-active-cars');
+            if (activeCarsEl) activeCarsEl.innerText = `${cars.length} on road`;
+            const totalSpawnedEl = document.getElementById('stat-total-spawned');
+            if (totalSpawnedEl) totalSpawnedEl.innerText = `${totalSpawnedCars} spawned`;
+
+            // Throughput
             let tput = elapsedMin > 0 ? (carsPassed / elapsedMin).toFixed(1) : "0.0";
             document.getElementById('stat-throughput').innerHTML = `${tput} <span class="text-[10px] text-slate-400 font-normal">c/m</span>`;
+            
+            // Mobile Bottom Bar
+            const mobileTotalEl = document.getElementById('mobile-stat-total');
+            if (mobileTotalEl) mobileTotalEl.innerText = `${carsPassed} cars`;
             document.getElementById('mobile-stat-tput').innerText = `${tput} c/m`;
 
+            // Queue / Backup
             let queuedCars = cars.filter(c => c.speed < 1.0 && c.y < mergePointY + 50);
             let backupCount = queuedCars.length;
-            document.getElementById('stat-backup').innerText = `${backupCount} cars`;
-            document.getElementById('mobile-stat-queue').innerText = `${backupCount} cars`;
-
+            let backupFt = 0;
             if (queuedCars.length > 0) {
                 let earliestY = Math.min(...queuedCars.map(c => c.y));
-                let backupFt = Math.round((mergePointY - earliestY) * 1.5);
-                document.getElementById('stat-backup-ft').innerText = `Queue: ${Math.max(0, backupFt)} ft`;
-                
-                const banner = document.getElementById('queue-banner');
+                backupFt = Math.max(0, Math.round((mergePointY - earliestY) * 1.5));
+            }
+
+            if (backupCount > peakQueueCars) peakQueueCars = backupCount;
+            if (backupFt > peakQueueFt) peakQueueFt = backupFt;
+
+            document.getElementById('stat-backup').innerText = `${backupCount} cars`;
+            document.getElementById('mobile-stat-queue').innerText = `${backupCount} queue`;
+            
+            const peakEl = document.getElementById('stat-backup-peak');
+            if (peakEl) peakEl.innerText = `Peak: ${peakQueueCars} cars`;
+
+            document.getElementById('stat-backup-ft').innerText = `Queue: ${backupFt} ft (Peak: ${peakQueueFt} ft)`;
+
+            const banner = document.getElementById('queue-banner');
+            if (backupCount > 0) {
                 banner.classList.remove('hidden');
-                document.getElementById('queue-banner-text').innerText = `Queue: ${backupCount} cars (${Math.max(0, backupFt)} ft)`;
+                document.getElementById('queue-banner-text').innerText = `Queue: ${backupCount} cars (${backupFt} ft)`;
             } else {
-                document.getElementById('stat-backup-ft').innerText = `Queue: 0 ft`;
                 document.getElementById('queue-banner-text').innerText = `Queue: 0 cars`;
             }
 
+            // Corridor Average Speed
+            const avgSpeedEl = document.getElementById('stat-avg-speed');
+            const speedLabelEl = document.getElementById('stat-speed-label');
+            if (avgSpeedEl) {
+                if (cars.length > 0) {
+                    let avgSpeedUnits = cars.reduce((sum, c) => sum + c.speed, 0) / cars.length;
+                    let avgMph = Math.round((avgSpeedUnits / 3.6) * 35);
+                    avgSpeedEl.innerHTML = `${avgMph} <span class="text-[10px] text-slate-400 font-normal">mph</span>`;
+                    if (avgMph >= 25) {
+                        speedLabelEl.innerText = "Free Flow";
+                        speedLabelEl.className = "text-[9px] font-mono text-emerald-400";
+                    } else if (avgMph >= 12) {
+                        speedLabelEl.innerText = "Sluggish";
+                        speedLabelEl.className = "text-[9px] font-mono text-amber-400";
+                    } else {
+                        speedLabelEl.innerText = "Gridlock";
+                        speedLabelEl.className = "text-[9px] font-mono text-red-400 font-semibold";
+                    }
+                } else {
+                    avgSpeedEl.innerHTML = `35 <span class="text-[10px] text-slate-400 font-normal">mph</span>`;
+                    speedLabelEl.innerText = "Clear";
+                    speedLabelEl.className = "text-[9px] font-mono text-slate-500";
+                }
+            }
+
+            // Travel Times
             let avgZipper = zipperCount > 0 ? (zipperTotalTime / zipperCount).toFixed(1) : "0.0";
             let avgEarly = earlyCount > 0 ? (earlyTotalTime / earlyCount).toFixed(1) : "0.0";
             
             document.getElementById('stat-zipper-time').innerText = `${avgZipper}s`;
             document.getElementById('stat-early-time').innerText = `${avgEarly}s`;
+
+            const zipCountEl = document.getElementById('stat-zipper-count');
+            if (zipCountEl) zipCountEl.innerText = `${zipperCount} cars`;
+            const earlyCountEl = document.getElementById('stat-early-count');
+            if (earlyCountEl) earlyCountEl.innerText = `${earlyCount} cars`;
+
+            // Zipper Advantage
+            const advEl = document.getElementById('stat-advantage');
+            if (advEl) {
+                if (zipperCount >= 3 && earlyCount >= 3) {
+                    let zNum = parseFloat(avgZipper);
+                    let eNum = parseFloat(avgEarly);
+                    if (zNum > 0 && eNum > 0) {
+                        let diff = (eNum - zNum).toFixed(1);
+                        if (eNum > zNum) {
+                            let pct = Math.round(((eNum - zNum) / eNum) * 100);
+                            advEl.innerHTML = `<span class="text-emerald-400 font-bold">⚡ Zipper +${diff}s faster (${pct}%)</span>`;
+                        } else if (zNum > eNum) {
+                            advEl.innerHTML = `<span class="text-sky-400 font-bold">🐢 Early +${Math.abs(diff)}s faster</span>`;
+                        } else {
+                            advEl.innerHTML = `<span class="text-slate-300">Even performance</span>`;
+                        }
+                    }
+                } else {
+                    advEl.innerText = `Gathering data... (${zipperCount + earlyCount}/6)`;
+                }
+            }
+
+            // Lane Balance (Pre-Merge Zone)
+            const laneBalEl = document.getElementById('stat-lane-balance');
+            const barLeft = document.getElementById('lane-bar-left');
+            const barRight = document.getElementById('lane-bar-right');
+            if (laneBalEl && barLeft && barRight) {
+                let preMerge = cars.filter(c => c.y < mergePointY);
+                let leftCount = preMerge.filter(c => c.currentLane === 0).length;
+                let rightCount = preMerge.filter(c => c.currentLane === 1).length;
+                let total = leftCount + rightCount;
+                if (total > 0) {
+                    let leftPct = Math.round((leftCount / total) * 100);
+                    let rightPct = 100 - leftPct;
+                    laneBalEl.innerText = `${leftPct}% Left / ${rightPct}% Right`;
+                    barLeft.style.width = `${leftPct}%`;
+                    barRight.style.width = `${rightPct}%`;
+                } else {
+                    laneBalEl.innerText = `50% Left / 50% Right`;
+                    barLeft.style.width = `50%`;
+                    barRight.style.width = `50%`;
+                }
+            }
         }
 
         function loop() {
@@ -765,6 +941,7 @@
                         let car = new Car(lane, type, simTime);
                         if (type === CAR_TYPES.EARLY) car.hasMerged = true;
                         cars.push(car);
+                        totalSpawnedCars++;
                     }
                 }
 
@@ -861,6 +1038,7 @@
             function resetSimulation() {
                 cars = [];
                 carsPassed = 0;
+                totalSpawnedCars = 0;
                 simTime = 0;
                 frameCount = 0;
                 visualFrameCount = 0;
@@ -868,6 +1046,8 @@
                 zipperCount = 0;
                 earlyTotalTime = 0;
                 earlyCount = 0;
+                peakQueueCars = 0;
+                peakQueueFt = 0;
                 updateStats();
             }
 
