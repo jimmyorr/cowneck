@@ -211,11 +211,42 @@
                     this.speed = Math.min(this.maxSpeed, this.speed + this.accel);
                 }
 
-                // Courtesy yield: Driver's left lane (visual right, lane 1) cars slow down slightly near merge point if driver's right lane (visual left, lane 0) car needs in
-                if (this.currentLane === 1 && this.y > mergePointY - 150 && this.y < mergePointY) {
-                    let carToRight = allCars.find(c => c.currentLane === 0 && c.y > this.y - 10 && c.y < this.y + 40);
-                    if (carToRight && carToRight.type === CAR_TYPES.ZIPPER) {
-                        this.speed = Math.max(1, this.speed - 0.02); // Slow down to yield
+                // Courtesy Zipper Yield: Lane 1 cars approaching merge point yield to let waiting Lane 0 cars merge
+                // Only yield if strictly behind the waiting car (if already alongside, continue through to clear the lane)
+                const coneStopY = mergePointY - (this.height / 2) - 10;
+                if (this.currentLane === 1 && this.y > mergePointY - 300 && this.y < coneStopY - 20) {
+                    let mergingCar = allCars.find(c => 
+                        c !== this &&
+                        c.y > mergePointY - 200 &&
+                        c.y <= coneStopY + 5 &&
+                        (c.currentLane === 0 || (c.targetLane === 1 && c.x < rightLaneX - 10)) &&
+                        c.y > this.y + (this.height * 0.8) // strictly ahead of us
+                    );
+                    if (mergingCar) {
+                        let bumperDist = (mergingCar.y - mergingCar.height / 2) - (this.y + this.height / 2);
+                        let desiredBuffer = safeDist + 5; // 25px bumper-to-bumper gap
+                        if (bumperDist < desiredBuffer + 40) {
+                            if (bumperDist <= desiredBuffer) {
+                                this.speed = 0; // Hold position and yield turn
+                            } else {
+                                let brakeFactor = Math.max(0, (bumperDist - desiredBuffer) / 40);
+                                this.speed = Math.min(this.speed, this.maxSpeed * brakeFactor);
+                            }
+                        }
+                    }
+                }
+
+                // Construction Zone Barrier for Lane 0: cars cannot drive into cones unless merging
+                if (this.currentLane === 0 && this.targetLane === 0) {
+                    let distToCones = coneStopY - this.y;
+                    if (distToCones <= safeDist * 2) {
+                        if (distToCones <= 0) {
+                            this.y = coneStopY;
+                            this.speed = 0;
+                        } else {
+                            let targetSpeed = Math.max(0, (distToCones / (safeDist * 2)) * this.maxSpeed);
+                            this.speed = Math.min(this.speed, targetSpeed);
+                        }
                     }
                 }
 
@@ -226,7 +257,7 @@
                 let targetX = this.targetLane === 0 ? leftLaneX : rightLaneX;
 
                 if (Math.abs(this.x - targetX) > 1) {
-                    this.x += (targetX - this.x) * 0.05; // Smooth slide
+                    this.x += (targetX - this.x) * 0.08; // Smooth slide
                 } else {
                     this.x = targetX;
                     this.currentLane = this.targetLane;
@@ -235,18 +266,16 @@
             }
 
             decideBehavior(allCars) {
-                // Everyone must merge to driver's left (visual right, lane 1) eventually
-                if (this.y > mergePointY - 50 && this.currentLane === 0) {
-                    this.targetLane = 1;
-                    this.state = 'merging';
-                }
+                if (this.currentLane === 0 && this.targetLane === 0) {
+                    // Turn on left blinker approaching the merge point
+                    if (this.y > mergePointY - 250) {
+                        this.state = 'merging';
+                    }
 
-                if (this.type === CAR_TYPES.ZIPPER && this.currentLane === 0 && !this.hasMerged) {
-                    // Wait until closer to merge point
-                    if (this.y > mergePointY - 100) {
+                    // Attempt merge once within merge zone and a safe gap exists
+                    if (this.y > mergePointY - 150 && !this.hasMerged) {
                         if (this.canMerge(1, allCars)) {
                             this.targetLane = 1;
-                            this.state = 'merging';
                             this.hasMerged = true;
                         }
                     }
@@ -255,20 +284,26 @@
 
             canMerge(targetLaneIdx, allCars) {
                 let targetX = targetLaneIdx === 0 ? leftLaneX : rightLaneX;
-                // Check for collisions in target lane space
-                let safe = true;
                 for (let c of allCars) {
                     if (c === this) continue;
-                    // If car is overlapping our target X area
-                    if (Math.abs(c.x - targetX) < roadWidth/2) {
-                        // Check Y gap
-                        if (Math.abs(c.y - this.y) < this.height * 1.5) {
-                            safe = false;
-                            break;
+                    // Check cars in or entering the target lane
+                    let isNearTargetLane = Math.abs(c.x - targetX) < (laneWidth * 0.5) || (c.targetLane === targetLaneIdx && Math.abs(c.x - targetX) < laneWidth * 0.7);
+                    if (isNearTargetLane) {
+                        if (c.y > this.y) {
+                            // Car in target lane is ahead of us
+                            let frontGap = (c.y - c.height / 2) - (this.y + this.height / 2);
+                            if (frontGap < 5) return false;
+                        } else {
+                            // Car in target lane is behind or alongside us
+                            // If the car is yielding/stopped (speed <= 0.5), we have right-of-way!
+                            if (c.speed > 0.5) {
+                                let rearGap = (this.y - this.height / 2) - (c.y + c.height / 2);
+                                if (rearGap < 10) return false;
+                            }
                         }
                     }
                 }
-                return safe;
+                return true;
             }
 
             findCarAhead(allCars) {
@@ -281,13 +316,19 @@
                         let dist = c.y - this.y;
                         
                         // Check if the car is in our path (X overlap)
-                        // This naturally handles blockers! Because a blocker's X is in the middle,
-                        // it overlaps with BOTH left and right lanes.
-                        if (Math.abs(c.x - this.x) < this.width) {
-                            if (dist < minDist) {
-                                minDist = dist;
-                                nearest = c;
+                        let xDist = Math.abs(c.x - this.x);
+                        let inPath = xDist < (this.width + 6);
+
+                        // If both are heading to lane 1, treat them as in-path
+                        if (!inPath && this.targetLane === 1 && c.targetLane === 1) {
+                            if (Math.abs(c.x - rightLaneX) < laneWidth * 0.7 && Math.abs(this.x - rightLaneX) < laneWidth * 0.7) {
+                                inPath = true;
                             }
+                        }
+
+                        if (inPath && dist < minDist) {
+                            minDist = dist;
+                            nearest = c;
                         }
                     }
                 }
