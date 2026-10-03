@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-6RNVL7JZVJ');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Wizard of Merchiston</title>
+    <meta name="description" content="How a Scottish laird with a reputation for sorcery invented logarithms, turned multiplication into addition, and gave astronomers back years of their lives.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b1120;
+            --text-color: #f8fafc;
+            --accent-color: #6366f1;
+            --glass-bg: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(244, 114, 182, 0.15) 0%, transparent 50%);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            line-height: 1.8;
+            font-size: 1.125rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 3rem 1rem;
+        }
+
+        .container {
+            max-width: 680px;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            margin-bottom: 1.6rem;
+            color: #cbd5e1;
+            font-weight: 400;
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        p:first-of-type {
+            font-size: 1.25rem;
+            color: #f8fafc;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        em {
+            color: #f1f5f9;
+            font-style: italic;
+        }
+
+        .accent-text {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        /* Links styling */
+        a {
+            color: #818cf8;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(129, 140, 248, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        a:hover {
+            color: #c084fc;
+            border-bottom-color: #c084fc;
+            background: rgba(192, 132, 252, 0.05);
+            border-radius: 2px;
+        }
+
+        /* Micro-interactions */
+        p {
+            transition: color 0.2s ease;
+        }
+
+        p:hover {
+            color: #f1f5f9;
+        }
+
+        /* Formula display card */
+        .formula-card {
+            margin: 2.2rem auto;
+            padding: 1.75rem 2rem;
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(129, 140, 248, 0.25);
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .formula-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.6), #818cf8, transparent);
+        }
+
+        .formula-display {
+            font-family: 'STIX Two Text', 'Cambria Math', 'Times New Roman', serif;
+            font-size: 2.5rem;
+            color: #ffffff;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.4rem;
+            text-shadow: 0 0 25px rgba(129, 140, 248, 0.45);
+        }
+
+        .formula-display em {
+            font-style: italic;
+            color: #f8fafc;
+        }
+
+        .formula-display sup {
+            font-size: 1.5rem;
+            top: -0.6em;
+            position: relative;
+        }
+
+        .formula-display .math-operator,
+        .caption-math .math-operator {
+            color: #c084fc;
+            margin: 0 0.25rem;
+            font-style: normal;
+        }
+
+        .formula-caption {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #94a3b8;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem 0.75rem;
+                font-size: 1.05rem;
+            }
+            .container {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+            h1 {
+                font-size: 2.25rem;
+                margin-bottom: 1.5rem;
+            }
+            p:first-of-type {
+                font-size: 1.15rem;
+            }
+            .formula-display {
+                font-size: 1.9rem;
+            }
+            .formula-display sup {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <article class="container">
+        <h1>The Wizard of Merchiston</h1>
+
+        <p>Suppose, for the sake of argument, that you are a servant in a Scottish tower house in about 1600, and something has gone missing. Your master gathers the household together and explains that he owns a black cockerel with a particular talent: it can tell an honest person from a thief. One by one, you are each to go into a darkened room and stroke the bird, and when the guilty party touches it, it will crow. You go in, you stroke it, it says nothing, and you come out again. Your master then looks closely at everyone's hands. The cockerel, it turns out, has been dusted all over with soot, and the one person whose palms are perfectly clean is the one who was too frightened to touch it.</p>
+
+        <p>The master was <a href="https://en.wikipedia.org/wiki/John_Napier" target="_blank" rel="noopener noreferrer" class="accent-text"><strong>John Napier</strong></a>, the eighth Laird of Merchiston, and the story is one of a small collection that earned him a local reputation as a wizard. It should be said that it comes to us by way of his descendant Mark Napier, who wrote it down in a family memoir of 1834, more than two centuries after the fact, and who seems to have told it partly to explain away the rumors of witchcraft rather than to confirm them. Whether it happened exactly so, nobody can say, but it has the ring of a man who saw no reason to discourage talk of his supernatural powers if it got the job done.</p>
+
+        <p>The other stories run along the same lines. He was said to keep a black spider in a little box and to carry it about with him. When his neighbor's pigeons kept eating his grain, he is supposed to have warned that he would impound any he caught. The neighbor told him he was welcome to try. The next morning, according to the family tradition, the fields around Merchiston were full of pigeons staggering about in circles, because Napier had scattered peas soaked in spirits the night before, and he simply walked among them gathering them up. To the people of the district this looked very much like witchcraft. To anyone who has spent time in a city center late on a Saturday night it looks more like an ordinary consequence of alcohol.</p>
+
+        <p>Not all of the evidence is legend. In 1594 Napier signed a written contract with Robert Logan of Restalrig, a man with a notable talent for getting mixed up in conspiracies, who believed there was treasure hidden somewhere in his clifftop stronghold of Fast Castle. Napier agreed to "do his utmost diligence to search and seek out, and by all craft and ingine to find out the same," in return for a third of whatever turned up. Nothing was ever found, and as far as anyone knows Napier never got a penny.</p>
+
+        <p>He had been born at Merchiston, then a castle just outside Edinburgh, in 1550, when his father, Archibald, was all of sixteen years old. His uncle, Adam Bothwell, the Bishop of Orkney, had already written to the boy's father: "I pray you, sir, to send John to the schools either to France or Flanders, for he can learn no good at home." John went to St Andrews at thirteen, left without a degree, and then went abroad, though nobody knows quite where. When he came back in 1571 he was fluent in Greek. He then settled into the life of a Scottish landowner, married twice, had twelve children, experimented with salt as a fertilizer and designed a screw for pumping water out of flooded coal pits. It was the life of an improving country gentleman, with a slight air of the uncanny.</p>
+
+        <p>What he cared about above everything, though, was the end of the world.</p>
+
+        <p>Napier was a fiercely committed Protestant at a time when that was not a private matter. In 1588 the Spanish Armada had sailed, and Scotland, like England, spent years afterward waiting nervously for Catholic Spain to try again. In 1593 Napier published <em>A Plaine Discovery of the Whole Revelation of Saint John</em>, a long and minutely argued commentary on the Book of Revelation. In it he identified the Pope as the Antichrist and, in a dedication to King James VI, urged the king to clear his court of "papists, atheists and newtrals," which must have made for an awkward few weeks at Holyrood. He also worked out, by a careful process of reckoning, when everything would come to an end. The fourteenth of his propositions states that "the day of God's judgement appears to fall betwixt the years of Christ, 1688 and 1700."</p>
+
+        <p>The book was taken very seriously. It went through several English editions and was translated into Dutch, French and German, and it was by a long way Napier's most widely read work in his lifetime. If you had asked an educated European in 1610 who John Napier was, the answer would have been that he was the Scotsman who had decoded the Apocalypse. Napier seems to have agreed.</p>
+
+        <p>His patriotism had a practical streak, too. In June 1596, with another Spanish invasion feared, he set down a list of "secret inventions, profitable and necessary in these days for defence of this island." There were two kinds of burning mirror for setting enemy ships alight at a distance. There was a metal chariot, proof against musket fire, which would serve as "a moving mouth of mettle" and scatter destruction on all sides. There were devices "of sayling under water." And there was a piece of artillery that, he claimed, could "clear a field of four miles circumference of all living creatures exceeding a foot of height." There is no evidence that any of these was ever built, and it is probably as well. Admirers have since credited him with foreseeing the tank and the submarine, which is generous.</p>
+
+        <p>Which brings us to the invention that actually worked.</p>
+
+        <p>Around 1600 the hardest-working people in the world, mathematically speaking, were astronomers and navigators. Their calculations were built on trigonometry, and trigonometry in those days meant multiplying large numbers together, endlessly, by hand. Tables of sines were commonly given to seven figures, so a single step in fixing the position of a planet or a ship might mean multiplying two seven-digit numbers, and every such step was slow and a chance to make a mistake. Adding, by contrast, is easy. Anybody can add two seven-digit numbers in a few seconds and get them right. What Napier found was a way to turn the hard sum into the easy one.</p>
+
+        <p>You can see the trick with nothing more than the powers of 2. Write them out in a row (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1,024, 2,048, 4,096) and, underneath each one, how many times you had to double to get there: 0, 1, 2, 3, 4, and so on up to 12. Now suppose you want to multiply 16 by 256. Don't. Instead, look underneath them. Sixteen sits over a 4 and 256 sits over an 8. Add those, which gives 12, and look at what sits above 12: 4,096. That is the answer, and you have done no multiplying at all. Division works the same way, only you subtract. The numbers on the bottom row are what Napier called <strong>logarithms</strong>, and the whole thing rests on a single rule:</p>
+
+        <div class="formula-card">
+            <div class="formula-display">
+                log(<em>a</em> <span class="math-operator">&times;</span> <em>b</em>) <span class="math-operator">=</span> log <em>a</em> <span class="math-operator">+</span> log <em>b</em>
+            </div>
+            <div class="formula-caption">Multiplication into addition</div>
+        </div>
+
+        <p>The difficulty, of course, is that the powers of 2 leave enormous gaps. That's fine if you want to multiply 16 by 256, but no use at all if you want to multiply 17 by 253. Napier's solution was to use steps so tiny that every number you could want was, for practical purposes, in the list. Instead of doubling, each entry in his scheme was the one before multiplied by 0.9999999, a shade less than one, so that the numbers crept downward by almost imperceptible amounts. He explained the idea not with powers at all but with an image of two points moving along two lines, one at a steady speed and the other slowing down as it went. Working out the tables by hand took him, by his own reckoning, something like twenty years. He also had to invent a word for what he was making, and he built "logarithm" from the Greek <em>logos</em>, "ratio," and <em>arithmos</em>, "number."</p>
+
+        <p>The result appeared in Edinburgh in 1614 as <em>Mirifici Logarithmorum Canonis Descriptio</em>, or "A Description of the Wonderful Table of Logarithms," a slim volume of fifty-seven pages of explanation and ninety pages of tables. Napier's logarithms were not quite the ones in use today. His were arranged backward, so that the logarithm of ten million was zero and the logarithms grew larger as the numbers grew smaller, which suited his tables of sines but takes some getting used to. Later generations, with a fine disregard for accuracy that this book has come to expect, gave the name "Napierian logarithms" to an entirely different system based on the number <em>e</em>, which Napier never used and had no name for. His own logarithms are related to them, but they are not the same thing.</p>
+
+        <p>In London, the book fell into the hands of <a href="https://en.wikipedia.org/wiki/Henry_Briggs_(mathematician)" target="_blank" rel="noopener noreferrer"><strong>Henry Briggs</strong></a>, a Yorkshireman who was professor of geometry at Gresham College. Briggs was immediately and entirely smitten. On 10 March 1615 he wrote to his friend James Ussher, the future archbishop, that "Napper, lord of Markinston, hath set my head and hands a work with his new and admirable logarithms," adding, "I hope to see him this summer, if it please God, for I never saw book which pleased me better or made me more wonder." Napier was not actually a lord, but you can forgive Briggs for assuming that anyone capable of this ought to be.</p>
+
+        <p>So, that summer, Briggs made the journey of some four hundred miles from London to Edinburgh, which in 1615 was no small undertaking. What happened when he got there is described in the memoirs of the astrologer <a href="https://en.wikipedia.org/wiki/William_Lilly" target="_blank" rel="noopener noreferrer"><strong>William Lilly</strong></a>, who had it from a friend named John Marr. Marr had gone up to Scotland ahead of Briggs on purpose to be present when the two men met. Briggs, it seems, was delayed, and Napier began to fret. "Ah, John," he said to Marr, "Mr Briggs will not now come." At that very moment, someone knocked at the gate. Marr went down, and it was Briggs. He was shown up to Napier's chamber, and there, in Lilly's words, "almost one quarter of an hour was spent, each beholding the other with admiration, before one word was spoken." When Briggs did speak, it was to say that he had come purposely to see Napier and to learn "by what engine of wit or ingenuity" he had come to think of this "most excellent help unto astronomy," and to marvel that nobody had thought of it before, now that it looked so easy.</p>
+
+        <p>It is a lovely scene, and I would very much like it to be true. It is worth knowing, though, that Lilly wrote it down decades later, from Marr's recollection, and that Lilly made his living casting horoscopes. Briggs, for his part, held astrology to be "a mere system of groundless conceits." That one of the great moments in mathematics should reach us through the sort of person Briggs most disapproved of seems somehow fitting.</p>
+
+        <p>What is not in doubt is that the two men got on, and that they talked business. Briggs had already decided that the logarithms would be far more convenient if they were rebuilt around the number 10, with the logarithm of 1 set at zero and the logarithm of 10 at one. Napier replied that he had thought of the same thing himself but had not been well enough to do the work. They agreed on the change, and Briggs came back the following summer to discuss it further. He meant to come again in 1617, but on 4 April that year Napier died, at Merchiston, of the gout that had been troubling him for some time. He was sixty-seven. He had lived just long enough to publish one more little book, on a set of numbered rods for multiplication, which became known as "Napier's bones" and were popular for a good while, and in which he helped to popularize the use of a point to separate the whole part of a number from its fractions. The full explanation of how he had built his tables was published by his son Robert in 1619.</p>
+
+        <p>Briggs took on the labor of building the new tables himself. In 1617 he published logarithms of the numbers up to 1,000, and in 1624 he brought out his great <em>Arithmetica Logarithmica</em>, which gave the logarithms of the numbers from 1 to 20,000 and from 90,000 to 100,000, every one worked out by hand to fourteen decimal places. The gap in the middle was filled in 1628 by a Dutch publisher, Adriaan Vlacq. The logarithm of 2 in Briggs's system is 0.30103, near enough, and tables descended from his were printed for schoolchildren and engineers until the 1970s. Briggs moved to Oxford in 1619 as its first Savilian Professor of Geometry and died there in January 1630, having done more than anyone except Napier himself to make logarithms useful.</p>
+
+        <p>Napier was not, it should be said, entirely alone in the discovery. In Prague, a Swiss clockmaker named <a href="https://en.wikipedia.org/wiki/Jost_B%C3%BCrgi" target="_blank" rel="noopener noreferrer"><strong>Jost Bürgi</strong></a> had hit on much the same idea, quite independently and possibly years earlier, and had built tables of his own. But Bürgi didn't publish them until 1620, six years after Napier, and by then the world had already decided whose idea it was. It is not enough to discover something. You also have to tell people.</p>
+
+        <p>The person who probably got most out of the new invention was <a href="https://en.wikipedia.org/wiki/Johannes_Kepler" target="_blank" rel="noopener noreferrer"><strong>Johannes Kepler</strong></a>, who had spent much of his working life buried in planetary calculations. He came across Napier's book in 1617, apparently failed at first to see what the fuss was about, and then, once he grasped what it could do, became an enthusiast. On 28 July 1619 he wrote Napier a warm letter of congratulation, not knowing that Napier had been dead for more than two years, and he printed it as the dedication of his astronomical tables for 1620. Kepler's own life was not going smoothly at the time. His elderly mother, Katharina, had been accused of witchcraft, and in August 1620 she was arrested. She spent fourteen months in custody and was at one point shown the instruments of torture, before her son's patient legal defense got her released. Scotland had held savage witch trials of its own in Napier's lifetime, and it is hard not to reflect that the line between a respected eccentric with a spider in a box and an old woman in a cell could be alarmingly thin.</p>
+
+        <p>Kepler went on to use logarithms in the great <em>Rudolphine Tables</em> of 1627, the most accurate planetary tables yet made, which he had been working on for more than a quarter of a century. Nearly two hundred years later the French mathematician Pierre-Simon Laplace summed the matter up by saying that logarithms, by reducing to a few days the labor of many months, "double the life of the astronomer, and spare him the errors and disgust inseparable from long calculations." It is hard to think of a finer thing to have said about your work, and Napier would never hear it.</p>
+
+        <p>The invention also took a physical form. Around 1620 another Gresham professor, Edmund Gunter, marked a logarithmic scale along a two-foot ruler, so that multiplying two numbers became a matter of adding two lengths with a pair of dividers. Within a couple of years the clergyman <a href="https://en.wikipedia.org/wiki/William_Oughtred" target="_blank" rel="noopener noreferrer"><strong>William Oughtred</strong></a>, whose multiplication sign we met in the previous chapter, had the simple idea of sliding two such scales against each other, which did away with the dividers altogether. The result was the <strong>slide rule</strong>. He then fell into a bitter dispute with one Richard Delamain over who had invented the circular version, because apparently nothing in mathematics can be invented without somebody getting cross about it.</p>
+
+        <p>For the next three hundred and fifty years, the slide rule was what engineers carried. It went into the design of bridges and aircraft, and eventually into space. The crew of Apollo 13 had a five-inch Pickett N600-ES aboard in April 1970, and it now lives in the Smithsonian's National Air and Space Museum. Buzz Aldrin took a slide rule of the same model to the Moon on Apollo 11, and in 2007 it sold at auction for $77,675, rather more than its retail price of $10.95. Then, in the 1970s, the pocket calculator arrived, and within a few years the slide rule went from indispensable to quaint.</p>
+
+        <p>Logarithms themselves stayed, because they turned out to describe the loudness of sounds, the acidity of liquids and the strength of earthquakes. But the job Napier made them for, sparing people the misery of long multiplication, is the one job nobody now needs them to do.</p>
+
+        <p>Napier's tower still stands, at the heart of a campus of Edinburgh Napier University, which is named after him. He would no doubt be gratified, and possibly a little puzzled, to find that he is remembered for his tables and not for his commentary on the Revelation of Saint John. He had worked out, with great care and in full confidence, that the world would end at some point between 1688 and 1700. The year 1700 came and went without incident, as most years do. By then his logarithms had already given the astronomers back years of their working lives, and the astronomers had spent those years, among other things, calculating the dates of eclipses centuries in the future, on the reasonable assumption that there would still be somebody around to see them.</p>
+    </article>
+</body>
+</html>
