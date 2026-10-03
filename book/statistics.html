@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-6RNVL7JZVJ');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lies, Damned Lies</title>
+    <meta name="description" content="How Quetelet, Florence Nightingale, Francis Galton, William Gosset and Ronald Fisher turned counting people into the science of statistics, for better and, at times, for much worse.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b1120;
+            --text-color: #f8fafc;
+            --accent-color: #6366f1;
+            --glass-bg: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(244, 114, 182, 0.15) 0%, transparent 50%);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            line-height: 1.8;
+            font-size: 1.125rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 3rem 1rem;
+        }
+
+        .container {
+            max-width: 680px;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            margin-bottom: 1.6rem;
+            color: #cbd5e1;
+            font-weight: 400;
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        p:first-of-type {
+            font-size: 1.25rem;
+            color: #f8fafc;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        em {
+            color: #f1f5f9;
+            font-style: italic;
+        }
+
+        .accent-text {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        /* Links styling */
+        a {
+            color: #818cf8;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(129, 140, 248, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        a:hover {
+            color: #c084fc;
+            border-bottom-color: #c084fc;
+            background: rgba(192, 132, 252, 0.05);
+            border-radius: 2px;
+        }
+
+        /* Micro-interactions */
+        p {
+            transition: color 0.2s ease;
+        }
+
+        p:hover {
+            color: #f1f5f9;
+        }
+
+        /* Formula display card */
+        .formula-card {
+            margin: 2.2rem auto;
+            padding: 1.75rem 2rem;
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(129, 140, 248, 0.25);
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .formula-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.6), #818cf8, transparent);
+        }
+
+        .formula-display {
+            font-family: 'STIX Two Text', 'Cambria Math', 'Times New Roman', serif;
+            font-size: 2.5rem;
+            color: #ffffff;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.4rem;
+            text-shadow: 0 0 25px rgba(129, 140, 248, 0.45);
+        }
+
+        .formula-display em {
+            font-style: italic;
+            color: #f8fafc;
+        }
+
+        .formula-display sup {
+            font-size: 1.5rem;
+            top: -0.6em;
+            position: relative;
+        }
+
+        .formula-display .math-operator,
+        .caption-math .math-operator {
+            color: #c084fc;
+            margin: 0 0.25rem;
+            font-style: normal;
+        }
+
+        .formula-caption {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #94a3b8;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem 0.75rem;
+                font-size: 1.05rem;
+            }
+            .container {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+            h1 {
+                font-size: 2.25rem;
+                margin-bottom: 1.5rem;
+            }
+            p:first-of-type {
+                font-size: 1.15rem;
+            }
+            .formula-display {
+                font-size: 1.9rem;
+            }
+            .formula-display sup {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <article class="container">
+        <h1>Lies, Damned Lies</h1>
+
+        <p>The most famous remark ever made about statistics is that there are three kinds of lies: lies, damned lies and statistics. Mark Twain popularized it in 1907, crediting it to the British prime minister Benjamin Disraeli. The difficulty is that nobody has ever found it in Disraeli's speeches or writings, and the earliest known printed version turned up in 1891, ten years after his death. So the best-known line about unreliable figures comes with an unreliable source, which seems about right.</p>
+
+        <p>The idea that a heap of numbers about <em>people</em> might obey laws as dependable as the planets' came, fittingly, from an astronomer. <a href="https://en.wikipedia.org/wiki/Adolphe_Quetelet" target="_blank" rel="noopener noreferrer"><strong>Adolphe Quetelet</strong></a> was born in Ghent in 1796. As a young man he wrote poetry and, with a school friend, an opera, which was actually performed. He then took the first doctorate the new University of Ghent ever awarded and talked the government into building an observatory in Brussels, with himself in charge. Astronomers knew that if you measure a star's position a hundred times you get a hundred slightly different answers, bunched around the true one in a characteristic shape: a hump in the middle, tailing away evenly on either side. We now call it the bell curve. Quetelet's great idea was to turn the same mathematics away from the sky and onto the human race.</p>
+
+        <p>In the 1840s he found, in an Edinburgh medical journal, the chest measurements of 5,738 Scottish soldiers. He added them up and divided, and got an average of a little under forty inches. More to the point, the measurements clustered around it in exactly the astronomers' bell shape. Just as the star had one true position and the measurements were errors scattered around it, so, he thought, there was one true Scottish soldier, and the real ones were nature's slightly botched attempts at him. He called this ideal figure <em>l'homme moyen</em>, <a href="https://en.wikipedia.org/wiki/Statistics" target="_blank" rel="noopener noreferrer" class="accent-text">the average man</a>, and he meant it as a compliment. The average man, for Quetelet, was the standard of beauty and the type of the nation. The rest of us were deviations.</p>
+
+        <p>He found regularities everywhere. In French court records the number of crimes, even the number of murders by each kind of weapon, barely changed from year to year. There was, he wrote, a budget that was paid with frightening regularity, that of the prisons, the galleys and the scaffold. Looking at the heights of about 100,000 young Frenchmen measured for conscription, he noticed too few men just above the minimum height for military service and too many just below it. The bell curve, which knew nothing of French law, was telling him that a good many young men had found ways to be a little shorter on the day. His ratio of weight to the square of height, renamed the body mass index in 1972, means that doctors still use a formula devised by a Belgian astronomer who once wrote an opera.</p>
+
+        <p>Among Quetelet's admirers was <a href="https://en.wikipedia.org/wiki/Florence_Nightingale" target="_blank" rel="noopener noreferrer"><strong>Florence Nightingale</strong></a>, who is remembered as the Lady with the Lamp and might more usefully be remembered as the lady with the tables. She was educated at home by her father, mathematics included, and grew up into a formidable woman of firm opinions and, for a time, a pet owl named Athena, which she had rescued as a chick at the Parthenon and carried about in her pocket. When the owl died, she had it stuffed. It is still on display at the Florence Nightingale Museum in London.</p>
+
+        <p>In November 1854 she arrived at the British army's hospital at Scutari and found a catastrophe. Across the Crimean War, disease killed something like ten times as many soldiers as wounds did, and in February 1855 the death rate among patients at Scutari was well over 40 percent. The following month a sanitary commission arrived from London and set about the drains. In one week in April it removed 215 handcarts of filth, flushed the sewers nineteen times and buried the carcasses of two horses, a cow and four dogs, which gives you some idea of what had been underneath the patients. By June the death rate had fallen to about 2 percent.</p>
+
+        <p>Back in England, Nightingale made sure nobody could ignore what had happened. Working with <a href="https://en.wikipedia.org/wiki/William_Farr" target="_blank" rel="noopener noreferrer"><strong>William Farr</strong></a>, the leading medical statistician of the day, she produced a long report on the army's health, and in 1858 she published her best-known diagram. It looks like a flower: twelve wedges, one for each month, each stretching farther out the more men died, with the deaths from disease shaded in blue. The blue swamps everything. She did not invent the circular chart, but she understood that a minister who would never read a table might stop and look at a picture. That same year she became the first woman elected to the Statistical Society of London, now the Royal Statistical Society, with Farr among her nominators.</p>
+
+        <p>She is often quoted as saying that to understand God's thoughts we must study statistics, for these are the measure of His purpose. It is a marvelous line, true to her views, but she does not seem to have said it. It comes from a summary of her opinions, written in the third person, in Karl Pearson's biography of Francis Galton, with whom she corresponded about endowing a professorship of statistics, and it has since been quietly promoted into her own words. From 1857 an illness kept her largely in bed, and she spent the next half century bombarding officials with numbers from there. She died in 1910 at the age of ninety.</p>
+
+        <p>The Galton of that biography, <a href="https://en.wikipedia.org/wiki/Francis_Galton" target="_blank" rel="noopener noreferrer"><strong>Francis Galton</strong></a>, was one of the most inventive and most troubling figures in the history of science. He was born in Birmingham in 1822, into a rich family of bankers and former gunmakers, and was a half-cousin of Charles Darwin, which is as much as we shall say about that. The day before his fifth birthday he wrote to his sister that he could read any English book, recite fifty-two lines of Latin poetry and multiply by every number from 2 to 11. In the letter, which survives, the 9 has been scratched out with a penknife and the 11 covered with a tiny square of pasted paper, as if the author had had second thoughts. He was, at four, already a careful man with data.</p>
+
+        <p>He grew up counting everything. In 1872 he tested whether prayer worked by noting that the whole nation prayed every Sunday for the long life of the monarch, and checking whether monarchs lived longer than other well-off people. They didn't. At dull scientific meetings he counted how often the audience fidgeted, and in 1885 he proposed in <em>Nature</em> that fidgets could measure boredom, having clocked about fifty listeners producing some forty-five fidgets a minute during one tedious paper. He also set out to make a beauty map of the British Isles. He carried in his pocket a needle mounted as a pricker and a piece of paper torn into a cross, and as he passed women in the street he made a hole, unseen, at the top of the cross for attractive, on the arms for middling and at the bottom for unattractive. He reported in his memoirs that London ranked highest and Aberdeen lowest. Aberdeen has not, as far as I know, ever formally replied.</p>
+
+        <p>Two of his discoveries mattered a great deal. In 1875 he sent packets of sweet pea seeds, sorted by size, to seven friends and asked them to grow the plants and send back the new seeds. Big seeds produced big seeds, but not quite as big; small seeds produced small seeds, but not quite as small. People turned out to work the same way: very tall parents tend to have tall children who are, on average, a little less tall than they are. Galton called this "regression towards mediocrity"; it is now known, more kindly, as <a href="https://en.wikipedia.org/wiki/Regression_toward_the_mean" target="_blank" rel="noopener noreferrer"><strong>regression to the mean</strong></a>. It is why a team that has a spectacular season usually has a more ordinary one the next year.</p>
+
+        <p>The second discovery was more cheerful. In 1906, at the age of eighty-four, Galton visited the West of England Fat Stock and Poultry Exhibition in Plymouth, where for sixpence you could guess what an ox would weigh once it had been slaughtered and dressed. Afterward he collected the 787 legible tickets. The guesses were all over the place, but the middle one was 1,207 pounds, and the ox had weighed 1,198. When a reader of <em>Nature</em> asked about the ordinary average, Galton supplied it: 1,197 pounds. Galton wrote that the result seemed more creditable to the trustworthiness of a democratic judgment than might have been expected, which, coming from him, was a considerable concession.</p>
+
+        <p>It was a considerable concession because Galton did not, on the whole, think much of ordinary people's judgment, or of ordinary people.</p>
+
+        <p>In 1869 he published <em>Hereditary Genius</em>, which argued from the family trees of judges, statesmen and scientists that talent was inherited. In 1883 he gave the idea he had built on it a name, <a href="https://en.wikipedia.org/wiki/Eugenics" target="_blank" rel="noopener noreferrer"><strong>eugenics</strong></a>, from the Greek for "well born," and he spent much of the rest of his life promoting it: the notion that the human race should be improved by encouraging the "best" people to have more children and discouraging the rest. He was clear about who the best people were. In <em>Hereditary Genius</em> he ranked whole races by intelligence, and in a letter to <em>The Times</em> in 1873 he proposed encouraging Chinese settlement in East Africa so that their descendants would supplant the Africans already living there. These were not passing remarks. They were the point of the work. After his death in 1911, his niece was asked to destroy the novel he had written about a eugenic utopia. She took scissors to the worst passages instead.</p>
+
+        <p>What Galton started did not stay on paper. In 1907 Indiana passed the first law permitting the compulsory sterilization of people judged unfit, and many other states followed. In 1927, in <em>Buck v. Bell</em>, the United States Supreme Court upheld Virginia's version, and Justice Oliver Wendell Holmes wrote that "three generations of imbeciles are enough." More than 60,000 Americans were sterilized under such laws. In July 1933, six months after Hitler came to power, Germany passed a sterilization law that drew on American models, and something like 350,000 to 400,000 people were sterilized under it. That program was one of the roads that led to the murder of disabled people and, beyond that, to the death camps. Galton did not live to see any of it, and not all of it can be laid at his door. But he gave it a name, a scientific manner and much of its confidence, and in 2020 University College London took his name off its buildings.</p>
+
+        <p>It is a relief, in more ways than one, to turn to a brewery.</p>
+
+        <p>In 1899 Arthur Guinness and Son of Dublin, which liked to hire bright Oxford and Cambridge science graduates, took on a young chemist named <a href="https://en.wikipedia.org/wiki/William_Sealy_Gosset" target="_blank" rel="noopener noreferrer"><strong>William Sealy Gosset</strong></a>. Brewing is a business of small experiments, this barley against that one. Gosset's difficulty was that he rarely had more than a handful of results, and the statistics of the day, built on thousands of soldiers, quietly assumed that you had plenty. With four or five measurements, luck alone can make one barley look better than another. Gosset's question was how much better it had to look before you could believe it.</p>
+
+        <p>He worked out the answer partly with pencil and paper and partly by something that sounds like a parlor game. He took the recorded heights and finger lengths of 3,000 criminals, wrote each man's measurements on a piece of card, shuffled the cards and dealt them out in 750 batches of four. The averages of the little batches strayed from the true average of all 3,000 further, and more often, than the usual methods predicted, and Gosset produced tables showing how much extra allowance a small sample needed. The method that grew out of it, the <a href="https://en.wikipedia.org/wiki/Student%27s_t-test" target="_blank" rel="noopener noreferrer"><strong>t-test</strong></a>, is now used in medical trials, in factories and in the testing of practically everything.</p>
+
+        <p>It is not called Gosset's test, because Guinness did not let its staff publish, an earlier employee having let some trade secrets out in print. Gosset was eventually allowed to go ahead without his name, and the managing director decided he could appear as "Pupil" or "Student." His great paper of 1908 appeared under the name Student, which has left generations of students wondering why the most useful test in their textbooks is named after them.</p>
+
+        <p>Gosset seems to have been a thoroughly nice man, and a keen fly fisherman who held, according to a friend, that all a fish cared about in a fly was its size and how dark it was, the rest being there to attract the fisherman. He once cut short an admirer by remarking that Fisher would have discovered it all anyway. In 1935 he moved to London to run Guinness's new brewery at Park Royal, and he died in 1937, at sixty-one.</p>
+
+        <p>The Fisher he meant was <a href="https://en.wikipedia.org/wiki/Ronald_Fisher" target="_blank" rel="noopener noreferrer"><strong>Ronald Fisher</strong></a>, who turned Gosset's tables into a whole science. Fisher was born in London in 1890 with eyesight so poor that he was not allowed to read by electric light, so he was taught mathematics in the evenings by ear, without pencil or paper, and learned to see problems in his head as shapes. In 1919 he went to work at Rothamsted, an agricultural research station in Hertfordshire, where, one afternoon, the most famous cup of tea in the history of science was poured.</p>
+
+        <p>Fisher offered it to <a href="https://en.wikipedia.org/wiki/Muriel_Bristol" target="_blank" rel="noopener noreferrer"><strong>Muriel Bristol</strong></a>, an algae specialist. She declined, saying she preferred it when the milk went into the cup first. Fisher said that could make no difference. She said she could tell. Another scientist, William Roach, suggested testing her, and Fisher began to wonder what a fair test would look like. Suppose you give her eight cups in random order, tell her that four had the milk poured first, and ask her to pick out those four. There are seventy different ways of choosing four cups from eight, and only one of them is entirely right, so somebody who is merely guessing will get all eight correct about one time in seventy. That is rare enough to take seriously. But there are sixteen ways of getting exactly three of the four right, so a guesser will do at least that well about one time in four. A single good result proves very little. The real question is always how often luck alone would have done as well.</p>
+
+        <p>That, in a teacup, is the central idea of modern statistics, and Fisher set it out in <em>The Design of Experiments</em> in 1935. Elsewhere he had suggested that a result luck would produce only one time in twenty was a convenient line to draw, and the scientific world took him so completely at his word that "less than one in twenty" became, for most of the following century, the usual threshold for getting a result published. As for Muriel Bristol, Fisher's book coyly never says how she did. Roach is said to have announced that she got enough right to prove her case. He also married her, which suggests he was persuaded.</p>
+
+        <p>Fisher was brilliant and difficult, with a long list of enemies and a gift for keeping them. Chief among them was Karl Pearson, Galton's disciple and biographer. When Pearson retired from University College London in 1933, his department was split in two, with Fisher running one half and Pearson's son Egon the other, a floor apart in the same building. The two groups are said to have shared a common room by taking afternoon tea in shifts, Pearson's people at four o'clock and Fisher's at half past, when the coast was clear.</p>
+
+        <p>The half that Fisher ran was the Department of Eugenics, and his chair was the Galton Professorship of Eugenics, paid for by Galton's will. Fisher had been a committed eugenicist since his student days at Cambridge. Between the wars he campaigned for family allowances designed to encourage the professional classes to have more children, and he and his wife had nine. In 1950, when UNESCO asked scientists to comment on a statement, prompted by the Nazis' crimes, that there was no scientific basis for ranking races by intelligence, Fisher objected that human groups differed profoundly in their innate capacity for intellectual and emotional development. Two years earlier he had written in support of Otmar von Verschuer, a German geneticist who had received specimens from Josef Mengele at Auschwitz. In 2020 Gonville and Caius College in Cambridge took down a stained-glass window in his honor. In his last years, as a paid consultant to the tobacco industry, he also argued that nobody had proved that smoking caused lung cancer. He died in Adelaide in 1962.</p>
+
+        <p>It is uncomfortable that so many of the tools now used to test medicines and catch cheats were sharpened by men who also wanted to rank human beings. The tools do not carry their makers' opinions, any more than a thermometer has views on the weather. But the people who taught the world to ask how often luck alone could have produced a result were not always so skeptical about their own convictions.</p>
+
+        <p>Quetelet, for his part, never did find his average man, and nobody else has either. Measure enough people in enough ways and hardly anyone is average in everything. The average man was a useful fiction, and Galton's ox-guessers understood this better than Galton did. None of them was right, and none needed to be. Taken together, the farmers and butchers and idle visitors of Plymouth came within a pound or two of the answer, and the old man who came to count them went home slightly surprised and, as far as anyone can tell, went on believing exactly what he had believed before.</p>
+    </article>
+</body>
+</html>
