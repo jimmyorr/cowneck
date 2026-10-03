@@ -80,6 +80,35 @@ The jokes only work if the facts underneath them are solid.
   sources used for each major claim, plus any claim you could not verify and
   how the text hedges it. The editing pass relies on this file.
 
+## Stay out of Bryson's books
+
+This book borrows Bill Bryson's manner. It must not borrow his material.
+Above all, avoid *A Short History of Nearly Everything*, which already
+covers a lot of the history of science. Do not retell, beyond a passing
+clause or a cross-reference:
+
+- **Newton the man:** his alchemy, poking a bodkin into his own eye socket,
+  the plague years and the apple, Halley's 1684 visit and the writing of the
+  *Principia*, the feud with Hooke, his time at the Mint.
+- **Measuring and weighing the Earth:** the French expeditions to Peru and
+  Lapland (La Condamine, Bouguer, Godin, Maupertuis), Maskelyne and
+  Schiehallion, Cavendish weighing the Earth.
+- **Einstein and relativity** as an explanation. Einstein can appear as a
+  character (Gödel's walking companion, Noether's admirer), but don't explain
+  relativity at length.
+- **Anything about the age of the Earth, geology, atoms, chemistry, evolution
+  or cosmology.** None of it belongs in this book anyway.
+
+Also:
+
+- Never reuse Bryson's jokes, phrasings or chapter titles, and never
+  paraphrase a passage of his. If you remember how he told an anecdote, tell
+  it differently or drop it.
+- Never mention Bryson in the published text. "In the style of" is for us,
+  not the reader.
+- If research turns up a story that you suspect is a Bryson set piece,
+  leave it out and record it in the chapter's notes file.
+
 ## The mathematics
 
 - Explain **one** central idea per chapter well enough that a reader who

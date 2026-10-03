@@ -134,20 +134,28 @@ Each chapter entry lists:
 - **Central idea:** expected value: how to divide the pot fairly.
 
 ### 9. Gentlemen, This Is War — `book/newton-leibniz.html`
-- **Owns:** Newton (except the brachistochrone, ch. 10), Leibniz, the calculus
-  priority dispute.
-- **Material:** Newton's plague years at Woolsthorpe. His alchemy and
-  theology, which far outweighed his mathematics on paper *(verify a word
-  count)*. As Warden of the Mint, he personally pursued counterfeiters and saw
-  some hanged. The 1712 Royal Society report clearing Newton was written by
-  Newton himself, anonymously. Leibniz died in 1716, out of favor; his funeral
-  was attended only by his secretary *(verify)*. The aftermath: Britain stuck
-  with Newton's dots and fell behind the Continent for a century; Babbage's
-  Analytical Society joke about "pure D-ism" versus "the Dot-age of the
-  University" *(verify wording)*. Bryson covered Newton in *A Short History of
-  Nearly Everything*, so keep the focus on the feud and avoid retelling his
-  material.
-- **Central idea:** what a derivative is, using the speed of a falling apple.
+- **Owns:** Leibniz, the calculus priority dispute, Newton only as a combatant
+  in it.
+- **Angle:** tell it from **Leibniz's side**. See `STYLE.md` ("Stay out of
+  Bryson's books"): Newton's personal life (alchemy, the eye-poking
+  experiments, the plague years and the apple, Halley's visit and the
+  *Principia*, the Hooke feud, the Mint) is off-limits beyond a passing clause.
+- **Material:** Leibniz as a court librarian in Hanover, commissioned to write
+  a history of his employers' family, which he spent decades not finishing.
+  His Step Reckoner calculating machine, shown to the Royal Society in 1673.
+  Binary arithmetic and his excitement over the I Ching. His obsession with
+  good notation (&int; and *dx*, which won). Newton hid his method in a 1677
+  letter as a scrambled anagram of letters and numbers. The 1712
+  *Commercium Epistolicum* that "cleared" Newton was largely drafted by Newton
+  himself, anonymously. George I, Leibniz's employer, became King of England
+  in 1714 and left Leibniz behind in Hanover. Leibniz died in 1716; his
+  funeral was poorly attended *(verify the "only his secretary" claim)*. The
+  aftermath: Britain stuck with Newton's dots and fell behind the Continent for
+  a century; the Analytical Society's joke about "pure D-ism" versus "the
+  Dot-age of the University" *(verify wording; Babbage himself belongs to ch.
+  15)*.
+- **Central idea:** what a derivative is, using a car's speedometer rather
+  than a falling apple.
 
 ### 10. The Calculus of Dysfunction — `math/bernoulli.html` *(drafted)*
 - **Owns:** Jacob, Johann and Daniel Bernoulli, l'Hôpital, the brachistochrone,
@@ -155,18 +163,25 @@ Each chapter entry lists:
 - **To do in the editing pass:** check that nothing later retells Euler's
   blindness, the house fire or his death.
 
-### 11. The Shape of the Earth — `book/shape-of-earth.html`
-- **Owns:** Cartesians against Newtonians, the French geodesic expeditions.
-- **Material:** Is the Earth flattened at the poles (Newton) or stretched
-  (the Cassinis)? Maupertuis in Lapland (1736–37), who came home triumphant
-  with two Sámi women in tow and was painted flattening a globe with his hand
-  *(verify)*. La Condamine in Peru, nine years of misery; Isabel Godin's later
-  journey down the Amazon to reach her husband. Voltaire mocking Maupertuis.
-  **Caution:** Bryson tells this story in *A Short History of Nearly
-  Everything*. Find a different angle, such as the Voltaire–Maupertuis feud or
-  Godin, and do not follow his telling.
-- **Central idea:** how measuring a degree of latitude reveals the planet's
-  shape.
+### 11. The Witch of Agnesi — `book/agnesi.html`
+- **Owns:** Émilie du Châtelet, Maria Gaetana Agnesi, Laura Bassi: how
+  calculus and Newton reached continental Europe, often through women
+  translating and teaching it.
+- **Material:** du Châtelet used her mathematics to win at the gaming tables
+  of Versailles *(verify)*, lived with Voltaire at Cirey, and wrote
+  *Institutions de physique*. She raced to finish her French translation of
+  the *Principia* while pregnant at 42 and died days after giving birth in 1749.
+  It is still the standard French translation. Laura Bassi, in 1732, became
+  the second woman in Europe to earn a university degree and later a paid
+  professor at Bologna. Agnesi's *Instituzioni analitiche* (1748) was one of
+  the first comprehensive calculus textbooks. Her curve, the *versiera* ("that
+  which turns"), was mistranslated by a Cambridge professor, John Colson, as
+  if it were *avversiera* ("she-devil"), which is how English came to call it
+  "the witch of Agnesi." That fits the book's running theme of bad names. She
+  then gave up mathematics for charity and died in 1799 in the poorhouse she
+  ran.
+- **Central idea:** the witch curve itself, built from a rotating line and
+  a circle. It's simple enough to describe in prose.
 
 ---
 
@@ -321,8 +336,7 @@ Each chapter entry lists:
 ## Not chapters
 
 - `math/collatz.html` is an interactive demo, not an essay.
-- `math/gemini-math-history.html` is an old chat transcript. Its
-  Cartesian/Newtonian thread became ch. 11.
+- `math/gemini-math-history.html` is an old chat transcript.
 
 ## Process
 
