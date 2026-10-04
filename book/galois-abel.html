@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-6RNVL7JZVJ');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Young Men in a Hurry</title>
+    <meta name="description" content="How Niels Henrik Abel and Évariste Galois, both dead before thirty, proved that the quintic equation has no formula, and how the legend of Galois outgrew the record.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b1120;
+            --text-color: #f8fafc;
+            --accent-color: #6366f1;
+            --glass-bg: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(244, 114, 182, 0.15) 0%, transparent 50%);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            line-height: 1.8;
+            font-size: 1.125rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 3rem 1rem;
+        }
+
+        .container {
+            max-width: 680px;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            margin-bottom: 1.6rem;
+            color: #cbd5e1;
+            font-weight: 400;
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        p:first-of-type {
+            font-size: 1.25rem;
+            color: #f8fafc;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        em {
+            color: #f1f5f9;
+            font-style: italic;
+        }
+
+        .accent-text {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        /* Links styling */
+        a {
+            color: #818cf8;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(129, 140, 248, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        a:hover {
+            color: #c084fc;
+            border-bottom-color: #c084fc;
+            background: rgba(192, 132, 252, 0.05);
+            border-radius: 2px;
+        }
+
+        /* Micro-interactions */
+        p {
+            transition: color 0.2s ease;
+        }
+
+        p:hover {
+            color: #f1f5f9;
+        }
+
+        /* Formula display card */
+        .formula-card {
+            margin: 2.2rem auto;
+            padding: 1.75rem 2rem;
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(129, 140, 248, 0.25);
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .formula-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.6), #818cf8, transparent);
+        }
+
+        .formula-display {
+            font-family: 'STIX Two Text', 'Cambria Math', 'Times New Roman', serif;
+            font-size: 2.5rem;
+            color: #ffffff;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.4rem;
+            text-shadow: 0 0 25px rgba(129, 140, 248, 0.45);
+        }
+
+        .formula-display em {
+            font-style: italic;
+            color: #f8fafc;
+        }
+
+        .formula-display sup {
+            font-size: 1.5rem;
+            top: -0.6em;
+            position: relative;
+        }
+
+        .formula-display .math-operator,
+        .caption-math .math-operator {
+            color: #c084fc;
+            margin: 0 0.25rem;
+            font-style: normal;
+        }
+
+        .formula-caption {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #94a3b8;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem 0.75rem;
+                font-size: 1.05rem;
+            }
+            .container {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+            h1 {
+                font-size: 2.25rem;
+                margin-bottom: 1.5rem;
+            }
+            p:first-of-type {
+                font-size: 1.15rem;
+            }
+            .formula-display {
+                font-size: 1.9rem;
+            }
+            .formula-display sup {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <article class="container">
+        <h1>Young Men in a Hurry</h1>
+
+        <p>On the night of 29 May 1832, a twenty-year-old Frenchman sat up writing by candlelight, knowing that in the morning he would have to stand facing another man with a pistol. In the most famous version of the story he spent those hours pouring out a lifetime's worth of mathematics, racing the dawn, and breaking off again and again to scrawl in the margin, "I have not time; I have not time." He was shot in the morning, died the day after, and left ideas that would keep mathematicians busy for two centuries. It is one of the great scenes in the history of science. It is also, in most of its particulars, not quite what happened.</p>
+
+        <p>To see why any of this mattered, it helps to go back a little. You may remember from school the quadratic formula, the fearsome recipe that solves any equation with an <em>x</em><sup>2</sup> in it. Its virtue is that it always works, using nothing more exotic than adding, subtracting, multiplying, dividing and taking square roots. In sixteenth-century Italy, as we saw with Cardano and Tartaglia, mathematicians found similar recipes for equations with an <em>x</em><sup>3</sup>, and then, thanks to Cardano's student Ferrari, for equations with an <em>x</em><sup>4</sup>. Everyone assumed that the next one, for the quintic, the equation with an <em>x</em><sup>5</sup>, was merely waiting for someone clever enough to find it.</p>
+
+        <p>It waited for about two hundred and fifty years. In 1799 an Italian doctor and mathematician named <a href="https://en.wikipedia.org/wiki/Paolo_Ruffini" target="_blank" rel="noopener noreferrer"><strong>Paolo Ruffini</strong></a> published a two-volume work arguing that the formula could not be found because it did not exist. Nobody much believed him, partly because his proof had a gap and partly because a man who says something is impossible is usually assumed not to have tried hard enough. The question was finally settled by two young men, one in Norway and one in France, who never met, and whose ages at death add up to forty-six.</p>
+
+        <p>The Norwegian came first. <a href="https://en.wikipedia.org/wiki/Niels_Henrik_Abel" target="_blank" rel="noopener noreferrer"><strong>Niels Henrik Abel</strong></a> was born on 5 August 1802, the son of a clergyman and politician whose career ended in public disgrace and heavy drinking. His start in mathematics came about through a horrible incident. At the Cathedral School in Christiania (now Oslo), the mathematics master, Hans Peter Bader, was a believer in teaching by blackboard and by a box round the ears. In November 1817 he beat a pupil so severely that the boy died eight days later. His replacement was a young teacher named <a href="https://en.wikipedia.org/wiki/Bernt_Michael_Holmboe" target="_blank" rel="noopener noreferrer"><strong>Bernt Michael Holmboe</strong></a>, who set pupils problems of their own and noticed almost at once that one of them was a genius. When Abel's father died in 1820 and left the family with nothing, it was Holmboe who found a scholarship to keep him at school and then passed the hat among his colleagues to send him to university.</p>
+
+        <p>In 1821, still a schoolboy, Abel announced that he had solved the quintic. Nobody in Christiania could find a mistake, and nor could the Danish mathematician Ferdinand Degen, though he was suspicious. Abel went back over his work and found the error himself. Then he did something rather more remarkable. He turned the problem around and, by 1824, had proved that no such formula could ever exist. He was twenty-one. Being poor and unknown, he paid to have the proof printed as a pamphlet, and to save money he squeezed it onto six pages. He sent one to <a href="https://en.wikipedia.org/wiki/Carl_Friedrich_Gauss" target="_blank" rel="noopener noreferrer"><strong>Carl Friedrich Gauss</strong></a>, whom we met in the previous chapter. Gauss seems to have ignored it. It is often said that he tossed it aside, calling it a monstrosity, or that it was found after his death with its pages still uncut. Both are excellent stories with no very good evidence behind them.</p>
+
+        <p>In 1825 the Norwegian government gave Abel a grant to travel. In Berlin he fell in with an engineer named <a href="https://en.wikipedia.org/wiki/August_Leopold_Crelle" target="_blank" rel="noopener noreferrer"><strong>August Crelle</strong></a>, who was founding a mathematical journal and was delighted to fill it with Abel's work. Paris, where he arrived in July 1826, went less well. He described the most prolific French mathematician, <a href="https://en.wikipedia.org/wiki/Augustin-Louis_Cauchy" target="_blank" rel="noopener noreferrer"><strong>Augustin-Louis Cauchy</strong></a>, in a letter home as "mad," adding that there was no way of getting on with him, "although at present he is the only man who knows how mathematics should be treated." On 30 October 1826 Abel submitted to the Academy of Sciences a long memoir on a new class of functions, which is often regarded as his masterpiece. The Academy gave it to two referees, Cauchy and the elderly <a href="https://en.wikipedia.org/wiki/Adrien-Marie_Legendre" target="_blank" rel="noopener noreferrer"><strong>Adrien-Marie Legendre</strong></a>. Legendre found it, as he later put it, "barely legible," written "in ink almost white," and passed it to Cauchy, who took it home and mislaid it. Abel waited for a verdict that never came, and went home.</p>
+
+        <p>He returned to Christiania in May 1827 with debts and no job. He scraped by on tutoring, all the while turning out work that the German mathematician Carl Jacobi, who was racing him on the same problems, greatly admired. Abel was engaged to a young woman named Christine Kemp, who was working as a governess at an ironworks at Froland, near Arendal, and at Christmas 1828 he traveled there by sled to see her. He arrived cold and coughing, and after a ball he began to cough up blood. It was tuberculosis, and he never left Froland. He died there on 6 April 1829, aged twenty-six.</p>
+
+        <p>Two days later, on 8 April, Crelle wrote from Berlin with the news that the university there had agreed to create a post for him. By a coincidence that seems almost too neat, Legendre wrote to Jacobi on the very same day, explaining the business about the pale ink. His memoir was found after his death and published in 1841, whereupon the manuscript vanished, apparently pocketed by Guglielmo Libri, a mathematician later convicted of stealing from French libraries. As for Christine Kemp, Abel's friend Baltazar Keilhau, a geologist, worried about what would become of her and, although he had never met her, offered to marry her. She accepted, and they were married in 1830.</p>
+
+        <p>The Frenchman was <a href="https://en.wikipedia.org/wiki/%C3%89variste_Galois" target="_blank" rel="noopener noreferrer" class="accent-text"><strong>Évariste Galois</strong></a>, born on 25 October 1811 in Bourg-la-Reine, just south of Paris, where his father was the mayor. At twelve he was sent to the Lycée Louis-le-Grand in Paris. He took to mathematics late and then all at once. He is said to have read Legendre's geometry textbook, meant to fill two years of study, in two days, like a novel. That may be an exaggeration, but one teacher wrote that mathematics was the passion that dominated him. Another, Louis Richard, said that he worked only in "the highest realms of mathematics." Others found him odd, secretive and unteachable.</p>
+
+        <p>He was also in a hurry. At sixteen, without the usual preparation, he sat the entrance examination for the École Polytechnique, France's grandest school of mathematics and engineering, and failed. At seventeen he published his first paper and sent two more to the Academy of Sciences, where they were given to Cauchy to review. Then his father, a gentle and liberal man, became the target of the town priest, who circulated crude verses mocking the mayor's relatives and signed them with the mayor's name. In July 1829 Nicolas-Gabriel Galois went to Paris and hanged himself in a flat a short walk from his son's school. At the funeral, when the priest appeared, there were protests and stones were thrown.</p>
+
+        <p>That same month Galois sat the Polytechnique examination a second time and failed again. A story grew up that, exasperated by the examiner's questions, he threw the board-cleaning cloth at the man's head. There is no real evidence for this. The likelier truth is duller: he skipped steps, explained himself badly, and lost patience with an examiner who could not follow him. He went instead to the École Préparatoire, a lesser college that trained teachers.</p>
+
+        <p>The next part of the story is usually told as a parade of villains. Cauchy, it is said, lost Galois's papers, just as he had lost Abel's. But in the 1970s the historian René Taton found a letter in the Academy's archives showing that Cauchy had meant to present Galois's work in January 1830; he seems to have encouraged Galois to rework it as an entry for the Academy's Grand Prize, and Galois withdrew the papers himself. In February 1830 he submitted his entry to the Academy's secretary, the physicist <a href="https://en.wikipedia.org/wiki/Joseph_Fourier" target="_blank" rel="noopener noreferrer"><strong>Joseph Fourier</strong></a>, who took it home. Fourier died on 16 May, and the manuscript was never found among his papers. The prize that year went jointly to Jacobi and, posthumously, to Abel, so that the two heroes of the quintic were briefly rivals for the same award, one of them dead and the other being ignored.</p>
+
+        <p>By then Galois had found a second passion, which was politics. When revolution drove King Charles X from the throne in July 1830, the director of the École Préparatoire locked his students in to keep them off the barricades. Galois is said to have tried to climb the wall and failed. In December he wrote a furious letter to a student newspaper attacking the director, and was expelled. He joined a republican artillery unit of the National Guard, which the new king, Louis-Philippe, soon abolished. In May 1831, at a republican banquet of about two hundred people, Galois rose to propose a toast to the king while holding up an open knife, which those present understood perfectly well. He was arrested the next day and, rather surprisingly, acquitted. On 14 July, Bastille Day, he was arrested again on the Pont Neuf, wearing the uniform of the banned artillery and carrying a loaded rifle, several pistols and a dagger. This time he was sentenced to six months.</p>
+
+        <p>Meanwhile the Academy had at last pronounced on him. In January 1831 he had submitted a new version of his memoir, and the referees, <a href="https://en.wikipedia.org/wiki/Sim%C3%A9on_Denis_Poisson" target="_blank" rel="noopener noreferrer"><strong>Siméon Denis Poisson</strong></a> and Sylvestre Lacroix, reported in July that his argument was "neither sufficiently clear nor sufficiently developed to allow us to judge its rigor." In fairness, they also suggested he publish all of it so that it could be judged properly. The verdict reached him in Sainte-Pélagie prison, where he was miserable. A fellow inmate, the chemist and republican François-Vincent Raspail, later described how the other prisoners mocked him for drinking only water until he downed a whole bottle of brandy to show them, and how on one dark occasion he seems to have tried to take his own life.</p>
+
+        <p>In March 1832, with cholera sweeping Paris, he was moved on parole to a nursing home run by a man named Faultrier, and there he seems to have fallen for a young woman named Stéphanie-Félicie Poterin du Motel, the daughter of a doctor who lived on the premises. What passed between them is unclear. The main evidence is two letters from her, which he tore up and then copied out again from memory; they suggest that she wanted it, whatever it was, to end. Released at the end of April, he became involved within a month in a quarrel that led to a duel. His opponent has been argued over ever since; the likeliest candidate is a fellow republican, Ernest Duchâtelet, and the cause seems to have been Stéphanie, or some point of honor connected with her. In a letter to his republican friends that night, Galois wrote that he was dying "the victim of an infamous coquette" and of two men she had duped, and asked them not to blame him for dying for something other than his country.</p>
+
+        <p>He also wrote a letter to his friend Auguste Chevalier, summarizing his mathematical discoveries, and went through his old manuscripts, correcting and annotating them. "Ask Jacobi or Gauss publicly to give their opinion," he wrote, "not as to the truth, but as to the importance of these theorems. Later there will be, I hope, some people who will find it to their advantage to decipher all this mess." Early on the morning of 30 May he was shot in the abdomen at Gentilly and left on the ground; according to the usual account, a passerby took him to the Cochin hospital, where his younger brother Alfred came to him. "Don't cry," he is reported to have told him. "I need all my courage to die at twenty." He died the next morning, 31 May 1832. Two or three thousand republicans followed his coffin, watched by the police, and he was buried in a common grave in Montparnasse cemetery whose exact location is not known. A few days later the funeral of a popular general, Jean Maximilien Lamarque, set off the republican uprising that Victor Hugo later put at the center of <em>Les Misérables</em>.</p>
+
+        <p>So how did the legend get made? Much of it came from <a href="https://en.wikipedia.org/wiki/Eric_Temple_Bell" target="_blank" rel="noopener noreferrer"><strong>E. T. Bell</strong></a>, a Scottish-born mathematician in California whose 1937 book <em>Men of Mathematics</em> inspired generations of readers to become mathematicians. His chapter on Galois is called "Genius and Stupidity," the stupidity being everyone else's. "All night he had spent the fleeting hours feverishly dashing off his last will and testament," Bell wrote, and "time after time he broke off to scribble in the margin 'I have not time; I have not time,' and passed on to the next frantically scrawled outline." It is a marvelous passage, and in 1982 the physicist Tony Rothman, in an article called "Genius and Biographers," showed how little of it survives a look at the documents. The memoir Galois annotated that night was the one he had submitted to the Academy sixteen months earlier, and the work in it had been years in the making. The famous words appear just once, in the margin beside a proof he knew was incomplete: "There is something to complete in this proof. I do not have the time." It is a working note, not a cry from the abyss, and somehow all the more affecting for that.</p>
+
+        <p>What, then, had he done? Proving something impossible is quite different from failing to do it. Take an ordinary chessboard and cut off two diagonally opposite corner squares, leaving sixty-two. Can you cover what is left with thirty-one dominoes, each covering two squares? You could try for a week, or you could notice something. Each domino, wherever you put it, covers one dark square and one light one. The two corners you removed were the same color, so the board now has thirty of one color and thirty-two of the other. No arrangement of dominoes can ever cover it, and you know this without trying a single one. That is what an impossibility proof looks like: you find some property that every possible attempt must respect, and show that the goal breaks it.</p>
+
+        <p>For equations, the property Galois found was symmetry. A quintic has five solutions, and you can ask in how many ways they can be shuffled without upsetting any of the algebraic relationships between them. For a typical quintic, every shuffle is allowed, and there are 120 of them. Galois showed that a formula built out of roots works by unpicking these shuffles in stages, each of a particularly simple and orderly kind. With four solutions, the 24 possible shuffles can be taken apart that way, down to nothing, step by step, which is exactly why the formula for the quartic exists. With five, you get one step down, from 120 to 60, and then you hit a wall: the remaining 60 cannot be broken down any further. No formula can get past that wall. To pick one example, the solutions of</p>
+
+        <div class="formula-card">
+            <div class="formula-display">
+                <em>x</em><sup>5</sup> <span class="math-operator">&minus;</span> <em>x</em> <span class="math-operator">&minus;</span> 1 <span class="math-operator">=</span> 0
+            </div>
+            <div class="formula-caption">No formula, ever</div>
+        </div>
+
+        <p>cannot be written down using whole numbers and any combination of adding, subtracting, multiplying, dividing and roots. Its one real solution is a little over 1.167, and a computer will give you as many decimals as you like. What it lacks, and always will, is a recipe. Abel had proved that no general formula could exist. Galois went further and explained, for any particular equation, whether it could be solved and why. (Some quintics can: <em>x</em><sup>5</sup> = 2 has the perfectly respectable answer, the fifth root of 2.) His collections of shuffles came to be known as groups, a word Galois is usually credited with first using in something like its modern sense; they now turn up wherever anyone needs to talk about symmetry, from crystals to particle physics.</p>
+
+        <p>Chevalier and Alfred Galois sent copies, as requested, to Gauss and Jacobi. Nothing came of it. It was not until 1843 that the mathematician <a href="https://en.wikipedia.org/wiki/Joseph_Liouville" target="_blank" rel="noopener noreferrer"><strong>Joseph Liouville</strong></a> told the Academy that he had found something deep in them, and in 1846 he published them in his journal, fourteen years after Galois's death. In 1952 the German mathematician Hermann Weyl said of the letter to Chevalier that, judged by the novelty and depth of its ideas, it was "perhaps the most substantial piece of writing in the whole literature of mankind," a large claim for a letter written by a twenty-year-old on the night before a duel, and not obviously wrong.</p>
+
+        <p>Abel, at least, has been honored at home. His monument in the palace park in Oslo, by Gustav Vigeland, shows a heroic naked youth striding over two monstrous figures, and looks nothing like a consumptive young man with debts. In 1899 the mathematician Sophus Lie, learning that the Nobel Prizes would include nothing for mathematics, proposed one in Abel's name. It took a century, but the Abel Prize was established in 2002, his two hundredth birthday.</p>
+
+        <p>Galois has no grave to visit, only a name that every mathematics student eventually learns. It is tempting to wonder what the two of them might have done with another forty years apiece, and impossible to know. But there is something fitting, if not exactly consoling, in the fact that they are remembered above all for showing that something could not be done, and that each of them, in his own way, simply ran out of time.</p>
+    </article>
+</body>
+</html>
