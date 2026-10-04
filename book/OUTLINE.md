@@ -109,17 +109,17 @@ Each chapter entry lists:
 - **Central idea:** notation as technology. Try doing long division in Roman
   numerals.
 
-### 7. The Wizard of Merchiston — `book/napier.html`
+### 7. The Wizard of Merchiston — `book/napier.html` *(drafted)*
 - **Owns:** John Napier, Henry Briggs, logarithms, the slide rule.
 - **Material:** Napier's reputation as a sorcerer: the black rooster dusted
   with soot to catch a thieving servant, and the spider he kept in a box
   *(legend; hedge)*. His *Plaine Discovery of the Whole Revelation of Saint
   John* (1593), which he considered his real life's work and which predicted
   the end of the world *(verify the dates)*. Designs for war machines. Logarithms
-  (1614). Briggs riding to Scotland in 1615 and the two men reportedly gazing
+  (1614). Briggs traveling to Scotland in 1615 and the two men reportedly gazing
   at each other in silent admiration for a quarter of an hour *(verify; hedge)*.
-  Kepler using logarithms for planetary tables. The slide rule, which put
-  people on the Moon.
+  Kepler using logarithms for planetary tables. The slide rule, which flew
+  on Apollo as a backup.
 - **Central idea:** turning multiplication into addition.
 
 ### 8. Dice and the Devil — `book/probability.html`
@@ -201,14 +201,16 @@ Each chapter entry lists:
 - **Central idea:** constructing the 17-gon, or modular arithmetic.
   Pick the one that tells better.
 
-### 13. Young Men in a Hurry — `book/galois-abel.html`
+### 13. Young Men in a Hurry — `book/galois-abel.html` *(drafted)*
 - **Owns:** Galois, Abel, and the impossibility of solving the quintic.
 - **Material:** Abel, poor in Norway, proved the quintic unsolvable, had his
   paper ignored or mislaid in Paris, and died of tuberculosis in 1829 at 26. A
   letter offering him a post in Berlin arrived just after he died *(verify the
   timing)*. Galois twice failed the École Polytechnique entrance exam (the
-  thrown eraser is *(apocryphal)*). Manuscripts were lost by Cauchy and by
-  Fourier, who died holding one. Galois was jailed for republican agitation
+  thrown eraser is *(apocryphal)*). Cauchy mislaid Abel's 1826 memoir. Galois's
+  manuscripts are often said to have been lost by Cauchy too, but Taton's
+  archival find suggests Galois withdrew them himself. Fourier took Galois's
+  prize entry home and died in 1830, and it was never found among his papers. Galois was jailed for republican agitation
   and died after a duel in 1832 at 20. E. T. Bell's legend of the frantic
   final night is mostly invented: the papers were mostly written earlier, and
   "I have no time" appears once, beside one proof. Debunking it is part of the
@@ -240,7 +242,7 @@ Each chapter entry lists:
 - **Central idea:** the method of differences: computing tables using only
   addition.
 
-### 16. Lies, Damned Lies — `book/statistics.html`
+### 16. Lies, Damned Lies — `book/statistics.html` *(drafted)*
 - **Owns:** Quetelet, Florence Nightingale, Galton, Gosset, Fisher.
 - **Material:** Quetelet's "average man." Nightingale's rose diagrams; she was
   the first woman elected to the Royal Statistical Society (1858). Galton
