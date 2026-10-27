@@ -1,122 +1,169 @@
 #!/usr/bin/env python3
 """
 Generate a 1200x630 social preview image (Open Graph / Twitter card) for cowneck.com
-Featuring Chester, the site aesthetic, and brand typography.
+Minimal split layout matching the homepage aesthetic.
 """
-import math
 import os
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
+
+
+def load_font(size, weight="regular"):
+    avenir_path = "/System/Library/Fonts/Avenir Next.ttc"
+    if os.path.exists(avenir_path):
+        # Avenir Next indices: 0=Bold, 2=Demi Bold, 5=Medium, 7=Regular
+        index_map = {"bold": 0, "demi": 2, "medium": 5, "regular": 7}
+        return ImageFont.truetype(avenir_path, size, index=index_map.get(weight, 7))
+
+    helv_path = "/System/Library/Fonts/HelveticaNeue.ttc"
+    if os.path.exists(helv_path):
+        index_map = {"bold": 1, "demi": 10, "medium": 10, "regular": 0}
+        return ImageFont.truetype(helv_path, size, index=index_map.get(weight, 0))
+
+    return ImageFont.load_default()
+
+
+def draw_radial_glow(canvas, center_x, center_y, radius, color_rgb, max_alpha):
+    """Draw a smooth radial gradient glow onto an RGBA canvas."""
+    glow = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(glow)
+    x0 = center_x - radius
+    y0 = center_y - radius
+    x1 = center_x + radius
+    y1 = center_y + radius
+    draw.ellipse((x0, y0, x1, y1), fill=(*color_rgb, max_alpha))
+    glow = glow.filter(ImageFilter.GaussianBlur(radius * 0.45))
+    return Image.alpha_composite(canvas, glow)
+
 
 def create_og_image():
-    W, H = 1200, 630
-    img = Image.new("RGBA", (W, H), (8, 13, 26, 255)) # #080d1a
-    
-    # Glow layer
-    glow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    glow_draw = ImageDraw.Draw(glow)
-    
-    # 1. Indigo glow top-left
-    glow_draw.ellipse((-150, -150, 550, 550), fill=(99, 102, 241, 45))
-    # 2. Pink glow bottom-right
-    glow_draw.ellipse((750, 250, 1400, 850), fill=(244, 114, 182, 35))
-    # 3. Cyan glow near center-right
-    glow_draw.ellipse((500, 100, 1000, 600), fill=(56, 189, 248, 25))
-    
-    glow = glow.filter(ImageFilter.GaussianBlur(80))
-    img = Image.alpha_composite(img, glow)
-    
-    # Chester avatar
+    # Render at 2x resolution for crisp anti-aliased typography and borders
+    SCALE = 2
+    W, H = 1200 * SCALE, 630 * SCALE
+
+    # Base background: #080d1a
+    img = Image.new("RGBA", (W, H), (8, 13, 26, 255))
+
+    # Match index.html radial gradients:
+    # radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 45%)
+    # radial-gradient(circle at 90% 85%, rgba(244, 114, 182, 0.12) 0%, transparent 45%)
+    # radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.05) 0%, transparent 60%)
+    img = draw_radial_glow(img, int(W * 0.10), int(H * 0.15), int(W * 0.35), (99, 102, 241), 50)
+    img = draw_radial_glow(img, int(W * 0.90), int(H * 0.85), int(W * 0.35), (244, 114, 182), 40)
+    img = draw_radial_glow(img, int(W * 0.50), int(H * 0.50), int(W * 0.42), (56, 189, 248), 20)
+
+    # Right side: Chester
     chester_path = "chester.webp"
     if os.path.exists(chester_path):
-        chester = Image.open(chester_path).convert("RGBA")
-        avatar_size = 360
-        chester = chester.resize((avatar_size, avatar_size), Image.Resampling.LANCZOS)
-        
-        # Circle mask for Chester
-        mask = Image.new("L", (avatar_size, avatar_size), 0)
-        mask_draw = ImageDraw.Draw(mask)
-        mask_draw.ellipse((0, 0, avatar_size, avatar_size), fill=255)
-        
-        # Outer glow ring for Chester
-        ring_size = avatar_size + 40
-        ring = Image.new("RGBA", (ring_size, ring_size), (0, 0, 0, 0))
-        ring_draw = ImageDraw.Draw(ring)
-        ring_draw.ellipse((0, 0, ring_size, ring_size), fill=(99, 102, 241, 60))
-        ring = ring.filter(ImageFilter.GaussianBlur(12))
-        
-        # Border stroke ring
-        stroke_size = avatar_size + 8
-        stroke_layer = Image.new("RGBA", (stroke_size, stroke_size), (0, 0, 0, 0))
-        stroke_draw = ImageDraw.Draw(stroke_layer)
-        stroke_draw.ellipse((0, 0, stroke_size, stroke_size), outline=(255, 255, 255, 60), width=3)
-        
-        avatar_x = 760
+        chester_orig = Image.open(chester_path).convert("RGBA")
+        cw, ch = chester_orig.size
+
+        # Clip only the outer square corner artifact pixels at (0,0), (439,0), (0,439)
+        # while preserving Chester's true alpha channel and protruding eyebrows
+        corner_mask = Image.new("L", (cw, ch), 0)
+        corner_draw = ImageDraw.Draw(corner_mask)
+        corner_draw.ellipse((2, 2, cw - 3, ch - 3), fill=255)
+        clean_alpha = ImageChops.multiply(chester_orig.getchannel("A"), corner_mask)
+        chester_orig.putalpha(clean_alpha)
+
+        avatar_size = 420 * SCALE
+        chester = chester_orig.resize((avatar_size, avatar_size), Image.Resampling.LANCZOS)
+        chester_alpha = chester.getchannel("A")
+
+        avatar_x = 660 * SCALE
         avatar_y = (H - avatar_size) // 2
-        
-        # Paste glow ring
-        img.paste(ring, (avatar_x - 20, avatar_y - 20), ring)
-        # Paste stroke
-        img.paste(stroke_layer, (avatar_x - 4, avatar_y - 4), stroke_layer)
-        # Paste Chester
-        img.paste(chester, (avatar_x, avatar_y), mask)
-    
-    draw = ImageDraw.Draw(img)
-    
-    # Fonts
-    font_bold = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
-    font_reg = "/System/Library/Fonts/Supplemental/Arial.ttf"
-    if not os.path.exists(font_bold):
-        font_bold = "/System/Library/Fonts/Helvetica.ttc"
-        font_reg = "/System/Library/Fonts/Helvetica.ttc"
-        
-    f_badge = ImageFont.truetype(font_bold, 18)
-    f_title = ImageFont.truetype(font_bold, 84)
-    f_subtitle = ImageFont.truetype(font_reg, 28)
-    f_tag = ImageFont.truetype(font_bold, 18)
-    f_url = ImageFont.truetype(font_bold, 20)
-    
-    left_x = 90
-    
-    # 1. Badge "COWNECK"
-    badge_text = "COWNECK"
-    bbox = draw.textbbox((0, 0), badge_text, font=f_badge)
-    bw = bbox[2] - bbox[0]
-    bh = bbox[3] - bbox[1]
-    bx, by = left_x, 115
-    pad_x, pad_y = 16, 8
-    badge_rect = (bx, by, bx + bw + pad_x * 2, by + bh + pad_y * 2)
-    draw.rounded_rectangle(badge_rect, radius=8, fill=(30, 41, 59, 180), outline=(99, 102, 241, 140), width=1)
-    draw.text((bx + pad_x, by + pad_y - 1), badge_text, font=f_badge, fill=(165, 180, 252))
-    
-    # 2. Main Title
-    draw.text((left_x, 180), "cowneck", font=f_title, fill=(248, 250, 252))
-    
-    # 3. Subtitle description
-    sub_line1 = "Interactive games, web projects,"
-    sub_line2 = "and essays by Jimmy Orr."
-    draw.text((left_x, 305), sub_line1, font=f_subtitle, fill=(203, 213, 225))
-    draw.text((left_x, 348), sub_line2, font=f_subtitle, fill=(148, 163, 184))
-    
-    # 4. Feature Pills
-    pills = [("GAMES", (102, 126, 234)), ("PROJECTS", (0, 198, 255)), ("ESSAYS", (244, 114, 182))]
-    px = left_x
-    py = 430
-    for label, col in pills:
-        p_bbox = draw.textbbox((0, 0), label, font=f_tag)
-        pw = p_bbox[2] - p_bbox[0]
-        ph = p_bbox[3] - p_bbox[1]
-        p_rect = (px, py, px + pw + 28, py + ph + 18)
-        draw.rounded_rectangle(p_rect, radius=999, fill=(255, 255, 255, 14), outline=(col[0], col[1], col[2], 120), width=1)
-        draw.text((px + 14, py + 9), label, font=f_tag, fill=(col[0], col[1], col[2]))
-        px += pw + 44
-        
-    # 5. Domain footer
-    draw.text((left_x, 520), "https://cowneck.com", font=f_url, fill=(100, 116, 139))
-    
-    # Save as high quality JPEG
-    final_rgb = img.convert("RGB")
-    final_rgb.save("og-image.jpg", "JPEG", quality=92, optimize=True)
+
+        # Soft indigo ambient glow behind Chester (matching index.html box-shadow)
+        glow_pad = 60 * SCALE
+        glow_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        indigo_sil = Image.new("RGBA", (avatar_size, avatar_size), (99, 102, 241, 0))
+        indigo_sil.putalpha(chester_alpha.point(lambda a: int(a * 0.28)))
+        glow_layer.paste(indigo_sil, (avatar_x, avatar_y))
+        glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(28 * SCALE))
+        img = Image.alpha_composite(img, glow_layer)
+
+        # Soft dark drop shadow (0 10px 40px rgba(0,0,0,0.45))
+        shadow_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        black_sil = Image.new("RGBA", (avatar_size, avatar_size), (0, 0, 0, 0))
+        black_sil.putalpha(chester_alpha.point(lambda a: int(a * 0.50)))
+        shadow_layer.paste(black_sil, (avatar_x, avatar_y + 10 * SCALE))
+        shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(22 * SCALE))
+        img = Image.alpha_composite(img, shadow_layer)
+
+        # Composite Chester cleanly using his alpha channel
+        chester_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        chester_layer.paste(chester, (avatar_x, avatar_y), chester)
+        img = Image.alpha_composite(img, chester_layer)
+
+    # Left side: Minimal typography + frosted buttons matching index.html
+    ui_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(ui_layer)
+
+    f_title = load_font(96 * SCALE, weight="bold")
+    f_btn = load_font(22 * SCALE, weight="medium")
+
+    left_x = 125 * SCALE
+
+    # 1. Wordmark "cowneck"
+    title_text = "cowneck"
+    title_y = 205 * SCALE
+    draw.text((left_x, title_y), title_text, font=f_title, fill=(248, 250, 252, 255))
+
+    # 2. Frosted glass buttons matching index.html (.links a)
+    # padding: 10px 18px; border: 1px solid rgba(255, 255, 255, 0.1);
+    # border-radius: 12px; background: rgba(255, 255, 255, 0.05); color: #f8fafc;
+    buttons = ["games", "projects"]
+    btn_x = left_x + 4 * SCALE
+    btn_y = 355 * SCALE
+    pad_x = 24 * SCALE
+    pad_y = 13 * SCALE
+    btn_gap = 20 * SCALE
+    radius = 12 * SCALE
+
+    # Measure x-height once so both buttons share the exact same baseline
+    x_bbox = draw.textbbox((0, 0), "x", font=f_btn)
+    x_h = x_bbox[3] - x_bbox[1]
+    bh = 52 * SCALE
+    text_baseline_y = btn_y + (bh - x_h) // 2 - x_bbox[1]
+
+    for label in buttons:
+        bbox = draw.textbbox((0, 0), label, font=f_btn)
+        tw = bbox[2] - bbox[0]
+        bw = tw + pad_x * 2
+
+        # Button drop shadow
+        btn_shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        s_draw = ImageDraw.Draw(btn_shadow)
+        s_draw.rounded_rectangle(
+            (btn_x, btn_y + 4 * SCALE, btn_x + bw, btn_y + bh + 4 * SCALE),
+            radius=radius,
+            fill=(0, 0, 0, 65),
+        )
+        btn_shadow = btn_shadow.filter(ImageFilter.GaussianBlur(8 * SCALE))
+        img = Image.alpha_composite(img, btn_shadow)
+
+        # Frosted button background & border
+        rect = (btn_x, btn_y, btn_x + bw, btn_y + bh)
+        draw.rounded_rectangle(
+            rect,
+            radius=radius,
+            fill=(255, 255, 255, 14),
+            outline=(255, 255, 255, 30),
+            width=1 * SCALE,
+        )
+
+        # Center text horizontally and align to shared baseline vertically
+        tx = btn_x + (bw - tw) // 2 - bbox[0]
+        draw.text((tx, text_baseline_y), label, font=f_btn, fill=(248, 250, 252, 255))
+
+        btn_x += bw + btn_gap
+
+    img = Image.alpha_composite(img, ui_layer)
+
+    # Downsample to 1200x630 and save as high quality JPEG
+    final_img = img.resize((1200, 630), Image.Resampling.LANCZOS).convert("RGB")
+    final_img.save("og-image.jpg", "JPEG", quality=94, subsampling=0, optimize=True)
     print("Created og-image.jpg (1200x630)")
+
 
 if __name__ == "__main__":
     create_og_image()
