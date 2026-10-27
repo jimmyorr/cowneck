@@ -119,7 +119,7 @@ def sync_file(filepath, info, rel_url):
 
     # Check if already has sync tags
     if START_TAG in content and END_TAG in content:
-        pattern = re.compile(rf"{re.escape(START_TAG)}[\s\S]*?{re.escape(END_TAG)}")
+        pattern = re.compile(rf"^[ \t]*{re.escape(START_TAG)}[\s\S]*?{re.escape(END_TAG)}", re.MULTILINE)
         new_content = pattern.sub(block, content)
     else:
         # If there's an existing description tag, remove it so we don't duplicate
