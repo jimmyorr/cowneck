@@ -1,4 +1,10 @@
 {
-    "name": "cowneck",
-    "version": "1.0.0"
+  "name": "cowneck",
+  "version": "1.0.0",
+  "description": "Interactive games, web applications, and essays by Jimmy Orr.",
+  "author": "Jimmy Orr",
+  "scripts": {
+    "sync:metadata": "python3 scripts/sync-games-metadata.py",
+    "build:og": "python3 scripts/generate-og-image.py"
+  }
 }

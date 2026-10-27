@@ -14,6 +14,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Calculus of Dysfunction</title>
     <meta name="description" content="The wild, petty, and brilliant history of the Bernoulli family and Leonhard Euler.">
+    <link rel="canonical" href="https://cowneck.com/math/bernoulli.html">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <meta name="theme-color" content="#0b1120">
+
+    <!-- Link previews (Open Graph & Twitter/X) -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="cowneck">
+    <meta property="og:title" content="The Calculus of Dysfunction">
+    <meta property="og:description" content="The wild, petty, and brilliant history of the Bernoulli family and Leonhard Euler.">
+    <meta property="og:url" content="https://cowneck.com/math/bernoulli.html">
+    <meta property="og:image" content="https://cowneck.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="The Calculus of Dysfunction - A math essay on cowneck.com">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Calculus of Dysfunction">
+    <meta name="twitter:description" content="The wild, petty, and brilliant history of the Bernoulli family and Leonhard Euler.">
+    <meta name="twitter:image" content="https://cowneck.com/og-image.jpg">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "The Calculus of Dysfunction",
+      "description": "The wild, petty, and brilliant history of the Bernoulli family and Leonhard Euler.",
+      "url": "https://cowneck.com/math/bernoulli.html",
+      "image": "https://cowneck.com/og-image.jpg",
+      "author": {
+        "@type": "Person",
+        "name": "Jimmy Orr",
+        "url": "https://linktr.ee/jimmyorr"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "cowneck",
+        "url": "https://cowneck.com/"
+      },
+      "mainEntityOfPage": "https://cowneck.com/math/bernoulli.html"
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
@@ -156,10 +197,56 @@
                 font-size: 1.15rem;
             }
         }
+
+        .essay-nav {
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            opacity: 0.85;
+            transition: opacity 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .essay-footer {
+            margin-top: 3.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .footer-meta {
+            font-size: 0.95rem;
+            color: #94a3b8;
+        }
+
+        .footer-meta a {
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-meta a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <article class="container">
+        <nav class="essay-nav">
+            <a href="../projects/" class="back-link">← cowneck projects</a>
+        </nav>
         <h1>The Calculus of Dysfunction</h1>
 
         <p>Every family has its tensions: the uncle who brings up politics over the turkey, the board game that went badly one Christmas and is never mentioned again. So if you have ever sat through a holiday dinner and thought your relatives were impossible, you may find it a comfort to know that you were not born into the <a href="https://en.wikipedia.org/wiki/Bernoulli_family" target="_blank" rel="noopener noreferrer" class="accent-text">Bernoulli family</a> of Basel.</p>
@@ -207,6 +294,10 @@
         <p>He died on 18 September 1783 in a manner that would have been hard to improve upon. He had spent the morning giving a mathematics lesson to one of his grandchildren, and the afternoon working out the mathematics of hot-air balloons, which had just been invented, and of the newly discovered planet Uranus. Over tea, he suffered a stroke. In the words of the French mathematician Condorcet, he "ceased to calculate and to live."</p>
 
         <p>Johann had died thirty-five years earlier, aged eighty, still a professor, still feuding and, as far as anyone could tell, wholly unrepentant. Daniel lived on peacefully in Basel until 1782. Between them, the Bernoullis and Euler built much of the mathematics that the modern world runs on, and I find it oddly comforting that so much of it was done by people who couldn't get through a family dinner.</p>
+
+        <footer class="essay-footer">
+            <p class="footer-meta">By <a href="https://linktr.ee/jimmyorr">Jimmy Orr</a> · More essays and tools at <a href="../projects/">cowneck projects</a></p>
+        </footer>
     </article>
 </body>
 </html>
