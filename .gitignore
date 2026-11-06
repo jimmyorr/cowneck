@@ -8,13 +8,8 @@ __pycache__/
 .venv/
 venv/
 
-# Push server local state & secrets
+# Environment & OS / Editor
 .env
-push-server/.env
-push-server/subscriptions.json
-push-server/subscriptions.json.tmp
-
-# OS / Editor
 .DS_Store
 .vscode/
 .idea/
