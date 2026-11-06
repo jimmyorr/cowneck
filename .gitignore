@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Push server local state & secrets
+.env
+push-server/.env
+push-server/subscriptions.json
+push-server/subscriptions.json.tmp
+
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/

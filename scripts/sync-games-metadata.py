@@ -77,7 +77,13 @@ def extract_cards():
     return metadata
 
 
-def build_metadata_block(file_rel_url, info, include_icon=True, include_theme_color=True):
+def build_metadata_block(
+    file_rel_url,
+    info,
+    include_icon=True,
+    include_theme_color=True,
+    include_ga=False,
+):
     title = info["title"]
     desc = info["description"]
     creator = info["creator"]
@@ -142,9 +148,23 @@ def build_metadata_block(file_rel_url, info, include_icon=True, include_theme_co
             '    <script type="application/ld+json">',
             json_ld,
             "    </script>",
-            f"    {END_TAG}",
         ]
     )
+    if include_ga:
+        lines.extend(
+            [
+                "",
+                "    <!-- Google tag (gtag.js) -->",
+                '    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>',
+                "    <script>",
+                "      window.dataLayer = window.dataLayer || [];",
+                "      function gtag() { dataLayer.push(arguments); }",
+                '      gtag("js", new Date());',
+                '      gtag("config", "G-6RNVL7JZVJ");',
+                "    </script>",
+            ]
+        )
+    lines.append(f"    {END_TAG}")
     return "\n".join(lines)
 
 
@@ -164,12 +184,14 @@ def sync_file(filepath, info, rel_url):
     has_existing_theme = bool(
         re.search(r'<meta[^>]+name=["\']theme-color["\'][^>]*>', outside_content, re.I)
     )
+    has_existing_ga = "G-6RNVL7JZVJ" in outside_content
 
     block = build_metadata_block(
         rel_url,
         info,
         include_icon=not has_existing_icon,
         include_theme_color=not has_existing_theme,
+        include_ga=not has_existing_ga,
     )
 
     if START_TAG in content and END_TAG in content:
