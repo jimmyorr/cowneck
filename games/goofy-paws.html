@@ -415,7 +415,18 @@
                 <div id="health-bar-container">
                     <div id="health-bar"></div>
                 </div>
-                <div style="font-size: 14px; margin-top:5px; color:#aaa;">HEALTH</div>
+                <div style="font-size: 13px; margin-top:4px; color:#ccc; display:flex; justify-content:space-between;">
+                    <span>HEALTH</span>
+                    <span id="power-stats" style="color:#38bdf8;">DMG 0.5x | SPD 1.0x</span>
+                </div>
+                <div style="width: 250px; height: 12px; background: #222; border: 2px solid #ffd700; border-radius: 10px; overflow: hidden; margin-top: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                    <div id="power-bar" style="width: 8%; height: 100%; background: linear-gradient(90deg, #f59e0b, #fde047, #38bdf8); transition: width 0.2s;"></div>
+                </div>
+                <div id="power-label" style="font-size: 13px; margin-top:3px; color:#ffd700;">⚡ POWER LVL 1 (Defeat enemies to power up!)</div>
+            </div>
+            <div style="text-align: center;">
+                <div id="level-indicator" style="font-size: 18px; color: #ffcc00; letter-spacing: 1px;">LEVEL 1/3: LIVING ROOM</div>
+                <div style="font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 3px;">Keys 1-3: Switch Level | B: Boss (Early = Harder!)</div>
             </div>
             <div id="score">SCORE: 0</div>
         </div>
@@ -438,7 +449,7 @@
                 <div id="attack-btn" class="action-btn">ITEM?</div>
             </div>
         </div>
-        <div id="controls-hint" class="hidden">WASD to Move | SPACE to Jump | SHIFT to Climb | F to Attack</div>
+        <div id="controls-hint" class="hidden">WASD to Move | SPACE to Jump | SHIFT to Climb | F to Attack | 1-3 Level | B Boss | R Boss Rush</div>
     </div>
     <div id="joystick-base">
         <div id="joystick-stick"></div>
@@ -446,34 +457,124 @@
 
     <div id="start-screen" class="screen">
         <h1>GOOFY PAWS</h1>
-        <p style="font-size: 20px; color: #ddd;">The owners are angry. Escape is impossible.</p>
-        <p style="font-size: 20px; color: #ffcc00;">Survive.</p>
+        <p style="font-size: 20px; color: #ddd;">3 Levels of Household Chaos &bull; Power Scaling &bull; Boss Rush</p>
+        <p style="font-size: 20px; color: #ffcc00;">Survive &amp; Rule the House!</p>
         <div
-            style="margin-top:20px; background:rgba(0,0,0,0.5); padding:20px; border-radius:15px; border: 1px solid rgba(255,255,255,0.2);">
+            style="margin-top:15px; background:rgba(0,0,0,0.5); padding:16px 24px; border-radius:15px; border: 1px solid rgba(255,255,255,0.2);">
             <p style="margin:5px; font-size:16px;"><strong>Mobile:</strong> Drag left to Move, Tap buttons</p>
             <p style="margin:5px; font-size:16px;"><strong>PC:</strong> WASD/Arrows to Move</p>
-            <p style="margin:5px; font-size:14px; color:#aaa;">Space=Jump, Shift=Climb, F=Attack</p>
+            <p style="margin:5px; font-size:14px; color:#aaa;">Space=Jump, Shift=Climb, F=Attack, 1/2/3=Level, B=Boss, R=Boss Rush</p>
         </div>
-        <button class="btn" onclick="startGame()">MEOW (Start)</button>
+        <div style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; justify-content:center;">
+            <button class="btn" style="margin-top:0; padding:12px 24px; font-size:18px;" onclick="startGame(1)">LVL 1: Living Room</button>
+            <button class="btn" style="margin-top:0; padding:12px 24px; font-size:18px; background:#38bdf8;" onclick="startGame(2)">LVL 2: Kitchen</button>
+            <button class="btn" style="margin-top:0; padding:12px 24px; font-size:18px; background:#f43f5e; color:#fff;" onclick="startGame(3)">LVL 3: Finale Suite</button>
+        </div>
+        <div style="display:flex; gap:14px; margin-top:18px; flex-wrap:wrap; justify-content:center;">
+            <button class="btn" style="margin-top:0;" onclick="startGame(1)">MEOW (Start Campaign)</button>
+            <button class="btn" style="margin-top:0; background: linear-gradient(135deg, #a855f7, #ec4899); color:#fff;" onclick="startBossRushMode()">🔥 BOSS RUSH (All 6 Bosses!)</button>
+        </div>
     </div>
 
     <div id="game-over-screen" class="screen hidden">
         <h1 style="color: #ff4444">CAUGHT!</h1>
         <p>You have been caged.</p>
         <p id="final-score" style="font-size: 30px; font-weight: bold;">Score: 0</p>
-        <button class="btn" onclick="resetGame()">HISS (Retry)</button>
+        <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+            <button class="btn" onclick="isBossRush ? startBossRushMode() : resetGame(currentLevel)">HISS (Retry)</button>
+            <button class="btn" style="background: linear-gradient(135deg, #a855f7, #ec4899); color:#fff;" onclick="startBossRushMode()">🔥 BOSS RUSH</button>
+            <button class="btn" style="background:#555; color:#fff;" onclick="resetGame(1)">Restart Campaign</button>
+        </div>
+    </div>
+
+    <div id="victory-screen" class="screen hidden">
+        <h1 style="color: #ffd700; font-size: 56px;">HOUSE CONQUERED!</h1>
+        <p id="victory-subtitle" style="font-size: 22px; color: #86efac;">You defeated the Omega Mecha-Hound 9000 and rule all 3 levels!</p>
+        <p id="victory-score" style="font-size: 32px; font-weight: bold; color: #ffaa00;">Final Score: 0</p>
+        <div style="display:flex; gap:14px; flex-wrap:wrap; justify-content:center;">
+            <button class="btn" onclick="continueEndless()">KEEP PLAYING (Endless)</button>
+            <button class="btn" style="background: linear-gradient(135deg, #a855f7, #ec4899); color:#fff;" onclick="startBossRushMode()">🔥 BOSS RUSH</button>
+            <button class="btn" style="background:#38bdf8;" onclick="resetGame(1)">PLAY AGAIN</button>
+        </div>
     </div>
 
     <script>
-        let scene, camera, renderer;
-        let player, enemies = [], weapons = [], obstacles = [], projectiles = [];
+        let scene, camera, renderer, floorMesh, hemiLight, dirLight;
+        let player, enemies = [], weapons = [], obstacles = [], projectiles = [], levelObjects = [];
         let boss = null;
+        let activeBosses = [];
         let isGameRunning = false;
         let isBossFight = false;
+        let isBossRush = false;
+        let isEndlessMode = false;
+        let currentLevel = 1;
         let score = 0, health = 100, lastTime = 0;
-        let nextBossScore = 10;
+        let enemiesDefeated = 0;
+        let nextBossScore = 12;
 
         let bossLevelIndex = 0;
+
+        function getPlayerStats() {
+            const powerLevel = 1 + enemiesDefeated;
+            const moveSpeed = Math.min(28, 11.0 + enemiesDefeated * 1.15);
+            const damage = +(0.5 + enemiesDefeated * 0.45).toFixed(2);
+            const reachBonus = Math.min(2.6, enemiesDefeated * 0.16);
+            return { powerLevel, moveSpeed, damage, reachBonus };
+        }
+
+        function updatePowerHUD() {
+            const stats = getPlayerStats();
+            const spdMult = (stats.moveSpeed / 11.0).toFixed(1);
+            const pct = Math.min(100, 8 + enemiesDefeated * 7.5);
+            const bar = document.getElementById('power-bar');
+            const label = document.getElementById('power-label');
+            const statsEl = document.getElementById('power-stats');
+            if (bar) bar.style.width = pct + '%';
+            if (label) {
+                label.innerText = enemiesDefeated === 0
+                    ? '⚡ POWER LVL 1 (Weak! Defeat enemies to power up)'
+                    : `⚡ POWER LVL ${stats.powerLevel} (${enemiesDefeated} Kills — Faster & Stronger!)`;
+            }
+            if (statsEl) {
+                statsEl.innerText = `DMG ${stats.damage} | SPD ${spdMult}x`;
+            }
+            if (player && player.mesh) {
+                const catScale = 1 + Math.min(0.35, enemiesDefeated * 0.025);
+                player.mesh.scale.set(catScale, catScale, catScale);
+                const holder = player.mesh.getObjectByName('weaponHolder');
+                if (holder) {
+                    const s = 1 + Math.min(0.7, enemiesDefeated * 0.05);
+                    holder.scale.set(s, s, s);
+                }
+            }
+        }
+
+        const LEVEL_CONFIGS = {
+            1: {
+                name: "LEVEL 1/3: LIVING ROOM",
+                banner: "LEVEL 1: LIVING ROOM",
+                bgHex: 0x201530,
+                floorTint: 0xddccaa,
+                wallHex: 0xe6dccf,
+                trimHex: 0x4a2e16
+            },
+            2: {
+                name: "LEVEL 2/3: GOURMET KITCHEN",
+                banner: "LEVEL 2: THE KITCHEN!",
+                bgHex: 0x12232e,
+                floorTint: 0xffffff,
+                wallHex: 0xcbe8df,
+                trimHex: 0x1e293b
+            },
+            3: {
+                name: "LEVEL 3/3: FINALE SUITE",
+                banner: "FINAL LEVEL: MASTER SUITE!",
+                bgHex: 0x1c0d26,
+                floorTint: 0xffffff,
+                wallHex: 0x262b47,
+                trimHex: 0xd4af37
+            }
+        };
 
         const GRAVITY = -50;
         const JUMP_FORCE = 20;
@@ -488,7 +589,7 @@
         function init() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x201530);
-            scene.fog = new THREE.Fog(0x201530, 20, 90);
+            scene.fog = new THREE.Fog(0x201530, 22, 96);
 
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -498,10 +599,10 @@
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.getElementById('game-container').appendChild(renderer.domElement);
 
-            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5);
+            hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.55);
             scene.add(hemiLight);
 
-            const dirLight = new THREE.DirectionalLight(0xffddaa, 0.8);
+            dirLight = new THREE.DirectionalLight(0xffddaa, 0.85);
             dirLight.position.set(40, 60, 30);
             dirLight.castShadow = true;
             dirLight.shadow.mapSize.width = 2048;
@@ -515,18 +616,13 @@
             floorTexture.wrapT = THREE.RepeatWrapping;
             floorTexture.repeat.set(10, 10);
 
-            const floorMat = new THREE.MeshStandardMaterial({ map: floorTexture, roughness: 0.8, color: 0xddccaa });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            floor.receiveShadow = true;
-            scene.add(floor);
+            const floorMat = new THREE.MeshStandardMaterial({ map: floorTexture, roughness: 0.75, color: 0xddccaa });
+            floorMesh = new THREE.Mesh(floorGeo, floorMat);
+            floorMesh.rotation.x = -Math.PI / 2;
+            floorMesh.receiveShadow = true;
+            scene.add(floorMesh);
 
-            createWall(0, 8, -60, 120, 16, 2);
-            createWall(0, 8, 60, 120, 16, 2);
-            createWall(-60, 8, 0, 2, 16, 120);
-            createWall(60, 8, 0, 2, 16, 120);
-
-            generateFurniture();
+            loadLevel(1);
             createPlayer();
 
             window.addEventListener('resize', () => {
@@ -559,6 +655,60 @@
             return new THREE.CanvasTexture(canvas);
         }
 
+        function createKitchenTileTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            const size = 128;
+            for (let y = 0; y < 4; y++) {
+                for (let x = 0; x < 4; x++) {
+                    const isDark = (x + y) % 2 === 0;
+                    ctx.fillStyle = isDark ? '#2b3440' : '#f1f5f9';
+                    ctx.fillRect(x * size, y * size, size, size);
+                    // Subtle marble veining
+                    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(100,116,139,0.18)';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(x * size + 16, y * size + 24);
+                    ctx.quadraticCurveTo(x * size + 64, y * size + 48, x * size + 110, y * size + 96);
+                    ctx.stroke();
+                    // Grout border
+                    ctx.strokeStyle = '#94a3b8';
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(x * size, y * size, size, size);
+                }
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function createRoyalCarpetTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#4c1122';
+            ctx.fillRect(0, 0, 512, 512);
+            // Gold diamond lattice pattern
+            ctx.strokeStyle = 'rgba(212, 175, 55, 0.35)';
+            ctx.lineWidth = 4;
+            for (let y = 0; y < 512; y += 128) {
+                for (let x = 0; x < 512; x += 128) {
+                    ctx.beginPath();
+                    ctx.moveTo(x + 64, y + 12);
+                    ctx.lineTo(x + 116, y + 64);
+                    ctx.lineTo(x + 64, y + 116);
+                    ctx.lineTo(x + 12, y + 64);
+                    ctx.closePath();
+                    ctx.stroke();
+
+                    ctx.fillStyle = 'rgba(212, 175, 55, 0.22)';
+                    ctx.beginPath();
+                    ctx.arc(x + 64, y + 64, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            return new THREE.CanvasTexture(canvas);
+        }
+
         function handleKeyDown(e) {
             if (keys.hasOwnProperty(e.key) || keys.hasOwnProperty(e.code)) {
                 keys[e.key] = true;
@@ -569,6 +719,11 @@
             if (e.code === 'Space') jump();
             if (e.key.toLowerCase() === 'e' || e.key === 'Shift') climb();
             if (e.key.toLowerCase() === 'f' || e.key === 'Enter') attack();
+            if (e.key === '1') switchToLevel(1);
+            if (e.key === '2') switchToLevel(2);
+            if (e.key === '3') switchToLevel(3);
+            if (e.key.toLowerCase() === 'b' && !isBossFight) startBossFight();
+            if (e.key.toLowerCase() === 'r') startBossRush();
         }
 
         function handleKeyUp(e) { if (keys.hasOwnProperty(e.key) || keys.hasOwnProperty(e.code)) keys[e.key] = false; }
@@ -584,337 +739,2151 @@
             input.x = kx; input.y = ky;
         }
 
-        function createWall(x, y, z, w, h, d) {
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: 0xe0e0e0 }));
-            mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true;
-            scene.add(mesh); obstacles.push(mesh);
+        function createWall(x, y, z, w, h, d, wallColor = 0xe6dccf, trimColor = 0x4a2e16) {
+            const group = new THREE.Group();
+            const wallMat = new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.8 });
+            const trimMat = new THREE.MeshStandardMaterial({ color: trimColor, roughness: 0.5 });
+
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
+            mesh.position.set(x, y, z);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            group.add(mesh);
+
+            // Baseboard & Crown Trim
+            const bw = w > d ? w : d + 0.5;
+            const bd = w > d ? d + 0.5 : d;
+            const baseboard = new THREE.Mesh(new THREE.BoxGeometry(w > d ? w : d + 0.6, 1.1, w > d ? d + 0.6 : w), trimMat);
+            baseboard.position.set(x, 0.55, z);
+            group.add(baseboard);
+
+            scene.add(group);
+            levelObjects.push(group);
+            obstacles.push(mesh);
+            mesh.updateMatrixWorld();
         }
 
-        // --- Furniture Generation (Rounded) ---
+        // --- Geometry Helpers & Furniture Generation (Overhauled) ---
 
-        function generateFurniture() {
-            createSofa(-20, -20, 0); createSofa(20, 25, Math.PI);
-            createTable(0, 0); createTable(-25, 25);
-            createBookshelf(-40, -40, Math.PI / 4); createBookshelf(40, -10, -Math.PI / 2); createBookshelf(40, 40, 0);
-            createTVStand(10, -35);
+        function createRoundedBoxGeo(w, h, d, r = 0.25, smoothness = 4) {
+            const radius = Math.min(r, w * 0.4, h * 0.4, d * 0.4);
+            const iw = Math.max(0.01, w - radius * 2);
+            const ih = Math.max(0.01, h - radius * 2);
+            const id = Math.max(0.01, d - radius * 2);
+            const cr = Math.min(radius * 0.4, iw * 0.4, ih * 0.4);
+
+            const shape = new THREE.Shape();
+            const x = -iw / 2, y = -ih / 2;
+            shape.moveTo(x + cr, y);
+            shape.lineTo(x + iw - cr, y);
+            shape.quadraticCurveTo(x + iw, y, x + iw, y + cr);
+            shape.lineTo(x + iw, y + ih - cr);
+            shape.quadraticCurveTo(x + iw, y + ih, x + iw - cr, y + ih);
+            shape.lineTo(x + cr, y + ih);
+            shape.quadraticCurveTo(x, y + ih, x, y + ih - cr);
+            shape.lineTo(x, y + cr);
+            shape.quadraticCurveTo(x, y, x + cr, y);
+
+            const geo = new THREE.ExtrudeGeometry(shape, {
+                depth: id,
+                bevelEnabled: true,
+                bevelSegments: smoothness,
+                steps: 1,
+                bevelSize: radius,
+                bevelThickness: radius
+            });
+            geo.center();
+            return geo;
         }
 
-        function createSofa(x, z, ry) {
-            const group = new THREE.Group(); const mat = new THREE.MeshStandardMaterial({ color: 0x800000, roughness: 0.9 });
+        function createTVScreenTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 320;
+            const ctx = canvas.getContext('2d');
 
-            // Base: Use multiple cylinders or rounded primitives approximation
-            // Since we want simple rounded, we use Box for collision but Cylinders for visual
+            // Sky / Aquarium gradient
+            const grad = ctx.createLinearGradient(0, 0, 0, 320);
+            grad.addColorStop(0, '#0c2d48');
+            grad.addColorStop(0.6, '#145da0');
+            grad.addColorStop(1, '#1f3b2c');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 512, 320);
 
-            // Seat
-            const seat = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 10, 16), mat);
-            seat.rotation.z = Math.PI / 2;
-            seat.scale.set(1, 1, 2); // Stretch to oval
-            seat.position.y = 1.5;
-            group.add(seat);
+            // Subtle light rays
+            ctx.fillStyle = 'rgba(173, 232, 244, 0.08)';
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                ctx.moveTo(80 + i * 90, 0);
+                ctx.lineTo(130 + i * 90, 0);
+                ctx.lineTo(60 + i * 100, 320);
+                ctx.lineTo(-10 + i * 100, 320);
+                ctx.closePath();
+                ctx.fill();
+            }
 
-            // Back
-            const back = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 10, 16), mat);
-            back.rotation.z = Math.PI / 2;
-            back.position.set(0, 3.5, -2);
-            group.add(back);
+            // Seaweed / plants
+            ctx.strokeStyle = '#2d936c';
+            ctx.lineWidth = 10;
+            ctx.lineCap = 'round';
+            [70, 110, 410, 445].forEach((sx, idx) => {
+                ctx.beginPath();
+                ctx.moveTo(sx, 320);
+                ctx.quadraticCurveTo(sx - 20, 250, sx + 10, 180 + (idx % 2) * 30);
+                ctx.stroke();
+            });
 
-            // Arms
-            const armGeo = new THREE.CylinderGeometry(1.5, 1.5, 4, 16);
-            const arm1 = new THREE.Mesh(armGeo, mat); arm1.rotation.x = Math.PI / 2; arm1.position.set(-4, 2.5, 0); group.add(arm1);
-            const arm2 = new THREE.Mesh(armGeo, mat); arm2.rotation.x = Math.PI / 2; arm2.position.set(4, 2.5, 0); group.add(arm2);
+            // Big cartoon goldfish in center
+            ctx.fillStyle = '#ff8811';
+            ctx.beginPath();
+            ctx.ellipse(250, 155, 58, 34, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(300, 155);
+            ctx.lineTo(350, 120);
+            ctx.lineTo(342, 155);
+            ctx.lineTo(350, 190);
+            ctx.closePath();
+            ctx.fill();
 
-            group.position.set(x, 0, z); group.rotation.y = ry || 0;
+            // Fish eye
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(212, 146, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#111111';
+            ctx.beginPath();
+            ctx.arc(210, 146, 5, 0, Math.PI * 2);
+            ctx.fill();
 
-            // Collider (Box is still best for simple physics)
+            // Bubbles
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = 2.5;
+            [[175, 130, 8], [160, 98, 11], [172, 65, 6]].forEach(([bx, by, br]) => {
+                ctx.beginPath();
+                ctx.arc(bx, by, br, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+
+            // CAT TV badge
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+            ctx.fillRect(22, 20, 135, 34);
+            ctx.fillStyle = '#ff3344';
+            ctx.beginPath();
+            ctx.arc(40, 37, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px sans-serif';
+            ctx.fillText('CAT TV', 56, 43);
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function loadLevel(lvl) {
+            currentLevel = lvl;
+            const cfg = LEVEL_CONFIGS[lvl] || LEVEL_CONFIGS[1];
+
+            // Clear previous level geometry and colliders
+            levelObjects.forEach(obj => scene.remove(obj));
+            levelObjects = [];
+            obstacles = [];
+
+            // Update atmosphere, floor texture & HUD
+            scene.background.setHex(cfg.bgHex);
+            scene.fog.color.setHex(cfg.bgHex);
+
+            let tex;
+            if (lvl === 1) tex = createWoodTexture();
+            else if (lvl === 2) tex = createKitchenTileTexture();
+            else tex = createRoyalCarpetTexture();
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(10, 10);
+            floorMesh.material.map = tex;
+            floorMesh.material.color.setHex(cfg.floorTint);
+            floorMesh.material.needsUpdate = true;
+
+            const ind = document.getElementById('level-indicator');
+            if (ind) ind.innerText = cfg.name;
+
+            // Build Perimeter Walls with Level Colors
+            createWall(0, 8, -60, 120, 16, 2, cfg.wallHex, cfg.trimHex);
+            createWall(0, 8, 60, 120, 16, 2, cfg.wallHex, cfg.trimHex);
+            createWall(-60, 8, 0, 2, 16, 120, cfg.wallHex, cfg.trimHex);
+            createWall(60, 8, 0, 2, 16, 120, cfg.wallHex, cfg.trimHex);
+
+            if (lvl === 1) {
+                createRug(0, -8, 0x6b2d3c, 0xd9b88f, 0x3b4d5e);
+                createSofa(-20, -20, 0, 0x8b2635, 0xf4b942);
+                createSofa(20, 25, Math.PI, 0x2b4c65, 0xe07a5f);
+                createTable(0, 0);
+                createTable(-25, 25);
+                createBookshelf(-40, -40, Math.PI / 4);
+                createBookshelf(40, -10, -Math.PI / 2);
+                createBookshelf(40, 40, 0);
+                createTVStand(10, -35);
+            } else if (lvl === 2) {
+                // LEVEL 2: GOURMET KITCHEN
+                createRug(0, -4, 0x9a3412, 0xfde68a, 0x1e293b);
+                createKitchenIsland(0, -2);
+                createStoveRange(-22, -36, 0);
+                createStoveRange(24, 30, Math.PI);
+                createFridge(-42, -36, Math.PI / 4);
+                createFridge(42, -12, -Math.PI / 2);
+                createFridge(38, 38, -Math.PI * 0.75);
+                createBreakfastTable(-26, 22);
+                createBreakfastTable(26, -24);
+            } else {
+                // LEVEL 3: ROYAL MASTER SUITE (FINALE ARENA)
+                createRug(0, 0, 0xd4af37, 0xfef08a, 0x311042);
+                createRoyalBed(-22, -20, 0);
+                createCatTree(28, -22);
+                createCatTree(-34, 26);
+                createGrandPiano(22, 24, -Math.PI / 4);
+                createStudyDesk(2, -36);
+                createSofa(0, 32, Math.PI, 0x4c1d95, 0xfbbf24);
+            }
+        }
+
+        function clearAllBosses() {
+            activeBosses.forEach(b => scene.remove(b.mesh));
+            activeBosses = [];
+            if (boss) { scene.remove(boss.mesh); boss = null; }
+        }
+
+        function switchToLevel(lvl, showBanner = true) {
+            clearAllBosses();
+            isBossFight = false;
+            isBossRush = false;
+            document.getElementById('boss-hud').classList.remove('visible');
+            enemies.forEach(e => scene.remove(e.mesh));
+            enemies = [];
+            projectiles.forEach(p => scene.remove(p.mesh));
+            projectiles = [];
+            weapons.forEach(w => scene.remove(w));
+            weapons = [];
+
+            loadLevel(lvl);
+            if (player && player.mesh) {
+                player.mesh.position.set(0, 6, 8);
+                player.velocity.set(0, 0, 0);
+            }
+
+            if (showBanner) {
+                const warn = document.getElementById('boss-warning');
+                warn.style.color = '#ffcc00';
+                warn.style.textShadow = '0 0 20px #ff8800';
+                warn.innerText = LEVEL_CONFIGS[lvl].banner;
+                warn.classList.remove('warn-active');
+                void warn.offsetWidth;
+                warn.classList.add('warn-active');
+            }
+        }
+
+        function createRug(x, z, cOuter = 0x6b2d3c, cBorder = 0xd9b88f, cInner = 0x3b4d5e) {
+            const group = new THREE.Group();
+            const outerMat = new THREE.MeshStandardMaterial({ color: cOuter, roughness: 0.95 });
+            const borderMat = new THREE.MeshStandardMaterial({ color: cBorder, roughness: 0.95 });
+            const innerMat = new THREE.MeshStandardMaterial({ color: cInner, roughness: 0.95 });
+
+            const outer = new THREE.Mesh(createRoundedBoxGeo(26, 0.08, 18, 0.03, 2), outerMat);
+            outer.position.y = 0.04;
+            group.add(outer);
+
+            const border = new THREE.Mesh(createRoundedBoxGeo(23.6, 0.09, 15.6, 0.03, 2), borderMat);
+            border.position.y = 0.05;
+            group.add(border);
+
+            const inner = new THREE.Mesh(createRoundedBoxGeo(21.6, 0.1, 13.6, 0.03, 2), innerMat);
+            inner.position.y = 0.06;
+            group.add(inner);
+
+            group.position.set(x, 0, z);
+            group.traverse(c => { if (c.isMesh) c.receiveShadow = true; });
+            scene.add(group);
+            levelObjects.push(group);
+        }
+
+        function createSofa(x, z, ry, mainHex = 0x8b2635, pillowHex = 0xf4b942) {
+            const group = new THREE.Group();
+            const fabricMat = new THREE.MeshStandardMaterial({ color: mainHex, roughness: 0.85 });
+            const cushionMat = new THREE.MeshStandardMaterial({
+                color: new THREE.Color(mainHex).offsetHSL(0, 0, 0.04),
+                roughness: 0.8
+            });
+            const darkTrimMat = new THREE.MeshStandardMaterial({
+                color: new THREE.Color(mainHex).offsetHSL(0, 0, -0.08),
+                roughness: 0.9
+            });
+            const woodLegMat = new THREE.MeshStandardMaterial({ color: 0x3b2314, roughness: 0.5 });
+            const pillowMat = new THREE.MeshStandardMaterial({ color: pillowHex, roughness: 0.75 });
+
+            // 1. Tapered Wooden Legs
+            const legGeo = new THREE.CylinderGeometry(0.22, 0.12, 0.6, 12);
+            const legCoords = [
+                [-4.3, 0.3, -1.9], [4.3, 0.3, -1.9],
+                [-4.3, 0.3, 1.9], [4.3, 0.3, 1.9]
+            ];
+            legCoords.forEach(([lx, ly, lz]) => {
+                const leg = new THREE.Mesh(legGeo, woodLegMat);
+                leg.position.set(lx, ly, lz);
+                group.add(leg);
+            });
+
+            // 2. Upholstered Base Deck & Wood Plinth Trim
+            const woodPlinth = new THREE.Mesh(createRoundedBoxGeo(9.5, 0.22, 4.6, 0.08, 3), woodLegMat);
+            woodPlinth.position.set(0, 0.65, 0);
+            group.add(woodPlinth);
+
+            const baseDeck = new THREE.Mesh(createRoundedBoxGeo(9.6, 0.75, 4.7, 0.22, 4), darkTrimMat);
+            baseDeck.position.set(0, 1.05, 0);
+            group.add(baseDeck);
+
+            // 3. Three Plush Seat Cushions
+            const seatCushionGeo = createRoundedBoxGeo(2.62, 0.72, 3.65, 0.26, 4);
+            const buttonGeo = new THREE.SphereGeometry(0.09, 10, 10);
+            [-2.65, 0, 2.65].forEach(cx => {
+                const seatCushion = new THREE.Mesh(seatCushionGeo, cushionMat);
+                seatCushion.position.set(cx, 1.68, 0.32);
+                group.add(seatCushion);
+            });
+
+            // 4. Sculpted Backrest Frame + Three Tufted Back Cushions
+            const backFrame = new THREE.Mesh(createRoundedBoxGeo(9.4, 2.5, 1.05, 0.3, 4), fabricMat);
+            backFrame.position.set(0, 2.55, -1.85);
+            backFrame.rotation.x = -0.06;
+            group.add(backFrame);
+
+            const backCushionGeo = createRoundedBoxGeo(2.58, 1.95, 0.95, 0.3, 4);
+            [-2.65, 0, 2.65].forEach(cx => {
+                const backCushion = new THREE.Mesh(backCushionGeo, cushionMat);
+                backCushion.position.set(cx, 2.85, -1.25);
+                backCushion.rotation.x = -0.1;
+                group.add(backCushion);
+
+                // Subtle button tufts on back cushions
+                [-0.55, 0.55].forEach(bx => {
+                    const btn = new THREE.Mesh(buttonGeo, darkTrimMat);
+                    btn.position.set(cx + bx, 2.9, -0.78);
+                    group.add(btn);
+                });
+            });
+
+            // 5. Left & Right Padded Armrests with Rolled Bolster Tops
+            const armBodyGeo = createRoundedBoxGeo(1.15, 1.75, 4.75, 0.28, 4);
+            const armRollGeo = createRoundedBoxGeo(1.32, 0.65, 4.85, 0.3, 4);
+            [-4.35, 4.35].forEach((ax, i) => {
+                const armBody = new THREE.Mesh(armBodyGeo, fabricMat);
+                armBody.position.set(ax, 1.9, 0);
+                group.add(armBody);
+
+                const armRoll = new THREE.Mesh(armRollGeo, cushionMat);
+                armRoll.position.set(ax + (i === 0 ? 0.06 : -0.06), 2.75, 0);
+                group.add(armRoll);
+            });
+
+            // 6. Two Angled Throw Pillows
+            const pillowGeo = createRoundedBoxGeo(1.45, 1.35, 0.5, 0.22, 4);
+            const leftPillow = new THREE.Mesh(pillowGeo, pillowMat);
+            leftPillow.position.set(-3.2, 2.5, -0.45);
+            leftPillow.rotation.set(-0.2, 0.45, 0.18);
+            group.add(leftPillow);
+
+            const rightPillow = new THREE.Mesh(pillowGeo, pillowMat);
+            rightPillow.position.set(3.2, 2.5, -0.45);
+            rightPillow.rotation.set(-0.2, -0.45, -0.18);
+            group.add(rightPillow);
+
+            group.position.set(x, 0, z);
+            group.rotation.y = ry || 0;
+
+            // Collider (matches sofa footprint for climbing & jumping)
             const collider = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 5), new THREE.MeshBasicMaterial({ visible: false }));
-            collider.position.set(x, 2, z); collider.rotation.y = ry || 0; addToScene(group, collider);
+            collider.position.set(x, 2, z);
+            collider.rotation.y = ry || 0;
+            addToScene(group, collider);
         }
 
         function createTable(x, z) {
-            const group = new THREE.Group(); const wood = new THREE.MeshStandardMaterial({ color: 0x5c3a1b, roughness: 0.5 });
-            // Rounded Table Top (Cylinder)
-            const top = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 0.5, 32), wood);
-            top.position.y = 3.5; group.add(top);
+            const group = new THREE.Group();
+            const topWood = new THREE.MeshStandardMaterial({ color: 0x6e4726, roughness: 0.4 });
+            const darkWood = new THREE.MeshStandardMaterial({ color: 0x4a2e16, roughness: 0.55 });
+            const brassMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.7, roughness: 0.3 });
+            const runnerMat = new THREE.MeshStandardMaterial({ color: 0xd9cbb8, roughness: 0.9 });
+            const ceramicMat = new THREE.MeshStandardMaterial({ color: 0x489fb5, roughness: 0.25 });
 
-            // Legs (Cylinders)
-            const legGeo = new THREE.CylinderGeometry(0.3, 0.2, 3.5, 12);
-            [[-3, -2], [3, -2], [-3, 2], [3, 2]].forEach(pos => {
-                const leg = new THREE.Mesh(legGeo, wood); leg.position.set(pos[0], 1.75, pos[1]); group.add(leg);
+            // Beveled Rectangular Tabletop (open underneath — no center wood shelf/block)
+            const top = new THREE.Mesh(createRoundedBoxGeo(8.2, 0.45, 5.2, 0.16, 4), topWood);
+            top.position.y = 3.7;
+            group.add(top);
+
+            // 4 Tapered Corner Legs with Brass Foot Caps + Individual Leg Colliders
+            const legGeo = new THREE.CylinderGeometry(0.28, 0.18, 3.55, 14);
+            const capGeo = new THREE.CylinderGeometry(0.19, 0.17, 0.45, 14);
+            [[-3.3, -1.85], [3.3, -1.85], [-3.3, 1.85], [3.3, 1.85]].forEach(([lx, lz]) => {
+                const leg = new THREE.Mesh(legGeo, darkWood);
+                leg.position.set(lx, 1.85, lz);
+                group.add(leg);
+
+                const cap = new THREE.Mesh(capGeo, brassMat);
+                cap.position.set(lx, 0.23, lz);
+                group.add(cap);
+
+                const legCollider = new THREE.Mesh(new THREE.BoxGeometry(0.6, 3.6, 0.6), new THREE.MeshBasicMaterial({ visible: false }));
+                legCollider.position.set(x + lx, 1.8, z + lz);
+                legCollider.updateMatrixWorld();
+                obstacles.push(legCollider);
             });
 
+            // Table Runner & Decorative Bowl
+            const runner = new THREE.Mesh(createRoundedBoxGeo(2.2, 0.06, 5.24, 0.02, 2), runnerMat);
+            runner.position.y = 3.93;
+            group.add(runner);
+
+            const bowl = new THREE.Mesh(new THREE.SphereGeometry(0.65, 20, 14, 0, Math.PI * 2, Math.PI * 0.45, Math.PI * 0.55), ceramicMat);
+            bowl.position.set(0, 4.35, 0);
+            group.add(bowl);
+
             group.position.set(x, 0, z);
-            const collider = new THREE.Mesh(new THREE.BoxGeometry(8, 4, 5), new THREE.MeshBasicMaterial({ visible: false }));
-            collider.position.set(x, 2, z); addToScene(group, collider);
+            // Elevated tabletop collider (min.y = 3.3, max.y = 4.0) so the cat can walk underneath or jump on top!
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(8, 0.7, 5), new THREE.MeshBasicMaterial({ visible: false }));
+            collider.position.set(x, 3.65, z);
+            addToScene(group, collider);
         }
 
         function createBookshelf(x, z, ry) {
-            const group = new THREE.Group(); const wood = new THREE.MeshStandardMaterial({ color: 0x3d2b1f });
-            // Main structure (Box with bevel removed -> Just Box is fine for bookshelf, maybe add molding)
-            const shelf = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 2), wood); shelf.position.y = 6; group.add(shelf);
+            const group = new THREE.Group();
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0x422a17, roughness: 0.6 });
+            const backMat = new THREE.MeshStandardMaterial({ color: 0x2c1b0e, roughness: 0.75 });
+            const pageMat = new THREE.MeshStandardMaterial({ color: 0xf4efe6, roughness: 0.85 });
 
-            // Books (Rounded spines)
-            for (let i = 0; i < 5; i++) {
-                const color = new THREE.Color().setHSL(Math.random(), 0.7, 0.5);
-                const book = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 4, 16), new THREE.MeshStandardMaterial({ color: color }));
-                book.rotation.z = Math.PI / 2;
-                book.position.set(0, 2 + (i * 2), 0.5); group.add(book);
-            }
-            group.position.set(x, 0, z); group.rotation.y = ry || 0;
+            // Back panel
+            const backPanel = new THREE.Mesh(new THREE.BoxGeometry(5.8, 11.6, 0.22), backMat);
+            backPanel.position.set(0, 5.8, -0.88);
+            group.add(backPanel);
+
+            // Side walls
+            const sideGeo = createRoundedBoxGeo(0.42, 11.7, 2.0, 0.08, 3);
+            const leftSide = new THREE.Mesh(sideGeo, woodMat);
+            leftSide.position.set(-2.8, 5.85, 0);
+            const rightSide = new THREE.Mesh(sideGeo, woodMat);
+            rightSide.position.set(2.8, 5.85, 0);
+            group.add(leftSide, rightSide);
+
+            // Top Crown Molding & Bottom Base
+            const crown = new THREE.Mesh(createRoundedBoxGeo(6.4, 0.5, 2.3, 0.12, 3), woodMat);
+            crown.position.set(0, 11.8, 0.05);
+            group.add(crown);
+
+            const basePlinth = new THREE.Mesh(createRoundedBoxGeo(6.1, 0.5, 2.1, 0.08, 3), woodMat);
+            basePlinth.position.set(0, 0.25, 0);
+            group.add(basePlinth);
+
+            // Horizontal Shelves + Upright Books
+            const shelfGeo = createRoundedBoxGeo(5.6, 0.28, 1.9, 0.06, 2);
+            const palette = [0xb8332a, 0x2b59c3, 0x2a7f62, 0xd98a2b, 0x6c3b8c, 0x3b7a57, 0xc85a32];
+            const shelfHeights = [0.5, 2.75, 5.0, 7.25, 9.5];
+
+            shelfHeights.forEach((sy, sIdx) => {
+                const shelfBoard = new THREE.Mesh(shelfGeo, woodMat);
+                shelfBoard.position.set(0, sy, 0);
+                group.add(shelfBoard);
+
+                let cursorX = -2.35;
+                let bIdx = 0;
+                while (cursorX < 2.1) {
+                    const bw = 0.28 + ((sIdx * 7 + bIdx * 3) % 4) * 0.07;
+                    const bh = 1.35 + ((sIdx * 5 + bIdx * 11) % 5) * 0.12;
+                    const bd = 1.2 + ((bIdx * 3) % 3) * 0.08;
+                    if (cursorX + bw > 2.35) break;
+
+                    const bookColor = palette[(sIdx * 3 + bIdx) % palette.length];
+                    const bookGroup = new THREE.Group();
+                    const cover = new THREE.Mesh(
+                        createRoundedBoxGeo(bw, bh, bd, 0.04, 2),
+                        new THREE.MeshStandardMaterial({ color: bookColor, roughness: 0.65 })
+                    );
+                    const pages = new THREE.Mesh(
+                        new THREE.BoxGeometry(bw * 0.78, bh * 0.92, bd * 0.94),
+                        pageMat
+                    );
+                    pages.position.z = 0.03;
+                    bookGroup.add(cover, pages);
+
+                    bookGroup.position.set(cursorX + bw / 2, sy + 0.14 + bh / 2, 0.05);
+                    bookGroup.rotation.z = (bIdx % 6 === 5) ? 0.12 : 0;
+                    group.add(bookGroup);
+
+                    cursorX += bw + ((bIdx % 6 === 5) ? 0.25 : 0.04);
+                    bIdx++;
+                }
+            });
+
+            group.position.set(x, 0, z);
+            group.rotation.y = ry || 0;
             const collider = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 2), new THREE.MeshBasicMaterial({ visible: false }));
-            collider.position.set(x, 6, z); collider.rotation.y = ry || 0; addToScene(group, collider);
+            collider.position.set(x, 6, z);
+            collider.rotation.y = ry || 0;
+            addToScene(group, collider);
         }
 
         function createTVStand(x, z) {
-            const group = new THREE.Group(); const black = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.5, roughness: 0.2 });
-            const stand = new THREE.Mesh(new THREE.BoxGeometry(8, 2, 3), new THREE.MeshStandardMaterial({ color: 0x222222 })); stand.position.y = 1; group.add(stand);
-            // Screen (Box)
-            const tv = new THREE.Mesh(new THREE.BoxGeometry(6, 4, 0.5), black); tv.position.set(0, 4, 0); group.add(tv);
+            const group = new THREE.Group();
+            const walnutMat = new THREE.MeshStandardMaterial({ color: 0x52341e, roughness: 0.45 });
+            const slateMat = new THREE.MeshStandardMaterial({ color: 0x23272e, roughness: 0.6 });
+            const bezelMat = new THREE.MeshStandardMaterial({ color: 0x15171c, metalness: 0.6, roughness: 0.25 });
+            const chromeMat = new THREE.MeshStandardMaterial({ color: 0x9aa0a6, metalness: 0.8, roughness: 0.2 });
+            const brassMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.7, roughness: 0.3 });
+
+            // 1. Mid-Century Wooden Console Legs
+            const legGeo = new THREE.CylinderGeometry(0.18, 0.1, 0.65, 12);
+            [[-3.6, -1.0], [3.6, -1.0], [-3.6, 1.0], [3.6, 1.0]].forEach(([lx, lz]) => {
+                const leg = new THREE.Mesh(legGeo, walnutMat);
+                leg.position.set(lx, 0.32, lz);
+                group.add(leg);
+            });
+
+            // 2. Console Cabinet Body
+            const cabinet = new THREE.Mesh(createRoundedBoxGeo(8.2, 1.55, 2.8, 0.14, 4), walnutMat);
+            cabinet.position.set(0, 1.35, 0);
+            group.add(cabinet);
+
+            // Left & Right Slate Cabinet Doors + Brass Handles
+            const doorGeo = createRoundedBoxGeo(2.35, 1.18, 0.14, 0.05, 3);
+            const handleGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.45, 8);
+            [-2.65, 2.65].forEach((dx, idx) => {
+                const door = new THREE.Mesh(doorGeo, slateMat);
+                door.position.set(dx, 1.35, 1.38);
+                group.add(door);
+
+                const handle = new THREE.Mesh(handleGeo, brassMat);
+                handle.position.set(dx + (idx === 0 ? 0.85 : -0.85), 1.35, 1.48);
+                group.add(handle);
+            });
+
+            // Center Recess & Game Console Box
+            const cubby = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.15, 0.2), new THREE.MeshStandardMaterial({ color: 0x181009, roughness: 0.9 }));
+            cubby.position.set(0, 1.35, 1.32);
+            group.add(cubby);
+
+            const consoleBox = new THREE.Mesh(createRoundedBoxGeo(1.7, 0.28, 1.0, 0.06, 2), bezelMat);
+            consoleBox.position.set(0, 1.0, 1.15);
+            group.add(consoleBox);
+
+            const powerLed = new THREE.Mesh(
+                new THREE.SphereGeometry(0.05, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0x00ff88 })
+            );
+            powerLed.position.set(0.65, 1.0, 1.66);
+            group.add(powerLed);
+
+            // 3. Flat-Screen TV Pedestal Base & Neck
+            const tvBase = new THREE.Mesh(createRoundedBoxGeo(2.6, 0.14, 1.3, 0.05, 3), chromeMat);
+            tvBase.position.set(0, 2.18, 0);
+            group.add(tvBase);
+
+            const tvNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.28, 0.7, 16), chromeMat);
+            tvNeck.position.set(0, 2.5, -0.1);
+            group.add(tvNeck);
+
+            // 4. Sleek Widescreen TV Bezel + Glowing Cat TV Display
+            const tvFrame = new THREE.Mesh(createRoundedBoxGeo(6.2, 3.7, 0.32, 0.12, 4), bezelMat);
+            tvFrame.position.set(0, 4.45, 0);
+            group.add(tvFrame);
+
+            const screenTex = createTVScreenTexture();
+            const screenMat = new THREE.MeshStandardMaterial({
+                map: screenTex,
+                emissive: 0x1b4d7e,
+                emissiveMap: screenTex,
+                emissiveIntensity: 0.55,
+                roughness: 0.15,
+                metalness: 0.1
+            });
+            const screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(5.85, 3.35), screenMat);
+            screenMesh.position.set(0, 4.45, 0.17);
+            group.add(screenMesh);
+
+            // TV Power Indicator LED
+            const tvLed = new THREE.Mesh(
+                new THREE.SphereGeometry(0.04, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0xff3333 })
+            );
+            tvLed.position.set(2.8, 2.68, 0.17);
+            group.add(tvLed);
+
+            // 5. Left & Right Stereo Bookshelf Speakers
+            const speakerGeo = createRoundedBoxGeo(0.7, 1.35, 0.75, 0.08, 3);
+            const coneGeo = new THREE.CylinderGeometry(0.2, 0.12, 0.08, 16);
+            const tweeterGeo = new THREE.CylinderGeometry(0.11, 0.08, 0.08, 16);
+            [-3.55, 3.55].forEach(sx => {
+                const spk = new THREE.Mesh(speakerGeo, slateMat);
+                spk.position.set(sx, 2.8, 0.1);
+                group.add(spk);
+
+                const woofer = new THREE.Mesh(coneGeo, chromeMat);
+                woofer.rotation.x = Math.PI / 2;
+                woofer.position.set(sx, 2.6, 0.48);
+                group.add(woofer);
+
+                const tweeter = new THREE.Mesh(tweeterGeo, chromeMat);
+                tweeter.rotation.x = Math.PI / 2;
+                tweeter.position.set(sx, 3.1, 0.48);
+                group.add(tweeter);
+            });
+
             group.position.set(x, 0, z);
             const collider = new THREE.Mesh(new THREE.BoxGeometry(8, 6, 3), new THREE.MeshBasicMaterial({ visible: false }));
-            collider.position.set(x, 3, z); addToScene(group, collider);
+            collider.position.set(x, 3, z);
+            addToScene(group, collider);
+        }
+
+        // --- Level 2: Gourmet Kitchen Furniture ---
+
+        function createKitchenIsland(x, z) {
+            const group = new THREE.Group();
+            const cabinetMat = new THREE.MeshStandardMaterial({ color: 0x1e3a5f, roughness: 0.55 });
+            const marbleMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.2, metalness: 0.05 });
+            const chromeMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.85, roughness: 0.2 });
+            const brassMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.75, roughness: 0.25 });
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.5 });
+            const sinkBasinMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.7, roughness: 0.3 });
+
+            // Island Base & Marble Countertop Overhang
+            const base = new THREE.Mesh(createRoundedBoxGeo(10.5, 3.6, 5.2, 0.16, 3), cabinetMat);
+            base.position.y = 1.8;
+            const counter = new THREE.Mesh(createRoundedBoxGeo(11.4, 0.45, 6.2, 0.14, 4), marbleMat);
+            counter.position.y = 3.82;
+            group.add(base, counter);
+
+            // Sunken Stainless Sink Basin + Gooseneck Faucet
+            const sink = new THREE.Mesh(createRoundedBoxGeo(3.2, 0.12, 2.2, 0.04, 2), sinkBasinMat);
+            sink.position.set(-2.2, 4.02, -0.4);
+            const faucetStem = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.1, 12), chromeMat);
+            faucetStem.position.set(-2.2, 4.55, -1.65);
+            const faucetArch = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.075, 10, 20, Math.PI), chromeMat);
+            faucetArch.rotation.y = Math.PI / 2;
+            faucetArch.position.set(-2.2, 5.05, -1.23);
+            group.add(sink, faucetStem, faucetArch);
+
+            // Wooden Cutting Board & Veggies on Counter
+            const board = new THREE.Mesh(createRoundedBoxGeo(2.4, 0.14, 1.7, 0.05, 2), woodMat);
+            board.position.set(2.4, 4.1, 0.2);
+            const tomato = new THREE.Mesh(new THREE.SphereGeometry(0.26, 12, 12), new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.3 }));
+            tomato.position.set(2.1, 4.35, 0.2);
+            group.add(board, tomato);
+
+            // Three Barstools along the front overhang
+            [-3.4, 0, 3.4].forEach(sx => {
+                const stoolLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 2.5, 12), chromeMat);
+                stoolLeg.position.set(sx, 1.25, 3.15);
+                const stoolSeat = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.78, 0.32, 20), woodMat);
+                stoolSeat.position.set(sx, 2.6, 3.15);
+                const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.2, 8), brassMat);
+                handle.rotation.z = Math.PI / 2;
+                handle.position.set(sx, 2.9, -2.65);
+                group.add(stoolLeg, stoolSeat, handle);
+            });
+
+            group.position.set(x, 0, z);
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(11.4, 4.1, 6.2), new THREE.MeshBasicMaterial({ visible: false }));
+            collider.position.set(x, 2.05, z);
+            addToScene(group, collider);
+        }
+
+        function createStoveRange(x, z, ry) {
+            const group = new THREE.Group();
+            const steelMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.65, roughness: 0.3 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5 });
+            const burnerMat = new THREE.MeshStandardMaterial({ color: 0xff4500, emissive: 0xdc2626, emissiveIntensity: 0.75 });
+            const ovenGlowMat = new THREE.MeshStandardMaterial({ color: 0xffaa33, emissive: 0xd97706, emissiveIntensity: 0.45 });
+            const copperMat = new THREE.MeshStandardMaterial({ color: 0xb45309, metalness: 0.75, roughness: 0.25 });
+
+            // Range Body, Backsplash & Glowing Oven Window
+            const body = new THREE.Mesh(createRoundedBoxGeo(7.6, 3.8, 4.4, 0.16, 3), steelMat);
+            body.position.y = 1.9;
+            const backsplash = new THREE.Mesh(createRoundedBoxGeo(7.6, 1.6, 0.5, 0.1, 2), steelMat);
+            backsplash.position.set(0, 4.5, -1.95);
+            const ovenDoor = new THREE.Mesh(createRoundedBoxGeo(5.8, 2.2, 0.2, 0.08, 2), darkMat);
+            ovenDoor.position.set(0, 1.65, 2.18);
+            const ovenWindow = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.2, 0.24), ovenGlowMat);
+            ovenWindow.position.set(0, 1.65, 2.18);
+            group.add(body, backsplash, ovenDoor, ovenWindow);
+
+            // 4 Glowing Burner Coils + Copper Stockpot
+            const burnerGeo = new THREE.CylinderGeometry(0.75, 0.75, 0.1, 20);
+            [[-2.0, -0.7], [2.0, -0.7], [-2.0, 0.9], [2.0, 0.9]].forEach(([bx, bz]) => {
+                const burner = new THREE.Mesh(burnerGeo, burnerMat);
+                burner.position.set(bx, 3.86, bz);
+                group.add(burner);
+            });
+
+            const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.85, 1.15, 20), copperMat);
+            pot.position.set(-2.0, 4.45, -0.7);
+            const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.15, 20), steelMat);
+            lid.position.set(-2.0, 5.05, -0.7);
+            group.add(pot, lid);
+
+            group.position.set(x, 0, z);
+            group.rotation.y = ry || 0;
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(7.6, 4.2, 4.4), new THREE.MeshBasicMaterial({ visible: false }));
+            collider.position.set(x, 2.1, z);
+            collider.rotation.y = ry || 0;
+            addToScene(group, collider);
+        }
+
+        function createFridge(x, z, ry) {
+            const group = new THREE.Group();
+            const steelMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.65, roughness: 0.25 });
+            const handleMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.2 });
+            const recessMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 });
+
+            const carcass = new THREE.Mesh(createRoundedBoxGeo(6.2, 11.5, 4.2, 0.22, 4), steelMat);
+            carcass.position.y = 5.75;
+            group.add(carcass);
+
+            // Double Doors + Handles + Ice Dispenser
+            [-1.48, 1.48].forEach((dx, idx) => {
+                const door = new THREE.Mesh(createRoundedBoxGeo(2.85, 7.2, 0.28, 0.08, 3), steelMat);
+                door.position.set(dx, 7.6, 2.12);
+                const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 4.2, 12), handleMat);
+                handle.position.set(idx === 0 ? -0.25 : 0.25, 7.6, 2.38);
+                group.add(door, handle);
+            });
+
+            const freezerDrawer = new THREE.Mesh(createRoundedBoxGeo(5.8, 3.4, 0.28, 0.08, 3), steelMat);
+            freezerDrawer.position.set(0, 2.0, 2.12);
+            const dispenser = new THREE.Mesh(createRoundedBoxGeo(1.1, 1.6, 0.22, 0.04, 2), recessMat);
+            dispenser.position.set(-1.55, 7.4, 2.2);
+            group.add(freezerDrawer, dispenser);
+
+            // Colorful Magnets on Fridge
+            [0xef4444, 0x3b82f6, 0xfacc15, 0x22c55e].forEach((mc, i) => {
+                const mag = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 10), new THREE.MeshStandardMaterial({ color: mc }));
+                mag.position.set(1.2 + (i % 2) * 0.7, 8.2 + Math.floor(i / 2) * 0.8, 2.28);
+                group.add(mag);
+            });
+
+            group.position.set(x, 0, z);
+            group.rotation.y = ry || 0;
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(6.2, 11.5, 4.2), new THREE.MeshBasicMaterial({ visible: false }));
+            collider.position.set(x, 5.75, z);
+            collider.rotation.y = ry || 0;
+            addToScene(group, collider);
+        }
+
+        function createBreakfastTable(x, z) {
+            const group = new THREE.Group();
+            const topMat = new THREE.MeshStandardMaterial({ color: 0xfef2f2, roughness: 0.45 });
+            const rimMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.6 });
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.6, roughness: 0.35 });
+
+            const pedestalBase = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.4, 0.25, 24), metalMat);
+            pedestalBase.position.y = 0.13;
+            const column = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 3.5, 16), metalMat);
+            column.position.y = 1.85;
+            const tableTop = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 0.38, 32), topMat);
+            tableTop.position.y = 3.7;
+            const tableRim = new THREE.Mesh(new THREE.TorusGeometry(4.15, 0.16, 12, 32), rimMat);
+            tableRim.rotation.x = Math.PI / 2;
+            tableRim.position.y = 3.7;
+            group.add(pedestalBase, column, tableTop, tableRim);
+
+            group.position.set(x, 0, z);
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(7.6, 4.0, 7.6), new THREE.MeshBasicMaterial({ visible: false }));
+            collider.position.set(x, 2.0, z);
+            addToScene(group, collider);
+        }
+
+        // --- Level 3: Royal Master Suite (Finale Arena) Furniture ---
+
+        function createRoyalBed(x, z, ry) {
+            const group = new THREE.Group();
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0x3b1d11, roughness: 0.45 });
+            const goldMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.8, roughness: 0.2 });
+            const sheetMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.75 });
+            const quiltMat = new THREE.MeshStandardMaterial({ color: 0x4c1d95, roughness: 0.7 });
+
+            // Bed Frame, Headboard & Mattress
+            const frame = new THREE.Mesh(createRoundedBoxGeo(11.2, 1.4, 12.6, 0.16, 3), woodMat);
+            frame.position.y = 1.1;
+            const headboard = new THREE.Mesh(createRoundedBoxGeo(11.2, 5.8, 0.9, 0.22, 3), woodMat);
+            headboard.position.set(0, 3.6, -5.9);
+            const mattress = new THREE.Mesh(createRoundedBoxGeo(10.4, 1.35, 11.6, 0.32, 4), sheetMat);
+            mattress.position.set(0, 2.25, 0.1);
+            const quilt = new THREE.Mesh(createRoundedBoxGeo(10.55, 1.4, 8.2, 0.34, 4), quiltMat);
+            quilt.position.set(0, 2.3, 1.8);
+            const goldRunner = new THREE.Mesh(createRoundedBoxGeo(10.65, 1.44, 2.0, 0.2, 3), goldMat);
+            goldRunner.position.set(0, 2.32, 4.2);
+            group.add(frame, headboard, mattress, quilt, goldRunner);
+
+            // 4 Carved Corner Posts + Golden Finials
+            const postGeo = new THREE.CylinderGeometry(0.32, 0.38, 7.5, 16);
+            [[-5.3, -5.9], [5.3, -5.9], [-5.3, 5.9], [5.3, 5.9]].forEach(([px, pz]) => {
+                const post = new THREE.Mesh(postGeo, woodMat);
+                post.position.set(px, 3.75, pz);
+                const finial = new THREE.Mesh(new THREE.SphereGeometry(0.45, 14, 14), goldMat);
+                finial.position.set(px, 7.65, pz);
+                group.add(post, finial);
+            });
+
+            // 4 Royal Pillows
+            const pillowGeo = createRoundedBoxGeo(2.2, 0.65, 1.4, 0.2, 3);
+            [-3.6, -1.2, 1.2, 3.6].forEach((px, idx) => {
+                const p = new THREE.Mesh(pillowGeo, idx % 2 === 0 ? sheetMat : goldMat);
+                p.position.set(px, 3.15, -4.4);
+                p.rotation.x = 0.25;
+                group.add(p);
+            });
+
+            group.position.set(x, 0, z);
+            group.rotation.y = ry || 0;
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(11.2, 3.3, 12.6), new THREE.MeshBasicMaterial({ visible: false }));
+            collider.position.set(x, 1.65, z);
+            collider.rotation.y = ry || 0;
+            addToScene(group, collider);
+        }
+
+        function createCatTree(x, z) {
+            const group = new THREE.Group();
+            const plushMat = new THREE.MeshStandardMaterial({ color: 0xd6c7b2, roughness: 0.9 });
+            const sisalMat = new THREE.MeshStandardMaterial({ color: 0xb08968, roughness: 0.95 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x292524, roughness: 0.9 });
+            const toyMat = new THREE.MeshStandardMaterial({ color: 0xf43f5e, roughness: 0.6 });
+
+            const base = new THREE.Mesh(createRoundedBoxGeo(6.4, 0.55, 6.4, 0.14, 3), plushMat);
+            base.position.y = 0.28;
+            group.add(base);
+
+            // Sisal Scratching Posts
+            const post1 = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 4.2, 16), sisalMat);
+            post1.position.set(-1.6, 2.3, -1.2);
+            const post2 = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 7.5, 16), sisalMat);
+            post2.position.set(1.5, 4.0, 1.0);
+            group.add(post1, post2);
+
+            // Cat Condo Cubby + Mid Platform + Top Perch
+            const condo = new THREE.Mesh(createRoundedBoxGeo(3.2, 2.8, 3.2, 0.22, 3), plushMat);
+            condo.position.set(-1.2, 1.9, 1.2);
+            const door = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.4, 16), darkMat);
+            door.rotation.x = Math.PI / 2;
+            door.position.set(-1.2, 1.7, 2.65);
+
+            const midPlat = new THREE.Mesh(createRoundedBoxGeo(4.8, 0.45, 4.2, 0.14, 3), plushMat);
+            midPlat.position.set(-0.6, 4.4, -0.5);
+
+            const topPerch = new THREE.Mesh(new THREE.CylinderGeometry(2.1, 2.1, 0.55, 24), plushMat);
+            topPerch.position.set(1.5, 7.8, 1.0);
+            const danglingToy = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 12), toyMat);
+            danglingToy.position.set(2.8, 6.5, 1.0);
+            group.add(condo, door, midPlat, topPerch, danglingToy);
+
+            group.position.set(x, 0, z);
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(6.4, 4.6, 6.4), new THREE.MeshBasicMaterial({ visible: false }));
+            collider.position.set(x, 2.3, z);
+            addToScene(group, collider);
+        }
+
+        function createGrandPiano(x, z, ry) {
+            const group = new THREE.Group();
+            const ebonyMat = new THREE.MeshStandardMaterial({ color: 0x111318, metalness: 0.45, roughness: 0.15 });
+            const ivoryMat = new THREE.MeshStandardMaterial({ color: 0xfafaf9, roughness: 0.3 });
+            const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.2 });
+
+            // Piano Body & Curved Tail
+            const frontBody = new THREE.Mesh(createRoundedBoxGeo(7.6, 1.4, 4.4, 0.18, 3), ebonyMat);
+            frontBody.position.set(0, 3.2, 1.2);
+            const tailCurve = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 3.6, 1.4, 28), ebonyMat);
+            tailCurve.position.set(-0.2, 3.2, -1.2);
+            const soundboard = new THREE.Mesh(new THREE.CylinderGeometry(3.3, 3.3, 0.2, 24), goldMat);
+            soundboard.position.set(-0.2, 3.85, -1.2);
+            group.add(frontBody, tailCurve, soundboard);
+
+            // Propped Open Lid
+            const lid = new THREE.Mesh(createRoundedBoxGeo(7.2, 0.18, 5.8, 0.06, 2), ebonyMat);
+            lid.position.set(0.4, 4.9, -0.4);
+            lid.rotation.z = 0.38;
+            group.add(lid);
+
+            // Keyboard Bed + White & Black Keys
+            const keyBed = new THREE.Mesh(createRoundedBoxGeo(7.2, 0.35, 1.2, 0.06, 2), ivoryMat);
+            keyBed.position.set(0, 2.95, 3.55);
+            group.add(keyBed);
+            for (let k = -2.8; k <= 2.8; k += 0.4) {
+                const blackKey = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.65), ebonyMat);
+                blackKey.position.set(k, 3.18, 3.4);
+                group.add(blackKey);
+            }
+
+            // 3 Turned Legs + Brass Pedals
+            const legGeo = new THREE.CylinderGeometry(0.28, 0.16, 2.6, 14);
+            [[-3.1, 2.6], [3.1, 2.6], [-0.2, -3.8]].forEach(([lx, lz]) => {
+                const leg = new THREE.Mesh(legGeo, ebonyMat);
+                leg.position.set(lx, 1.3, lz);
+                group.add(leg);
+            });
+
+            group.position.set(x, 0, z);
+            group.rotation.y = ry || 0;
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(7.8, 4.1, 8.2), new THREE.MeshBasicMaterial({ visible: false }));
+            collider.position.set(x, 2.05, z);
+            collider.rotation.y = ry || 0;
+            addToScene(group, collider);
+        }
+
+        function createStudyDesk(x, z) {
+            const group = new THREE.Group();
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0x4a2511, roughness: 0.4 });
+            const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.2 });
+            const bezelMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3 });
+            const screenMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.6 });
+            const greenShadeMat = new THREE.MeshStandardMaterial({ color: 0x15803d, emissive: 0x166534, emissiveIntensity: 0.45 });
+
+            const top = new THREE.Mesh(createRoundedBoxGeo(9.2, 0.45, 4.6, 0.14, 3), woodMat);
+            top.position.y = 3.65;
+            const leftPed = new THREE.Mesh(createRoundedBoxGeo(2.4, 3.5, 4.2, 0.12, 3), woodMat);
+            leftPed.position.set(-3.1, 1.75, 0);
+            const rightPed = new THREE.Mesh(createRoundedBoxGeo(2.4, 3.5, 4.2, 0.12, 3), woodMat);
+            rightPed.position.set(3.1, 1.75, 0);
+            group.add(top, leftPed, rightPed);
+
+            // Ultrawide Monitor & Banker's Lamp
+            const monStand = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.35, 0.7, 12), bezelMat);
+            monStand.position.set(0, 4.1, -0.8);
+            const monFrame = new THREE.Mesh(createRoundedBoxGeo(4.2, 1.9, 0.22, 0.08, 3), bezelMat);
+            monFrame.position.set(0, 5.1, -0.8);
+            const monScreen = new THREE.Mesh(new THREE.PlaneGeometry(3.95, 1.65), screenMat);
+            monScreen.position.set(0, 5.1, -0.68);
+            const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.35, 1.1, 12), goldMat);
+            lampBase.position.set(-3.2, 4.35, -0.6);
+            const lampShade = new THREE.Mesh(createRoundedBoxGeo(1.1, 0.45, 0.65, 0.12, 3), greenShadeMat);
+            lampShade.position.set(-3.2, 4.95, -0.6);
+            group.add(monStand, monFrame, monScreen, lampBase, lampShade);
+
+            group.position.set(x, 0, z);
+            const collider = new THREE.Mesh(new THREE.BoxGeometry(9.2, 4.0, 4.6), new THREE.MeshBasicMaterial({ visible: false }));
+            collider.position.set(x, 2.0, z);
+            addToScene(group, collider);
         }
 
         function addToScene(visibleGroup, colliderMesh) {
             visibleGroup.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
-            scene.add(visibleGroup); obstacles.push(colliderMesh); colliderMesh.updateMatrixWorld();
+            scene.add(visibleGroup);
+            levelObjects.push(visibleGroup);
+            obstacles.push(colliderMesh);
+            colliderMesh.updateMatrixWorld();
         }
 
         // --- Character Generation (Rounded) ---
 
         function createPlayer() {
-            const group = new THREE.Group(); const fur = new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 1 });
+            const group = new THREE.Group();
+            const fur = new THREE.MeshStandardMaterial({ color: 0xff9e1b, roughness: 0.75 });
+            const stripeMat = new THREE.MeshStandardMaterial({ color: 0xc85a00, roughness: 0.8 });
+            const creamMat = new THREE.MeshStandardMaterial({ color: 0xfff5e4, roughness: 0.8 });
+            const pinkMat = new THREE.MeshStandardMaterial({ color: 0xff8fab, roughness: 0.5 });
+            const eyeMat = new THREE.MeshStandardMaterial({ color: 0x2ec4b6, roughness: 0.15 });
+            const pupilMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1 });
+            const shineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const collarMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.4 });
+            const bellMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.85, roughness: 0.2 });
+            const whiskerMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
 
-            // Body: Capsule-like (Sphere stretched or Cylinder with spherical caps)
-            // Simulating Capsule with Sphere
-            const body = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), fur);
-            body.scale.set(1, 0.8, 1.5);
-            body.position.y = 0.6;
-            group.add(body);
+            // 1. Four Pivoted Legs with White Paws
+            const legGeo = new THREE.CylinderGeometry(0.19, 0.15, 0.68, 14);
+            const pawGeo = new THREE.SphereGeometry(0.21, 14, 14);
+            const catLegs = [];
+            const legCoords = [
+                [-0.42, 0.68, 0.68], [0.42, 0.68, 0.68],
+                [-0.42, 0.68, -0.68], [0.42, 0.68, -0.68]
+            ];
+            legCoords.forEach(([lx, ly, lz]) => {
+                const legPivot = new THREE.Group();
+                legPivot.position.set(lx, ly, lz);
 
-            // Head: Sphere
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 32), fur);
-            head.position.set(0, 1.3, 1);
-            group.add(head);
+                const upperLeg = new THREE.Mesh(legGeo, fur);
+                upperLeg.position.y = -0.32;
+                legPivot.add(upperLeg);
 
-            // Ears: Cones
-            const earGeo = new THREE.ConeGeometry(0.2, 0.5, 16);
-            const ear1 = new THREE.Mesh(earGeo, fur); ear1.position.set(0.3, 1.9, 1); ear1.rotation.x = -0.2; group.add(ear1);
-            const ear2 = new THREE.Mesh(earGeo, fur); ear2.position.set(-0.3, 1.9, 1); ear2.rotation.x = -0.2; group.add(ear2);
+                const paw = new THREE.Mesh(pawGeo, creamMat);
+                paw.scale.set(1, 0.72, 1.25);
+                paw.position.set(0, -0.58, 0.06);
+                legPivot.add(paw);
 
-            // Tail: Cylinder chain or just one curved cylinder. Simple: Cylinder
-            const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.05, 1.5, 12), fur);
-            tail.position.set(0, 0.8, -1); tail.rotation.x = -1; group.add(tail);
+                catLegs.push(legPivot);
+                group.add(legPivot);
+            });
 
-            const holder = new THREE.Group(); holder.name = "weaponHolder"; holder.position.set(0.6, 0.8, 1.0); group.add(holder);
+            // 2. Sculpted Body, Cream Belly/Chest Fluff & Tabby Back Stripes
+            const bodyGroup = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.SphereGeometry(0.88, 28, 28), fur);
+            body.scale.set(0.95, 0.82, 1.48);
+            body.position.y = 1.05;
+            bodyGroup.add(body);
+
+            const chestFluff = new THREE.Mesh(new THREE.SphereGeometry(0.62, 20, 20), creamMat);
+            chestFluff.scale.set(0.85, 0.78, 0.9);
+            chestFluff.position.set(0, 0.98, 0.76);
+            bodyGroup.add(chestFluff);
+
+            [-0.45, -0.05, 0.35].forEach((sz, idx) => {
+                const stripe = new THREE.Mesh(new THREE.TorusGeometry(0.76 - Math.abs(idx - 1) * 0.06, 0.055, 8, 24, Math.PI * 0.85), stripeMat);
+                stripe.rotation.y = Math.PI / 2;
+                stripe.rotation.x = Math.PI * 0.08;
+                stripe.position.set(0, 1.15, sz);
+                bodyGroup.add(stripe);
+            });
+
+            // Red Collar & Golden Bell
+            const collar = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.075, 10, 24), collarMat);
+            collar.rotation.x = Math.PI / 2 - 0.35;
+            collar.position.set(0, 1.38, 0.88);
+            const bell = new THREE.Mesh(new THREE.SphereGeometry(0.14, 12, 12), bellMat);
+            bell.position.set(0, 1.16, 1.36);
+            bodyGroup.add(collar, bell);
+
+            // 3. Expressive Cat Head, Cheeks, Muzzle, Nose, Whiskers, Eyes & Ears
+            const headGroup = new THREE.Group();
+            headGroup.position.set(0, 1.72, 1.08);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.68, 28, 28), fur);
+            head.scale.set(1.06, 0.96, 0.98);
+            headGroup.add(head);
+
+            // Forehead Tabby Stripes
+            [-0.14, 0, 0.14].forEach((fx, idx) => {
+                const fStripe = new THREE.Mesh(createRoundedBoxGeo(0.06, 0.24, 0.12, 0.02, 2), stripeMat);
+                fStripe.position.set(fx, 0.38, 0.54 - Math.abs(idx - 1) * 0.03);
+                fStripe.rotation.x = -0.45;
+                headGroup.add(fStripe);
+            });
+
+            // Fluffy Cheek Tufts & Cream Muzzle Pads
+            [-0.52, 0.52].forEach(cx => {
+                const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 14), fur);
+                cheek.scale.set(1.1, 0.75, 0.8);
+                cheek.position.set(cx, -0.1, 0.18);
+                headGroup.add(cheek);
+            });
+
+            [-0.15, 0.15].forEach(mx => {
+                const muzzlePad = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 14), creamMat);
+                muzzlePad.scale.set(1.05, 0.82, 0.9);
+                muzzlePad.position.set(mx, -0.14, 0.56);
+                headGroup.add(muzzlePad);
+            });
+
+            // Cute Pink Nose
+            const nose = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.12, 3), pinkMat);
+            nose.rotation.x = Math.PI / 2;
+            nose.rotation.y = Math.PI;
+            nose.position.set(0, -0.04, 0.72);
+            headGroup.add(nose);
+
+            // Whiskers (3 per side)
+            const whiskerGeo = new THREE.CylinderGeometry(0.01, 0.006, 0.55, 6);
+            [-1, 1].forEach(side => {
+                [-0.12, 0, 0.12].forEach((angleOffset, wIdx) => {
+                    const whisker = new THREE.Mesh(whiskerGeo, whiskerMat);
+                    whisker.rotation.z = side * (Math.PI / 2 + angleOffset);
+                    whisker.rotation.y = side * 0.25;
+                    whisker.position.set(side * 0.42, -0.12 + (wIdx - 1) * 0.05, 0.58);
+                    headGroup.add(whisker);
+                });
+            });
+
+            // Glossy Cat Eyes with Slit Pupils & Catchlights
+            [-0.26, 0.26].forEach(ex => {
+                const eye = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 16), eyeMat);
+                eye.scale.set(1, 1.1, 0.65);
+                eye.position.set(ex, 0.1, 0.56);
+
+                const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.085, 12, 12), pupilMat);
+                pupil.scale.set(0.55, 1.15, 0.6);
+                pupil.position.set(ex, 0.1, 0.63);
+
+                const shine = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 8), shineMat);
+                shine.position.set(ex + 0.04, 0.15, 0.66);
+
+                headGroup.add(eye, pupil, shine);
+            });
+
+            // Pointed Ears with Pink Inner Ears
+            const outerEarGeo = new THREE.ConeGeometry(0.24, 0.52, 4);
+            const innerEarGeo = new THREE.ConeGeometry(0.14, 0.36, 4);
+            [-0.36, 0.36].forEach((ex, idx) => {
+                const earPivot = new THREE.Group();
+                earPivot.position.set(ex, 0.56, 0.05);
+                earPivot.rotation.z = idx === 0 ? 0.26 : -0.26;
+                earPivot.rotation.x = 0.15;
+
+                const outerEar = new THREE.Mesh(outerEarGeo, fur);
+                outerEar.rotation.y = Math.PI / 4;
+                const innerEar = new THREE.Mesh(innerEarGeo, pinkMat);
+                innerEar.rotation.y = Math.PI / 4;
+                innerEar.position.set(0, -0.02, 0.06);
+
+                earPivot.add(outerEar, innerEar);
+                headGroup.add(earPivot);
+            });
+
+            bodyGroup.add(headGroup);
+
+            // 4. Curved Multi-Segment Wagging Tail with Cream Tip
+            const tailPivot = new THREE.Group();
+            tailPivot.position.set(0, 1.2, -1.05);
+
+            const tailLower = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 0.85, 12), fur);
+            tailLower.position.set(0, 0.32, -0.25);
+            tailLower.rotation.x = -0.65;
+            tailPivot.add(tailLower);
+
+            const tailUpper = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, 0.75, 12), fur);
+            tailUpper.position.set(0, 0.82, -0.52);
+            tailUpper.rotation.x = -0.25;
+            tailPivot.add(tailUpper);
+
+            const tailTip = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), creamMat);
+            tailTip.scale.set(1, 1.3, 1);
+            tailTip.position.set(0, 1.18, -0.62);
+            tailPivot.add(tailTip);
+
+            bodyGroup.add(tailPivot);
+            group.add(bodyGroup);
+
+            const holder = new THREE.Group();
+            holder.name = "weaponHolder";
+            holder.position.set(0.68, 1.08, 0.95);
+            group.add(holder);
+
+            group.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
             scene.add(group);
-            player = { mesh: group, velocity: new THREE.Vector3(), onGround: false, hasWeapon: false, weaponType: null, isAttacking: false };
+            player = {
+                mesh: group,
+                bodyGroup,
+                headGroup,
+                tailPivot,
+                catLegs,
+                velocity: new THREE.Vector3(),
+                onGround: false,
+                hasWeapon: false,
+                weaponType: null,
+                isAttacking: false
+            };
         }
 
         function spawnEnemy() {
             if (!isGameRunning || isBossFight || enemies.length > 6) return;
             const group = new THREE.Group();
-            const skin = new THREE.MeshStandardMaterial({ color: 0xffccaa });
-            const clothes = new THREE.MeshStandardMaterial({ color: Math.random() > 0.5 ? 0x8b0000 : 0x006400 });
-            const pants = new THREE.MeshStandardMaterial({ color: 0x000080 });
 
-            // Legs: Cylinders
-            const legGeo = new THREE.CylinderGeometry(0.4, 0.4, 3, 16);
-            const l = new THREE.Mesh(legGeo, pants); l.position.set(-0.6, 1.5, 0);
-            const r = new THREE.Mesh(legGeo, pants); r.position.set(0.6, 1.5, 0);
-            group.add(l, r);
+            const skinTones = [0xffd1b3, 0xf1c27d, 0xe0ac69, 0xc68642];
+            const shirtColors = [0x9e2a2b, 0x2d6a4f, 0xd97706, 0x1d4ed8, 0x6d28d9];
+            const pantColors = [0x1e3a5f, 0x374151, 0x4b3832, 0x27272a];
+            const hairColors = [0x2b1b12, 0x4a2e16, 0x8d5524, 0x1a1a1a, 0xa8432b];
 
-            // Torso: Rounded Cylinder (Capsule-ish)
-            const torso = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.9, 3.5, 32), clothes);
-            torso.scale.set(1, 1, 0.6); // Flatten slightly
-            torso.position.y = 4.5;
-            group.add(torso);
+            const skin = new THREE.MeshStandardMaterial({ color: skinTones[Math.floor(Math.random() * skinTones.length)], roughness: 0.65 });
+            const clothes = new THREE.MeshStandardMaterial({ color: shirtColors[Math.floor(Math.random() * shirtColors.length)], roughness: 0.8 });
+            const pants = new THREE.MeshStandardMaterial({ color: pantColors[Math.floor(Math.random() * pantColors.length)], roughness: 0.85 });
+            const hairMat = new THREE.MeshStandardMaterial({ color: hairColors[Math.floor(Math.random() * hairColors.length)], roughness: 0.8 });
+            const shoeMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.6 });
+            const soleMat = new THREE.MeshStandardMaterial({ color: 0xf3f4f6, roughness: 0.7 });
+            const beltMat = new THREE.MeshStandardMaterial({ color: 0x291c14, roughness: 0.5 });
+            const buckleMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.7, roughness: 0.3 });
+            const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
+            const pupilMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2 });
 
-            // Arms
-            const armGeo = new THREE.CylinderGeometry(0.25, 0.25, 2.5, 16);
-            const armL = new THREE.Mesh(armGeo, clothes); armL.rotation.z = 0.2; armL.position.set(-1.4, 4.5, 0); group.add(armL);
-            const armR = new THREE.Mesh(armGeo, clothes); armR.rotation.z = -0.2; armR.position.set(1.4, 4.5, 0); group.add(armR);
+            // Pivoted Legs + Sneakers
+            const legGeo = new THREE.CylinderGeometry(0.36, 0.3, 2.5, 16);
+            const shoeGeo = createRoundedBoxGeo(0.75, 0.42, 1.15, 0.14, 3);
+            const soleGeo = createRoundedBoxGeo(0.78, 0.12, 1.18, 0.04, 2);
 
-            // Head: Sphere
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.8, 32, 32), skin);
-            head.position.y = 6.8;
-            group.add(head);
+            const legLPivot = new THREE.Group();
+            legLPivot.position.set(-0.52, 2.8, 0);
+            const legLMesh = new THREE.Mesh(legGeo, pants);
+            legLMesh.position.y = -1.25;
+            const shoeL = new THREE.Mesh(shoeGeo, shoeMat);
+            shoeL.position.set(0, -2.55, 0.18);
+            const soleL = new THREE.Mesh(soleGeo, soleMat);
+            soleL.position.set(0, -2.74, 0.18);
+            legLPivot.add(legLMesh, shoeL, soleL);
 
-            const angle = Math.random() * Math.PI * 2; group.position.set(Math.cos(angle) * 55, 0, Math.sin(angle) * 55);
+            const legRPivot = new THREE.Group();
+            legRPivot.position.set(0.52, 2.8, 0);
+            const legRMesh = new THREE.Mesh(legGeo, pants);
+            legRMesh.position.y = -1.25;
+            const shoeR = new THREE.Mesh(shoeGeo, shoeMat);
+            shoeR.position.set(0, -2.55, 0.18);
+            const soleR = new THREE.Mesh(soleGeo, soleMat);
+            soleR.position.set(0, -2.74, 0.18);
+            legRPivot.add(legRMesh, shoeR, soleR);
+            group.add(legLPivot, legRPivot);
+
+            // Hips & Belt
+            const hips = new THREE.Mesh(createRoundedBoxGeo(1.85, 0.65, 1.08, 0.2, 3), pants);
+            hips.position.y = 2.95;
+            const belt = new THREE.Mesh(createRoundedBoxGeo(1.9, 0.22, 1.12, 0.06, 2), beltMat);
+            belt.position.y = 3.22;
+            const buckle = new THREE.Mesh(createRoundedBoxGeo(0.35, 0.26, 0.12, 0.03, 2), buckleMat);
+            buckle.position.set(0, 3.22, 0.55);
+            group.add(hips, belt, buckle);
+
+            // Rounded Torso + Collar
+            const torso = new THREE.Mesh(createRoundedBoxGeo(1.95, 2.6, 1.12, 0.32, 4), clothes);
+            torso.position.y = 4.45;
+            const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 0.3, 16), clothes);
+            collar.position.y = 5.75;
+            const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.45, 14), skin);
+            neck.position.y = 5.95;
+            group.add(torso, collar, neck);
+
+            // Pivoted Arms + Sleeves + Hands
+            const sleeveGeo = new THREE.CylinderGeometry(0.32, 0.28, 0.95, 14);
+            const forearmGeo = new THREE.CylinderGeometry(0.23, 0.2, 1.35, 14);
+            const handGeo = new THREE.SphereGeometry(0.26, 12, 12);
+
+            const armLPivot = new THREE.Group();
+            armLPivot.position.set(-1.22, 5.4, 0);
+            const sleeveL = new THREE.Mesh(sleeveGeo, clothes);
+            sleeveL.position.y = -0.4;
+            const forearmL = new THREE.Mesh(forearmGeo, skin);
+            forearmL.position.y = -1.35;
+            const handL = new THREE.Mesh(handGeo, skin);
+            handL.position.y = -2.05;
+            armLPivot.add(sleeveL, forearmL, handL);
+            armLPivot.rotation.z = 0.12;
+
+            const armRPivot = new THREE.Group();
+            armRPivot.position.set(1.22, 5.4, 0);
+            const sleeveR = new THREE.Mesh(sleeveGeo, clothes);
+            sleeveR.position.y = -0.4;
+            const forearmR = new THREE.Mesh(forearmGeo, skin);
+            forearmR.position.y = -1.35;
+            const handR = new THREE.Mesh(handGeo, skin);
+            handR.position.y = -2.05;
+            armRPivot.add(sleeveR, forearmR, handR);
+            armRPivot.rotation.z = -0.12;
+            group.add(armLPivot, armRPivot);
+
+            // Expressive Head: Hair, Ears, Nose, Angry Eyes & Brows, Shouting Mouth
+            const headGroup = new THREE.Group();
+            headGroup.position.y = 6.75;
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.82, 24, 24), skin);
+            headGroup.add(head);
+
+            // Hair Cap & Front Fringe
+            const hairCap = new THREE.Mesh(
+                new THREE.SphereGeometry(0.86, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.58),
+                hairMat
+            );
+            hairCap.position.set(0, 0.06, -0.05);
+            hairCap.rotation.x = -0.2;
+            const hairFringe = new THREE.Mesh(createRoundedBoxGeo(1.15, 0.32, 0.45, 0.12, 3), hairMat);
+            hairFringe.position.set(0, 0.52, 0.58);
+            hairFringe.rotation.x = 0.25;
+            headGroup.add(hairCap, hairFringe);
+
+            // Ears & Nose
+            const earGeo = new THREE.SphereGeometry(0.18, 10, 10);
+            [-0.8, 0.8].forEach(ex => {
+                const ear = new THREE.Mesh(earGeo, skin);
+                ear.scale.set(0.6, 1.1, 0.8);
+                ear.position.set(ex, 0, 0);
+                headGroup.add(ear);
+            });
+            const nose = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), skin);
+            nose.position.set(0, -0.02, 0.82);
+            headGroup.add(nose);
+
+            // Eyes & Furious Slanted Eyebrows
+            const eyeGeo = new THREE.SphereGeometry(0.13, 12, 12);
+            const pupilGeo = new THREE.SphereGeometry(0.065, 10, 10);
+            const browGeo = createRoundedBoxGeo(0.32, 0.08, 0.1, 0.02, 2);
+            [-0.28, 0.28].forEach((ex, idx) => {
+                const eye = new THREE.Mesh(eyeGeo, eyeWhiteMat);
+                eye.position.set(ex, 0.12, 0.72);
+                const pupil = new THREE.Mesh(pupilGeo, pupilMat);
+                pupil.position.set(ex, 0.12, 0.83);
+                const brow = new THREE.Mesh(browGeo, hairMat);
+                brow.position.set(ex, 0.3, 0.76);
+                brow.rotation.z = idx === 0 ? -0.35 : 0.35;
+                headGroup.add(eye, pupil, brow);
+            });
+
+            // Angry Shouting Mouth
+            const mouth = new THREE.Mesh(
+                createRoundedBoxGeo(0.32, 0.16, 0.1, 0.04, 2),
+                new THREE.MeshStandardMaterial({ color: 0x3b0a0a, roughness: 0.9 })
+            );
+            mouth.position.set(0, -0.28, 0.75);
+            headGroup.add(mouth);
+
+            group.add(headGroup);
+
+            // Pick a spawn position near the perimeter that doesn't clip into furniture or other enemies
+            let spawnX = 0, spawnZ = 0;
+            for (let attempt = 0; attempt < 15; attempt++) {
+                const angle = Math.random() * Math.PI * 2;
+                const distFromCenter = 46 + Math.random() * 8;
+                const cx = Math.max(-54, Math.min(54, Math.cos(angle) * distFromCenter));
+                const cz = Math.max(-54, Math.min(54, Math.sin(angle) * distFromCenter));
+                if (!isPointInsideObstacle(cx, cz, 1.5)) {
+                    spawnX = cx;
+                    spawnZ = cz;
+                    break;
+                }
+            }
+            group.position.set(spawnX, 0, spawnZ);
             group.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
             scene.add(group);
-            enemies.push({ mesh: group, speed: 5 + Math.random() * 2, velocityY: 0, isJumping: false });
+            enemies.push({
+                mesh: group,
+                speed: 5 + Math.random() * 2,
+                velocityY: 0,
+                isJumping: false,
+                steerDir: Math.random() > 0.5 ? 1 : -1,
+                walkPhase: Math.random() * Math.PI * 2,
+                legLPivot,
+                legRPivot,
+                armLPivot,
+                armRPivot
+            });
+        }
+
+        function isPointInsideObstacle(x, z, radius) {
+            for (let obs of obstacles) {
+                const box = new THREE.Box3().setFromObject(obs);
+                if (x > box.min.x - radius && x < box.max.x + radius &&
+                    z > box.min.z - radius && z < box.max.z + radius) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function resolveObstacleCollisions(pos, prevY, velocityY, radius) {
+            const roomLimit = 58.5 - radius;
+            pos.x = Math.max(-roomLimit, Math.min(roomLimit, pos.x));
+            pos.z = Math.max(-roomLimit, Math.min(roomLimit, pos.z));
+
+            let groundedHeight = 0;
+            let blockedBox = null;
+            const entityHeight = radius <= 1.0 ? 2.1 : 5.5;
+
+            for (let obs of obstacles) {
+                const box = new THREE.Box3().setFromObject(obs);
+                const minX = box.min.x - radius;
+                const maxX = box.max.x + radius;
+                const minZ = box.min.z - radius;
+                const maxZ = box.max.z + radius;
+
+                if (pos.x > minX && pos.x < maxX && pos.z > minZ && pos.z < maxZ) {
+                    if (prevY >= box.max.y - 0.55 && velocityY <= 0) {
+                        if (box.max.y > groundedHeight) groundedHeight = box.max.y;
+                    } else if (pos.y < box.max.y - 0.35 && pos.y + entityHeight > box.min.y) {
+                        const penLeft = pos.x - minX;
+                        const penRight = maxX - pos.x;
+                        const penFront = pos.z - minZ;
+                        const penBack = maxZ - pos.z;
+                        const minPen = Math.min(penLeft, penRight, penFront, penBack);
+
+                        if (minPen === penLeft) pos.x = minX;
+                        else if (minPen === penRight) pos.x = maxX;
+                        else if (minPen === penFront) pos.z = minZ;
+                        else pos.z = maxZ;
+
+                        blockedBox = box;
+                    }
+                }
+            }
+
+            let onGround = false;
+            if (pos.y <= groundedHeight) {
+                pos.y = groundedHeight;
+                velocityY = 0;
+                onGround = true;
+            }
+
+            return { velocityY, onGround, blockedBox };
         }
 
         // --- Boss Logic (Updated visuals) ---
 
         function startBossFight() {
+            clearAllBosses();
             isBossFight = true;
+            isBossRush = false;
             enemies.forEach(e => scene.remove(e.mesh));
             enemies = [];
 
             const warn = document.getElementById('boss-warning');
+            warn.style.color = '#ff2244';
+            warn.style.textShadow = '0 0 20px red';
+            const lowPowerTag = enemiesDefeated < 4 ? " (LOW POWER!)" : "";
+            warn.innerText = ((currentLevel === 3 && !isEndlessMode) ? "FINAL BOSS APPROACHING!" : "BOSS APPROACHING!") + lowPowerTag;
             warn.classList.remove('warn-active');
             void warn.offsetWidth;
             warn.classList.add('warn-active');
 
-            const bossType = bossLevelIndex % 5;
-            const names = ["THE EXTERMINATOR", "VACUUM KING", "MAILMAN MIKE", "GRANDMA", "THE VET"];
+            let bossType;
+            if (!isEndlessMode) {
+                if (currentLevel === 1) bossType = 1; // Vacuum King in Living Room
+                else if (currentLevel === 2) bossType = 4; // The Vet in Kitchen
+                else bossType = 5; // Crazy Finale Boss in Level 3!
+            } else {
+                bossType = bossLevelIndex % 6;
+            }
+
+            const names = [
+                "THE EXTERMINATOR",
+                "VACUUM KING",
+                "MAILMAN MIKE",
+                "GRANDMA",
+                "THE VET",
+                "OMEGA MECHA-HOUND 9000"
+            ];
             document.getElementById('boss-name').innerText = names[bossType];
 
             document.getElementById('boss-hud').classList.add('visible');
             updateBossHealthUI(100);
 
-            setTimeout(() => spawnBoss(bossType), 2000);
+            setTimeout(() => { if (isGameRunning && isBossFight && !isBossRush) spawnBoss(bossType, 0, -40); }, 2000);
         }
 
-        function spawnBoss(type) {
+        function startBossRush() {
+            clearAllBosses();
+            isBossFight = true;
+            isBossRush = true;
+            enemies.forEach(e => scene.remove(e.mesh));
+            enemies = [];
+            projectiles.forEach(p => scene.remove(p.mesh));
+            projectiles = [];
+
+            const warn = document.getElementById('boss-warning');
+            warn.style.color = '#f43f5e';
+            warn.style.textShadow = '0 0 25px #a855f7';
+            warn.innerText = "BOSS RUSH: ALL 6 BOSSES AT ONCE!";
+            warn.classList.remove('warn-active');
+            void warn.offsetWidth;
+            warn.classList.add('warn-active');
+
+            document.getElementById('boss-name').innerText = "🔥 BOSS RUSH: 6/6 BOSSES REMAINING 🔥";
+            document.getElementById('boss-hud').classList.add('visible');
+            updateBossHealthUI(100);
+
+            if (!player.hasWeapon) equipWeapon('fish');
+            while (weapons.length < 5) spawnWeapon();
+
+            setTimeout(() => {
+                if (!isGameRunning || !isBossFight || !isBossRush) return;
+                const rushPositions = [
+                    [-36, -36],
+                    [-22, -44],
+                    [-8, -46],
+                    [8, -46],
+                    [22, -44],
+                    [36, -36]
+                ];
+                for (let t = 0; t < 6; t++) {
+                    spawnBoss(t, rushPositions[t][0], rushPositions[t][1]);
+                }
+                updateActiveBossesHUD();
+            }, 1500);
+        }
+
+        function updateActiveBossesHUD() {
+            if (activeBosses.length === 0) {
+                updateBossHealthUI(0);
+                return;
+            }
+            let totalHp = 0, totalMaxHp = 0;
+            activeBosses.forEach(b => {
+                totalHp += Math.max(0, b.hp);
+                totalMaxHp += b.maxHp;
+            });
+            updateBossHealthUI(totalMaxHp > 0 ? (totalHp / totalMaxHp) * 100 : 0);
+            if (isBossRush) {
+                document.getElementById('boss-name').innerText = `🔥 BOSS RUSH: ${activeBosses.length}/6 BOSSES REMAINING 🔥`;
+            }
+        }
+
+        function spawnBoss(type, spawnX = 0, spawnZ = -40) {
             const group = new THREE.Group();
             let hp = 5;
             let speed = 7;
 
-            if (type === 0) { // Exterminator (Rounder)
-                const suit = new THREE.MeshStandardMaterial({ color: 0xffcc00 });
-                // Body: Capsule
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1, 4, 32), suit);
-                body.position.y = 2; group.add(body);
-                // Head: Sphere w/ Mask
-                const head = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), new THREE.MeshStandardMaterial({ color: 0x333 }));
-                head.position.y = 4.5; group.add(head);
-                // Tank: Cylinder
-                const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 3, 32), new THREE.MeshStandardMaterial({ color: 0x888888 }));
-                tank.rotation.z = Math.PI / 2; tank.position.set(0, 3, -1); group.add(tank);
-                group.position.y = 2;
+            if (type === 0) { // THE EXTERMINATOR: Hazmat suit, boots, respirator mask with glowing green goggles, twin chemical tanks & sprayer wand
+                const suitMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.55 });
+                const darkRubberMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.7 });
+                const metalMat = new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.75, roughness: 0.25 });
+                const lensMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x16a34a, emissiveIntensity: 0.85, roughness: 0.15 });
+
+                // Boots & Hazmat Legs
+                [-0.65, 0.65].forEach(lx => {
+                    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.4, 2.2, 16), suitMat);
+                    leg.position.set(lx, 1.5, 0);
+                    const boot = new THREE.Mesh(createRoundedBoxGeo(0.92, 0.7, 1.3, 0.16, 3), darkRubberMat);
+                    boot.position.set(lx, 0.35, 0.15);
+                    group.add(leg, boot);
+                });
+
+                // Hazmat Torso & Belt
+                const body = new THREE.Mesh(createRoundedBoxGeo(2.5, 3.2, 1.55, 0.42, 4), suitMat);
+                body.position.y = 3.8;
+                const belt = new THREE.Mesh(createRoundedBoxGeo(2.6, 0.35, 1.62, 0.08, 2), darkRubberMat);
+                belt.position.y = 2.65;
+                group.add(body, belt);
+
+                // Arms & Sprayer Wand
+                [-1.55, 1.55].forEach(ax => {
+                    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.3, 2.4, 14), suitMat);
+                    arm.position.set(ax, 3.9, 0.2);
+                    arm.rotation.x = -0.35;
+                    const glove = new THREE.Mesh(new THREE.SphereGeometry(0.36, 12, 12), darkRubberMat);
+                    glove.position.set(ax, 2.85, 0.65);
+                    group.add(arm, glove);
+                });
+
+                const wand = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 2.8, 10), metalMat);
+                wand.rotation.x = Math.PI / 2;
+                wand.position.set(1.55, 2.9, 1.6);
+                const nozzle = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.4, 12), lensMat);
+                nozzle.rotation.x = Math.PI / 2;
+                nozzle.position.set(1.55, 2.9, 3.0);
+                group.add(wand, nozzle);
+
+                // Hooded Head + Respirator Mask + Glowing Goggles + Filter Canisters
+                const hood = new THREE.Mesh(new THREE.SphereGeometry(1.12, 24, 24), suitMat);
+                hood.position.y = 6.1;
+                const maskFace = new THREE.Mesh(new THREE.SphereGeometry(0.95, 20, 20), darkRubberMat);
+                maskFace.position.set(0, 6.05, 0.25);
+                group.add(hood, maskFace);
+
+                [-0.38, 0.38].forEach(gx => {
+                    const goggleRim = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.25, 16), metalMat);
+                    goggleRim.rotation.x = Math.PI / 2;
+                    goggleRim.position.set(gx, 6.22, 1.05);
+                    const goggleLens = new THREE.Mesh(new THREE.SphereGeometry(0.27, 14, 14), lensMat);
+                    goggleLens.position.set(gx, 6.22, 1.12);
+                    group.add(goggleRim, goggleLens);
+                });
+
+                [-0.45, 0.45].forEach(fx => {
+                    const canister = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.28, 0.55, 14), darkRubberMat);
+                    canister.rotation.x = Math.PI / 2 + 0.3;
+                    canister.rotation.z = fx > 0 ? -0.45 : 0.45;
+                    canister.position.set(fx, 5.7, 1.08);
+                    group.add(canister);
+                });
+
+                // Twin Backpack Chemical Tanks
+                [-0.6, 0.6].forEach(tx => {
+                    const tank = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 2.8, 20), metalMat);
+                    tank.position.set(tx, 4.1, -1.15);
+                    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 16), lensMat);
+                    cap.position.set(tx, 5.5, -1.15);
+                    group.add(tank, cap);
+                });
             }
-            else if (type === 1) { // Vacuum King (Smooth Cylinder)
-                const metal = new THREE.MeshStandardMaterial({ color: 0x6600cc, metalness: 0.8, roughness: 0.2 });
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(2, 2.5, 4, 32), metal);
-                body.position.y = 2; group.add(body);
-                // Dome head
-                const dome = new THREE.Mesh(new THREE.SphereGeometry(2, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9933ff }));
-                dome.position.y = 4; group.add(dome);
+            else if (type === 1) { // VACUUM KING: Royal purple robotic canister vac on wheels with intake hose, glowing visor & golden crown
+                const purpleMetal = new THREE.MeshStandardMaterial({ color: 0x5b21b6, metalness: 0.75, roughness: 0.25 });
+                const chromeMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.85, roughness: 0.2 });
+                const darkRubber = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.85 });
+                const goldMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.8, roughness: 0.2 });
+                const neonEyeMat = new THREE.MeshStandardMaterial({ color: 0xff22aa, emissive: 0xff0088, emissiveIntensity: 0.9 });
+
+                // 4 Chunky Rubber Wheels + Chrome Hubcaps
+                const wheelGeo = new THREE.CylinderGeometry(0.75, 0.75, 0.5, 20);
+                const hubGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.54, 16);
+                [[-2.2, -1.2], [2.2, -1.2], [-2.2, 1.2], [2.2, 1.2]].forEach(([wx, wz]) => {
+                    const wheel = new THREE.Mesh(wheelGeo, darkRubber);
+                    wheel.rotation.z = Math.PI / 2;
+                    wheel.position.set(wx, 0.75, wz);
+                    const hub = new THREE.Mesh(hubGeo, chromeMat);
+                    hub.rotation.z = Math.PI / 2;
+                    hub.position.set(wx, 0.75, wz);
+                    group.add(wheel, hub);
+                });
+
+                // Bumper Base & Canister Body
+                const bumper = new THREE.Mesh(new THREE.CylinderGeometry(2.65, 2.75, 0.8, 32), darkRubber);
+                bumper.position.y = 0.9;
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(2.15, 2.45, 3.6, 32), purpleMetal);
+                body.position.y = 2.8;
+                const chromeRing = new THREE.Mesh(new THREE.TorusGeometry(2.22, 0.14, 12, 32), chromeMat);
+                chromeRing.rotation.x = Math.PI / 2;
+                chromeRing.position.y = 4.55;
+                group.add(bumper, body, chromeRing);
+
+                // Front Suction Nozzle Snout
+                const snout = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.65, 1.8, 16), darkRubber);
+                snout.rotation.x = Math.PI / 2 + 0.35;
+                snout.position.set(0, 2.2, 2.7);
+                const nozzleHead = new THREE.Mesh(createRoundedBoxGeo(2.4, 0.45, 0.9, 0.12, 3), chromeMat);
+                nozzleHead.position.set(0, 1.4, 3.45);
+                group.add(snout, nozzleHead);
+
+                // Glowing Angry LED Eyes
+                [-0.75, 0.75].forEach((ex, idx) => {
+                    const eye = new THREE.Mesh(createRoundedBoxGeo(0.75, 0.28, 0.2, 0.06, 2), neonEyeMat);
+                    eye.position.set(ex, 3.65, 2.18);
+                    eye.rotation.z = idx === 0 ? -0.25 : 0.25;
+                    group.add(eye);
+                });
+
+                // Dome Head & Royal Golden Crown
+                const dome = new THREE.Mesh(
+                    new THREE.SphereGeometry(2.1, 32, 24, 0, Math.PI * 2, 0, Math.PI / 2),
+                    new THREE.MeshStandardMaterial({ color: 0x9333ea, roughness: 0.2, metalness: 0.4 })
+                );
+                dome.position.y = 4.55;
+                group.add(dome);
+
+                const crownBand = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.0, 0.65, 20), goldMat);
+                crownBand.position.y = 6.75;
+                group.add(crownBand);
+
+                for (let i = 0; i < 6; i++) {
+                    const ca = (i / 6) * Math.PI * 2;
+                    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.65, 8), goldMat);
+                    spike.position.set(Math.cos(ca) * 1.02, 7.35, Math.sin(ca) * 1.02);
+                    const gem = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), neonEyeMat);
+                    gem.position.set(Math.cos(ca) * 1.08, 6.75, Math.sin(ca) * 1.08);
+                    group.add(spike, gem);
+                }
+
                 hp = 7; speed = 5;
             }
-            else if (type === 2) { // Mailman (Rounded Box logic -> Cylinder/Sphere mix)
-                const blue = new THREE.MeshStandardMaterial({ color: 0x0000ff });
-                // Torso
-                const torso = new THREE.Mesh(new THREE.CylinderGeometry(1, 0.8, 3, 32), blue);
-                torso.scale.set(1.5, 1, 1); // Wide
-                torso.position.y = 3; group.add(torso);
-                // Legs
-                const l = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 3, 16), blue); l.position.set(-0.8, 1.5, 0);
-                const r = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 3, 16), blue); r.position.set(0.8, 1.5, 0);
-                group.add(l, r);
-                // Head
-                const head = new THREE.Mesh(new THREE.SphereGeometry(0.9, 32, 32), new THREE.MeshStandardMaterial({ color: 0xffccaa }));
-                head.position.y = 5; group.add(head);
+            else if (type === 2) { // MAILMAN MIKE: Postal uniform, shorts, peaked cap with badge, leather mail satchel with letters
+                const shirtBlue = new THREE.MeshStandardMaterial({ color: 0x3b82f6, roughness: 0.7 });
+                const navyBlue = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.8 });
+                const skinMat = new THREE.MeshStandardMaterial({ color: 0xf1c27d, roughness: 0.65 });
+                const leatherMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.6 });
+                const goldMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.8, roughness: 0.2 });
+                const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+                const darkMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.7 });
+
+                // Legs, Socks & Postal Shoes
+                [-0.75, 0.75].forEach(lx => {
+                    const shortLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.44, 1.2, 16), navyBlue);
+                    shortLeg.position.set(lx, 2.2, 0);
+                    const calf = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.3, 1.2, 16), skinMat);
+                    calf.position.set(lx, 1.15, 0);
+                    const sock = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.32, 0.55, 16), whiteMat);
+                    sock.position.set(lx, 0.6, 0);
+                    const shoe = new THREE.Mesh(createRoundedBoxGeo(0.85, 0.48, 1.28, 0.14, 3), darkMat);
+                    shoe.position.set(lx, 0.25, 0.18);
+                    group.add(shortLeg, calf, sock, shoe);
+                });
+
+                // Broad Postal Torso & Arms
+                const torso = new THREE.Mesh(createRoundedBoxGeo(2.55, 2.9, 1.35, 0.35, 4), shirtBlue);
+                torso.position.y = 4.05;
+                group.add(torso);
+
+                [-1.55, 1.55].forEach(ax => {
+                    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.28, 2.3, 14), skinMat);
+                    arm.position.set(ax, 4.0, 0);
+                    arm.rotation.z = ax < 0 ? 0.18 : -0.18;
+                    const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.38, 0.9, 14), shirtBlue);
+                    sleeve.position.set(ax * 0.96, 4.75, 0);
+                    group.add(arm, sleeve);
+                });
+
+                // Crossbody Leather Mail Satchel + Envelopes
+                const strap = new THREE.Mesh(createRoundedBoxGeo(2.75, 0.3, 1.48, 0.05, 2), leatherMat);
+                strap.position.set(0, 4.1, 0);
+                strap.rotation.z = 0.65;
+                const satchel = new THREE.Mesh(createRoundedBoxGeo(0.85, 1.55, 1.65, 0.18, 3), leatherMat);
+                satchel.position.set(1.45, 2.85, 0.2);
+                const letter = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.8, 1.1), whiteMat);
+                letter.position.set(1.45, 3.65, 0.2);
+                letter.rotation.z = -0.15;
+                group.add(strap, satchel, letter);
+
+                // Head, Mustache, Angry Eyes & Postal Visor Cap
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.95, 24, 24), skinMat);
+                head.position.y = 6.2;
+                const mustache = new THREE.Mesh(createRoundedBoxGeo(0.75, 0.22, 0.25, 0.08, 3), leatherMat);
+                mustache.position.set(0, 5.95, 0.88);
+                group.add(head, mustache);
+
+                [-0.32, 0.32].forEach((ex, idx) => {
+                    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 10), whiteMat);
+                    eye.position.set(ex, 6.3, 0.84);
+                    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), darkMat);
+                    pupil.position.set(ex, 6.3, 0.94);
+                    const brow = new THREE.Mesh(createRoundedBoxGeo(0.36, 0.1, 0.12, 0.02, 2), leatherMat);
+                    brow.position.set(ex, 6.5, 0.88);
+                    brow.rotation.z = idx === 0 ? -0.35 : 0.35;
+                    group.add(eye, pupil, brow);
+                });
+
+                const capCrown = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 0.96, 0.65, 24), navyBlue);
+                capCrown.position.set(0, 6.95, 0);
+                const capVisor = new THREE.Mesh(createRoundedBoxGeo(1.4, 0.12, 0.9, 0.04, 3), darkMat);
+                capVisor.position.set(0, 6.68, 0.72);
+                capVisor.rotation.x = 0.15;
+                const badge = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 10), goldMat);
+                badge.position.set(0, 7.0, 0.98);
+                group.add(capCrown, capVisor, badge);
+
                 hp = 6; speed = 9;
             }
-            else if (type === 3) { // Grandma (Cone dress)
-                const dress = new THREE.MeshStandardMaterial({ color: 0xff69b4 });
-                const body = new THREE.Mesh(new THREE.ConeGeometry(2.5, 5, 32), dress);
-                body.position.y = 2.5; group.add(body);
-                const head = new THREE.Mesh(new THREE.SphereGeometry(0.8, 32, 32), new THREE.MeshStandardMaterial({ color: 0xffccaa }));
-                head.position.y = 5; group.add(head);
-                const bun = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), new THREE.MeshStandardMaterial({ color: 0xeeeeee }));
-                bun.position.set(0, 5.5, -0.4); group.add(bun);
+            else if (type === 3) { // GRANDMA: Rose dress with white apron & shawl, silver bun with crossed knitting needles, glasses
+                const dressMat = new THREE.MeshStandardMaterial({ color: 0xdb2777, roughness: 0.8 });
+                const whiteMat = new THREE.MeshStandardMaterial({ color: 0xfafaf9, roughness: 0.75 });
+                const skinMat = new THREE.MeshStandardMaterial({ color: 0xffd6ba, roughness: 0.65 });
+                const hairMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.7 });
+                const goldMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.8, roughness: 0.2 });
+                const needleMat = new THREE.MeshStandardMaterial({ color: 0x9ca3af, metalness: 0.7, roughness: 0.25 });
+
+                // Slippers
+                [-0.8, 0.8].forEach(sx => {
+                    const slipper = new THREE.Mesh(createRoundedBoxGeo(0.85, 0.42, 1.25, 0.18, 3), new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.9 }));
+                    slipper.position.set(sx, 0.22, 0.5);
+                    group.add(slipper);
+                });
+
+                // Dress Skirt, Apron & Shawl Collar
+                const skirt = new THREE.Mesh(new THREE.ConeGeometry(2.45, 4.8, 32), dressMat);
+                skirt.position.y = 2.6;
+                const apron = new THREE.Mesh(createRoundedBoxGeo(1.85, 2.8, 0.35, 0.12, 3), whiteMat);
+                apron.position.set(0, 2.2, 1.35);
+                apron.rotation.x = -0.35;
+                const shawl = new THREE.Mesh(new THREE.TorusGeometry(0.82, 0.28, 12, 24), whiteMat);
+                shawl.rotation.x = Math.PI / 2;
+                shawl.position.y = 4.65;
+                group.add(skirt, apron, shawl);
+
+                // Arms
+                [-1.35, 1.35].forEach(ax => {
+                    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.26, 2.1, 14), dressMat);
+                    arm.position.set(ax, 3.8, 0.2);
+                    arm.rotation.z = ax < 0 ? 0.35 : -0.35;
+                    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), skinMat);
+                    hand.position.set(ax * 1.25, 2.85, 0.35);
+                    group.add(arm, hand);
+                });
+
+                // Head, Silver Hair, Bun & Crossed Knitting Needles
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.88, 24, 24), skinMat);
+                head.position.y = 5.55;
+                const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.92, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.6), hairMat);
+                hairCap.position.set(0, 5.62, -0.06);
+                hairCap.rotation.x = -0.25;
+                const bun = new THREE.Mesh(new THREE.SphereGeometry(0.62, 18, 18), hairMat);
+                bun.position.set(0, 6.25, -0.55);
+                group.add(head, hairCap, bun);
+
+                // Crossed Knitting Needles in Bun
+                [-0.55, 0.55].forEach(rz => {
+                    const kNeedle = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.02, 2.1, 8), needleMat);
+                    kNeedle.position.set(0, 6.3, -0.55);
+                    kNeedle.rotation.z = rz;
+                    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 10), dressMat);
+                    knob.position.set(-Math.sin(rz) * 1.05, 6.3 + Math.cos(rz) * 1.05, -0.55);
+                    group.add(kNeedle, knob);
+                });
+
+                // Gold-Rimmed Spectacles
+                [-0.32, 0.32].forEach(gx => {
+                    const frame = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.035, 8, 20), goldMat);
+                    frame.position.set(gx, 5.6, 0.85);
+                    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+                    pupil.position.set(gx, 5.6, 0.84);
+                    group.add(frame, pupil);
+                });
+
                 hp = 8; speed = 4;
             }
-            else if (type === 4) { // Vet (Tall Cylinder)
-                const white = new THREE.MeshStandardMaterial({ color: 0xffffff });
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.7, 4.5, 32), white);
-                body.position.y = 2.25; group.add(body);
-                const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 32), new THREE.MeshStandardMaterial({ color: 0xffccaa }));
-                head.position.y = 5; group.add(head);
-                // Needle
-                const needle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 3, 8), new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 1 }));
-                needle.rotation.x = Math.PI / 2; needle.position.set(0, 3, 1.5); group.add(needle);
+            else if (type === 4) { // THE VET: White lab coat over teal scrubs, stethoscope, forehead mirror & giant glowing syringe
+                const coatMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.5 });
+                const scrubsMat = new THREE.MeshStandardMaterial({ color: 0x0d9488, roughness: 0.7 });
+                const skinMat = new THREE.MeshStandardMaterial({ color: 0xfcd5b5, roughness: 0.65 });
+                const chromeMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.9, roughness: 0.15 });
+                const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 });
+                const serumMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, emissive: 0x22c55e, emissiveIntensity: 0.6, roughness: 0.2 });
+
+                // Scrub Legs & Shoes
+                [-0.55, 0.55].forEach(lx => {
+                    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.3, 2.4, 14), scrubsMat);
+                    leg.position.set(lx, 1.3, 0);
+                    const shoe = new THREE.Mesh(createRoundedBoxGeo(0.75, 0.4, 1.15, 0.12, 3), coatMat);
+                    shoe.position.set(lx, 0.22, 0.16);
+                    group.add(leg, shoe);
+                });
+
+                // Lab Coat Torso & Teal Scrubs V-neck
+                const coat = new THREE.Mesh(createRoundedBoxGeo(2.05, 3.4, 1.18, 0.28, 4), coatMat);
+                coat.position.y = 3.55;
+                const scrubFront = new THREE.Mesh(createRoundedBoxGeo(0.75, 2.8, 1.22, 0.1, 2), scrubsMat);
+                scrubFront.position.y = 3.65;
+                const stethoscope = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.06, 10, 24), darkMat);
+                stethoscope.rotation.x = Math.PI / 2 - 0.35;
+                stethoscope.position.set(0, 5.05, 0.15);
+                group.add(coat, scrubFront, stethoscope);
+
+                // Arms & Teal Gloves
+                [-1.3, 1.3].forEach(ax => {
+                    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.24, 2.3, 14), coatMat);
+                    arm.position.set(ax, 3.9, 0.25);
+                    arm.rotation.x = -0.45;
+                    const glove = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), scrubsMat);
+                    glove.position.set(ax, 2.95, 0.75);
+                    group.add(arm, glove);
+                });
+
+                // Head, Hair & Forehead Reflector Mirror
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.82, 24, 24), skinMat);
+                head.position.y = 5.95;
+                const headband = new THREE.Mesh(new THREE.CylinderGeometry(0.84, 0.84, 0.2, 24), darkMat);
+                headband.position.y = 6.28;
+                const mirror = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.08, 20), chromeMat);
+                mirror.rotation.x = Math.PI / 2;
+                mirror.position.set(0.25, 6.35, 0.82);
+                group.add(head, headband, mirror);
+
+                [-0.28, 0.28].forEach((ex, idx) => {
+                    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.11, 10, 10), darkMat);
+                    eye.position.set(ex, 5.98, 0.76);
+                    const brow = new THREE.Mesh(createRoundedBoxGeo(0.32, 0.08, 0.1, 0.02, 2), darkMat);
+                    brow.position.set(ex, 6.16, 0.78);
+                    brow.rotation.z = idx === 0 ? -0.35 : 0.35;
+                    group.add(eye, brow);
+                });
+
+                // Giant Detailed Syringe (Barrel, Glowing Green Serum, Plunger, and Needle)
+                const syringeGroup = new THREE.Group();
+                syringeGroup.position.set(1.3, 3.1, 1.55);
+
+                const barrel = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.28, 0.28, 1.8, 16),
+                    new THREE.MeshStandardMaterial({ color: 0xe2e8f0, transparent: true, opacity: 0.55, roughness: 0.15 })
+                );
+                barrel.rotation.x = Math.PI / 2;
+                const serum = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.23, 1.35, 16), serumMat);
+                serum.rotation.x = Math.PI / 2;
+                serum.position.z = 0.12;
+                const plungerRod = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.9, 10), chromeMat);
+                plungerRod.rotation.x = Math.PI / 2;
+                plungerRod.position.z = -1.2;
+                const thumbPad = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.1, 14), chromeMat);
+                thumbPad.rotation.x = Math.PI / 2;
+                thumbPad.position.z = -1.65;
+                const needle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.05, 1.6, 10), chromeMat);
+                needle.rotation.x = Math.PI / 2;
+                needle.position.z = 1.65;
+                syringeGroup.add(barrel, serum, plungerRod, thumbPad, needle);
+                group.add(syringeGroup);
+
                 hp = 10; speed = 12;
             }
+            else if (type === 5) { // CRAZY FINALE BOSS: OMEGA MECHA-HOUND 9000
+                const armorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.25, metalness: 0.85 });
+                const darkSteelMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.35, metalness: 0.9 });
+                const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.15, metalness: 0.95 });
+                const neonRedMat = new THREE.MeshStandardMaterial({ color: 0xff1744, emissive: 0xff0033, emissiveIntensity: 0.9, roughness: 0.2 });
+                const neonCyanMat = new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00b8d4, emissiveIntensity: 0.85, roughness: 0.2 });
+                const hazardGoldMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.3, metalness: 0.7 });
 
-            group.position.set(0, 0, -40);
+                // Heavy Armored Mech Legs + Clawed Feet
+                [-0.95, 0.95].forEach(lx => {
+                    const foot = new THREE.Mesh(createRoundedBoxGeo(0.95, 0.45, 1.45, 0.1, 3), darkSteelMat);
+                    foot.position.set(lx, 0.22, 0.15);
+                    group.add(foot);
+
+                    [-0.28, 0, 0.28].forEach(tx => {
+                        const claw = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.45, 6), chromeMat);
+                        claw.rotation.x = Math.PI / 2;
+                        claw.position.set(lx + tx, 0.18, 0.98);
+                        group.add(claw);
+                    });
+
+                    const shin = new THREE.Mesh(createRoundedBoxGeo(0.72, 1.8, 0.82, 0.12, 3), armorMat);
+                    shin.position.set(lx, 1.25, 0);
+                    const kneeGlow = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.82, 14), neonCyanMat);
+                    kneeGlow.rotation.z = Math.PI / 2;
+                    kneeGlow.position.set(lx, 2.1, 0.25);
+                    group.add(shin, kneeGlow);
+                });
+
+                // Massive Armored Torso Chassis + Glowing Reactor Core
+                const pelvis = new THREE.Mesh(createRoundedBoxGeo(2.6, 0.85, 1.75, 0.15, 3), darkSteelMat);
+                pelvis.position.set(0, 2.35, 0);
+                const chest = new THREE.Mesh(createRoundedBoxGeo(3.2, 2.3, 2.1, 0.24, 4), armorMat);
+                chest.position.set(0, 3.85, 0);
+                group.add(pelvis, chest);
+
+                // Glowing Chest Vortex Reactor
+                const reactorRing = new THREE.Mesh(new THREE.TorusGeometry(0.68, 0.14, 12, 28), hazardGoldMat);
+                reactorRing.position.set(0, 3.85, 1.06);
+                const reactorCore = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.2, 24), neonRedMat);
+                reactorCore.rotation.x = Math.PI / 2;
+                reactorCore.position.set(0, 3.85, 1.05);
+                group.add(reactorRing, reactorCore);
+
+                // Twin Shoulder Plasma Cannons
+                [-1.45, 1.45].forEach(sx => {
+                    const pod = new THREE.Mesh(createRoundedBoxGeo(0.85, 0.85, 1.5, 0.14, 3), hazardGoldMat);
+                    pod.position.set(sx, 5.25, 0.1);
+                    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 1.4, 16), darkSteelMat);
+                    barrel.rotation.x = Math.PI / 2;
+                    barrel.position.set(sx, 5.25, 1.1);
+                    const muzzle = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.06, 10, 20), neonCyanMat);
+                    muzzle.position.set(sx, 5.25, 1.8);
+                    group.add(pod, barrel, muzzle);
+                });
+
+                // Articulated Mech Arms with Spinning Saw/Claw Blades
+                const buildMechArm = (side) => {
+                    const armPivot = new THREE.Group();
+                    armPivot.position.set(side * 1.95, 4.2, 0.2);
+                    const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.52, 16, 16), darkSteelMat);
+                    const forearm = new THREE.Mesh(createRoundedBoxGeo(0.62, 0.62, 1.75, 0.12, 3), armorMat);
+                    forearm.position.set(0, -0.35, 0.85);
+                    const rotor = new THREE.Group();
+                    rotor.position.set(0, -0.35, 1.85);
+                    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.3, 14), neonRedMat);
+                    hub.rotation.x = Math.PI / 2;
+                    rotor.add(hub);
+                    for (let b = 0; b < 4; b++) {
+                        const angle = (b / 4) * Math.PI * 2;
+                        const blade = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.65, 6), chromeMat);
+                        blade.position.set(Math.cos(angle) * 0.42, Math.sin(angle) * 0.42, 0.15);
+                        blade.rotation.z = angle - Math.PI / 2;
+                        rotor.add(blade);
+                    }
+                    armPivot.add(shoulder, forearm, rotor);
+                    armPivot.userData.rotor = rotor;
+                    group.add(armPivot);
+                    return armPivot;
+                };
+                group.userData.clawL = buildMechArm(-1);
+                group.userData.clawR = buildMechArm(1);
+
+                // Cyber-Hound Head, Snout, Chomping Chrome Fangs & Laser Visor
+                const headGroup = new THREE.Group();
+                headGroup.position.set(0, 5.55, 0.35);
+                const cranium = new THREE.Mesh(createRoundedBoxGeo(1.65, 1.25, 1.55, 0.2, 4), armorMat);
+                const snout = new THREE.Mesh(createRoundedBoxGeo(1.1, 0.62, 1.25, 0.12, 3), darkSteelMat);
+                snout.position.set(0, -0.18, 1.05);
+                const lowerJaw = new THREE.Mesh(createRoundedBoxGeo(0.96, 0.32, 1.1, 0.08, 3), hazardGoldMat);
+                lowerJaw.position.set(0, -0.58, 0.95);
+                const visor = new THREE.Mesh(createRoundedBoxGeo(1.42, 0.34, 0.3, 0.08, 2), neonRedMat);
+                visor.position.set(0, 0.18, 0.72);
+                headGroup.add(cranium, snout, lowerJaw, visor);
+
+                // Chrome Fangs
+                [-0.32, -0.12, 0.12, 0.32].forEach(fx => {
+                    const fangTop = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.26, 6), chromeMat);
+                    fangTop.rotation.x = Math.PI;
+                    fangTop.position.set(fx, -0.42, 1.48);
+                    headGroup.add(fangTop);
+                });
+
+                // Pointed Cyber Hound Ears
+                [-0.62, 0.62].forEach(ex => {
+                    const ear = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.85, 6), armorMat);
+                    ear.position.set(ex, 0.92, -0.1);
+                    ear.rotation.z = ex > 0 ? -0.2 : 0.2;
+                    headGroup.add(ear);
+                });
+                group.add(headGroup);
+                group.userData.headGroup = headGroup;
+
+                // Dual Jetpack Thrusters on Back
+                [-0.65, 0.65].forEach(jx => {
+                    const thruster = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.42, 1.5, 14), darkSteelMat);
+                    thruster.position.set(jx, 3.9, -1.25);
+                    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.8, 12), neonCyanMat);
+                    flame.rotation.x = Math.PI;
+                    flame.position.set(jx, 2.85, -1.25);
+                    group.add(thruster, flame);
+                });
+
+                hp = 15; speed = 9.0;
+            }
+
+            // Scale boss HP so starting a boss fight early at low Power (0.5 DMG) is a tough drawback,
+            // while powering up by defeating enemies lets you shred bosses!
+            if (isBossRush) {
+                hp = Math.round(hp * 1.15);
+            } else {
+                hp = Math.round(hp * 2.2);
+            }
+
+            group.position.set(spawnX, 0, spawnZ);
             group.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
 
             scene.add(group);
-            boss = {
+            const newBoss = {
                 mesh: group,
                 type: type,
                 hp: hp, maxHp: hp,
                 speed: speed,
+                baseSpeed: speed,
                 velocityY: 0,
                 isJumping: false,
-                lastShot: 0,
+                lastShot: Math.random() * 900,
+                lastHitSwing: -1
             };
+            activeBosses.push(newBoss);
+            boss = activeBosses[0] || null;
         }
 
         function updateBoss(dt, time) {
-            if (!boss) return;
+            if (activeBosses.length === 0) return;
 
-            // Generic Movement
-            const target = player.mesh.position.clone();
-            const flatTarget = new THREE.Vector3(target.x, boss.mesh.position.y, target.z);
-            const dir = new THREE.Vector3().subVectors(flatTarget, boss.mesh.position);
-            const dist = dir.length();
-            dir.normalize();
+            for (let bIdx = 0; bIdx < activeBosses.length; bIdx++) {
+                const curBoss = activeBosses[bIdx];
+                const bossRadius = curBoss.type === 5 ? 2.1 : 1.6;
+                const prevY = curBoss.mesh.position.y;
 
-            if (boss.type === 1) { // Vacuum: Suck
-                if (dist < 15) {
-                    const pull = new THREE.Vector3().subVectors(boss.mesh.position, player.mesh.position).normalize().multiplyScalar(5 * dt);
-                    player.mesh.position.add(pull);
+                // Generic Movement
+                const target = player.mesh.position.clone();
+                const flatTarget = new THREE.Vector3(target.x, curBoss.mesh.position.y, target.z);
+                const dir = new THREE.Vector3().subVectors(flatTarget, curBoss.mesh.position);
+                const dist = dir.length();
+                if (dist > 0.001) dir.normalize();
+
+                if (curBoss.type === 1 || curBoss.type === 5) { // Vacuum King & Omega Mecha-Hound Vortex Pull
+                    const pullRange = curBoss.type === 5 ? 14 : 15;
+                    const pullStrength = (curBoss.type === 5 ? 3.5 : 5) * (isBossRush ? 0.65 : 1);
+                    if (dist < pullRange) {
+                        const pull = new THREE.Vector3().subVectors(curBoss.mesh.position, player.mesh.position).normalize().multiplyScalar(pullStrength * dt);
+                        const prevPlayerY = player.mesh.position.y;
+                        player.mesh.position.add(pull);
+                        resolveObstacleCollisions(player.mesh.position, prevPlayerY, player.velocity.y, 0.8);
+                    }
                 }
-            }
 
-            // Move
-            if (dist > (boss.type === 4 ? 2 : 5)) {
-                boss.mesh.position.add(dir.multiplyScalar(boss.speed * dt));
-            }
-            boss.mesh.lookAt(player.mesh.position.x, boss.mesh.position.y, player.mesh.position.z);
+                // Animate Omega Mecha-Hound spinning claws & head bob
+                if (curBoss.type === 5) {
+                    const u = curBoss.mesh.userData;
+                    if (u.clawL && u.clawL.userData.rotor) u.clawL.userData.rotor.rotation.z += 12 * dt;
+                    if (u.clawR && u.clawR.userData.rotor) u.clawR.userData.rotor.rotation.z -= 12 * dt;
+                    if (u.headGroup) u.headGroup.rotation.y = Math.sin(time * 0.006) * 0.25;
+                }
 
-            // Gravity & Jump
-            boss.velocityY += GRAVITY * dt;
-            boss.mesh.position.y += boss.velocityY * dt;
-            if (boss.mesh.position.y <= 0) { boss.mesh.position.y = 0; boss.velocityY = 0; boss.isJumping = false; }
-            const heightDiff = player.mesh.position.y - boss.mesh.position.y;
-            if (dist < 8 && heightDiff > 2 && !boss.isJumping && Math.random() < 0.05) {
-                boss.velocityY = 20; boss.isJumping = true;
-            }
+                // Move
+                if (dist > (curBoss.type === 4 || curBoss.type === 5 ? 2.4 : 5)) {
+                    curBoss.mesh.position.add(dir.clone().multiplyScalar(curBoss.speed * dt));
+                }
+                curBoss.mesh.lookAt(player.mesh.position.x, curBoss.mesh.position.y, player.mesh.position.z);
 
-            // Attacks
-            const cooldown = boss.type === 2 ? 500 : 2000;
-            if (time - boss.lastShot > cooldown) {
-                if (boss.type === 0) shootProjectile(0, boss.mesh.position);
-                if (boss.type === 2) shootProjectile(1, boss.mesh.position);
-                if (boss.type === 3) shootProjectile(2, boss.mesh.position);
-                if (boss.type === 4) { boss.speed = 25; setTimeout(() => boss.speed = 12, 500); }
-                boss.lastShot = time;
-            }
+                // Gravity & Jump + Obstacle Collision
+                curBoss.velocityY += GRAVITY * dt;
+                curBoss.mesh.position.y += curBoss.velocityY * dt;
 
-            // Collision Damage
-            if (boss.mesh.position.distanceTo(player.mesh.position) < 2) {
-                health -= 30 * dt;
-                document.getElementById('health-bar').style.width = health + '%';
-                if (health <= 0) gameOver();
+                const col = resolveObstacleCollisions(curBoss.mesh.position, prevY, curBoss.velocityY, bossRadius);
+                curBoss.velocityY = col.velocityY;
+                if (col.onGround) curBoss.isJumping = false;
+
+                // If blocked by low furniture or player is above, jump or slide around
+                const heightDiff = player.mesh.position.y - curBoss.mesh.position.y;
+                if (col.blockedBox) {
+                    if (col.blockedBox.max.y <= 4.5 && !curBoss.isJumping && heightDiff > 0.5) {
+                        curBoss.velocityY = 20;
+                        curBoss.isJumping = true;
+                    } else {
+                        const tangent = new THREE.Vector3(-dir.z, 0, dir.x);
+                        curBoss.mesh.position.add(tangent.multiplyScalar(curBoss.speed * 0.85 * dt));
+                        resolveObstacleCollisions(curBoss.mesh.position, prevY, curBoss.velocityY, bossRadius);
+                    }
+                } else if (dist < 8 && heightDiff > 2 && !curBoss.isJumping && Math.random() < 0.05) {
+                    curBoss.velocityY = 20;
+                    curBoss.isJumping = true;
+                }
+
+                // Attacks
+                const cooldown = curBoss.type === 2 ? 650 : (curBoss.type === 5 ? 1700 : 2000);
+                if (time - curBoss.lastShot > cooldown) {
+                    if (curBoss.type === 0) shootProjectile(0, curBoss.mesh.position);
+                    if (curBoss.type === 2) shootProjectile(1, curBoss.mesh.position);
+                    if (curBoss.type === 3) shootProjectile(2, curBoss.mesh.position);
+                    if (curBoss.type === 4) {
+                        curBoss.speed = 24;
+                        setTimeout(() => { curBoss.speed = curBoss.baseSpeed; }, 500);
+                    }
+                    if (curBoss.type === 5) {
+                        [-0.26, 0, 0.26].forEach(ang => shootProjectile(3, curBoss.mesh.position, ang));
+                        curBoss.speed = 21;
+                        setTimeout(() => { curBoss.speed = curBoss.baseSpeed; }, 450);
+                    }
+                    curBoss.lastShot = time;
+                }
+
+                // Boss-to-Boss Separation so all 6 bosses in Boss Rush don't stack
+                for (let j = bIdx + 1; j < activeBosses.length; j++) {
+                    const other = activeBosses[j];
+                    const bdx = other.mesh.position.x - curBoss.mesh.position.x;
+                    const bdz = other.mesh.position.z - curBoss.mesh.position.z;
+                    const bd = Math.sqrt(bdx * bdx + bdz * bdz);
+                    const minBossSep = 3.6;
+                    if (bd < minBossSep && bd > 0.001) {
+                        const push = (minBossSep - bd) * 0.5;
+                        const nx = bdx / bd, nz = bdz / bd;
+                        curBoss.mesh.position.x -= nx * push;
+                        curBoss.mesh.position.z -= nz * push;
+                        other.mesh.position.x += nx * push;
+                        other.mesh.position.z += nz * push;
+                    }
+                }
+
+                // Collision Damage & Prevent Boss Clipping Into Player
+                const dToPlayer = curBoss.mesh.position.distanceTo(player.mesh.position);
+                if (dToPlayer < (curBoss.type === 5 ? 2.7 : 2.2)) {
+                    health -= 30 * dt;
+                    document.getElementById('health-bar').style.width = health + '%';
+                    if (health <= 0) gameOver();
+
+                    const pushDir = new THREE.Vector3(
+                        curBoss.mesh.position.x - player.mesh.position.x,
+                        0,
+                        curBoss.mesh.position.z - player.mesh.position.z
+                    );
+                    const hDist = pushDir.length();
+                    const minSep = curBoss.type === 5 ? 2.2 : 1.8;
+                    if (hDist > 0.001 && hDist < minSep && Math.abs(curBoss.mesh.position.y - player.mesh.position.y) < 3) {
+                        pushDir.normalize();
+                        curBoss.mesh.position.x = player.mesh.position.x + pushDir.x * minSep;
+                        curBoss.mesh.position.z = player.mesh.position.z + pushDir.z * minSep;
+                        resolveObstacleCollisions(curBoss.mesh.position, curBoss.mesh.position.y, curBoss.velocityY, bossRadius);
+                    }
+                }
             }
         }
 
-        function shootProjectile(kind, pos) {
+        function shootProjectile(kind, pos, angleOffset = 0) {
             let mesh;
             let speed = 15;
 
             if (kind === 0) { // Gas
                 mesh = new THREE.Mesh(new THREE.SphereGeometry(1.5, 32, 32), new THREE.MeshStandardMaterial({ color: 0x00ff00, transparent: true, opacity: 0.6 }));
-            } else if (kind === 1) { // Mail (Box but slightly rounded via bevel? No, standard box is fine for mail, or flattened sphere)
+            } else if (kind === 1) { // Mail
                 mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 0.5, 1.5), new THREE.MeshStandardMaterial({ color: 0xffffff }));
                 speed = 25;
             } else if (kind === 2) { // Yarn
                 mesh = new THREE.Mesh(new THREE.SphereGeometry(1.2, 32, 32), new THREE.MeshStandardMaterial({ color: 0xff69b4 }));
                 speed = 10;
+            } else if (kind === 3) { // Omega Mecha-Hound Plasma Orb
+                mesh = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.85, 20, 20),
+                    new THREE.MeshStandardMaterial({ color: 0xff1744, emissive: 0x00e5ff, emissiveIntensity: 0.85, roughness: 0.2 })
+                );
+                speed = 22;
             }
 
             mesh.position.copy(pos);
-            mesh.position.y += 3;
+            mesh.position.y += kind === 3 ? 4.8 : 3;
 
             const target = player.mesh.position.clone().add(new THREE.Vector3(0, 1, 0));
-            const velocity = new THREE.Vector3().subVectors(target, mesh.position).normalize().multiplyScalar(speed);
+            const velocity = new THREE.Vector3().subVectors(target, mesh.position).normalize();
+            if (angleOffset !== 0) {
+                velocity.applyAxisAngle(new THREE.Vector3(0, 1, 0), angleOffset);
+            }
+            velocity.multiplyScalar(speed);
 
             scene.add(mesh);
             projectiles.push({ mesh: mesh, velocity: velocity, life: 3.0, kind: kind });
@@ -947,59 +2916,205 @@
             document.getElementById('boss-health-bar').style.width = pct + '%';
         }
 
+        function createWeaponModel(type) {
+            const weapon = new THREE.Group();
+
+            if (type === 'fish') {
+                // Fishbone Sword: Ivory spine, ribs, fish skull, and forked tail fin
+                const boneMat = new THREE.MeshStandardMaterial({ color: 0xf6f3ea, roughness: 0.45 });
+                const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.3 });
+
+                const spine = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.04, 1.85, 10), boneMat);
+                spine.rotation.x = Math.PI / 2;
+                weapon.add(spine);
+
+                // Fish Skull at tip
+                const skull = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 14), boneMat);
+                skull.scale.set(0.75, 0.9, 1.35);
+                skull.position.z = 0.95;
+                weapon.add(skull);
+
+                [-0.14, 0.14].forEach(ex => {
+                    const eyeSocket = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), eyeMat);
+                    eyeSocket.position.set(ex, 0.05, 1.02);
+                    weapon.add(eyeSocket);
+                });
+
+                // Curved Ribs along the spine
+                [-0.35, -0.05, 0.25, 0.52].forEach((rz, idx) => {
+                    const ribLen = 0.48 - Math.abs(idx - 1.5) * 0.06;
+                    const ribGeo = new THREE.CylinderGeometry(0.03, 0.02, ribLen, 8);
+                    const ribL = new THREE.Mesh(ribGeo, boneMat);
+                    ribL.rotation.z = Math.PI / 2.3;
+                    ribL.position.set(-ribLen * 0.42, 0, rz);
+
+                    const ribR = new THREE.Mesh(ribGeo, boneMat);
+                    ribR.rotation.z = -Math.PI / 2.3;
+                    ribR.position.set(ribLen * 0.42, 0, rz);
+                    weapon.add(ribL, ribR);
+                });
+
+                // Forked Tail Fin at pommel
+                const finGeo = new THREE.ConeGeometry(0.16, 0.42, 6);
+                const finTop = new THREE.Mesh(finGeo, boneMat);
+                finTop.rotation.x = -Math.PI * 0.68;
+                finTop.position.set(0, 0.14, -1.0);
+                const finBot = new THREE.Mesh(finGeo, boneMat);
+                finBot.rotation.x = -Math.PI * 0.32;
+                finBot.position.set(0, -0.14, -1.0);
+                weapon.add(finTop, finBot);
+            } else if (type === 'yarn') {
+                // Yarn Mace: Wooden handle + wound magenta yarn ball head with crisscrossing thread bands
+                const woodMat = new THREE.MeshStandardMaterial({ color: 0x6b4423, roughness: 0.6 });
+                const yarnMat = new THREE.MeshStandardMaterial({ color: 0xe0249a, roughness: 0.85 });
+                const yarnLightMat = new THREE.MeshStandardMaterial({ color: 0xff66c4, roughness: 0.8 });
+
+                const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.08, 1.25, 10), woodMat);
+                handle.rotation.x = Math.PI / 2;
+                handle.position.z = -0.25;
+                weapon.add(handle);
+
+                const ball = new THREE.Mesh(new THREE.SphereGeometry(0.44, 20, 20), yarnMat);
+                ball.position.z = 0.6;
+                weapon.add(ball);
+
+                const wrapGeo = new THREE.TorusGeometry(0.42, 0.055, 8, 24);
+                [[0.4, 0.2, 0], [-0.5, 0.8, 0.4], [1.1, -0.3, 0.8]].forEach(([rx, ry, rz], idx) => {
+                    const wrap = new THREE.Mesh(wrapGeo, idx % 2 === 0 ? yarnLightMat : yarnMat);
+                    wrap.position.z = 0.6;
+                    wrap.rotation.set(rx, ry, rz);
+                    weapon.add(wrap);
+                });
+            } else if (type === 'cucumber') {
+                // Detailed Cucumber: Tapered green body, rounded ends, lighter stripes, bumps, and stem
+                const skinMat = new THREE.MeshStandardMaterial({ color: 0x1e7a2a, roughness: 0.55 });
+                const stripeMat = new THREE.MeshStandardMaterial({ color: 0x4ca64c, roughness: 0.6 });
+                const stemMat = new THREE.MeshStandardMaterial({ color: 0x4a5d23, roughness: 0.8 });
+
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(0.21, 0.24, 1.45, 16), skinMat);
+                body.rotation.x = Math.PI / 2;
+                weapon.add(body);
+
+                const tipFront = new THREE.Mesh(new THREE.SphereGeometry(0.21, 14, 14), skinMat);
+                tipFront.position.z = 0.72;
+                const tipBack = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 14), skinMat);
+                tipBack.position.z = -0.72;
+                weapon.add(tipFront, tipBack);
+
+                // Bumps & Stripes
+                const bumpGeo = new THREE.SphereGeometry(0.04, 8, 8);
+                for (let i = 0; i < 10; i++) {
+                    const angle = (i / 10) * Math.PI * 2;
+                    const bz = -0.5 + (i % 5) * 0.25;
+                    const bump = new THREE.Mesh(bumpGeo, i % 2 === 0 ? stripeMat : skinMat);
+                    bump.position.set(Math.cos(angle) * 0.21, Math.sin(angle) * 0.21, bz);
+                    weapon.add(bump);
+                }
+
+                const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.06, 0.22, 8), stemMat);
+                stem.rotation.x = Math.PI / 2 + 0.3;
+                stem.position.set(0, 0.04, 0.96);
+                weapon.add(stem);
+            } else {
+                // Grooming Paddle Brush: Handle, oval paddle head, rubber cushion, and metal pin bristles
+                const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.35 });
+                const padMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.85 });
+                const pinMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.8, roughness: 0.2 });
+                const tipMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 });
+
+                const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.11, 1.1, 12), bodyMat);
+                handle.rotation.x = Math.PI / 2;
+                handle.position.z = -0.35;
+                weapon.add(handle);
+
+                const paddle = new THREE.Mesh(createRoundedBoxGeo(0.65, 0.16, 0.85, 0.07, 3), bodyMat);
+                paddle.position.z = 0.55;
+                weapon.add(paddle);
+
+                const cushion = new THREE.Mesh(createRoundedBoxGeo(0.54, 0.1, 0.72, 0.04, 2), padMat);
+                cushion.position.set(0, 0.08, 0.55);
+                weapon.add(cushion);
+
+                const pinGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.2, 6);
+                const ballGeo = new THREE.SphereGeometry(0.024, 6, 6);
+                [-0.16, 0, 0.16].forEach(px => {
+                    [0.32, 0.47, 0.62, 0.77].forEach(pz => {
+                        const pin = new THREE.Mesh(pinGeo, pinMat);
+                        pin.position.set(px, 0.2, pz);
+                        const tip = new THREE.Mesh(ballGeo, tipMat);
+                        tip.position.set(px, 0.3, pz);
+                        weapon.add(pin, tip);
+                    });
+                });
+            }
+
+            weapon.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+            return weapon;
+        }
+
         function spawnWeapon() {
             if (!isGameRunning || weapons.length > 5) return;
             const types = ['fish', 'yarn', 'cucumber', 'brush'];
             const type = types[Math.floor(Math.random() * types.length)];
             const group = new THREE.Group();
 
-            if (type === 'fish') group.add(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.5, 8), new THREE.MeshStandardMaterial({ color: 0xffffff }))); // Rounded Fish Bone
-            else if (type === 'yarn') group.add(new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff00ff })));
-            else if (type === 'cucumber') { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 1.5, 16), new THREE.MeshStandardMaterial({ color: 0x228b22 })); c.rotation.x = Math.PI / 2; group.add(c); }
-            else { const h = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.5, 8), new THREE.MeshStandardMaterial({ color: 0xaaaaaa })); h.rotation.x = Math.PI / 2; group.add(h); const b = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0x0000ff })); b.position.z = 0.7; group.add(b); }
+            const model = createWeaponModel(type);
+            model.rotation.x = -Math.PI / 6;
+            group.add(model);
 
-            group.position.set((Math.random() - 0.5) * 100, 1, (Math.random() - 0.5) * 100);
+            let wx = 0, wz = 0;
+            for (let attempt = 0; attempt < 15; attempt++) {
+                const tx = (Math.random() - 0.5) * 96;
+                const tz = (Math.random() - 0.5) * 96;
+                if (!isPointInsideObstacle(tx, tz, 1.5)) {
+                    wx = tx;
+                    wz = tz;
+                    break;
+                }
+            }
+
+            group.position.set(wx, 1.2, wz);
             group.userData = { type: type, floatOffset: Math.random() * 10 };
-            const light = new THREE.PointLight(0xffffff, 1, 5); light.position.y = 1; group.add(light);
-            scene.add(group); weapons.push(group);
+            const light = new THREE.PointLight(0xffffff, 1, 5);
+            light.position.y = 1;
+            group.add(light);
+            scene.add(group);
+            weapons.push(group);
         }
 
         function equipWeapon(type) {
-            player.hasWeapon = true; player.weaponType = type;
-            const btn = document.getElementById('attack-btn'); btn.classList.add('active');
+            player.hasWeapon = true;
+            player.weaponType = type;
+            const btn = document.getElementById('attack-btn');
+            btn.classList.add('active');
             const names = { fish: "BONE", yarn: "MACE", cucumber: "VEGGIE", brush: "BRUSH" };
             btn.innerText = names[type];
             const holder = player.mesh.getObjectByName('weaponHolder');
             while (holder.children.length) holder.remove(holder.children[0]);
-            let mesh;
-            // Visuals in hand
-            if (type === 'fish') mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2, 8), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-            else if (type === 'yarn') mesh = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff00ff }));
-            else if (type === 'cucumber') { mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 1.5, 16), new THREE.MeshStandardMaterial({ color: 0x228b22 })); mesh.rotation.x = Math.PI / 2; }
-            else { mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 2, 8), new THREE.MeshStandardMaterial({ color: 0x0000ff })); mesh.rotation.x = Math.PI / 2; }
-            mesh.position.z = 1; holder.add(mesh);
+
+            const mesh = createWeaponModel(type);
+            mesh.position.z = 0.85;
+            holder.add(mesh);
+            updatePowerHUD();
         }
 
         function updatePhysics(dt) {
             updateInputFromKeys();
-            const dx = input.x * MOVE_SPEED * dt; const dz = input.y * MOVE_SPEED * dt;
-            const intendedPos = player.mesh.position.clone(); intendedPos.x += dx; intendedPos.z += dz;
+            const stats = getPlayerStats();
+            const dx = input.x * stats.moveSpeed * dt;
+            const dz = input.y * stats.moveSpeed * dt;
+            const prevY = player.mesh.position.y;
+            const intendedPos = player.mesh.position.clone();
+            intendedPos.x += dx;
+            intendedPos.z += dz;
             if (Math.abs(input.x) > 0.1 || Math.abs(input.y) > 0.1) player.mesh.rotation.y = Math.atan2(input.x, input.y);
-            player.velocity.y += GRAVITY * dt; intendedPos.y += player.velocity.y * dt;
-            let groundedHeight = 0; const playerRadius = 0.8;
-            for (let obs of obstacles) {
-                const box = new THREE.Box3().setFromObject(obs);
-                const minX = box.min.x - playerRadius; const maxX = box.max.x + playerRadius;
-                const minZ = box.min.z - playerRadius; const maxZ = box.max.z + playerRadius;
-                if (intendedPos.x > minX && intendedPos.x < maxX && intendedPos.z > minZ && intendedPos.z < maxZ) {
-                    if (player.mesh.position.y >= box.max.y - 0.5 && player.velocity.y <= 0) {
-                        if (box.max.y > groundedHeight) groundedHeight = box.max.y;
-                    } else {
-                        if (intendedPos.y < box.max.y - 0.5) { intendedPos.x -= dx * 1.2; intendedPos.z -= dz * 1.2; }
-                    }
-                }
-            }
-            if (intendedPos.y <= groundedHeight) { intendedPos.y = groundedHeight; player.velocity.y = 0; player.onGround = true; } else { player.onGround = false; }
+
+            player.velocity.y += GRAVITY * dt;
+            intendedPos.y += player.velocity.y * dt;
+
+            const col = resolveObstacleCollisions(intendedPos, prevY, player.velocity.y, 0.8);
+            player.velocity.y = col.velocityY;
+            player.onGround = col.onGround;
             player.mesh.position.copy(intendedPos);
         }
 
@@ -1007,41 +3122,75 @@
         function climb() {
             let nearObstacle = false;
             const checkPos = player.mesh.position.clone().add(new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.mesh.rotation.y).multiplyScalar(2));
-            for (let obs of obstacles) { if (new THREE.Box3().setFromObject(obs).containsPoint(checkPos)) nearObstacle = true; }
+            for (let obs of obstacles) {
+                const box = new THREE.Box3().setFromObject(obs);
+                if (checkPos.x >= box.min.x - 0.6 && checkPos.x <= box.max.x + 0.6 &&
+                    checkPos.z >= box.min.z - 0.6 && checkPos.z <= box.max.z + 0.6) {
+                    nearObstacle = true;
+                    break;
+                }
+            }
             if (nearObstacle) { player.velocity.y = CLIMB_FORCE; player.onGround = false; } else if (!player.onGround) player.velocity.y += 5;
         }
 
+        let swingCounter = 0;
         function attack() {
             if (!player.hasWeapon || player.isAttacking) return;
             player.isAttacking = true;
+            const swingId = ++swingCounter;
             const holder = player.mesh.getObjectByName('weaponHolder');
             const startRot = holder.rotation.y;
             let t = 0;
             const interval = setInterval(() => {
                 t += 0.25; holder.rotation.y = startRot - Math.sin(t * Math.PI) * 2.5;
                 const facing = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), player.mesh.rotation.y);
+                const stats = getPlayerStats();
 
-                // Attack Regular Enemies
-                enemies.forEach((e, index) => {
-                    if (e.mesh.position.distanceTo(player.mesh.position) < 5) {
+                // Attack Regular Enemies — each kill boosts Power (Speed + Damage)!
+                for (let index = enemies.length - 1; index >= 0; index--) {
+                    const e = enemies[index];
+                    if (e.mesh.position.distanceTo(player.mesh.position) < 5.2 + stats.reachBonus) {
                         const toEnemy = e.mesh.position.clone().sub(player.mesh.position).normalize();
-                        if (toEnemy.dot(facing) > 0.4) {
-                            scene.remove(e.mesh); enemies.splice(index, 1); score++;
+                        if (toEnemy.dot(facing) > 0.35) {
+                            scene.remove(e.mesh);
+                            enemies.splice(index, 1);
+                            score++;
+                            enemiesDefeated++;
                             document.getElementById('score').innerText = "SCORE: " + score;
+                            updatePowerHUD();
                         }
                     }
-                });
+                }
 
-                // Attack Boss
-                if (boss && boss.mesh.position.distanceTo(player.mesh.position) < 6) {
-                    const toBoss = boss.mesh.position.clone().sub(player.mesh.position).normalize();
-                    if (toBoss.dot(facing) > 0.4) {
-                        boss.hp--;
-                        updateBossHealthUI((boss.hp / boss.maxHp) * 100);
-                        boss.mesh.position.add(toBoss.multiplyScalar(4));
+                // Attack Bosses (supports single boss or all 6 bosses in Boss Rush!)
+                for (let bIdx = activeBosses.length - 1; bIdx >= 0; bIdx--) {
+                    const curBoss = activeBosses[bIdx];
+                    const hitRange = (curBoss.type === 5 ? 7.4 : 6.2) + stats.reachBonus;
+                    if (curBoss.lastHitSwing !== swingId && curBoss.mesh.position.distanceTo(player.mesh.position) < hitRange) {
+                        const toBoss = curBoss.mesh.position.clone().sub(player.mesh.position).normalize();
+                        if (toBoss.dot(facing) > 0.32) {
+                            curBoss.lastHitSwing = swingId;
+                            curBoss.hp = Math.max(0, +(curBoss.hp - stats.damage).toFixed(2));
+                            curBoss.mesh.position.add(toBoss.multiplyScalar(3.5 + Math.min(3.5, enemiesDefeated * 0.2)));
+                            resolveObstacleCollisions(curBoss.mesh.position, curBoss.mesh.position.y, curBoss.velocityY, curBoss.type === 5 ? 2.1 : 1.6);
 
-                        if (boss.hp <= 0) {
-                            killBoss();
+                            if (curBoss.hp <= 0) {
+                                scene.remove(curBoss.mesh);
+                                activeBosses.splice(bIdx, 1);
+                                boss = activeBosses[0] || null;
+                                if (isBossRush) {
+                                    score += 10;
+                                    enemiesDefeated += 2;
+                                    document.getElementById('score').innerText = "SCORE: " + score;
+                                    updatePowerHUD();
+                                }
+                            }
+                            updateActiveBossesHUD();
+
+                            if (activeBosses.length === 0) {
+                                killBoss();
+                                break;
+                            }
                         }
                     }
                 }
@@ -1051,15 +3200,53 @@
         }
 
         function killBoss() {
-            scene.remove(boss.mesh);
-            boss = null;
+            clearAllBosses();
+            const wasBossRush = isBossRush;
             isBossFight = false;
+            isBossRush = false;
             score += 10;
+            enemiesDefeated += 2;
+            updatePowerHUD();
             bossLevelIndex++;
-            nextBossScore = score + (10 - (score % 10));
             document.getElementById('score').innerText = "SCORE: " + score;
             document.getElementById('boss-hud').classList.remove('visible');
             projectiles.forEach(g => scene.remove(g.mesh)); projectiles = [];
+
+            if (wasBossRush) {
+                isGameRunning = false;
+                document.getElementById('ui-layer').style.display = 'none';
+                const sub = document.getElementById('victory-subtitle');
+                if (sub) sub.innerText = "You conquered BOSS RUSH and defeated all 6 bosses at once!";
+                document.getElementById('victory-score').innerText = "Final Score: " + score;
+                document.getElementById('victory-screen').classList.remove('hidden');
+                return;
+            }
+
+            if (!isEndlessMode) {
+                if (currentLevel === 1) {
+                    health = Math.min(100, health + 35);
+                    document.getElementById('health-bar').style.width = health + '%';
+                    switchToLevel(2, true);
+                    nextBossScore = score + 12;
+                } else if (currentLevel === 2) {
+                    health = Math.min(100, health + 35);
+                    document.getElementById('health-bar').style.width = health + '%';
+                    switchToLevel(3, true);
+                    nextBossScore = score + 12;
+                } else {
+                    // Defeated the Finale Boss in Level 3!
+                    isGameRunning = false;
+                    document.getElementById('ui-layer').style.display = 'none';
+                    const sub = document.getElementById('victory-subtitle');
+                    if (sub) sub.innerText = "You defeated the Omega Mecha-Hound 9000 and rule all 3 levels!";
+                    document.getElementById('victory-score').innerText = "Final Score: " + score;
+                    document.getElementById('victory-screen').classList.remove('hidden');
+                }
+            } else {
+                const nextLvl = (currentLevel % 3) + 1;
+                switchToLevel(nextLvl, true);
+                nextBossScore = score + 12;
+            }
         }
 
         function animate(time) {
@@ -1070,37 +3257,131 @@
             if (isGameRunning) {
                 if (!isBossFight && score >= nextBossScore) {
                     startBossFight();
-                    nextBossScore += 10;
+                    nextBossScore += 12;
                 }
 
                 if (Math.random() < 0.015) spawnEnemy();
                 if (Math.random() < 0.005) spawnWeapon();
 
                 updatePhysics(dt);
-                if (boss) updateBoss(dt, time);
+                if (activeBosses.length > 0) updateBoss(dt, time);
                 updateProjectiles(dt);
+
+                // Cat Animation: Tail sway, scampering legs, and jump stretch
+                if (player.tailPivot) {
+                    player.tailPivot.rotation.z = Math.sin(time * 0.008) * 0.35;
+                    player.tailPivot.rotation.x = Math.cos(time * 0.005) * 0.12;
+                }
+                const moveMag = Math.hypot(input.x, input.y);
+                if (player.catLegs && player.catLegs.length === 4) {
+                    if (!player.onGround) {
+                        player.catLegs[0].rotation.x = -0.45;
+                        player.catLegs[1].rotation.x = -0.45;
+                        player.catLegs[2].rotation.x = 0.45;
+                        player.catLegs[3].rotation.x = 0.45;
+                        if (player.bodyGroup) player.bodyGroup.position.y = 0;
+                    } else if (moveMag > 0.1) {
+                        const runCycle = time * 0.022;
+                        const swing = Math.sin(runCycle) * 0.65 * moveMag;
+                        player.catLegs[0].rotation.x = swing;
+                        player.catLegs[1].rotation.x = -swing;
+                        player.catLegs[2].rotation.x = -swing;
+                        player.catLegs[3].rotation.x = swing;
+                        if (player.bodyGroup) player.bodyGroup.position.y = Math.abs(Math.cos(runCycle)) * 0.12 * moveMag;
+                    } else {
+                        player.catLegs.forEach(leg => { leg.rotation.x *= 0.8; });
+                        if (player.bodyGroup) player.bodyGroup.position.y = Math.sin(time * 0.004) * 0.03;
+                    }
+                }
 
                 camera.position.x += (player.mesh.position.x - camera.position.x) * 0.1;
                 camera.position.z += (player.mesh.position.z + 20 - camera.position.z) * 0.1;
                 camera.position.y += (Math.max(12, player.mesh.position.y + 18) - camera.position.y) * 0.1;
                 camera.lookAt(player.mesh.position);
 
+                const enemyRadius = 0.95;
                 enemies.forEach(e => {
+                    const prevY = e.mesh.position.y;
                     const target = player.mesh.position.clone();
                     const flatTarget = new THREE.Vector3(target.x, e.mesh.position.y, target.z);
                     const dir = new THREE.Vector3().subVectors(flatTarget, e.mesh.position);
-                    const dist = dir.length(); dir.normalize();
-                    e.mesh.position.add(dir.multiplyScalar(e.speed * dt));
+                    const dist = dir.length();
+                    if (dist > 0.001) dir.normalize();
+
+                    e.mesh.position.add(dir.clone().multiplyScalar(e.speed * dt));
                     e.mesh.lookAt(player.mesh.position.x, e.mesh.position.y, player.mesh.position.z);
-                    e.velocityY += GRAVITY * dt; e.mesh.position.y += e.velocityY * dt;
-                    if (e.mesh.position.y <= 0) { e.mesh.position.y = 0; e.velocityY = 0; e.isJumping = false; }
+
+                    // Walking limb swing animation
+                    const stride = Math.sin(time * 0.011 + (e.walkPhase || 0)) * 0.55;
+                    if (e.legLPivot) e.legLPivot.rotation.x = stride;
+                    if (e.legRPivot) e.legRPivot.rotation.x = -stride;
+                    if (e.armLPivot) e.armLPivot.rotation.x = -stride * 0.85;
+                    if (e.armRPivot) e.armRPivot.rotation.x = stride * 0.85;
+
+                    e.velocityY += GRAVITY * dt;
+                    e.mesh.position.y += e.velocityY * dt;
+
+                    const col = resolveObstacleCollisions(e.mesh.position, prevY, e.velocityY, enemyRadius);
+                    e.velocityY = col.velocityY;
+                    if (col.onGround) e.isJumping = false;
+
                     const heightDiff = player.mesh.position.y - e.mesh.position.y;
-                    if (dist < 5 && heightDiff > 2 && heightDiff < 10 && !e.isJumping && Math.random() < 0.03) { e.velocityY = 20; e.isJumping = true; }
-                    if (e.mesh.position.distanceTo(player.mesh.position) < 1.5) {
-                        health -= 30 * dt; document.getElementById('health-bar').style.width = health + '%';
-                        if (health <= 0) gameOver();
+                    if (col.blockedBox) {
+                        if (col.blockedBox.max.y <= 4.5 && !e.isJumping && heightDiff > 0.5) {
+                            e.velocityY = 20;
+                            e.isJumping = true;
+                        } else {
+                            const steer = e.steerDir || 1;
+                            const tangent = new THREE.Vector3(-dir.z * steer, 0, dir.x * steer);
+                            e.mesh.position.add(tangent.multiplyScalar(e.speed * 0.9 * dt));
+                            resolveObstacleCollisions(e.mesh.position, prevY, e.velocityY, enemyRadius);
+                        }
+                    } else if (dist < 5 && heightDiff > 2 && heightDiff < 10 && !e.isJumping && Math.random() < 0.03) {
+                        e.velocityY = 20;
+                        e.isJumping = true;
                     }
                 });
+
+                // Prevent Enemy-to-Enemy and Enemy-to-Player Clipping
+                const minEnemySep = 1.9;
+                for (let i = 0; i < enemies.length; i++) {
+                    const e1 = enemies[i];
+                    for (let j = i + 1; j < enemies.length; j++) {
+                        const e2 = enemies[j];
+                        if (Math.abs(e1.mesh.position.y - e2.mesh.position.y) < 3) {
+                            const dx = e2.mesh.position.x - e1.mesh.position.x;
+                            const dz = e2.mesh.position.z - e1.mesh.position.z;
+                            const d = Math.sqrt(dx * dx + dz * dz);
+                            if (d < minEnemySep && d > 0.0001) {
+                                const overlap = (minEnemySep - d) * 0.5;
+                                const nx = dx / d;
+                                const nz = dz / d;
+                                e1.mesh.position.x -= nx * overlap;
+                                e1.mesh.position.z -= nz * overlap;
+                                e2.mesh.position.x += nx * overlap;
+                                e2.mesh.position.z += nz * overlap;
+                            }
+                        }
+                    }
+
+                    // Contact damage + prevent clipping inside player
+                    const distToPlayer = e1.mesh.position.distanceTo(player.mesh.position);
+                    if (distToPlayer < 1.65) {
+                        health -= 30 * dt;
+                        document.getElementById('health-bar').style.width = health + '%';
+                        if (health <= 0) gameOver();
+
+                        const pdx = e1.mesh.position.x - player.mesh.position.x;
+                        const pdz = e1.mesh.position.z - player.mesh.position.z;
+                        const pd = Math.sqrt(pdx * pdx + pdz * pdz);
+                        if (pd > 0.001 && pd < 1.35 && Math.abs(e1.mesh.position.y - player.mesh.position.y) < 2.5) {
+                            e1.mesh.position.x = player.mesh.position.x + (pdx / pd) * 1.35;
+                            e1.mesh.position.z = player.mesh.position.z + (pdz / pd) * 1.35;
+                        }
+                    }
+
+                    resolveObstacleCollisions(e1.mesh.position, e1.mesh.position.y, e1.velocityY, enemyRadius);
+                }
 
                 for (let i = weapons.length - 1; i >= 0; i--) {
                     const w = weapons[i]; w.rotation.y += dt; w.position.y = 1 + Math.sin(time * 0.005 + w.userData.floatOffset) * 0.5;
@@ -1125,27 +3406,53 @@
             document.getElementById('final-score').innerText = "Score: " + score;
         }
 
-        function resetGame() {
-            score = 0; health = 100; nextBossScore = 10; isBossFight = false; bossLevelIndex = 0;
-            if (boss) { scene.remove(boss.mesh); boss = null; }
+        function resetGame(startLvl = 1) {
+            score = 0; health = 100; enemiesDefeated = 0; nextBossScore = 12; isBossFight = false; isBossRush = false; bossLevelIndex = 0;
+            isEndlessMode = false;
+            clearAllBosses();
             projectiles.forEach(g => scene.remove(g.mesh)); projectiles = [];
             document.getElementById('boss-hud').classList.remove('visible');
             document.getElementById('boss-warning').classList.remove('warn-active');
+            document.getElementById('victory-screen').classList.add('hidden');
 
             document.getElementById('score').innerText = "SCORE: 0";
             document.getElementById('health-bar').style.width = '100%';
             player.hasWeapon = false; player.weaponType = null;
             document.getElementById('attack-btn').classList.remove('active'); document.getElementById('attack-btn').innerText = "ITEM?";
             const holder = player.mesh.getObjectByName('weaponHolder'); while (holder.children.length) holder.remove(holder.children[0]);
+            updatePowerHUD();
             enemies.forEach(e => scene.remove(e.mesh)); enemies = []; weapons.forEach(w => scene.remove(w)); weapons = [];
+            loadLevel(startLvl);
             player.mesh.position.set(0, 5, 0); player.velocity.set(0, 0, 0);
             document.getElementById('ui-layer').style.display = 'flex'; document.getElementById('cage-overlay').style.display = 'none';
             document.getElementById('game-over-screen').classList.add('hidden'); document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('controls-hint').classList.add('hidden');
             isGameRunning = true;
+            for (let i = 0; i < 3; i++) spawnWeapon();
         }
 
-        function startGame() { resetGame(); }
+        function startGame(startLvl = 1) { resetGame(startLvl); }
+
+        function startBossRushMode() {
+            resetGame(3);
+            enemiesDefeated = 6;
+            equipWeapon('fish');
+            updatePowerHUD();
+            const ind = document.getElementById('level-indicator');
+            if (ind) ind.innerText = "🔥 BOSS RUSH ARENA (ALL 6 BOSSES!) 🔥";
+            startBossRush();
+        }
+
+        function continueEndless() {
+            isEndlessMode = true;
+            document.getElementById('victory-screen').classList.add('hidden');
+            document.getElementById('ui-layer').style.display = 'flex';
+            health = 100;
+            document.getElementById('health-bar').style.width = '100%';
+            switchToLevel(1, true);
+            nextBossScore = score + 10;
+            isGameRunning = true;
+        }
 
         const zone = document.getElementById('zone-joystick');
         zone.addEventListener('touchstart', e => { e.preventDefault(); if (!joystick.active) { const t = e.changedTouches[0]; joystick.active = true; joystick.id = t.identifier; joystick.originX = t.clientX; joystick.originY = t.clientY; joystick.base.style.display = 'block'; joystick.base.style.left = (t.clientX - 50) + 'px'; joystick.base.style.top = (t.clientY - 50) + 'px'; } }, { passive: false });
