@@ -47,7 +47,7 @@ def extract_cards():
                 "title": strip_emojis(raw_title),
                 "raw_title": raw_title,
                 "description": clean_text(desc),
-                "creator": "Kirby",
+                "creator": "Oliver",
                 "rel_path": rel_key,
             }
 
