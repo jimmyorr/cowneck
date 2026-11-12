@@ -3,12 +3,12 @@
 Sync metadata, Open Graph, Twitter cards, canonical tags, and Schema.org VideoGame
 structured data from games/index.html (and games/kirby.html) into individual game HTML files.
 """
-import glob
 import html
 import json
-import os
+from pathlib import Path
 import re
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
 START_TAG = "<!-- sync-start:metadata -->"
 END_TAG = "<!-- sync-end:metadata -->"
 SKIP_FILES = {"index.html", "kirby.html", "react_template.html"}
@@ -29,8 +29,8 @@ def extract_cards():
     metadata = {}
 
     # 1. Extract from games/kirby.html first (games/index.html takes precedence if in both)
-    kirby_path = "games/kirby.html"
-    if os.path.exists(kirby_path):
+    kirby_path = REPO_ROOT / "games" / "kirby.html"
+    if kirby_path.exists():
         with open(kirby_path, "r", encoding="utf-8") as f:
             kirby_content = f.read()
         kirby_cards = re.findall(
@@ -52,7 +52,7 @@ def extract_cards():
             }
 
     # 2. Extract from games/index.html
-    index_path = "games/index.html"
+    index_path = REPO_ROOT / "games" / "index.html"
     with open(index_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -170,8 +170,9 @@ def build_metadata_block(
 
 def sync_file(filepath, info, rel_url):
     with open(filepath, "r", encoding="utf-8") as f:
-        content = f.read()
+        original_content = f.read()
 
+    content = original_content
     sync_pattern = re.compile(
         rf"^[ \t]*{re.escape(START_TAG)}[\s\S]*?{re.escape(END_TAG)}",
         re.MULTILINE,
@@ -184,7 +185,20 @@ def sync_file(filepath, info, rel_url):
     has_existing_theme = bool(
         re.search(r'<meta[^>]+name=["\']theme-color["\'][^>]*>', outside_content, re.I)
     )
-    has_existing_ga = "G-6RNVL7JZVJ" in outside_content
+    has_existing_ga = bool(
+        re.search(
+            r'gtag\(\s*["\']config["\']\s*,\s*["\']G-6RNVL7JZVJ["\']',
+            outside_content,
+        )
+    )
+
+    if not has_existing_ga and "G-6RNVL7JZVJ" in outside_content:
+        content = re.sub(
+            r"\n?[ \t]*(?:<!--\s*Google tag \(gtag\.js\)\s*-->\s*\n)?[ \t]*<script[^>]+googletagmanager\.com/gtag/js\?id=G-6RNVL7JZVJ[^>]*></script>",
+            "",
+            content,
+            flags=re.IGNORECASE,
+        )
 
     block = build_metadata_block(
         rel_url,
@@ -210,7 +224,7 @@ def sync_file(filepath, info, rel_url):
             else:
                 return False
 
-    if new_content != content:
+    if new_content != original_content:
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(new_content)
         return True
@@ -219,10 +233,10 @@ def sync_file(filepath, info, rel_url):
 
 def main():
     metadata = extract_cards()
-    game_files = glob.glob("games/*.html")
+    game_files = sorted((REPO_ROOT / "games").glob("*.html"))
     updated = 0
-    for p in sorted(game_files):
-        fname = os.path.basename(p)
+    for p in game_files:
+        fname = p.name
         if fname in SKIP_FILES:
             continue
         if fname in metadata:
@@ -239,8 +253,8 @@ def main():
         if sync_file(p, info, rel_url):
             updated += 1
 
-    hs_path = "games/high-society/index.html"
-    if os.path.exists(hs_path):
+    hs_path = REPO_ROOT / "games" / "high-society" / "index.html"
+    if hs_path.exists():
         info = metadata.get("high-society/index.html") or {
             "title": "High Society",
             "description": "An interactive board game implementation of High Society on cowneck.",
@@ -267,8 +281,8 @@ def generate_sitemap():
         "https://cowneck.com/games/kirby.html",
         "https://cowneck.com/games/high-society/",
     ]
-    for p in sorted(glob.glob("games/*.html")):
-        fname = os.path.basename(p)
+    for p in sorted((REPO_ROOT / "games").glob("*.html")):
+        fname = p.name
         if fname in SKIP_FILES:
             continue
         urls.append(f"https://cowneck.com/games/{fname}")
@@ -281,7 +295,7 @@ def generate_sitemap():
         lines.append(f"  <url><loc>{u}</loc></url>")
     lines.append("</urlset>\n")
 
-    with open("sitemap.xml", "w", encoding="utf-8") as f:
+    with open(REPO_ROOT / "sitemap.xml", "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
     print(f"Generated sitemap.xml with {len(urls)} URLs.")
 

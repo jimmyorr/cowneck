@@ -13,3 +13,7 @@ venv/
 .DS_Store
 .vscode/
 .idea/
+
+# Test artifacts
+playwright-report/
+test-results/
