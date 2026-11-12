@@ -62,16 +62,25 @@
     </script>
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --text-color: #f0f0f0;
+            --bg-color: #14171f;
+            --surface-color: #1e2330;
+            --surface-elevated: #272e3f;
+            --text-color: #f0f3f8;
+            --muted-color: #939db2;
             --accent-color: #00ff88;
-            --danger-color: #ff3333;
+            --accent-dim: rgba(0, 255, 136, 0.14);
+            --danger-color: #ff4757;
+            --amber-color: #ffb142;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background-color: var(--bg-color);
+            background: radial-gradient(circle at top, #1f2638 0%, var(--bg-color) 65%);
             color: var(--text-color);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             display: flex;
@@ -82,7 +91,7 @@
         }
 
         h1 {
-            margin: 20px 0 10px;
+            margin: 16px 0 8px;
             font-size: 2rem;
             text-align: center;
             text-transform: uppercase;
@@ -91,25 +100,375 @@
         }
 
         p.subtitle {
-            margin: 0 0 30px;
-            color: #888;
+            margin: 0 0 22px;
+            color: var(--muted-color);
             font-size: 1rem;
+            text-align: center;
         }
 
+        /* Back Navigation */
+        .back-link {
+            position: fixed;
+            top: 18px;
+            left: 20px;
+            color: var(--muted-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+            z-index: 40;
+        }
+
+        .back-link:hover,
+        .back-link:focus-visible {
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+
+        /* Main Menu */
+        .main-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            width: 100%;
+            padding: 64px 20px 32px;
+        }
+
+        .main-menu.hidden {
+            display: none;
+        }
+
+        .mode-selector {
+            display: inline-flex;
+            background: var(--surface-color);
+            padding: 5px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 10px;
+            gap: 4px;
+        }
+
+        .mode-btn {
+            border: none;
+            background: transparent;
+            color: var(--muted-color);
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 700;
+            padding: 9px 18px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background-color 0.15s, color 0.15s;
+        }
+
+        .mode-btn.active {
+            background: var(--accent-color);
+            color: #0b1310;
+        }
+
+        .mode-btn:focus-visible {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 2px;
+        }
+
+        .mode-description {
+            font-size: 0.85rem;
+            color: var(--muted-color);
+            margin-bottom: 22px;
+            text-align: center;
+            max-width: 420px;
+        }
+
+        .difficulty-list {
+            margin-bottom: 18px;
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+        }
+
+        .difficulty-item {
+            margin-bottom: 14px;
+        }
+
+        .difficulty-meta {
+            font-size: 0.85rem;
+            color: var(--muted-color);
+        }
+
+        button.next-btn,
+        button.menu-btn {
+            padding: 14px 36px;
+            font-size: 1.35rem;
+            background: white;
+            color: #111;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 800;
+            font-family: inherit;
+            transition: transform 0.1s, background-color 0.2s, box-shadow 0.2s;
+            margin: 6px;
+        }
+
+        button.menu-btn {
+            width: 260px;
+        }
+
+        button.menu-btn.easy {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #071929;
+        }
+
+        button.menu-btn.normal {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #092116;
+        }
+
+        button.menu-btn.hard {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        button.next-btn:active,
+        button.menu-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Game Wrapper & HUD */
         .game-wrapper {
             display: none;
-            /* Hidden by default, shown when game starts */
             flex-direction: column;
             align-items: center;
             width: 100%;
-            height: 100%;
+            min-height: 100vh;
             flex-grow: 1;
+            padding-top: 14px;
         }
 
         .game-wrapper.active {
             display: flex;
         }
 
+        .timer-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #252b3b;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 50;
+        }
+
+        .timer-bar-container.hidden {
+            display: none;
+        }
+
+        .timer-bar {
+            width: 100%;
+            height: 100%;
+            background: var(--accent-color);
+            transform-origin: left;
+            transition: width 0.016s linear;
+        }
+
+        .hud-bar {
+            width: 95%;
+            max-width: 1400px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 8px 4px;
+        }
+
+        .hud-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .hud-pill,
+        .hud-btn {
+            background: rgba(30, 35, 48, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            padding: 7px 14px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hud-btn {
+            cursor: pointer;
+            transition: background-color 0.15s, border-color 0.15s;
+        }
+
+        .hud-btn:hover,
+        .hud-btn:focus-visible {
+            background: var(--surface-elevated);
+            border-color: rgba(255, 255, 255, 0.25);
+            outline: none;
+        }
+
+        .hud-btn[aria-pressed="true"] {
+            border-color: var(--accent-color);
+            background: var(--accent-dim);
+            color: var(--accent-color);
+        }
+
+        .diff-pill {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            padding: 5px 10px;
+        }
+
+        .streak-pill {
+            color: var(--amber-color);
+            border-color: rgba(255, 177, 66, 0.35);
+            background: rgba(255, 177, 66, 0.1);
+        }
+
+        .streak-pill.hidden,
+        .lives-pill.hidden {
+            display: none;
+        }
+
+        .score-pill {
+            font-size: 1rem;
+            font-weight: 800;
+            border-color: rgba(0, 255, 136, 0.25);
+        }
+
+        /* Round Prompt & Reveal Banner */
+        .round-banner {
+            width: 95%;
+            max-width: 1400px;
+            min-height: 58px;
+            margin: 6px 0 14px;
+            padding: 10px 18px;
+            border-radius: 14px;
+            background: rgba(30, 35, 48, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .round-banner.prompt-only {
+            justify-content: center;
+            text-align: center;
+            color: var(--muted-color);
+            font-size: 0.95rem;
+        }
+
+        .round-banner.reveal-correct {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: rgba(0, 255, 136, 0.4);
+        }
+
+        .round-banner.reveal-wrong {
+            background: rgba(255, 71, 87, 0.12);
+            border-color: rgba(255, 71, 87, 0.42);
+        }
+
+        .banner-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .banner-verdict {
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .reveal-correct .banner-verdict {
+            color: var(--accent-color);
+        }
+
+        .reveal-wrong .banner-verdict {
+            color: #ff6b78;
+        }
+
+        .bird-credit {
+            font-size: 0.9rem;
+            color: var(--muted-color);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bird-credit a {
+            color: var(--text-color);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .banner-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .banner-btn {
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-color);
+            transition: background-color 0.15s, border-color 0.15s, transform 0.1s;
+        }
+
+        .banner-btn:hover,
+        .banner-btn:focus-visible {
+            background: rgba(255, 255, 255, 0.16);
+            outline: none;
+        }
+
+        .banner-btn[aria-pressed="true"] {
+            background: rgba(255, 177, 66, 0.2);
+            border-color: var(--amber-color);
+            color: #ffd28a;
+        }
+
+        .banner-btn.primary {
+            background: white;
+            color: #111;
+            border-color: white;
+            padding: 9px 20px;
+        }
+
+        .banner-btn.primary:hover,
+        .banner-btn.primary:focus-visible {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: #071b11;
+        }
+
+        /* Side-by-side Image Arena */
         .game-container {
             display: flex;
             flex-direction: row;
@@ -119,28 +478,47 @@
             width: 95%;
             max-width: 1400px;
             flex-grow: 1;
-            padding-bottom: 50px;
+            padding-bottom: 28px;
         }
 
         .image-choice {
             flex: 1;
             position: relative;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border-radius: 12px;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+            border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
             aspect-ratio: 16/9;
-            background: #222;
+            background: #181c26;
+            border: 2px solid rgba(255, 255, 255, 0.08);
             display: flex;
             justify-content: center;
             align-items: center;
+            touch-action: manipulation;
         }
 
         .image-choice:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+            border-color: rgba(255, 255, 255, 0.22);
+        }
+
+        .image-choice:focus-visible {
+            outline: 3px solid var(--accent-color);
+            outline-offset: 3px;
             z-index: 10;
+        }
+
+        .image-choice.reveal-original {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px var(--accent-color), 0 8px 28px rgba(0, 255, 136, 0.2);
+            cursor: crosshair;
+        }
+
+        .image-choice.reveal-compressed {
+            border-color: var(--amber-color);
+            box-shadow: 0 0 0 1px rgba(255, 177, 66, 0.6), 0 8px 28px rgba(0, 0, 0, 0.4);
+            cursor: crosshair;
         }
 
         .image-choice img {
@@ -151,13 +529,95 @@
             -webkit-user-drag: none;
         }
 
+        .key-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.65);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .choice-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 6;
+            display: none;
+            backdrop-filter: blur(6px);
+        }
+
+        .choice-badge.visible {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .choice-badge.badge-original {
+            background: rgba(0, 40, 24, 0.88);
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+        }
+
+        .choice-badge.badge-compressed {
+            background: rgba(45, 28, 6, 0.9);
+            color: #ffd28a;
+            border: 1px solid var(--amber-color);
+        }
+
+        /* Synchronized Magnifier Loupe */
+        .loupe {
+            position: absolute;
+            width: 168px;
+            height: 168px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.65), 0 10px 28px rgba(0, 0, 0, 0.75);
+            background-repeat: no-repeat;
+            background-color: #111;
+            image-rendering: pixelated;
+            pointer-events: none;
+            z-index: 15;
+            display: none;
+        }
+
+        .loupe.visible {
+            display: block;
+        }
+
+        .loupe::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            margin: -4px 0 0 -4px;
+            border: 1px solid rgba(0, 255, 136, 0.75);
+            border-radius: 50%;
+        }
+
+        /* End-of-Game & Error Modal Overlay */
         .feedback-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(10, 13, 20, 0.9);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -165,7 +625,9 @@
             z-index: 100;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.25s ease;
+            padding: 20px;
+            text-align: center;
         }
 
         .feedback-overlay.active {
@@ -174,95 +636,49 @@
         }
 
         .feedback-icon {
-            font-size: 10rem;
-            margin-bottom: 20px;
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .correct .feedback-icon {
-            color: var(--accent-color);
-            text-shadow: 0 0 50px rgba(0, 255, 136, 0.5);
+            font-size: 6rem;
+            margin-bottom: 12px;
+            animation: popIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .wrong .feedback-icon {
             color: var(--danger-color);
-            text-shadow: 0 0 50px rgba(255, 51, 51, 0.5);
+            text-shadow: 0 0 40px rgba(255, 71, 87, 0.45);
         }
 
         .feedback-text {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 30px;
+            font-size: 1.85rem;
+            font-weight: 800;
+            margin-bottom: 22px;
+            line-height: 1.35;
         }
 
-        button.next-btn,
-        button.menu-btn {
-            padding: 15px 40px;
-            font-size: 1.5rem;
-            background: white;
-            color: black;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.1s, background-color 0.2s;
-            margin: 10px;
+        .summary-stats {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--muted-color);
         }
 
-        button.menu-btn {
-            width: 250px;
+        .summary-stat {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 14px;
+            border-radius: 999px;
         }
 
-        button.menu-btn.easy {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            border: 2px solid transparent;
-        }
-
-        button.menu-btn.normal {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            color: #1a1a1a;
-        }
-
-        button.menu-btn.hard {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-
-        button.menu-btn.classic {
-            background: white;
-            color: black;
-        }
-
-        button.next-btn:active,
-        button.menu-btn:active {
-            transform: scale(0.95);
-        }
-
-        .score-board {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 1.2rem;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-            border-radius: 20px;
-            backdrop-filter: blur(5px);
-            display: none;
-            /* Hidden on menu */
-        }
-
-        .score-board.active {
-            display: block;
-        }
-
+        /* Pause Menu */
         .pause-menu {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(10, 13, 20, 0.92);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -285,12 +701,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: rgba(10, 13, 20, 0.96);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding-top: 50px;
+            padding: 44px 16px 32px;
             z-index: 300;
             opacity: 0;
             pointer-events: none;
@@ -304,55 +720,66 @@
         }
 
         .leaderboard-container {
-            width: 90%;
-            max-width: 800px;
-            background: #222;
-            border-radius: 15px;
+            width: 95%;
+            max-width: 780px;
+            background: var(--surface-color);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
             padding: 20px;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+        }
+
+        .leaderboard-mode-switch {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 14px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .leaderboard-tabs {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             gap: 10px;
             flex-wrap: wrap;
         }
 
         .tab-btn {
-            background: #333;
-            color: #888;
+            background: #2b3244;
+            color: var(--muted-color);
             border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 9px 20px;
+            border-radius: 999px;
             cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
+            font-weight: 700;
+            font-family: inherit;
+            transition: all 0.15s;
         }
 
         .tab-btn.active {
             background: var(--accent-color);
-            color: #000;
+            color: #091810;
         }
 
         .leaderboard-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .leaderboard-table th,
         .leaderboard-table td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .leaderboard-table th {
             color: var(--accent-color);
             text-transform: uppercase;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
         }
 
         .leaderboard-table tr:last-child td {
@@ -360,28 +787,27 @@
         }
 
         .rank-1 {
-            color: #FFD700;
+            color: #ffd700;
+            font-weight: 800;
         }
 
-        /* Gold */
         .rank-2 {
-            color: #C0C0C0;
+            color: #c0c0c0;
+            font-weight: 700;
         }
 
-        /* Silver */
         .rank-3 {
-            color: #CD7F32;
+            color: #cd7f32;
+            font-weight: 700;
         }
-
-        /* Bronze */
 
         .high-score-form {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
-            margin-top: 20px;
-            animation: popIn 0.5s ease;
+            gap: 14px;
+            margin-top: 12px;
+            animation: popIn 0.4s ease;
         }
 
         .high-score-input {
@@ -389,86 +815,37 @@
             font-size: 1.2rem;
             border-radius: 25px;
             border: 2px solid var(--accent-color);
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             color: white;
             text-align: center;
             outline: none;
-        }
-
-        .main-menu {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100%;
-        }
-
-        .main-menu.hidden {
-            display: none;
-        }
-
-        @keyframes popIn {
-            0% {
-                transform: scale(0);
-            }
-
-            80% {
-                transform: scale(1.1);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .game-container {
-                flex-direction: column;
-            }
-
-            .image-choice {
-                width: 100%;
-                aspect-ratio: auto;
-                max-height: 40vh;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            button.menu-btn {
-                width: 80%;
-            }
-        }
-
-        /* Timer Bar */
-        .timer-bar-container {
-            width: 100%;
-            height: 10px;
-            background: #333;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 50;
-        }
-
-        .timer-bar {
-            width: 100%;
-            height: 100%;
-            background: var(--accent-color);
-            transform-origin: left;
-            transition: width 0.016s linear;
+            font-family: inherit;
         }
 
         /* Loading Spinner */
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #333;
-            border-top: 5px solid var(--accent-color);
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.12);
+            border-top: 4px solid var(--accent-color);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0.4);
+                opacity: 0;
+            }
+
+            80% {
+                transform: scale(1.06);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         @keyframes spin {
@@ -480,78 +857,153 @@
                 transform: rotate(360deg);
             }
         }
+
+        @media (max-width: 768px) {
+            .back-link {
+                position: static;
+                margin-bottom: 14px;
+            }
+
+            .main-menu {
+                padding-top: 28px;
+            }
+
+            .game-container {
+                flex-direction: column;
+            }
+
+            .image-choice {
+                width: 100%;
+                aspect-ratio: 16/9;
+                max-height: 36vh;
+            }
+
+            .loupe {
+                width: 124px;
+                height: 124px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            button.menu-btn {
+                width: 85%;
+            }
+
+            .round-banner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="score-board" id="score-board">Score: <span id="score">0</span></div>
-
     <!-- Main Menu -->
     <div class="main-menu" id="main-menu">
+        <a href="index.html" class="back-link" id="back-to-games-link">← Back to Games</a>
         <h1>High Fidelity</h1>
         <p class="subtitle">Can you spot the compression?</p>
 
-        <div style="margin-bottom: 25px; text-align: center; max-width: 400px;">
-            <div style="margin-bottom: 15px;">
-                <button class="menu-btn easy" onclick="startGame('easy')" style="margin-bottom: 5px;">Easy</button>
-                <div style="font-size: 0.85rem; color: #888;">Low-quality JPEG (10%) - Obvious artifacts.</div>
+        <div class="mode-selector" role="group" aria-label="Game mode">
+            <button type="button" class="mode-btn active" data-mode="blitz" aria-pressed="true">⚡ Timed Blitz</button>
+            <button type="button" class="mode-btn" data-mode="inspector" aria-pressed="false">🔍 Inspector (3 ❤️)</button>
+        </div>
+        <div class="mode-description" id="mode-description">
+            Race the clock across 10 rounds. Faster picks earn more points.
+        </div>
+
+        <div class="difficulty-list">
+            <div class="difficulty-item">
+                <button type="button" class="menu-btn easy" data-difficulty="easy">Easy</button>
+                <div class="difficulty-meta" id="meta-easy">Low-quality JPEG (10%) • Obvious blocks • 4s timer</div>
             </div>
-            <div style="margin-bottom: 15px;">
-                <button class="menu-btn normal" onclick="startGame('mid')" style="margin-bottom: 5px;">Mid</button>
-                <div style="font-size: 0.85rem; color: #888;">Mid-quality JPEG (40%) - Noticeable ringing.</div>
+            <div class="difficulty-item">
+                <button type="button" class="menu-btn normal" data-difficulty="mid">Mid</button>
+                <div class="difficulty-meta" id="meta-mid">Mid-quality JPEG (40%) • Noticeable ringing • 6s timer</div>
             </div>
-            <div style="margin-bottom: 25px;">
-                <button class="menu-btn hard" onclick="startGame('hard')" style="margin-bottom: 5px;">Hard</button>
-                <div style="font-size: 0.85rem; color: #888;">High-quality JPEG (75%) - Subtle feathering.</div>
+            <div class="difficulty-item">
+                <button type="button" class="menu-btn hard" data-difficulty="hard">Hard</button>
+                <div class="difficulty-meta" id="meta-hard">High-quality JPEG (75%) • Subtle feathering • 8s timer</div>
             </div>
         </div>
 
-        <button class="menu-btn" style="margin-top: 10px; font-size: 1rem; padding: 10px 30px; width: auto;"
-            onclick="showLeaderboard()">🏆 Leaderboard</button>
+        <button type="button" class="menu-btn" id="open-leaderboard-btn"
+            style="margin-top: 6px; font-size: 1rem; padding: 11px 28px; width: auto;">🏆 Leaderboard</button>
     </div>
 
     <!-- Game Area -->
     <div class="game-wrapper" id="game-wrapper">
-        <div class="timer-bar-container">
+        <div class="timer-bar-container" id="timer-bar-container">
             <div class="timer-bar" id="timer-bar"></div>
         </div>
-        <h1>High Fidelity</h1>
-        <p class="subtitle">Click the higher fidelity (uncompressed) image.</p>
+
+        <div class="hud-bar">
+            <div class="hud-group">
+                <button type="button" class="hud-btn" id="hud-pause-btn" aria-label="Pause game">⏸ Pause</button>
+                <div class="hud-pill">Round <span id="round-num">1</span>/<span id="round-total">10</span></div>
+                <div class="hud-pill diff-pill" id="difficulty-badge">EASY</div>
+            </div>
+            <div class="hud-group">
+                <div class="hud-pill lives-pill hidden" id="lives-display" aria-label="Remaining lives">❤️❤️❤️</div>
+                <div class="hud-pill streak-pill hidden" id="streak-badge">🔥 <span id="streak-count">0</span></div>
+                <button type="button" class="hud-btn" id="loupe-toggle-btn" aria-pressed="true"
+                    title="Toggle synchronized magnifier (L)">🔍 Loupe: ON</button>
+                <div class="hud-pill score-pill" id="score-board">Score: <span id="score">0</span></div>
+            </div>
+        </div>
+
+        <div class="round-banner prompt-only" id="round-banner">
+            <span id="prompt-copy">Click the higher fidelity (uncompressed) image • Hover to magnify • Keys: 1 / 2</span>
+            <div class="banner-status" id="banner-status" style="display: none;">
+                <span class="banner-verdict" id="banner-verdict"></span>
+                <span class="bird-credit" id="bird-credit"></span>
+            </div>
+            <div class="banner-actions" id="banner-actions" style="display: none;">
+                <button type="button" class="banner-btn" id="diff-toggle-btn" aria-pressed="false"
+                    title="Highlight JPEG compression differences (D)">🔬 Show Artifact Diff</button>
+                <button type="button" class="banner-btn primary" id="next-round-btn">Next round</button>
+                <button type="button" class="banner-btn" id="feedback-menu-btn">Main menu</button>
+            </div>
+        </div>
 
         <div class="game-container">
-            <div class="image-choice" id="choice-1" onclick="handleChoice(1)">
+            <div class="image-choice" id="choice-1" role="button" tabindex="0" aria-label="Image choice 1">
                 <div class="spinner"></div>
+                <div class="choice-badge" id="badge-1" aria-hidden="true"></div>
+                <div class="key-hint" aria-hidden="true">1</div>
+                <div class="loupe" id="loupe-1" aria-hidden="true"></div>
             </div>
-            <div class="image-choice" id="choice-2" onclick="handleChoice(2)">
+            <div class="image-choice" id="choice-2" role="button" tabindex="0" aria-label="Image choice 2">
                 <div class="spinner"></div>
+                <div class="choice-badge" id="badge-2" aria-hidden="true"></div>
+                <div class="key-hint" aria-hidden="true">2</div>
+                <div class="loupe" id="loupe-2" aria-hidden="true"></div>
             </div>
         </div>
     </div>
 
+    <!-- End-of-Game & Error Overlay -->
     <div id="feedback" class="feedback-overlay">
         <div class="feedback-icon" id="feedback-icon"></div>
         <div class="feedback-text" id="feedback-text"></div>
-        <button class="next-btn" onclick="nextRound()">Next round</button>
-        <br>
-        <button class="next-btn"
-            style="font-size: 1rem; padding: 10px 20px; background: transparent; color: white; border: 1px solid white;"
-            onclick="showMenu()">Main menu</button>
     </div>
 
+    <!-- Pause Overlay -->
     <div id="pause-menu" class="pause-menu">
         <h1>Paused</h1>
-        <button class="next-btn" onclick="togglePause()">Resume</button>
-        <button class="menu-btn hard" style="margin-top: 20px;" onclick="showMenu()">Main menu</button>
+        <button type="button" class="next-btn" id="resume-btn">Resume</button>
+        <button type="button" class="menu-btn hard" id="pause-menu-btn" style="margin-top: 16px;">Main menu</button>
     </div>
 
     <!-- Leaderboard Overlay -->
     <div id="leaderboard-overlay" class="leaderboard-overlay">
-        <h1 style="margin-bottom: 30px;">Leaderboard</h1>
+        <h1 style="margin-bottom: 20px;">Leaderboard</h1>
         <div class="leaderboard-container">
-            <div class="leaderboard-tabs" id="leaderboard-tabs">
-                <!-- Tabs generated by JS -->
-            </div>
+            <div class="leaderboard-mode-switch" id="leaderboard-mode-switch"></div>
+            <div class="leaderboard-tabs" id="leaderboard-tabs"></div>
             <table class="leaderboard-table" id="leaderboard-table">
                 <thead>
                     <tr>
@@ -561,140 +1013,472 @@
                         <th>Date</th>
                     </tr>
                 </thead>
-                <tbody id="leaderboard-body">
-                    <!-- Rows generated by JS -->
-                </tbody>
+                <tbody id="leaderboard-body"></tbody>
             </table>
         </div>
-        <button class="menu-btn" style="margin-top: 30px;" onclick="closeLeaderboard()">Close</button>
+        <button type="button" class="menu-btn" id="close-leaderboard-btn" style="margin-top: 24px;">Close</button>
     </div>
 
-    <!-- Hidden canvas for compression -->
+    <!-- Hidden canvas for compression & diff generation -->
     <canvas id="compressor" style="display: none;"></canvas>
 
-    <script>
-        // List of available bird images in ../birds/
+    <script type="module">
+        const BIRD_IMAGE_BASE_URL = 'https://birds.cowneck.com/optimized_images';
+        const BIRDS_SITE_URL = 'https://birds.cowneck.com/';
+        const ROUNDS_PER_GAME = 10;
+        const INITIAL_LIVES = 3;
+        const MAX_SCORE_PER_ROUND = 1000;
+        const AUTO_ADVANCE_MS = 2500;
+        const STORAGE_KEY = 'pngVsJpgLeaderboard';
+
+        const DIFFICULTY_CONFIG = {
+            easy: { label: 'Easy', quality: 0.10, qualityPct: 10, timeMs: 4000, diffScale: 5, blurb: 'Low-quality JPEG (10%) • Obvious blocks' },
+            mid: { label: 'Mid', quality: 0.40, qualityPct: 40, timeMs: 6000, diffScale: 10, blurb: 'Mid-quality JPEG (40%) • Noticeable ringing' },
+            hard: { label: 'Hard', quality: 0.75, qualityPct: 75, timeMs: 8000, diffScale: 18, blurb: 'High-quality JPEG (75%) • Subtle feathering' }
+        };
+
+        const LEADERBOARD_BUCKETS = [
+            'easy', 'mid', 'hard',
+            'inspector_easy', 'inspector_mid', 'inspector_hard'
+        ];
+
         const birdImages = [
             'canada-goose.webp', 'cardinal.webp', 'catbird.webp', 'chickadee.webp',
-            'downy.webp', 'flicker.webp', 'goldfinch.webp', 'grackle.webp',
-            'great-blue-heron.webp', 'great-egret.webp', 'herring-gull.webp',
-            'house-finch.webp', 'house-sparrow.webp', 'hummingbird.webp', 'jay.webp',
-            'junco.webp', 'mallard.webp', 'mockingbird.webp', 'mourning-dove.webp',
-            'mute-swan.webp', 'nuthatch.webp', 'osprey.webp', 'red-bellied-woodpecker.webp',
-            'red-tailed-hawk.webp', 'red-winged-blackbird.webp', 'robin.webp',
+            'cormorant.webp', 'downy.webp', 'flicker.webp', 'goldfinch.webp',
+            'grackle.webp', 'great-blue-heron.webp', 'great-egret.webp', 'hairy-woodpecker.webp',
+            'herring-gull.webp', 'house-finch.webp', 'house-sparrow.webp', 'hummingbird.webp',
+            'jay.webp', 'junco.webp', 'mallard.webp', 'mockingbird.webp',
+            'mourning-dove.webp', 'mute-swan.webp', 'nuthatch.webp', 'osprey.webp',
+            'red-bellied-woodpecker.webp', 'red-tailed-hawk.webp', 'red-winged-blackbird.webp', 'robin.webp',
             'rock-pigeon.webp', 'song-sparrow.webp', 'starling.webp', 'titmouse.webp',
             'white-throated-sparrow.webp', 'wren.webp'
         ];
 
+        // Game state
+        let currentMode = 'blitz'; // 'blitz' | 'inspector'
+        let currentDifficulty = 'easy'; // 'easy' | 'mid' | 'hard'
         let score = 0;
+        let correctCount = 0;
+        let streak = 0;
+        let bestStreak = 0;
+        let lives = INITIAL_LIVES;
         let correctSide = 0; // 1 or 2
-        let currentImageName = '';
-        let isProcessing = false;
-        let currentDifficulty = 'easy'; // 'easy', 'mid', 'hard'
         let remainingImages = [];
+        let backupImages = [];
+        let totalRounds = ROUNDS_PER_GAME;
+        let roundsPlayed = 0;
+        let consecutiveFailures = 0;
+        let phase = 'menu'; // 'menu' | 'loading' | 'playing' | 'feedback' | 'gameover' | 'error'
+        let roundToken = 0;
 
-        // Timer variables
-        const MAX_TIME_MS = 3000;
-        const MAX_SCORE_PER_ROUND = 1000;
+        // Round asset & inspection state
+        let currentAssets = null;
+        let preloadedEntry = null; // { imageName, difficulty, promise }
+        let loupeEnabled = true;
+        let diffActive = false;
+        let lastLoupeCoords = null; // { u, v }
+
+        // Timer & pause state
+        let roundDurationMs = DIFFICULTY_CONFIG.easy.timeMs;
         let startTime = 0;
         let timerInterval = null;
         let autoAdvanceTimeout = null;
         let autoAdvanceInterval = null;
+        let autoAdvanceDeadline = 0;
+        let autoAdvanceRemainingMs = AUTO_ADVANCE_MS;
+        let autoAdvanceCancelledByInspect = false;
         let isPaused = false;
         let pausedElapsed = 0;
-        let pausedCountdown = 0;
-        let wasInRound = false;
-        let totalRounds = 0;
+        let returnToMenuOnLeaderboardClose = false;
+
+        // Fallback leaderboard store when localStorage is blocked
+        let memoryLeaderboard = createEmptyLeaderboard();
+
+        // DOM references
+        const mainMenu = document.getElementById('main-menu');
+        const modeDescription = document.getElementById('mode-description');
+        const gameWrapper = document.getElementById('game-wrapper');
+        const timerBarContainer = document.getElementById('timer-bar-container');
+        const timerBar = document.getElementById('timer-bar');
+        const roundNumEl = document.getElementById('round-num');
+        const roundTotalEl = document.getElementById('round-total');
+        const difficultyBadge = document.getElementById('difficulty-badge');
+        const livesDisplay = document.getElementById('lives-display');
+        const streakBadge = document.getElementById('streak-badge');
+        const streakCountEl = document.getElementById('streak-count');
+        const loupeToggleBtn = document.getElementById('loupe-toggle-btn');
+        const scoreEl = document.getElementById('score');
+
+        const roundBanner = document.getElementById('round-banner');
+        const promptCopy = document.getElementById('prompt-copy');
+        const bannerStatus = document.getElementById('banner-status');
+        const bannerVerdict = document.getElementById('banner-verdict');
+        const birdCredit = document.getElementById('bird-credit');
+        const bannerActions = document.getElementById('banner-actions');
+        const diffToggleBtn = document.getElementById('diff-toggle-btn');
+        const nextRoundBtn = document.getElementById('next-round-btn');
+        const feedbackMenuBtn = document.getElementById('feedback-menu-btn');
 
         const container1 = document.getElementById('choice-1');
         const container2 = document.getElementById('choice-2');
-        const pauseMenu = document.getElementById('pause-menu');
-        const leaderboardOverlay = document.getElementById('leaderboard-overlay');
+        const badge1 = document.getElementById('badge-1');
+        const badge2 = document.getElementById('badge-2');
+        const loupe1 = document.getElementById('loupe-1');
+        const loupe2 = document.getElementById('loupe-2');
+
         const feedbackOverlay = document.getElementById('feedback');
         const feedbackIcon = document.getElementById('feedback-icon');
         const feedbackText = document.getElementById('feedback-text');
+        const pauseMenu = document.getElementById('pause-menu');
+        const leaderboardOverlay = document.getElementById('leaderboard-overlay');
         const canvas = document.getElementById('compressor');
-        const ctx = canvas.getContext('2d');
-        const mainMenu = document.getElementById('main-menu');
-        const gameWrapper = document.getElementById('game-wrapper');
-        const scoreBoard = document.getElementById('score-board');
-        let timerBar;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-        // Escape Key Listener
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                if (!mainMenu.classList.contains('hidden') && !gameWrapper.classList.contains('active')) return;
-                // Don't pause if game over
-                if (feedbackOverlay.classList.contains('active') && feedbackIcon.textContent === '🏆') return;
-                togglePause();
+        function createEmptyLeaderboard() {
+            const empty = {};
+            LEADERBOARD_BUCKETS.forEach((key) => {
+                empty[key] = [];
+            });
+            return empty;
+        }
+
+        function getLeaderboardBucket(mode, difficulty) {
+            return mode === 'inspector' ? `inspector_${difficulty}` : difficulty;
+        }
+
+        function formatBirdName(filename) {
+            return filename
+                .replace(/\.[^.]+$/, '')
+                .split('-')
+                .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+                .join(' ');
+        }
+
+        function updateMenuModeUI() {
+            document.querySelectorAll('[data-mode]').forEach((btn) => {
+                const active = btn.dataset.mode === currentMode;
+                btn.classList.toggle('active', active);
+                btn.setAttribute('aria-pressed', String(active));
+            });
+
+            if (currentMode === 'blitz') {
+                modeDescription.textContent = 'Race the clock across 10 rounds. Faster picks earn more points.';
+            } else {
+                modeDescription.textContent = 'Untimed precision inspection with 3 lives. Use the magnifier to hunt subtle artifacts.';
             }
-        });
+
+            Object.entries(DIFFICULTY_CONFIG).forEach(([diff, cfg]) => {
+                const el = document.getElementById(`meta-${diff}`);
+                if (el) {
+                    const suffix = currentMode === 'blitz' ? `${cfg.timeMs / 1000}s timer` : 'Untimed • 3 lives';
+                    el.textContent = `${cfg.blurb} • ${suffix}`;
+                }
+            });
+        }
+
+        function clearTimers() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            if (autoAdvanceInterval) {
+                clearInterval(autoAdvanceInterval);
+                autoAdvanceInterval = null;
+            }
+            if (autoAdvanceTimeout) {
+                clearTimeout(autoAdvanceTimeout);
+                autoAdvanceTimeout = null;
+            }
+        }
+
+        function resetOverlayControls() {
+            feedbackOverlay.querySelectorAll('.high-score-form, .endgame-action-btn').forEach((el) => el.remove());
+        }
+
+        function revokeAssetSet(assets) {
+            if (!assets) return;
+            [assets.originalUrl, assets.compressedUrl, assets.diffUrl].forEach((url) => {
+                if (typeof url === 'string' && url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url);
+                }
+            });
+            assets.diffUrl = null;
+        }
+
+        function disposeAllAssets() {
+            revokeAssetSet(currentAssets);
+            currentAssets = null;
+
+            if (preloadedEntry) {
+                const stalePromise = preloadedEntry.promise;
+                preloadedEntry = null;
+                stalePromise.then((assets) => revokeAssetSet(assets)).catch(() => {});
+            }
+        }
+
+        function setBannerPrompt() {
+            roundBanner.className = 'round-banner prompt-only';
+            promptCopy.style.display = '';
+            bannerStatus.style.display = 'none';
+            bannerActions.style.display = 'none';
+            diffActive = false;
+            diffToggleBtn.setAttribute('aria-pressed', 'false');
+            diffToggleBtn.textContent = '🔬 Show Artifact Diff';
+        }
+
+        function resetChoiceCardsForLoading() {
+            hideLoupes();
+            [container1, container2].forEach((container) => {
+                container.classList.remove('reveal-original', 'reveal-compressed');
+                container.querySelectorAll('img, .spinner').forEach((el) => el.remove());
+                const spinner = document.createElement('div');
+                spinner.className = 'spinner';
+                container.prepend(spinner);
+            });
+            [badge1, badge2].forEach((badge) => {
+                badge.className = 'choice-badge';
+                badge.textContent = '';
+            });
+        }
+
+        function updateHudStats() {
+            scoreEl.textContent = String(score);
+            roundTotalEl.textContent = String(totalRounds);
+            difficultyBadge.textContent = DIFFICULTY_CONFIG[currentDifficulty].label;
+
+            if (currentMode === 'inspector') {
+                livesDisplay.classList.remove('hidden');
+                const hearts = '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, INITIAL_LIVES - lives));
+                livesDisplay.textContent = hearts;
+            } else {
+                livesDisplay.classList.add('hidden');
+            }
+
+            if (streak >= 2) {
+                streakBadge.classList.remove('hidden');
+                streakCountEl.textContent = String(streak);
+            } else {
+                streakBadge.classList.add('hidden');
+            }
+        }
+
+        // --- Synchronized Magnifier Loupe ---
+
+        function getRenderedImageBox(container) {
+            if (!currentAssets) return null;
+            const rect = container.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0) return null;
+
+            const imgAspect = currentAssets.width / currentAssets.height;
+            const boxAspect = rect.width / rect.height;
+            let renderW;
+            let renderH;
+            let offsetX;
+            let offsetY;
+
+            if (imgAspect > boxAspect) {
+                renderW = rect.width;
+                renderH = rect.width / imgAspect;
+                offsetX = 0;
+                offsetY = (rect.height - renderH) / 2;
+            } else {
+                renderH = rect.height;
+                renderW = rect.height * imgAspect;
+                offsetX = (rect.width - renderW) / 2;
+                offsetY = 0;
+            }
+
+            return { rect, renderW, renderH, offsetX, offsetY, imgAspect };
+        }
+
+        function hideLoupes() {
+            lastLoupeCoords = null;
+            loupe1.classList.remove('visible');
+            loupe2.classList.remove('visible');
+        }
+
+        function renderLoupesAt(u, v) {
+            if (!loupeEnabled || !currentAssets || (phase !== 'playing' && phase !== 'feedback')) {
+                hideLoupes();
+                return;
+            }
+
+            lastLoupeCoords = { u, v };
+
+            [
+                [container1, loupe1],
+                [container2, loupe2]
+            ].forEach(([container, loupe]) => {
+                const img = container.querySelector('img');
+                const box = getRenderedImageBox(container);
+                if (!img || !box) return;
+
+                loupe.classList.add('visible');
+                const lensSize = loupe.offsetWidth || 168;
+                const half = lensSize / 2;
+
+                const targetX = box.offsetX + u * box.renderW;
+                const targetY = box.offsetY + v * box.renderH;
+                const clampedLeft = Math.min(Math.max(6, targetX - half), Math.max(6, box.rect.width - lensSize - 6));
+                const clampedTop = Math.min(Math.max(6, targetY - half), Math.max(6, box.rect.height - lensSize - 6));
+
+                const bgW = Math.max(box.renderW * 3, currentAssets.width * 1.5);
+                const bgH = bgW / box.imgAspect;
+                const bgPosX = half - u * bgW;
+                const bgPosY = half - v * bgH;
+
+                loupe.style.left = `${clampedLeft}px`;
+                loupe.style.top = `${clampedTop}px`;
+                loupe.style.backgroundImage = `url("${img.src}")`;
+                loupe.style.backgroundSize = `${bgW}px ${bgH}px`;
+                loupe.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
+            });
+        }
+
+        function handlePointerMagnify(sourceContainer, clientX, clientY) {
+            if (!loupeEnabled || !currentAssets || (phase !== 'playing' && phase !== 'feedback')) {
+                hideLoupes();
+                return;
+            }
+            const box = getRenderedImageBox(sourceContainer);
+            if (!box) return;
+
+            const u = (clientX - box.rect.left - box.offsetX) / box.renderW;
+            const v = (clientY - box.rect.top - box.offsetY) / box.renderH;
+
+            if (u < 0 || u > 1 || v < 0 || v > 1) {
+                hideLoupes();
+                return;
+            }
+
+            if (phase === 'feedback' && !autoAdvanceCancelledByInspect) {
+                pauseAutoAdvanceForInspection();
+            }
+
+            renderLoupesAt(u, v);
+        }
+
+        function setLoupeEnabled(enabled) {
+            loupeEnabled = enabled;
+            loupeToggleBtn.setAttribute('aria-pressed', String(loupeEnabled));
+            loupeToggleBtn.textContent = `🔍 Loupe: ${loupeEnabled ? 'ON' : 'OFF'}`;
+            if (!loupeEnabled) {
+                hideLoupes();
+            }
+        }
+
+        // --- Timer & Auto-Advance ---
+
+        function updateTimerBar(elapsed) {
+            const remaining = Math.max(0, roundDurationMs - elapsed);
+            const percent = (remaining / roundDurationMs) * 100;
+
+            timerBar.style.width = `${percent}%`;
+            timerBar.style.backgroundColor = percent < 30 ? 'var(--danger-color)' : 'var(--accent-color)';
+            return remaining;
+        }
+
+        function startTimer(initialElapsed = 0) {
+            if (currentMode === 'inspector') return;
+
+            startTime = Date.now() - initialElapsed;
+            if (timerInterval) clearInterval(timerInterval);
+            updateTimerBar(initialElapsed);
+
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const remaining = updateTimerBar(elapsed);
+
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    handleTimeout();
+                }
+            }, 16);
+        }
+
+        function isFinalRoundFeedback() {
+            return remainingImages.length === 0 || (currentMode === 'inspector' && lives <= 0);
+        }
+
+        function getBaseNextButtonLabel() {
+            return isFinalRoundFeedback() ? 'Final results' : 'Next round';
+        }
+
+        function updateAutoAdvanceButtonLabel(remainingMs) {
+            const secondsLeft = Math.max(1, Math.ceil(remainingMs / 1000));
+            nextRoundBtn.textContent = `${getBaseNextButtonLabel()} (${secondsLeft})`;
+        }
+
+        function pauseAutoAdvanceForInspection() {
+            if (!autoAdvanceTimeout && !autoAdvanceInterval) return;
+            clearInterval(autoAdvanceInterval);
+            clearTimeout(autoAdvanceTimeout);
+            autoAdvanceInterval = null;
+            autoAdvanceTimeout = null;
+            autoAdvanceCancelledByInspect = true;
+            nextRoundBtn.textContent = getBaseNextButtonLabel();
+        }
+
+        function startAutoAdvance(durationMs = AUTO_ADVANCE_MS) {
+            if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);
+            if (autoAdvanceInterval) clearInterval(autoAdvanceInterval);
+
+            if (currentMode === 'inspector' || isFinalRoundFeedback() || autoAdvanceCancelledByInspect) {
+                nextRoundBtn.textContent = getBaseNextButtonLabel();
+                return;
+            }
+
+            autoAdvanceRemainingMs = durationMs;
+            autoAdvanceDeadline = Date.now() + durationMs;
+            updateAutoAdvanceButtonLabel(durationMs);
+
+            autoAdvanceInterval = setInterval(() => {
+                const remaining = Math.max(0, autoAdvanceDeadline - Date.now());
+                if (remaining > 0) {
+                    updateAutoAdvanceButtonLabel(remaining);
+                }
+            }, 200);
+
+            autoAdvanceTimeout = setTimeout(() => {
+                advanceAfterFeedback();
+            }, durationMs);
+        }
 
         function togglePause() {
+            if (!gameWrapper.classList.contains('active') || phase === 'gameover' || phase === 'error') {
+                return;
+            }
+
             isPaused = !isPaused;
 
             if (isPaused) {
-                // Formatting Pause State
+                hideLoupes();
                 pauseMenu.classList.add('active');
 
-                // Store state based on where we are
-                if (isProcessing) {
-                    // In auto-advance phase
-                    wasInRound = false;
+                if (phase === 'playing' && currentMode === 'blitz') {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    pausedElapsed = Date.now() - startTime;
+                } else if (phase === 'feedback' && autoAdvanceTimeout) {
                     clearInterval(autoAdvanceInterval);
                     clearTimeout(autoAdvanceTimeout);
-
-                    const nextBtn = feedbackOverlay.querySelector('.next-btn');
-                    if (nextBtn && nextBtn.textContent.includes('Next Round (')) {
-                        pausedCountdown = parseInt(nextBtn.textContent.match(/\d+/)[0]);
-                    } else {
-                        pausedCountdown = 0;
-                    }
-                } else {
-                    // In gameplay phase
-                    wasInRound = true;
-                    clearInterval(timerInterval);
-                    pausedElapsed = Date.now() - startTime;
+                    autoAdvanceInterval = null;
+                    autoAdvanceTimeout = null;
+                    autoAdvanceRemainingMs = Math.max(150, autoAdvanceDeadline - Date.now());
                 }
-
             } else {
-                // Resuming
                 pauseMenu.classList.remove('active');
 
-                if (wasInRound) {
-                    // Resume Gameplay
-                    // Adjust startTime so elapsed calculation matches where we left off
-                    startTime = Date.now() - pausedElapsed;
-
-                    // Restart interval
-                    timerInterval = setInterval(() => {
-                        const elapsed = Date.now() - startTime;
-                        const remaining = Math.max(0, MAX_TIME_MS - elapsed);
-                        const percent = (remaining / MAX_TIME_MS) * 100;
-
-                        if (timerBar) {
-                            timerBar.style.width = percent + '%';
-                            if (percent < 30) {
-                                timerBar.style.backgroundColor = 'var(--danger-color)';
-                            } else {
-                                timerBar.style.backgroundColor = 'var(--accent-color)';
-                            }
-                        }
-
-                        if (remaining <= 0) {
-                            clearInterval(timerInterval);
-                            handleTimeout();
-                        }
-                    }, 16);
-                } else {
-                    // Resume Auto-Advance
-                    // Only restart if we are in the feedback phase (not loading phase)
-                    if (feedbackOverlay.classList.contains('active')) {
-                        startAutoAdvance();
-                    }
+                if (phase === 'playing' && currentMode === 'blitz') {
+                    startTimer(pausedElapsed);
+                } else if (phase === 'feedback' && !autoAdvanceCancelledByInspect) {
+                    startAutoAdvance(autoAdvanceRemainingMs);
                 }
             }
         }
+
+        // --- Image Loading, Symmetric Blob Pipeline & Diff Heatmap ---
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -704,82 +1488,291 @@
             return array;
         }
 
-        function startGame(difficulty) {
-            currentDifficulty = difficulty;
-            score = 0;
-            document.getElementById('score').textContent = score;
-
-            // Initialize deck
-            const fullDeck = shuffleArray([...birdImages]);
-            remainingImages = fullDeck.slice(0, 10);
-            totalRounds = remainingImages.length;
-
-            mainMenu.classList.add('hidden');
-            gameWrapper.classList.add('active');
-            scoreBoard.classList.add('active');
-
-            // Re-grab timer element in case it wasn't ready (though it should be)
-            timerBar = document.getElementById('timer-bar');
-
-            nextRound(); // Start the first round
-        }
-
-        function showMenu() {
-            isPaused = false;
-            pauseMenu.classList.remove('active');
-            clearInterval(timerInterval);
-            clearInterval(autoAdvanceInterval);
-            clearTimeout(autoAdvanceTimeout);
-            feedbackOverlay.classList.remove('active');
-            gameWrapper.classList.remove('active');
-            scoreBoard.classList.remove('active');
-            mainMenu.classList.remove('hidden');
-        }
-
-        async function loadImage(src) {
+        function loadImage(src) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
+                img.crossOrigin = 'anonymous';
                 img.onload = () => resolve(img);
-                img.onerror = reject;
+                img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
                 img.src = src;
             });
         }
 
-        async function createCompressedVersion(img) {
-            // Resize canvas to match image
-            canvas.width = img.width;
-            canvas.height = img.height;
+        function decodeImage(img) {
+            if (typeof img.decode === 'function') {
+                return img.decode().catch(() => {});
+            }
+            return Promise.resolve();
+        }
 
-            // Draw image to canvas
-            ctx.drawImage(img, 0, 0);
+        function canvasToUrl(targetCanvas, mimeType, quality) {
+            return new Promise((resolve) => {
+                if (typeof targetCanvas.toBlob === 'function') {
+                    targetCanvas.toBlob((blob) => {
+                        if (blob) {
+                            resolve(URL.createObjectURL(blob));
+                        } else {
+                            resolve(targetCanvas.toDataURL(mimeType, quality));
+                        }
+                    }, mimeType, quality);
+                } else {
+                    resolve(targetCanvas.toDataURL(mimeType, quality));
+                }
+            });
+        }
 
-            let quality;
+        async function prepareRoundAssets(imageName, difficulty) {
+            const srcUrl = `${BIRD_IMAGE_BASE_URL}/${imageName}`;
+            const sourceImg = await loadImage(srcUrl);
+            const width = sourceImg.naturalWidth || sourceImg.width;
+            const height = sourceImg.naturalHeight || sourceImg.height;
 
-            if (currentDifficulty === 'easy') {
-                quality = 0.10;
-            } else if (currentDifficulty === 'mid') {
-                quality = 0.40;
-            } else {
-                quality = 0.75;
+            const workCanvas = document.createElement('canvas');
+            workCanvas.width = width;
+            workCanvas.height = height;
+            const workCtx = workCanvas.getContext('2d');
+            workCtx.drawImage(sourceImg, 0, 0);
+
+            const quality = DIFFICULTY_CONFIG[difficulty].quality;
+            const [originalUrl, compressedUrl] = await Promise.all([
+                canvasToUrl(workCanvas, 'image/png'),
+                canvasToUrl(workCanvas, 'image/jpeg', quality)
+            ]);
+
+            return {
+                imageName,
+                difficulty,
+                width,
+                height,
+                originalUrl,
+                compressedUrl,
+                diffUrl: null
+            };
+        }
+
+        function preloadNextRound() {
+            if (remainingImages.length === 0) return;
+            const nextImageName = remainingImages[remainingImages.length - 1];
+            if (
+                preloadedEntry
+                && preloadedEntry.imageName === nextImageName
+                && preloadedEntry.difficulty === currentDifficulty
+            ) {
+                return;
+            }
+            if (preloadedEntry) {
+                const old = preloadedEntry.promise;
+                old.then((assets) => revokeAssetSet(assets)).catch(() => {});
+            }
+            preloadedEntry = {
+                imageName: nextImageName,
+                difficulty: currentDifficulty,
+                promise: prepareRoundAssets(nextImageName, currentDifficulty)
+            };
+        }
+
+        async function ensureDiffUrl() {
+            if (!currentAssets) return null;
+            if (currentAssets.diffUrl) return currentAssets.diffUrl;
+
+            const origImg = correctSide === 1
+                ? container1.querySelector('img')
+                : container2.querySelector('img');
+            const compImg = correctSide === 1
+                ? container2.querySelector('img')
+                : container1.querySelector('img');
+            if (!origImg || !compImg) return null;
+
+            const { width, height, difficulty } = currentAssets;
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.drawImage(origImg, 0, 0);
+            const origPixels = ctx.getImageData(0, 0, width, height).data;
+
+            ctx.drawImage(compImg, 0, 0);
+            const compFrame = ctx.getImageData(0, 0, width, height);
+            const compPixels = compFrame.data;
+
+            const scale = DIFFICULTY_CONFIG[difficulty].diffScale;
+
+            for (let i = 0; i < origPixels.length; i += 4) {
+                const dr = Math.abs(origPixels[i] - compPixels[i]);
+                const dg = Math.abs(origPixels[i + 1] - compPixels[i + 1]);
+                const db = Math.abs(origPixels[i + 2] - compPixels[i + 2]);
+                const err = Math.min(255, Math.max(dr, dg, db) * scale);
+                const baseLuma = (origPixels[i] * 0.299 + origPixels[i + 1] * 0.587 + origPixels[i + 2] * 0.114) * 0.18;
+
+                // Cool-to-hot artifact ramp over dimmed anatomical context
+                compPixels[i] = Math.min(255, baseLuma + err * 1.15);
+                compPixels[i + 1] = Math.min(255, baseLuma + (err > 32 ? err * 0.85 : err * 0.35));
+                compPixels[i + 2] = Math.min(255, baseLuma + (err > 140 ? 255 : err * 0.55));
+                compPixels[i + 3] = 255;
             }
 
-            return canvas.toDataURL('image/jpeg', quality);
+            ctx.putImageData(compFrame, 0, 0);
+            currentAssets.diffUrl = await canvasToUrl(canvas, 'image/png');
+            return currentAssets.diffUrl;
         }
+
+        async function toggleArtifactDiff() {
+            if (phase !== 'feedback' || !currentAssets) return;
+            pauseAutoAdvanceForInspection();
+
+            const compressedContainer = correctSide === 1 ? container2 : container1;
+            const compressedBadge = correctSide === 1 ? badge2 : badge1;
+            const compImg = compressedContainer.querySelector('img');
+            if (!compImg) return;
+
+            if (!diffActive) {
+                const diffUrl = await ensureDiffUrl();
+                if (!diffUrl || phase !== 'feedback') return;
+                diffActive = true;
+                compImg.src = diffUrl;
+                diffToggleBtn.setAttribute('aria-pressed', 'true');
+                diffToggleBtn.textContent = '🖼️ Show JPEG';
+                compressedBadge.textContent = `🔬 Artifact Diff (×${DIFFICULTY_CONFIG[currentAssets.difficulty].diffScale})`;
+            } else {
+                diffActive = false;
+                compImg.src = currentAssets.compressedUrl;
+                diffToggleBtn.setAttribute('aria-pressed', 'false');
+                diffToggleBtn.textContent = '🔬 Show Artifact Diff';
+                compressedBadge.textContent = compressedBadge.dataset.defaultLabel || '';
+            }
+
+            if (lastLoupeCoords) {
+                renderLoupesAt(lastLoupeCoords.u, lastLoupeCoords.v);
+            }
+        }
+
+        // --- Game Lifecycle ---
+
+        function startGame(difficulty) {
+            roundToken++;
+            clearTimers();
+            resetOverlayControls();
+            disposeAllAssets();
+
+            currentDifficulty = difficulty;
+            roundDurationMs = DIFFICULTY_CONFIG[difficulty].timeMs;
+            score = 0;
+            correctCount = 0;
+            streak = 0;
+            bestStreak = 0;
+            lives = INITIAL_LIVES;
+            roundsPlayed = 0;
+            consecutiveFailures = 0;
+            isPaused = false;
+            pausedElapsed = 0;
+            returnToMenuOnLeaderboardClose = false;
+
+            const fullDeck = shuffleArray([...birdImages]);
+            remainingImages = fullDeck.slice(0, ROUNDS_PER_GAME);
+            backupImages = fullDeck.slice(ROUNDS_PER_GAME);
+            totalRounds = remainingImages.length;
+
+            timerBarContainer.classList.toggle('hidden', currentMode === 'inspector');
+            updateHudStats();
+            setBannerPrompt();
+
+            pauseMenu.classList.remove('active');
+            leaderboardOverlay.classList.remove('active');
+            feedbackOverlay.classList.remove('active');
+            mainMenu.classList.add('hidden');
+            gameWrapper.classList.add('active');
+
+            nextRound();
+        }
+
+        function showMenu() {
+            roundToken++;
+            phase = 'menu';
+            isPaused = false;
+            returnToMenuOnLeaderboardClose = false;
+            clearTimers();
+            resetOverlayControls();
+            disposeAllAssets();
+            hideLoupes();
+
+            pauseMenu.classList.remove('active');
+            leaderboardOverlay.classList.remove('active');
+            feedbackOverlay.classList.remove('active');
+            gameWrapper.classList.remove('active');
+            mainMenu.classList.remove('hidden');
+            updateMenuModeUI();
+        }
+
+        function showLoadError() {
+            roundToken++;
+            phase = 'error';
+            clearTimers();
+            resetOverlayControls();
+            hideLoupes();
+
+            feedbackOverlay.className = 'feedback-overlay active wrong';
+            feedbackIcon.textContent = '⚠️';
+            feedbackText.innerHTML = 'Unable to load images.<br><span style="font-size: 1rem; font-weight: 500; color: var(--muted-color);">Please check your connection and try again.</span>';
+
+            const retryBtn = document.createElement('button');
+            retryBtn.type = 'button';
+            retryBtn.className = 'next-btn endgame-action-btn';
+            retryBtn.textContent = 'Try again';
+            retryBtn.addEventListener('click', () => startGame(currentDifficulty));
+
+            const menuBtn = document.createElement('button');
+            menuBtn.type = 'button';
+            menuBtn.className = 'next-btn endgame-action-btn';
+            menuBtn.style.cssText = 'font-size: 1rem; padding: 10px 24px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4);';
+            menuBtn.textContent = 'Main menu';
+            menuBtn.addEventListener('click', showMenu);
+
+            feedbackOverlay.appendChild(retryBtn);
+            feedbackOverlay.appendChild(menuBtn);
+        }
+
         function endGame() {
-            clearInterval(timerInterval);
+            roundToken++;
+            phase = 'gameover';
+            clearTimers();
+            resetOverlayControls();
+            hideLoupes();
+
             feedbackOverlay.className = 'feedback-overlay active';
             feedbackIcon.textContent = '🏆';
             const maxPossible = totalRounds * MAX_SCORE_PER_ROUND;
+            const modeLabel = currentMode === 'blitz' ? 'Timed Blitz' : 'Inspector';
+            const diffLabel = DIFFICULTY_CONFIG[currentDifficulty].label;
 
-            // Check for high score
-            if (checkHighScore(score)) {
-                feedbackText.innerHTML = `New high score!<br>${score}<br><span style="font-size: 1rem">Max possible: ${maxPossible}</span>`;
+            const isHigh = checkHighScore(score);
+            const headline = isHigh ? 'New high score!' : 'Game over!';
+            const scoreLine = isHigh ? String(score) : `Final score: ${score}`;
 
-                // Clear existing buttons
-                const buttons = feedbackOverlay.querySelectorAll('button');
-                buttons.forEach(btn => btn.style.display = 'none');
+            feedbackText.textContent = '';
+            const titleDiv = document.createElement('div');
+            titleDiv.textContent = headline;
+            const scoreDiv = document.createElement('div');
+            scoreDiv.style.color = 'var(--accent-color)';
+            scoreDiv.textContent = scoreLine;
 
-                // Create High Score Form
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'summary-stats';
+            [
+                `${modeLabel} • ${diffLabel}`,
+                `Accuracy: ${correctCount}/${roundsPlayed}`,
+                `Best streak: 🔥 ${bestStreak}`,
+                `Max possible: ${maxPossible}`
+            ].forEach((label) => {
+                const pill = document.createElement('span');
+                pill.className = 'summary-stat';
+                pill.textContent = label;
+                statsDiv.appendChild(pill);
+            });
+
+            feedbackText.appendChild(titleDiv);
+            feedbackText.appendChild(scoreDiv);
+            feedbackText.appendChild(statsDiv);
+
+            if (isHigh) {
                 const formDiv = document.createElement('div');
                 formDiv.className = 'high-score-form';
 
@@ -788,309 +1781,519 @@
                 nameInput.className = 'high-score-input';
                 nameInput.maxLength = 10;
                 nameInput.placeholder = 'Enter name';
-                nameInput.onkeyup = (e) => {
-                    if (e.key === 'Enter') submitScore();
-                };
+                nameInput.setAttribute('aria-label', 'Player name');
 
                 const submitBtn = document.createElement('button');
+                submitBtn.type = 'button';
                 submitBtn.className = 'next-btn';
                 submitBtn.textContent = 'Submit score';
-                submitBtn.onclick = submitScore;
+
+                const submitScore = () => {
+                    const name = nameInput.value.trim() || 'Anonymous';
+                    saveScore(name, score);
+                    resetOverlayControls();
+                    returnToMenuOnLeaderboardClose = true;
+                    showLeaderboard(currentDifficulty, currentMode);
+                };
+
+                nameInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.stopPropagation();
+                        submitScore();
+                    }
+                });
+                submitBtn.addEventListener('click', submitScore);
 
                 formDiv.appendChild(nameInput);
                 formDiv.appendChild(submitBtn);
                 feedbackOverlay.appendChild(formDiv);
-
-                // Helper to submit
-                function submitScore() {
-                    const name = nameInput.value.trim() || 'Anonymous';
-                    saveScore(name, score);
-                    formDiv.remove();
-                    showLeaderboard();
-                    // Setup return to menu after closing leaderboard
-                    const closeBtn = leaderboardOverlay.querySelector('.menu-btn');
-                    const originalOnClick = closeBtn.onclick;
-                    closeBtn.onclick = () => {
-                        originalOnClick(); // Close leaderboard
-                        showMenu(); // Go to main menu
-                        // Restore close button logic for next time
-                        closeBtn.onclick = originalOnClick;
-                    };
-                }
-
+                nameInput.focus();
             } else {
-                feedbackText.innerHTML = `Game over!<br>Final score: ${score}<br><span style="font-size: 1rem">Max possible: ${maxPossible}</span>`;
+                const replayBtn = document.createElement('button');
+                replayBtn.type = 'button';
+                replayBtn.className = 'next-btn endgame-action-btn';
+                replayBtn.textContent = 'Play again';
+                replayBtn.addEventListener('click', () => startGame(currentDifficulty));
 
-                // Clear existing buttons
-                const buttons = feedbackOverlay.querySelectorAll('button');
-                buttons.forEach(btn => btn.style.display = 'none');
-
-                // Add Menu Button
                 const menuBtn = document.createElement('button');
-                menuBtn.className = 'next-btn';
+                menuBtn.type = 'button';
+                menuBtn.className = 'next-btn endgame-action-btn';
+                menuBtn.style.cssText = 'font-size: 1rem; padding: 10px 24px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4);';
                 menuBtn.textContent = 'Main menu';
-                menuBtn.onclick = () => {
-                    // Reset buttons for next game
-                    buttons.forEach(btn => btn.style.display = '');
-                    menuBtn.remove(); // Remove this button
-                    showMenu();
-                };
+                menuBtn.addEventListener('click', showMenu);
+
+                feedbackOverlay.appendChild(replayBtn);
                 feedbackOverlay.appendChild(menuBtn);
             }
         }
 
+        function advanceAfterFeedback() {
+            clearTimers();
+            if (isFinalRoundFeedback()) {
+                totalRounds = currentMode === 'inspector' ? ROUNDS_PER_GAME : roundsPlayed;
+                endGame();
+                return;
+            }
+            nextRound();
+        }
+
+        async function nextRound() {
+            clearTimers();
+            autoAdvanceCancelledByInspect = false;
+
+            if (remainingImages.length === 0) {
+                if (roundsPlayed === 0) {
+                    showLoadError();
+                } else {
+                    totalRounds = roundsPlayed;
+                    endGame();
+                }
+                return;
+            }
+
+            const myToken = ++roundToken;
+            phase = 'loading';
+            feedbackOverlay.classList.remove('active');
+            setBannerPrompt();
+            resetChoiceCardsForLoading();
+            roundNumEl.textContent = String(Math.min(totalRounds, roundsPlayed + 1));
+
+            if (currentMode === 'blitz') {
+                timerBar.style.width = '100%';
+                timerBar.style.backgroundColor = 'var(--accent-color)';
+            }
+
+            revokeAssetSet(currentAssets);
+            currentAssets = null;
+
+            const currentImageName = remainingImages.pop();
+
+            try {
+                let assets;
+                if (
+                    preloadedEntry
+                    && preloadedEntry.imageName === currentImageName
+                    && preloadedEntry.difficulty === currentDifficulty
+                ) {
+                    const entry = preloadedEntry;
+                    preloadedEntry = null;
+                    assets = await entry.promise;
+                } else {
+                    assets = await prepareRoundAssets(currentImageName, currentDifficulty);
+                }
+
+                if (myToken !== roundToken) {
+                    revokeAssetSet(assets);
+                    return;
+                }
+
+                currentAssets = assets;
+                correctSide = Math.random() < 0.5 ? 1 : 2;
+
+                const img1 = new Image();
+                const img2 = new Image();
+                img1.alt = 'Image choice 1';
+                img2.alt = 'Image choice 2';
+                img1.draggable = false;
+                img2.draggable = false;
+
+                if (correctSide === 1) {
+                    img1.src = assets.originalUrl;
+                    img2.src = assets.compressedUrl;
+                } else {
+                    img1.src = assets.compressedUrl;
+                    img2.src = assets.originalUrl;
+                }
+
+                await Promise.all([decodeImage(img1), decodeImage(img2)]);
+                if (myToken !== roundToken) return;
+
+                container1.querySelectorAll('.spinner, img').forEach((el) => el.remove());
+                container1.prepend(img1);
+
+                container2.querySelectorAll('.spinner, img').forEach((el) => el.remove());
+                container2.prepend(img2);
+
+                consecutiveFailures = 0;
+                roundsPlayed++;
+                roundNumEl.textContent = String(roundsPlayed);
+                phase = 'playing';
+
+                // Start preloading the upcoming round in the background
+                preloadNextRound();
+
+                if (isPaused) {
+                    pausedElapsed = 0;
+                } else {
+                    startTimer(0);
+                }
+            } catch (err) {
+                console.error('Failed to load image', err);
+                if (myToken !== roundToken || phase === 'menu') {
+                    return;
+                }
+                consecutiveFailures++;
+                if (consecutiveFailures >= 3) {
+                    if (roundsPlayed === 0) {
+                        showLoadError();
+                    } else {
+                        totalRounds = roundsPlayed;
+                        endGame();
+                    }
+                    return;
+                }
+                if (backupImages.length > 0) {
+                    remainingImages.push(backupImages.pop());
+                }
+                nextRound();
+            }
+        }
+
+        function revealRoundOutcome({ isCorrect, timedOut, chosenSide, points }) {
+            phase = 'feedback';
+            autoAdvanceCancelledByInspect = false;
+
+            const qualityPct = DIFFICULTY_CONFIG[currentDifficulty].qualityPct;
+            const origContainer = correctSide === 1 ? container1 : container2;
+            const compContainer = correctSide === 1 ? container2 : container1;
+            const origBadge = correctSide === 1 ? badge1 : badge2;
+            const compBadge = correctSide === 1 ? badge2 : badge1;
+
+            origContainer.classList.add('reveal-original');
+            compContainer.classList.add('reveal-compressed');
+
+            const origLabel = `✓ Original (Lossless)${chosenSide === correctSide ? ' • Your pick' : ''}`;
+            const compLabel = `JPEG ${qualityPct}%${chosenSide && chosenSide !== correctSide ? ' • Your pick' : ''}`;
+
+            origBadge.className = 'choice-badge visible badge-original';
+            origBadge.textContent = origLabel;
+            origBadge.dataset.defaultLabel = origLabel;
+
+            compBadge.className = 'choice-badge visible badge-compressed';
+            compBadge.textContent = compLabel;
+            compBadge.dataset.defaultLabel = compLabel;
+
+            roundBanner.className = `round-banner ${isCorrect ? 'reveal-correct' : 'reveal-wrong'}`;
+            promptCopy.style.display = 'none';
+            bannerStatus.style.display = 'flex';
+            bannerActions.style.display = 'flex';
+
+            if (timedOut) {
+                bannerVerdict.textContent = '⏱️ Too slow! +0 pts';
+            } else if (isCorrect) {
+                bannerVerdict.textContent = `✓ Correct! +${points} pts`;
+            } else {
+                bannerVerdict.textContent = '✗ Wrong! +0 pts';
+            }
+
+            birdCredit.textContent = '';
+            if (currentAssets) {
+                const speciesSpan = document.createElement('span');
+                speciesSpan.textContent = `🐦 ${formatBirdName(currentAssets.imageName)} • `;
+                const siteLink = document.createElement('a');
+                siteLink.href = BIRDS_SITE_URL;
+                siteLink.target = '_blank';
+                siteLink.rel = 'noopener noreferrer';
+                siteLink.textContent = 'birds.cowneck.com ↗';
+                birdCredit.appendChild(speciesSpan);
+                birdCredit.appendChild(siteLink);
+            }
+
+            updateHudStats();
+            startAutoAdvance();
+        }
+
+        function handleTimeout() {
+            if (phase !== 'playing') return;
+            streak = 0;
+            revealRoundOutcome({ isCorrect: false, timedOut: true, chosenSide: 0, points: 0 });
+        }
+
+        function handleChoice(side) {
+            if (phase !== 'playing' || isPaused) return;
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            const isCorrect = side === correctSide;
+            let points = 0;
+
+            if (isCorrect) {
+                correctCount++;
+                streak++;
+                if (streak > bestStreak) bestStreak = streak;
+
+                if (currentMode === 'blitz') {
+                    const elapsed = Date.now() - startTime;
+                    const remainingTime = Math.max(0, roundDurationMs - elapsed);
+                    points = Math.floor((remainingTime / roundDurationMs) * MAX_SCORE_PER_ROUND);
+                } else {
+                    points = MAX_SCORE_PER_ROUND;
+                }
+                score += points;
+            } else {
+                streak = 0;
+                if (currentMode === 'inspector') {
+                    lives = Math.max(0, lives - 1);
+                }
+            }
+
+            revealRoundOutcome({ isCorrect, timedOut: false, chosenSide: side, points });
+        }
+
         // --- Leaderboard Logic ---
 
+        function normalizeLeaderboard(raw) {
+            const safe = createEmptyLeaderboard();
+            if (!raw || typeof raw !== 'object') return safe;
+
+            LEADERBOARD_BUCKETS.forEach((bucket) => {
+                if (Array.isArray(raw[bucket])) {
+                    safe[bucket] = raw[bucket]
+                        .filter((item) => item && typeof item === 'object' && typeof item.score === 'number')
+                        .map((item) => ({
+                            name: String(item.name || 'Anonymous').slice(0, 10),
+                            score: item.score,
+                            date: String(item.date || '')
+                        }));
+                }
+            });
+            return safe;
+        }
+
         function getLeaderboardData() {
-            const data = localStorage.getItem('pngVsJpgLeaderboard');
-            if (data) return JSON.parse(data);
-            return {
-                easy: [], mid: [], hard: []
-            };
+            try {
+                const data = localStorage.getItem(STORAGE_KEY);
+                if (data) {
+                    const parsed = normalizeLeaderboard(JSON.parse(data));
+                    memoryLeaderboard = parsed;
+                    return parsed;
+                }
+            } catch (err) {
+                void err;
+            }
+            return normalizeLeaderboard(memoryLeaderboard);
+        }
+
+        function setLeaderboardData(data) {
+            memoryLeaderboard = normalizeLeaderboard(data);
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(memoryLeaderboard));
+            } catch (err) {
+                void err;
+            }
         }
 
         function checkHighScore(newScore) {
-            if (newScore === 0) return false; // Don't save 0 scores usually? Or maybe fine.
+            if (newScore <= 0) return false;
             const data = getLeaderboardData();
-            const list = data[currentDifficulty] || [];
+            const bucket = getLeaderboardBucket(currentMode, currentDifficulty);
+            const list = data[bucket] || [];
 
             if (list.length < 5) return true;
-            // Check if better than the worst score
             return newScore > list[list.length - 1].score;
         }
 
         function saveScore(name, newScore) {
             const data = getLeaderboardData();
-            const list = data[currentDifficulty] || [];
+            const bucket = getLeaderboardBucket(currentMode, currentDifficulty);
+            const list = data[bucket] || [];
 
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
-            list.push({ name: name, score: newScore, date: dateStr });
-            // Sort Descending
+            list.push({ name: String(name).slice(0, 10), score: newScore, date: dateStr });
             list.sort((a, b) => b.score - a.score);
-            // Limit to 5
-            data[currentDifficulty] = list.slice(0, 5);
+            data[bucket] = list.slice(0, 5);
 
-            localStorage.setItem('pngVsJpgLeaderboard', JSON.stringify(data));
+            setLeaderboardData(data);
         }
 
-        function showLeaderboard(activeTab = currentDifficulty) {
-            feedbackOverlay.classList.remove('active'); // Hide game over overlay if showing
+        function showLeaderboard(activeDifficulty = currentDifficulty, activeMode = currentMode) {
+            feedbackOverlay.classList.remove('active');
             leaderboardOverlay.classList.add('active');
-            mainMenu.classList.add('hidden'); // Ensure menu hidden if called from menu
+            mainMenu.classList.add('hidden');
 
-            renderLeaderboard(activeTab);
+            renderLeaderboard(activeDifficulty, activeMode);
         }
 
         function closeLeaderboard() {
             leaderboardOverlay.classList.remove('active');
-            // If we are not in game (gameWrapper not active), show main menu
+            if (returnToMenuOnLeaderboardClose) {
+                returnToMenuOnLeaderboardClose = false;
+                showMenu();
+                return;
+            }
             if (!gameWrapper.classList.contains('active')) {
                 mainMenu.classList.remove('hidden');
             }
         }
 
-        function renderLeaderboard(difficulty) {
+        function renderLeaderboard(difficulty, mode = currentMode) {
             const data = getLeaderboardData();
-            const list = data[difficulty] || [];
+            const bucket = getLeaderboardBucket(mode, difficulty);
+            const list = data[bucket] || [];
 
-            // Render Tabs
+            const modeSwitch = document.getElementById('leaderboard-mode-switch');
+            modeSwitch.innerHTML = '';
+            [
+                ['blitz', '⚡ Timed Blitz'],
+                ['inspector', '🔍 Inspector']
+            ].forEach(([modeKey, label]) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `tab-btn ${modeKey === mode ? 'active' : ''}`;
+                btn.textContent = label;
+                btn.addEventListener('click', () => renderLeaderboard(difficulty, modeKey));
+                modeSwitch.appendChild(btn);
+            });
+
             const tabsContainer = document.getElementById('leaderboard-tabs');
             tabsContainer.innerHTML = '';
-            ['easy', 'mid', 'hard'].forEach(diff => {
+            ['easy', 'mid', 'hard'].forEach((diff) => {
                 const btn = document.createElement('button');
+                btn.type = 'button';
                 btn.className = `tab-btn ${diff === difficulty ? 'active' : ''}`;
-                btn.textContent = diff.charAt(0).toUpperCase() + diff.slice(1);
-                btn.onclick = () => renderLeaderboard(diff);
+                btn.textContent = DIFFICULTY_CONFIG[diff].label;
+                btn.addEventListener('click', () => renderLeaderboard(diff, mode));
                 tabsContainer.appendChild(btn);
             });
 
-            // Render Table
             const tbody = document.getElementById('leaderboard-body');
             tbody.innerHTML = '';
 
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color: #666;">No high scores yet!</td></tr>';
+                const emptyRow = document.createElement('tr');
+                const emptyCell = document.createElement('td');
+                emptyCell.colSpan = 4;
+                emptyCell.style.cssText = 'text-align: center; padding: 20px; color: var(--muted-color);';
+                emptyCell.textContent = 'No high scores yet!';
+                emptyRow.appendChild(emptyCell);
+                tbody.appendChild(emptyRow);
                 return;
             }
 
             list.forEach((entry, index) => {
                 const tr = document.createElement('tr');
-                const rankClass = index < 3 ? `rank-${index + 1}` : '';
 
-                tr.innerHTML = `
-                    <td class="${rankClass}">#${index + 1}</td>
-                    <td style="font-weight: bold;">${entry.name}</td>
-                    <td>${entry.score}</td>
-                    <td style="font-size: 0.8rem; color: #888;">${entry.date}</td>
-                `;
+                const rankTd = document.createElement('td');
+                if (index < 3) rankTd.className = `rank-${index + 1}`;
+                rankTd.textContent = `#${index + 1}`;
+
+                const nameTd = document.createElement('td');
+                nameTd.style.fontWeight = 'bold';
+                nameTd.textContent = entry.name;
+
+                const scoreTd = document.createElement('td');
+                scoreTd.textContent = String(entry.score);
+
+                const dateTd = document.createElement('td');
+                dateTd.style.cssText = 'font-size: 0.82rem; color: var(--muted-color);';
+                dateTd.textContent = entry.date;
+
+                tr.appendChild(rankTd);
+                tr.appendChild(nameTd);
+                tr.appendChild(scoreTd);
+                tr.appendChild(dateTd);
                 tbody.appendChild(tr);
             });
         }
 
+        // --- Event Listeners ---
 
-        function startTimer() {
-            startTime = Date.now();
-            if (timerInterval) clearInterval(timerInterval);
+        document.querySelectorAll('[data-mode]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                currentMode = btn.dataset.mode;
+                updateMenuModeUI();
+            });
+        });
 
-            timerInterval = setInterval(() => {
-                const elapsed = Date.now() - startTime;
-                const remaining = Math.max(0, MAX_TIME_MS - elapsed);
-                const percent = (remaining / MAX_TIME_MS) * 100;
+        document.querySelectorAll('[data-difficulty]').forEach((btn) => {
+            btn.addEventListener('click', () => startGame(btn.dataset.difficulty));
+        });
 
-                if (timerBar) {
-                    timerBar.style.width = percent + '%';
-                    if (percent < 30) {
-                        timerBar.style.backgroundColor = 'var(--danger-color)';
-                    } else {
-                        timerBar.style.backgroundColor = 'var(--accent-color)';
-                    }
+        document.getElementById('open-leaderboard-btn').addEventListener('click', () => {
+            returnToMenuOnLeaderboardClose = false;
+            showLeaderboard(currentDifficulty, currentMode);
+        });
+        document.getElementById('close-leaderboard-btn').addEventListener('click', closeLeaderboard);
+        document.getElementById('hud-pause-btn').addEventListener('click', togglePause);
+        document.getElementById('resume-btn').addEventListener('click', togglePause);
+        document.getElementById('pause-menu-btn').addEventListener('click', showMenu);
+        loupeToggleBtn.addEventListener('click', () => setLoupeEnabled(!loupeEnabled));
+        diffToggleBtn.addEventListener('click', toggleArtifactDiff);
+        nextRoundBtn.addEventListener('click', advanceAfterFeedback);
+        feedbackMenuBtn.addEventListener('click', showMenu);
+
+        [
+            [container1, 1],
+            [container2, 2]
+        ].forEach(([el, side]) => {
+            el.addEventListener('click', () => handleChoice(side));
+
+            el.addEventListener('pointermove', (e) => {
+                if (e.pointerType === 'touch' && phase === 'playing') return;
+                handlePointerMagnify(el, e.clientX, e.clientY);
+            });
+
+            el.addEventListener('pointerleave', () => {
+                hideLoupes();
+            });
+
+            el.addEventListener('keydown', (e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && phase === 'playing') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleChoice(side);
                 }
+            });
+        });
 
-                if (remaining <= 0) {
-                    clearInterval(timerInterval);
-                    handleTimeout();
+        document.addEventListener('keydown', (e) => {
+            if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+            if (e.key === 'Escape') {
+                if (leaderboardOverlay.classList.contains('active')) {
+                    closeLeaderboard();
+                    return;
                 }
-            }, 16);
-        }
-
-        function startAutoAdvance() {
-            if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);
-            if (autoAdvanceInterval) clearInterval(autoAdvanceInterval);
-
-            const nextBtn = feedbackOverlay.querySelector('.next-btn');
-            let countdown = 2;
-            if (nextBtn) nextBtn.textContent = `Next Round (${countdown})`;
-
-            autoAdvanceInterval = setInterval(() => {
-                countdown--;
-                if (countdown > 0 && nextBtn) {
-                    nextBtn.textContent = `Next Round (${countdown})`;
-                }
-            }, 1000);
-
-            autoAdvanceTimeout = setTimeout(() => {
-                nextRound();
-            }, 2000);
-        }
-
-        function handleTimeout() {
-            if (isProcessing) return;
-            isProcessing = true;
-
-            feedbackOverlay.className = 'feedback-overlay active wrong';
-            feedbackIcon.textContent = '⏱️';
-            feedbackText.textContent = 'Too slow!';
-            // 0 points added
-            document.getElementById('score').textContent = score;
-
-            // Auto advance
-            startAutoAdvance();
-        }
-
-        async function nextRound() {
-            if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);
-            if (autoAdvanceInterval) clearInterval(autoAdvanceInterval);
-
-            // Reset button text
-            const nextBtn = feedbackOverlay.querySelector('.next-btn');
-            if (nextBtn) nextBtn.textContent = 'Next Round';
-
-            if (remainingImages.length === 0) {
-                endGame();
+                togglePause();
                 return;
             }
 
-            isProcessing = true;
-            feedbackOverlay.classList.remove('active');
+            const tag = e.target && e.target.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+            if (isPaused || leaderboardOverlay.classList.contains('active')) return;
 
-            // Reset timer UI
-            if (timerBar) {
-                timerBar.style.width = '100%';
-                timerBar.style.backgroundColor = 'var(--accent-color)';
-            }
-
-            // Show loaders
-            container1.innerHTML = '<div class="spinner"></div>';
-            container2.innerHTML = '<div class="spinner"></div>';
-
-            currentImageName = remainingImages.pop();
-            const originalPath = `../birds/optimized_images/${currentImageName}`;
-
-            try {
-                // Load original
-                const originalImg = await loadImage(originalPath);
-
-                // Create compressed
-                const compressedDataUrl = await createCompressedVersion(originalImg);
-
-                // Decide which side is correct (1 or 2)
-                correctSide = Math.random() < 0.5 ? 1 : 2;
-
-                // Setup images
-                const img1 = new Image();
-                const img2 = new Image();
-
-                if (correctSide === 1) {
-                    img1.src = originalPath;
-                    img2.src = compressedDataUrl;
-                } else {
-                    img1.src = compressedDataUrl;
-                    img2.src = originalPath;
+            if (e.key === 'l' || e.key === 'L') {
+                if (phase === 'playing' || phase === 'feedback') {
+                    setLoupeEnabled(!loupeEnabled);
                 }
+                return;
+            }
 
-                // Wait for both to be ready (src set is fast for dataURL, but good to be safe)
-
-                container1.innerHTML = '';
-                container1.appendChild(img1);
-
-                container2.innerHTML = '';
-                container2.appendChild(img2);
-
-                isProcessing = false;
-                startTimer();
-
-            } catch (err) {
-                console.error("Failed to load image", err);
-                if (!mainMenu.classList.contains('hidden')) {
-                    return;
+            if (phase === 'playing') {
+                if (e.key === '1' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    handleChoice(1);
+                } else if (e.key === '2' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    handleChoice(2);
                 }
-                nextRound();
+            } else if (phase === 'feedback') {
+                if (e.key === 'd' || e.key === 'D') {
+                    e.preventDefault();
+                    toggleArtifactDiff();
+                } else if (e.key === ' ' || e.key === 'Enter') {
+                    if (e.target && e.target.closest('button, a')) return;
+                    e.preventDefault();
+                    advanceAfterFeedback();
+                }
             }
-        }
+        });
 
-        function handleChoice(side) {
-            if (isProcessing || isPaused) return;
-            isProcessing = true;
-            clearInterval(timerInterval);
-
-            const isCorrect = side === correctSide;
-            const elapsed = Date.now() - startTime;
-            // Scale score: (Remaining Logic Time / Max Time) * Max Score
-            // E.g. (1500 / 2000) * 1000 = 0.75 * 1000 = 750
-            const remainingTime = Math.max(0, MAX_TIME_MS - elapsed);
-            const points = isCorrect ? Math.floor((remainingTime / MAX_TIME_MS) * MAX_SCORE_PER_ROUND) : 0;
-
-            feedbackOverlay.className = 'feedback-overlay active ' + (isCorrect ? 'correct' : 'wrong');
-
-            if (isCorrect) {
-                feedbackIcon.textContent = '✓';
-                feedbackText.innerHTML = `Correct!<br><span style="font-size: 1rem">+${points} points</span>`;
-                score += points;
-            } else {
-                feedbackIcon.textContent = '✗';
-                feedbackText.textContent = 'Wrong!';
-            }
-
-            document.getElementById('score').textContent = score;
-
-            document.getElementById('score').textContent = score;
-
-            // Auto advance
-            startAutoAdvance();
-        }
-
+        updateMenuModeUI();
     </script>
 
 </body>

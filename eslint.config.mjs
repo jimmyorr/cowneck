@@ -3,6 +3,7 @@ import html from 'eslint-plugin-html';
 import js from '@eslint/js';
 
 const auditedFiles = [
+    'games/high-fidelity.html',
     'games/lofi-pup.html',
     'eslint.config.mjs',
     'playwright.config.mjs',
@@ -15,7 +16,7 @@ export default [
         files: auditedFiles,
     },
     {
-        files: ['games/lofi-pup.html'],
+        files: ['games/high-fidelity.html', 'games/lofi-pup.html'],
         plugins: { html },
         languageOptions: {
             ecmaVersion: 'latest',
