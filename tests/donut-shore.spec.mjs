@@ -145,6 +145,31 @@ test.describe('Donut Chef & Shore Road — mobile & desktop verification', () =>
         expect(cols.t.left).toBeGreaterThanOrEqual(cols.s.right);
         expect(cols.l.left).toBeGreaterThanOrEqual(cols.t.right);
         expect(cols.scrollWidth).toBeLessThanOrEqual(cols.innerWidth);
+
+        // Hover across 1-line (Flour), 2-line (Donut hole), and 3-line (Batter bargain / Premium donut) help texts
+        // and confirm the Supply shop grid never bounces vertically.
+        const baselineTop = await page.evaluate(
+            () => document.getElementById('supply-list').getBoundingClientRect().top
+        );
+        for (const cardId of ['flour', 'donut_hole', 'oasis', 'kings_court', 'expand', 'premium_donut']) {
+            await page.evaluate((id) => {
+                const btn = document.querySelector(`#supply-list button[data-card-id="${id}"]`);
+                btn.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+            }, cardId);
+            const metrics = await page.evaluate(() => {
+                const supplyTop = document.getElementById('supply-list').getBoundingClientRect().top;
+                const inspector = document.getElementById('card-inspector');
+                const text = document.getElementById('inspector-text');
+                return {
+                    supplyTop,
+                    inspectorBottom: inspector.getBoundingClientRect().bottom,
+                    textBottom: text.getBoundingClientRect().bottom,
+                };
+            });
+            expect(metrics.supplyTop).toBe(baselineTop);
+            expect(metrics.textBottom).toBeLessThanOrEqual(metrics.inspectorBottom + 1);
+        }
+
         expect(errors).toEqual([]);
         await context.close();
     });

@@ -376,7 +376,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            padding: 9px 12px;
+            min-height: 40px;
+            padding: 7px 12px;
             border-bottom: 1px solid rgba(0, 0, 0, 0.07);
             flex-shrink: 0;
             background: rgba(255, 255, 255, 0.65);
@@ -419,17 +420,26 @@
         }
 
         #card-inspector {
+            height: 66px;
             padding: 7px 10px;
             background: #fffdf6;
             border-bottom: 1px solid rgba(0, 0, 0, 0.07);
             font-size: 0.78rem;
-            line-height: 1.35;
+            line-height: 1.32;
             color: var(--ink);
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             gap: 8px;
             flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        #inspector-text {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden;
         }
 
         #supply-list {
@@ -581,7 +591,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            padding: 8px 12px;
+            min-height: 40px;
+            padding: 6px 12px;
             background: rgba(255, 255, 255, 0.8);
             border-bottom: 1px solid rgba(0, 0, 0, 0.06);
             font-size: 0.82rem;
@@ -621,8 +632,8 @@
         }
 
         .undo-pill-btn {
-            min-height: 26px;
-            padding: 3px 9px;
+            min-height: 24px;
+            padding: 2px 9px;
             border-radius: 999px;
             border: 1px solid #93c5fd;
             background: #eff6ff;
