@@ -1020,6 +1020,16 @@ export default function App() {
         }
     };
 
+    const handleBoardBackgroundClick = () => {
+        if (step === 'token_dest') {
+            setSelectedItem(null);
+            setStep('token_select');
+        } else if (step === 'disc_dest') {
+            setSelectedItem(null);
+            setStep('disc_select');
+        }
+    };
+
     // UI Copy Helpers (Sentence case)
     const sideName = (side) => (side === 'p1' ? 'Red' : 'Black');
     const actorLabel = (side) => {
@@ -1053,10 +1063,10 @@ export default function App() {
             return `${actorLabel(turn)} (1/2): Select a ${colorWord} token to slide.`;
         }
         if (step === 'token_dest') {
-            return `${actorLabel(turn)} (1/2): Choose a target dot to slide your token.`;
+            return `${actorLabel(turn)} (1/2): Choose a target dot to slide.`;
         }
         if (step === 'disc_select') {
-            return `${actorLabel(turn)} (2/2): Select a highlighted edge disc to relocate.`;
+            return `${actorLabel(turn)} (2/2): Select a highlighted edge disc.`;
         }
         if (step === 'disc_dest') {
             return `${actorLabel(turn)} (2/2): Place the disc on a dashed space.`;
@@ -1085,14 +1095,14 @@ export default function App() {
             : 'bg-stone-900';
 
     return (
-        <div className="min-h-screen bg-stone-100 flex flex-col items-center py-4 sm:py-6 font-sans text-stone-800">
-            <div className="w-full max-w-2xl px-4 flex flex-col gap-3.5">
+        <div className="min-h-screen nonaga-shell safe-bottom bg-stone-100 flex flex-col items-center py-3 sm:py-6 font-sans text-stone-800">
+            <div className="w-full max-w-2xl px-3 sm:px-4 flex flex-col gap-3 sm:gap-3.5">
                 {/* Top navigation row */}
                 <div className="flex items-center justify-between text-xs font-medium text-stone-500 px-1">
                     <a
                         id="link-back-games"
                         href="index.html"
-                        className="inline-flex items-center gap-1.5 text-stone-500 hover:text-stone-900 transition-colors"
+                        className="inline-flex items-center gap-1.5 py-2 -my-1.5 pr-2 min-h-[32px] text-stone-500 hover:text-stone-900 transition-colors"
                     >
                         <ArrowLeft size={15} />
                         Back to games
@@ -1101,10 +1111,10 @@ export default function App() {
                 </div>
 
                 {/* Header card */}
-                <header className="bg-white p-4 sm:px-5 rounded-2xl shadow-sm border border-stone-200/90">
+                <header className="bg-white p-3.5 sm:p-4 sm:px-5 rounded-2xl shadow-sm border border-stone-200/90">
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2.5 min-w-0">
-                            <h1 className="text-2xl font-display font-extrabold tracking-tight text-stone-900">
+                            <h1 className="text-xl sm:text-2xl font-display font-extrabold tracking-tight text-stone-900">
                                 Nonaga
                             </h1>
                             {(step === 'disc_select' || step === 'disc_dest') && (
@@ -1125,7 +1135,7 @@ export default function App() {
                                 type="button"
                                 onClick={handleUndo}
                                 disabled={history.length === 0}
-                                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-100 disabled:opacity-35 disabled:pointer-events-none rounded-xl transition-colors"
+                                className="inline-flex items-center justify-center gap-1.5 min-w-[36px] min-h-[36px] px-2 sm:px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-100 disabled:opacity-35 disabled:pointer-events-none rounded-xl transition-colors"
                                 title="Undo move (Ctrl+Z)"
                                 aria-label="Undo move"
                             >
@@ -1140,7 +1150,7 @@ export default function App() {
                                 aria-controls="nonaga-rules-panel"
                                 aria-label="How to play"
                                 title="How to play"
-                                className={`p-2 rounded-xl transition-colors ${
+                                className={`inline-flex items-center justify-center min-w-[36px] min-h-[36px] p-2 rounded-xl transition-colors ${
                                     showRules
                                         ? 'bg-stone-200 text-stone-900'
                                         : 'text-stone-600 hover:bg-stone-100'
@@ -1152,7 +1162,7 @@ export default function App() {
                                 id="btn-restart"
                                 type="button"
                                 onClick={() => startNewGame()}
-                                className="whitespace-nowrap inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-stone-900 text-white rounded-xl hover:bg-stone-800 transition-colors text-sm font-semibold shadow-sm"
+                                className="whitespace-nowrap inline-flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 sm:px-3.5 py-2 bg-stone-900 text-white rounded-xl hover:bg-stone-800 transition-colors text-xs sm:text-sm font-semibold shadow-sm"
                             >
                                 <RefreshCw size={15} />
                                 <span>New game</span>
@@ -1162,7 +1172,7 @@ export default function App() {
 
                     <p
                         aria-live="polite"
-                        className="mt-2.5 pt-2.5 border-t border-stone-100 text-sm text-stone-600 font-medium flex items-center gap-2"
+                        className="mt-2.5 pt-2.5 border-t border-stone-100 text-[13px] sm:text-sm leading-snug min-h-[2.5rem] sm:min-h-0 text-stone-600 font-medium flex items-center gap-2"
                     >
                         <span
                             className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${statusDotClass}`}
@@ -1173,7 +1183,7 @@ export default function App() {
                 </header>
 
                 {/* Mode & AI controls bar */}
-                <div className="flex flex-wrap items-center justify-center sm:justify-between gap-2 bg-white/80 px-3 py-2.5 rounded-2xl border border-stone-200/80 text-xs">
+                <div className="flex flex-wrap items-center justify-center sm:justify-between gap-2 bg-white/80 px-2.5 sm:px-3 py-2 rounded-2xl border border-stone-200/80 text-xs">
                     {/* Opponent mode */}
                     <div
                         className="inline-flex items-center bg-stone-100 p-1 rounded-xl"
@@ -1189,7 +1199,7 @@ export default function App() {
                                     startNewGame('ai', humanSide);
                                 }
                             }}
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold transition-colors ${
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 min-h-[32px] rounded-lg font-semibold transition-colors ${
                                 gameMode === 'ai'
                                     ? 'bg-white text-stone-900 shadow-sm'
                                     : 'text-stone-500 hover:text-stone-800'
@@ -1207,7 +1217,7 @@ export default function App() {
                                     startNewGame('2p', humanSide);
                                 }
                             }}
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold transition-colors ${
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 min-h-[32px] rounded-lg font-semibold transition-colors ${
                                 gameMode === '2p'
                                     ? 'bg-white text-stone-900 shadow-sm'
                                     : 'text-stone-500 hover:text-stone-800'
@@ -1235,14 +1245,16 @@ export default function App() {
                                             startNewGame('ai', 'p1');
                                         }
                                     }}
-                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold transition-colors ${
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 min-h-[32px] rounded-lg font-semibold transition-colors ${
                                         humanSide === 'p1'
                                             ? 'bg-white text-stone-900 shadow-sm'
                                             : 'text-stone-500 hover:text-stone-800'
                                     }`}
                                 >
                                     <span className="w-2 h-2 rounded-full bg-red-500" aria-hidden="true" />
-                                    Red · 1st
+                                    <span>
+                                        Red<span className="hidden sm:inline"> · 1st</span>
+                                    </span>
                                 </button>
                                 <button
                                     id="side-p2"
@@ -1253,14 +1265,16 @@ export default function App() {
                                             startNewGame('ai', 'p2');
                                         }
                                     }}
-                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold transition-colors ${
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 min-h-[32px] rounded-lg font-semibold transition-colors ${
                                         humanSide === 'p2'
                                             ? 'bg-white text-stone-900 shadow-sm'
                                             : 'text-stone-500 hover:text-stone-800'
                                     }`}
                                 >
                                     <span className="w-2 h-2 rounded-full bg-stone-900" aria-hidden="true" />
-                                    Black · 2nd
+                                    <span>
+                                        Black<span className="hidden sm:inline"> · 2nd</span>
+                                    </span>
                                 </button>
                             </div>
 
@@ -1280,7 +1294,7 @@ export default function App() {
                                         id={`diff-${opt.id}`}
                                         type="button"
                                         onClick={() => setDifficulty(opt.id)}
-                                        className={`px-2.5 py-1 rounded-lg font-semibold transition-colors ${
+                                        className={`inline-flex items-center justify-center px-2.5 py-1.5 min-h-[32px] rounded-lg font-semibold transition-colors ${
                                             difficulty === opt.id
                                                 ? 'bg-white text-stone-900 shadow-sm'
                                                 : 'text-stone-500 hover:text-stone-800'
@@ -1302,17 +1316,17 @@ export default function App() {
                 {showRules && (
                     <section
                         id="nonaga-rules-panel"
-                        className="bg-amber-50/80 text-stone-800 p-5 rounded-2xl text-sm leading-relaxed border border-amber-200/90 shadow-sm relative"
+                        className="bg-amber-50/80 text-stone-800 p-4 sm:p-5 rounded-2xl text-sm leading-relaxed border border-amber-200/90 shadow-sm relative"
                     >
                         <button
                             type="button"
                             onClick={() => setShowRules(false)}
                             aria-label="Close rules"
-                            className="absolute top-3.5 right-3.5 p-1.5 text-stone-500 hover:text-stone-900 hover:bg-amber-100/70 rounded-lg transition-colors"
+                            className="absolute top-2.5 right-2.5 p-2 min-w-[36px] min-h-[36px] inline-flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-amber-100/70 rounded-lg transition-colors"
                         >
                             <X size={16} />
                         </button>
-                        <h2 className="font-bold text-base text-stone-900 mb-2">How to play</h2>
+                        <h2 className="font-bold text-base text-stone-900 mb-2 pr-8">How to play</h2>
                         <p className="mb-2.5">
                             <strong>Goal:</strong> Be the first player to connect all 3 of your tokens on adjacent
                             discs (in a line, angle, or triangle).
@@ -1336,12 +1350,12 @@ export default function App() {
 
                 {/* Transient notice banner for rare skipped disc step */}
                 {notice && (
-                    <div className="bg-stone-800 text-stone-100 text-xs font-medium px-4 py-2.5 rounded-xl flex items-center justify-between">
+                    <div className="bg-stone-800 text-stone-100 text-xs font-medium px-4 py-2 rounded-xl flex items-center justify-between">
                         <span>{notice}</span>
                         <button
                             type="button"
                             onClick={() => setNotice(null)}
-                            className="text-stone-400 hover:text-white ml-3"
+                            className="p-2 -mr-2 min-w-[36px] min-h-[36px] inline-flex items-center justify-center text-stone-400 hover:text-white ml-2"
                             aria-label="Dismiss notice"
                         >
                             <X size={14} />
@@ -1350,10 +1364,13 @@ export default function App() {
                 )}
 
                 {/* Game board container */}
-                <div className="board-surface rounded-3xl shadow-sm border border-stone-200/90 p-3 sm:p-5 aspect-square max-h-[540px] w-full flex flex-col items-center justify-center relative overflow-hidden">
+                <div
+                    onClick={handleBoardBackgroundClick}
+                    className="board-surface rounded-3xl shadow-sm border border-stone-200/90 p-2.5 sm:p-5 aspect-square w-full flex flex-col items-center justify-center relative overflow-hidden"
+                >
                     <svg
                         viewBox={`-${VIEWBOX_HALF} -${VIEWBOX_HALF} ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}
-                        className="w-full h-full select-none touch-none"
+                        className="w-full h-full select-none touch-manipulation"
                         role="group"
                         aria-label="Nonaga hexagonal board"
                     >
@@ -1406,7 +1423,10 @@ export default function App() {
                                     <g
                                         key={`disc-${d}`}
                                         transform={`translate(${x},${y})`}
-                                        onClick={() => handleHexClick(d)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleHexClick(d);
+                                        }}
                                         onKeyDown={isMovable ? (e) => handleKeyActivate(e, d) : undefined}
                                         tabIndex={isMovable ? 0 : undefined}
                                         role={isMovable ? 'button' : undefined}
@@ -1417,7 +1437,9 @@ export default function App() {
                                                     : `Movable edge disc at ${d}`
                                                 : undefined
                                         }
-                                        className={`svg-interactive ${isInteractive ? 'cursor-pointer group' : ''}`}
+                                        className={`svg-interactive ${isMovable ? 'disc-movable ' : ''}${
+                                            isInteractive ? 'cursor-pointer' : ''
+                                        }`}
                                     >
                                         <polygon
                                             points={hexPoints}
@@ -1439,7 +1461,7 @@ export default function App() {
                                                 points={innerHexPoints}
                                                 fill="#fef08a"
                                                 fillOpacity="0.38"
-                                                className="pointer-events-none group-hover:fill-opacity-60 transition-opacity"
+                                                className="disc-movable-fill pointer-events-none transition-opacity"
                                             />
                                         )}
                                         <polygon
@@ -1491,12 +1513,15 @@ export default function App() {
                                     <g
                                         key={`ghost-${d}`}
                                         transform={`translate(${x},${y})`}
-                                        onClick={() => handleHexClick(d)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleHexClick(d);
+                                        }}
                                         onKeyDown={(e) => handleKeyActivate(e, d)}
                                         tabIndex={0}
                                         role="button"
                                         aria-label={`Place disc at ${d}`}
-                                        className="svg-interactive target-hit-group cursor-pointer group"
+                                        className="svg-interactive target-hit-group ghost-hit cursor-pointer"
                                     >
                                         <polygon
                                             points={hexPoints}
@@ -1505,7 +1530,7 @@ export default function App() {
                                             stroke="#b88f61"
                                             strokeWidth="2"
                                             strokeDasharray="4 4"
-                                            className="group-hover:fill-opacity-65 transition-all"
+                                            className="ghost-poly transition-all"
                                         />
                                         <polygon
                                             points={hexPoints}
@@ -1610,6 +1635,7 @@ export default function App() {
                                 const moves = isTurnPiece ? tokenMovesByPiece.get(piece.coord) || [] : [];
                                 const canSelect = isTurnPiece && moves.length > 0;
                                 const isBlockedTurnPiece = isTurnPiece && moves.length === 0;
+                                const isInteractiveToken = canSelect || isBlockedTurnPiece;
                                 const isSelected =
                                     selectedItem === piece.coord &&
                                     (step === 'token_select' || step === 'token_dest');
@@ -1619,11 +1645,16 @@ export default function App() {
                                     <g
                                         key={`token-${piece.side}-${piece.idx}`}
                                         style={{ transform: `translate(${x}px, ${y}px)` }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (canSelect) handleHexClick(piece.coord);
-                                            else if (step === 'token_dest') handleHexClick(piece.coord);
-                                        }}
+                                        onClick={
+                                            isInteractiveToken
+                                                ? (e) => {
+                                                      e.stopPropagation();
+                                                      if (canSelect || step === 'token_dest') {
+                                                          handleHexClick(piece.coord);
+                                                      }
+                                                  }
+                                                : undefined
+                                        }
                                         onKeyDown={canSelect ? (e) => handleKeyActivate(e, piece.coord) : undefined}
                                         tabIndex={canSelect ? 0 : undefined}
                                         role={canSelect ? 'button' : undefined}
@@ -1635,10 +1666,10 @@ export default function App() {
                                         opacity={isBlockedTurnPiece ? 0.55 : 1}
                                         className={`token-piece svg-interactive ${
                                             canSelect
-                                                ? 'cursor-pointer group'
+                                                ? 'cursor-pointer'
                                                 : isBlockedTurnPiece
                                                 ? 'cursor-not-allowed'
-                                                : ''
+                                                : 'pointer-events-none'
                                         }`}
                                     >
                                         {/* Invisible generous tap area */}
@@ -1664,7 +1695,7 @@ export default function App() {
                                                 fill="none"
                                                 stroke={isP1 ? 'rgba(239,68,68,0.45)' : 'rgba(28,25,23,0.38)'}
                                                 strokeWidth="2.5"
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                                                className="token-hover-ring opacity-0 transition-opacity pointer-events-none"
                                             />
                                         )}
 
@@ -1752,7 +1783,7 @@ export default function App() {
                                         id="btn-gameover-undo"
                                         type="button"
                                         onClick={handleUndo}
-                                        className="px-3 py-1.5 rounded-xl border border-stone-200 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition-colors"
+                                        className="inline-flex items-center justify-center min-h-[36px] px-3.5 py-2 rounded-xl border border-stone-200 text-xs font-semibold text-stone-700 hover:bg-stone-100 transition-colors"
                                     >
                                         Undo last move
                                     </button>
@@ -1761,7 +1792,7 @@ export default function App() {
                                     id="btn-play-again"
                                     type="button"
                                     onClick={() => startNewGame()}
-                                    className="px-4 py-1.5 rounded-xl bg-stone-900 text-white text-xs font-semibold hover:bg-stone-800 transition-colors"
+                                    className="inline-flex items-center justify-center min-h-[36px] px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-semibold hover:bg-stone-800 transition-colors"
                                 >
                                     Play again
                                 </button>

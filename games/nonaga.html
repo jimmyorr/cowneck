@@ -11,7 +11,7 @@
   gtag('config', 'G-6RNVL7JZVJ');
 </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Nonaga - Hexagonal Strategy Game</title>
     <!-- sync-start:metadata -->
     <meta name="description" content="A classic, brain-bending hexagonal strategy board game. Slide your pieces and shift the map borders dynamically to block and win.">
@@ -124,10 +124,22 @@
             padding: 0;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        #root {
+        button, a {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        #root,
+        .nonaga-shell {
             min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        .safe-bottom {
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
         }
 
         /* Smooth fade-in for the app */
@@ -157,9 +169,28 @@
             transition: transform 160ms ease, opacity 160ms ease;
         }
 
-        .target-hit-group:hover .target-dot-visual,
-        .target-hit-group:focus-visible .target-dot-visual {
-            transform: scale(1.25);
+        .target-hit-group:focus-visible .target-dot-visual,
+        .target-hit-group:active .target-dot-visual {
+            transform: scale(1.22);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .target-hit-group:hover .target-dot-visual {
+                transform: scale(1.25);
+            }
+            .token-piece:hover .token-hover-ring {
+                opacity: 1;
+            }
+            .disc-movable:hover .disc-movable-fill {
+                fill-opacity: 0.6;
+            }
+            .ghost-hit:hover .ghost-poly {
+                fill-opacity: 0.65;
+            }
+        }
+
+        .svg-interactive {
+            -webkit-tap-highlight-color: transparent;
         }
 
         .svg-interactive:focus {
@@ -223,6 +254,9 @@
 
         .board-surface {
             background: radial-gradient(circle at 50% 45%, #ffffff 0%, #f5f3ef 100%);
+            max-height: min(540px, calc(100vh - 24px));
+            max-height: min(540px, calc(100dvh - 24px));
+            touch-action: manipulation;
         }
     </style>
 </head>
