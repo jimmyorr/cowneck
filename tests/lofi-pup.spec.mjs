@@ -28,9 +28,9 @@ test.describe('Lofi Pup generative studio', () => {
         await expect(page).toHaveTitle(/Lofi Pup/);
         await expect(page.locator('h1')).toContainText('Lofi Pup');
         await expect(page.locator('#status-text')).toHaveText('Ready');
-        await expect(page.locator('#filter-val')).toHaveText('2800Hz');
+        await expect(page.locator('#filter-val')).toHaveText('1950Hz');
         await expect(page.locator('#wobble-val')).toHaveText('Subtle');
-        await expect(page.locator('#space-val')).toHaveText('36%');
+        await expect(page.locator('#space-val')).toHaveText('44%');
         await expect(page.locator('#chord-display')).toHaveText('--');
         await expect(page.locator('#seed-code')).toHaveText(/^[A-Z]+-\d{3}$/);
 
@@ -130,10 +130,10 @@ test.describe('Lofi Pup generative studio', () => {
         await expect(playBtn).toHaveAttribute('aria-pressed', 'true');
         await expect(playBtn).toHaveAttribute('aria-label', 'Pause');
 
-        // Wait for live voice-led jazz chord symbol to appear
+        // Wait for live voice-led chord symbol to appear
         await expect(page.locator('#chord-display')).not.toHaveText('--', { timeout: 2000 });
         const initialChord = await page.locator('#chord-display').textContent();
-        expect(initialChord).toMatch(/^[A-G][b#]?(maj9|maj7#11|m9|m11|m6|13|13sus|7b13|7alt|m7b5)$/);
+        expect(initialChord).toMatch(/^[A-G][b#]?(maj9|add9|6\/9|maj7#11|m9|m11|m6|9sus4|7b13)$/);
 
         // Mute chord -> displays "--", then unmute -> immediately restores active chord symbol
         const mixChord = page.locator('#mix-chord');
@@ -152,19 +152,22 @@ test.describe('Lofi Pup generative studio', () => {
         await page.locator('#lead-voice-btn').click();
         await expect(page.locator('#lead-voice-val')).toContainText('★');
 
-        // Switch across all 4 scenes while playing and verify ambience & scene updates
+        // Switch across all 4 scenes while playing and verify ambience, warmth & scene updates
         await page.locator('#btn-rainy').click();
         await expect(page.locator('body')).toHaveAttribute('data-scene', 'rainy');
         await expect(page.locator('#amb-rain-val')).toHaveText('48%');
+        await expect(page.locator('#filter-val')).toHaveText('1620Hz');
         await expect(page.locator('#chord-display')).not.toHaveText('--');
 
         await page.locator('#btn-midnight').click();
         await expect(page.locator('body')).toHaveAttribute('data-scene', 'midnight');
         await expect(page.locator('#amb-night-val')).toHaveText('38%');
+        await expect(page.locator('#filter-val')).toHaveText('2050Hz');
 
         await page.locator('#btn-cafe').click();
         await expect(page.locator('body')).toHaveAttribute('data-scene', 'cafe');
         await expect(page.locator('#amb-cafe-val')).toHaveText('44%');
+        await expect(page.locator('#filter-val')).toHaveText('2150Hz');
 
         // Pause playback
         await playBtn.click();
