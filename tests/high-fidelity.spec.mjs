@@ -122,11 +122,15 @@ test.describe('High Fidelity', () => {
 
         await page.locator(`#choice-${losslessSide}`).click();
 
-        // Both images remain visible with reveal badges and inline bird attribution
+        // Both images remain visible with outcome-based reveal badges and inline bird attribution
         await expect(page.locator('#round-banner')).toHaveClass(/reveal-correct/);
         await expect(page.locator('#banner-verdict')).toContainText('✓ Correct!');
         await expect(page.locator('#bird-credit a')).toHaveAttribute('href', 'https://birds.cowneck.com/');
-        await expect(page.locator(`#badge-${losslessSide}`)).toContainText('Original (Lossless)');
+        await expect(page.locator(`#choice-${losslessSide}`)).toHaveClass(/reveal-picked-correct/);
+        await expect(page.locator(`#choice-${compressedSide}`)).toHaveClass(/reveal-unpicked-compressed/);
+        await expect(page.locator(`#badge-${losslessSide}`)).toHaveClass(/badge-picked-correct/);
+        await expect(page.locator(`#badge-${losslessSide}`)).toContainText('✓ Your pick • Original (Lossless)');
+        await expect(page.locator(`#badge-${compressedSide}`)).toHaveClass(/badge-neutral-compressed/);
         await expect(page.locator(`#badge-${compressedSide}`)).toContainText('JPEG 10%');
 
         // Toggle Artifact Diff heatmap on and back off
@@ -208,9 +212,16 @@ test.describe('High Fidelity', () => {
 
         for (let strike = 1; strike <= 3; strike++) {
             await expect(page.locator('#choice-1 img')).toBeVisible();
-            const { compressedSide } = await detectSidesByPixels(page);
+            const { losslessSide, compressedSide } = await detectSidesByPixels(page);
             await page.locator(`#choice-${compressedSide}`).click();
             await expect(page.locator('#round-banner')).toHaveClass(/reveal-wrong/);
+            await expect(page.locator(`#choice-${compressedSide}`)).toHaveClass(/reveal-picked-wrong/);
+            await expect(page.locator(`#badge-${compressedSide}`)).toHaveClass(/badge-picked-wrong/);
+            await expect(page.locator(`#badge-${compressedSide}`)).toContainText('✗ Your pick • JPEG 75%');
+            await expect(page.locator(`#choice-${losslessSide}`)).toHaveClass(/reveal-missed-original/);
+            await expect(page.locator(`#choice-${losslessSide}`)).not.toHaveClass(/reveal-picked-correct/);
+            await expect(page.locator(`#badge-${losslessSide}`)).toHaveClass(/badge-neutral-original/);
+            await expect(page.locator(`#badge-${losslessSide}`)).toHaveText('Original (Lossless)');
 
             if (strike === 3) {
                 await expect(page.locator('#lives-display')).toHaveText('🖤🖤🖤');

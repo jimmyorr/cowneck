@@ -504,20 +504,40 @@
         }
 
         .image-choice:focus-visible {
-            outline: 3px solid var(--accent-color);
+            outline: 3px solid rgba(255, 255, 255, 0.85);
             outline-offset: 3px;
             z-index: 10;
         }
 
-        .image-choice.reveal-original {
+        .image-choice.reveal-picked-correct {
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 1px var(--accent-color), 0 8px 28px rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 0 1px var(--accent-color), 0 8px 28px rgba(0, 255, 136, 0.22);
             cursor: crosshair;
         }
 
-        .image-choice.reveal-compressed {
-            border-color: var(--amber-color);
-            box-shadow: 0 0 0 1px rgba(255, 177, 66, 0.6), 0 8px 28px rgba(0, 0, 0, 0.4);
+        .image-choice.reveal-picked-correct:focus-visible {
+            outline-color: var(--accent-color);
+        }
+
+        .image-choice.reveal-picked-wrong {
+            border-color: var(--danger-color);
+            box-shadow: 0 0 0 1px var(--danger-color), 0 8px 28px rgba(255, 71, 87, 0.28);
+            cursor: crosshair;
+        }
+
+        .image-choice.reveal-picked-wrong:focus-visible {
+            outline-color: var(--danger-color);
+        }
+
+        .image-choice.reveal-missed-original {
+            border-color: rgba(148, 197, 255, 0.55);
+            box-shadow: 0 0 0 1px rgba(148, 197, 255, 0.3), 0 8px 28px rgba(0, 0, 0, 0.4);
+            cursor: crosshair;
+        }
+
+        .image-choice.reveal-unpicked-compressed {
+            border-color: rgba(255, 255, 255, 0.16);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.38);
             cursor: crosshair;
         }
 
@@ -566,14 +586,32 @@
             gap: 6px;
         }
 
-        .choice-badge.badge-original {
-            background: rgba(0, 40, 24, 0.88);
+        .choice-badge.badge-picked-correct {
+            background: rgba(0, 40, 24, 0.9);
             color: var(--accent-color);
             border: 1px solid var(--accent-color);
         }
 
-        .choice-badge.badge-compressed {
-            background: rgba(45, 28, 6, 0.9);
+        .choice-badge.badge-picked-wrong {
+            background: rgba(56, 10, 18, 0.92);
+            color: #ff8a95;
+            border: 1px solid var(--danger-color);
+        }
+
+        .choice-badge.badge-neutral-original {
+            background: rgba(15, 25, 42, 0.9);
+            color: #cfe4ff;
+            border: 1px solid rgba(148, 197, 255, 0.6);
+        }
+
+        .choice-badge.badge-neutral-compressed {
+            background: rgba(20, 24, 34, 0.88);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.24);
+        }
+
+        .choice-badge.badge-diff {
+            background: rgba(45, 28, 6, 0.92);
             color: #ffd28a;
             border: 1px solid var(--amber-color);
         }
@@ -1229,7 +1267,12 @@
         function resetChoiceCardsForLoading() {
             hideLoupes();
             [container1, container2].forEach((container) => {
-                container.classList.remove('reveal-original', 'reveal-compressed');
+                container.classList.remove(
+                    'reveal-picked-correct',
+                    'reveal-picked-wrong',
+                    'reveal-missed-original',
+                    'reveal-unpicked-compressed'
+                );
                 container.querySelectorAll('img, .spinner').forEach((el) => el.remove());
                 const spinner = document.createElement('div');
                 spinner.className = 'spinner';
@@ -1238,6 +1281,8 @@
             [badge1, badge2].forEach((badge) => {
                 badge.className = 'choice-badge';
                 badge.textContent = '';
+                delete badge.dataset.defaultLabel;
+                delete badge.dataset.defaultClass;
             });
         }
 
@@ -1631,12 +1676,20 @@
                 compImg.src = diffUrl;
                 diffToggleBtn.setAttribute('aria-pressed', 'true');
                 diffToggleBtn.textContent = '🖼️ Show JPEG';
-                compressedBadge.textContent = `🔬 Artifact Diff (×${DIFFICULTY_CONFIG[currentAssets.difficulty].diffScale})`;
+                const scale = DIFFICULTY_CONFIG[currentAssets.difficulty].diffScale;
+                const pickedWrong = (compressedBadge.dataset.defaultClass || '').includes('badge-picked-wrong');
+                compressedBadge.className = pickedWrong
+                    ? 'choice-badge visible badge-picked-wrong'
+                    : 'choice-badge visible badge-diff';
+                compressedBadge.textContent = pickedWrong
+                    ? `✗ Your pick • Artifact Diff (×${scale})`
+                    : `🔬 Artifact Diff (×${scale})`;
             } else {
                 diffActive = false;
                 compImg.src = currentAssets.compressedUrl;
                 diffToggleBtn.setAttribute('aria-pressed', 'false');
                 diffToggleBtn.textContent = '🔬 Show Artifact Diff';
+                compressedBadge.className = compressedBadge.dataset.defaultClass || 'choice-badge visible badge-neutral-compressed';
                 compressedBadge.textContent = compressedBadge.dataset.defaultLabel || '';
             }
 
@@ -1959,19 +2012,34 @@
             const origBadge = correctSide === 1 ? badge1 : badge2;
             const compBadge = correctSide === 1 ? badge2 : badge1;
 
-            origContainer.classList.add('reveal-original');
-            compContainer.classList.add('reveal-compressed');
+            const pickedWrong = Boolean(chosenSide && chosenSide !== correctSide);
 
-            const origLabel = `✓ Original (Lossless)${chosenSide === correctSide ? ' • Your pick' : ''}`;
-            const compLabel = `JPEG ${qualityPct}%${chosenSide && chosenSide !== correctSide ? ' • Your pick' : ''}`;
+            origContainer.classList.add(isCorrect ? 'reveal-picked-correct' : 'reveal-missed-original');
+            compContainer.classList.add(pickedWrong ? 'reveal-picked-wrong' : 'reveal-unpicked-compressed');
 
-            origBadge.className = 'choice-badge visible badge-original';
+            const origLabel = isCorrect
+                ? '✓ Your pick • Original (Lossless)'
+                : 'Original (Lossless)';
+            const compLabel = pickedWrong
+                ? `✗ Your pick • JPEG ${qualityPct}%`
+                : `JPEG ${qualityPct}%`;
+
+            const origClass = isCorrect
+                ? 'choice-badge visible badge-picked-correct'
+                : 'choice-badge visible badge-neutral-original';
+            const compClass = pickedWrong
+                ? 'choice-badge visible badge-picked-wrong'
+                : 'choice-badge visible badge-neutral-compressed';
+
+            origBadge.className = origClass;
             origBadge.textContent = origLabel;
             origBadge.dataset.defaultLabel = origLabel;
+            origBadge.dataset.defaultClass = origClass;
 
-            compBadge.className = 'choice-badge visible badge-compressed';
+            compBadge.className = compClass;
             compBadge.textContent = compLabel;
             compBadge.dataset.defaultLabel = compLabel;
+            compBadge.dataset.defaultClass = compClass;
 
             roundBanner.className = `round-banner ${isCorrect ? 'reveal-correct' : 'reveal-wrong'}`;
             promptCopy.style.display = 'none';
