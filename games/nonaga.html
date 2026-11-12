@@ -60,7 +60,13 @@
     </script>
     <!-- sync-end:metadata -->
     
-    <!-- Premium Fonts -->
+    <!-- Preload app source and core ESM dependencies to avoid sequential waterfall -->
+    <link rel="preload" href="nonaga.js" as="fetch" crossorigin>
+    <link rel="modulepreload" href="https://esm.sh/react@18.2.0">
+    <link rel="modulepreload" href="https://esm.sh/react-dom@18.2.0/client">
+    <link rel="modulepreload" href="https://esm.sh/lucide-react@0.263.1?external=react">
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
@@ -107,7 +113,7 @@
     }
     </script>
     
-    <!-- Babel Standalone to compile JSX on the fly -->
+    <!-- Babel Standalone to compile JSX in nonaga.js on the fly -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
@@ -126,18 +132,69 @@
 
         /* Smooth fade-in for the app */
         .app-fade-in {
-            animation: fadeIn 0.6s ease-out forwards;
+            animation: fadeIn 0.45s ease-out forwards;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Premium Loader */
+        /* Smooth SVG camera & piece glides */
+        .board-camera {
+            transform-box: view-box;
+            transform-origin: 50% 50%;
+            transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .token-piece {
+            transition: transform 340ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease;
+        }
+
+        .target-dot-visual {
+            transform-box: fill-box;
+            transform-origin: center;
+            transition: transform 160ms ease, opacity 160ms ease;
+        }
+
+        .target-hit-group:hover .target-dot-visual,
+        .target-hit-group:focus-visible .target-dot-visual {
+            transform: scale(1.25);
+        }
+
+        .svg-interactive:focus {
+            outline: none;
+        }
+
+        .svg-interactive:focus-visible .focus-ring {
+            opacity: 1;
+        }
+
+        @keyframes winPulse {
+            0%, 100% { opacity: 0.45; }
+            50% { opacity: 0.9; }
+        }
+
+        .win-pulse {
+            animation: winPulse 1.8s ease-in-out infinite;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .app-fade-in,
+            .win-pulse {
+                animation: none !important;
+            }
+            .board-camera,
+            .token-piece,
+            .target-dot-visual {
+                transition: none !important;
+            }
+        }
+
+        /* Loader */
         .loader {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border: 3px solid #d6d3d1;
             border-radius: 50%;
             display: inline-block;
@@ -152,8 +209,8 @@
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             border: 3px solid transparent;
             border-bottom-color: #1c1917;
@@ -164,108 +221,103 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Glassmorphism utility */
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        .board-surface {
+            background: radial-gradient(circle at 50% 45%, #ffffff 0%, #f5f3ef 100%);
         }
     </style>
 </head>
 <body>
-    <a href="index.html" class="fixed top-6 left-6 z-50 text-stone-400 hover:text-stone-900 transition-colors flex items-center gap-2 font-medium text-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        Back to Games
-    </a>
     <div id="root">
         <!-- Initial Splash / Loader -->
-        <div class="flex flex-col items-center justify-center min-h-screen gap-6 bg-stone-100">
-            <div class="loader"></div>
-            <div class="flex flex-col items-center gap-2">
-                <h1 class="text-3xl font-display font-black tracking-tighter text-stone-900 uppercase">Nonaga</h1>
-                <p class="text-sm font-medium text-stone-500 animate-pulse">Initializing strategic board...</p>
+        <div class="flex flex-col items-center justify-center min-h-screen gap-6 bg-stone-100 px-4">
+            <div class="loader" aria-hidden="true"></div>
+            <div class="flex flex-col items-center gap-2 text-center">
+                <h1 class="text-3xl font-display font-extrabold tracking-tight text-stone-900">Nonaga</h1>
+                <p class="text-sm font-medium text-stone-500 animate-pulse">Preparing board...</p>
             </div>
+            <a href="index.html" class="text-xs font-medium text-stone-400 hover:text-stone-700 transition-colors">
+                ← Back to games
+            </a>
         </div>
     </div>
 
-    <!-- Application Mounting Logic -->
-    <script type="text/babel" data-type="module">
+    <!-- Native ESM bootstrapper (avoids compiling the loader itself with Babel) -->
+    <script type="module">
         import React from 'react';
         import { createRoot } from 'react-dom/client';
-        
-        /**
-         * Dynamic Loader for the React component in nonaga.js
-         * This handles the JSX transformation and module resolution at runtime.
-         */
+
         async function mountApp() {
             const rootElement = document.getElementById('root');
-            
+
             try {
-                // 1. Fetch the user's nonaga.js source
                 const response = await fetch('nonaga.js');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const source = await response.text();
-                
-                // 2. Transform the source with Babel
-                // We use the 'react' preset to handle JSX
-                const result = Babel.transform(source, {
+
+                const result = window.Babel.transform(source, {
                     presets: ['react'],
-                    // Ensure imports are preserved as ESM
                     sourceMaps: false,
                     compact: false
                 });
-                
-                if (!result || !result.code) throw new Error("Failed to transform nonaga.js");
-                
-                // 3. Create a blob for the transformed module
-                // We wrap it in a URL that can be imported
+
+                if (!result || !result.code) throw new Error('Failed to transform nonaga.js');
+
                 const blob = new Blob([result.code], { type: 'application/javascript' });
                 const moduleUrl = URL.createObjectURL(blob);
-                
-                // 4. Dynamic import of the transformed code
-                const module = await import(moduleUrl);
-                const App = module.default;
-                
-                if (!App) throw new Error("nonaga.js does not have a default export. Ensure it has 'export default function App()'.");
-                
-                // 5. Render the application
+
+                let App;
+                try {
+                    const mod = await import(moduleUrl);
+                    App = mod.default;
+                } finally {
+                    URL.revokeObjectURL(moduleUrl);
+                }
+
+                if (!App) {
+                    throw new Error("nonaga.js does not have a default export. Ensure it exports a default App component.");
+                }
+
                 const root = createRoot(rootElement);
                 root.render(
-                    <div className="app-fade-in h-full">
-                        <App />
-                    </div>
+                    React.createElement(
+                        'div',
+                        { className: 'app-fade-in min-h-screen' },
+                        React.createElement(App)
+                    )
                 );
-                
-                // Cleanup the object URL
-                URL.revokeObjectURL(moduleUrl);
-                
             } catch (error) {
-                console.error("Nonaga Initialization Error:", error);
+                console.error('Nonaga initialization error:', error);
                 rootElement.innerHTML = `
                     <div class="min-h-screen flex items-center justify-center p-6 bg-stone-100">
                         <div class="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl border border-red-100 flex flex-col items-center text-center gap-4">
-                            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-2">
+                            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                             </div>
                             <h2 class="text-2xl font-display font-bold text-stone-900">Failed to load Nonaga</h2>
                             <p class="text-stone-600 text-sm leading-relaxed">
-                                We encountered an error while trying to compile and run your code. 
-                                Make sure <strong>nonaga.js</strong> is in the same directory and contains valid React code.
+                                An error occurred while loading the game script. Ensure <strong>nonaga.js</strong> is available in the same directory.
                             </p>
                             <div class="w-full p-4 bg-stone-50 rounded-xl text-left overflow-auto max-h-32">
-                                <code class="text-xs text-red-600 font-mono">${error.message}</code>
+                                <code id="nonaga-error-msg" class="text-xs text-red-600 font-mono"></code>
                             </div>
-                            <button onclick="window.location.reload()" class="mt-4 px-6 py-2 bg-stone-900 text-white rounded-xl font-bold hover:bg-stone-800 transition-colors">
-                                Try Again
-                            </button>
+                            <div class="flex items-center gap-3 mt-2">
+                                <a href="index.html" class="px-4 py-2 text-stone-600 hover:text-stone-900 text-sm font-semibold transition-colors">
+                                    ← Back to games
+                                </a>
+                                <button id="nonaga-retry-btn" type="button" class="px-6 py-2 bg-stone-900 text-white rounded-xl text-sm font-semibold hover:bg-stone-800 transition-colors">
+                                    Try again
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
+                const msgEl = document.getElementById('nonaga-error-msg');
+                if (msgEl) msgEl.textContent = error && error.message ? error.message : String(error);
+                const retryBtn = document.getElementById('nonaga-retry-btn');
+                if (retryBtn) retryBtn.addEventListener('click', () => window.location.reload());
             }
         }
-        
-        // Execute the mount
+
         mountApp();
     </script>
 </body>
