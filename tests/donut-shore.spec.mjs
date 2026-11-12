@@ -149,6 +149,83 @@ test.describe('Donut Chef & Shore Road — mobile & desktop verification', () =>
         await context.close();
     });
 
+    test('Donut Chef separates Action/Buy phases and lets Crate play even after clicking Play ingredients before buying', async ({ browser }) => {
+        const context = await browser.newContext({
+            viewport: { width: 375, height: 667 },
+            hasTouch: true,
+            isMobile: true,
+        });
+        const page = await context.newPage();
+        const { errors } = await attachGuards(page);
+
+        await page.goto('/games/donut-chef.html');
+        await page.locator('#btn-start-human').click();
+
+        // Set up an Action-phase hand containing two terminal actions (Crate + Clean sweep) and two ingredients
+        await page.evaluate(() => {
+            const { createCardInstance } = window.DonutChefLogic;
+            const engine = window.__donutChefEngine;
+            const p = engine.players[0];
+            p.hand = [
+                createCardInstance('smithy'),
+                createCardInstance('chapel'),
+                createCardInstance('flour'),
+                createCardInstance('sugar'),
+            ];
+            p.deck = [
+                createCardInstance('flour'),
+                createCardInstance('flour'),
+                createCardInstance('lard'),
+            ];
+            p.discard = [];
+            p.playArea = [];
+            p.actions = 1;
+            p.buys = 1;
+            p.coins = 0;
+            engine.turnPhase = 'action';
+            engine.cardsBoughtThisTurn = 0;
+            engine.buyPhaseSnapshot = null;
+            engine.notify();
+        });
+
+        // In Action phase, dock button shows Skip actions (not Play ingredients)
+        await expect(page.locator('#phase-pill')).toHaveText('Action phase');
+        await expect(page.locator('#btn-play-all')).toContainText('Skip actions');
+
+        // Tapping an ingredient during Action phase shows visible table feedback instead of forfeiting actions
+        await page.locator('#hand-container button[data-card-id="flour"]').click();
+        await expect(page.locator('#table-feedback')).toBeVisible();
+        await expect(page.locator('#phase-pill')).toHaveText('Action phase');
+
+        // Skip actions -> Play ingredients (+3) -> Actions truthfully reads 0 and Undo is visible
+        await page.locator('#btn-play-all').click();
+        await expect(page.locator('#phase-pill')).toHaveText('Buy phase');
+        await expect(page.locator('#stat-actions')).toHaveText('0');
+        await expect(page.locator('#btn-undo-phase')).toBeVisible();
+        await expect(page.locator('#btn-play-all')).toContainText('Play ingredients (+3)');
+        await page.locator('#btn-play-all').click();
+        await expect(page.locator('#stat-coins')).toHaveText('3');
+
+        // Clicking Crate in hand BEFORE buying a card rewinds the ingredients and plays Crate (+3 cards)!
+        await page.locator('#hand-container button[data-card-id="smithy"]').click();
+        await expect(page.locator('#play-area')).toContainText('Crate');
+        await expect(page.locator('#stat-actions')).toHaveText('0');
+        await expect(page.locator('#badge-table')).toHaveText('6');
+
+        // Tapping the leftover Clean sweep with 0 actions left shows clear visible feedback on the mobile table
+        await page.locator('#hand-container button[data-card-id="chapel"]').click();
+        await expect(page.locator('#table-feedback')).toContainText('No actions left');
+
+        // Open Shop and 1-tap buy Premium donut (8 coins in hand: 3 Flour + 1 Sugar + 1 Lard = 8) without clicking Play ingredients first!
+        await page.locator('#tab-btn-shop').click();
+        await page.locator('#supply-list button[data-card-id="premium_donut"]').click();
+        await expect(page.locator('#stat-buys')).toHaveText('0');
+        await expect(page.locator('#badge-score')).toHaveText('6 pts');
+
+        expect(errors).toEqual([]);
+        await context.close();
+    });
+
     test('Shore Road works offline-ready without Font Awesome, couples sliders to 100%, and fits iPhone SE & Desktop', async ({ browser }) => {
         const context = await browser.newContext({
             viewport: { width: 375, height: 667 },

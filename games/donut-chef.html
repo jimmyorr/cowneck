@@ -486,6 +486,16 @@
             box-shadow: 0 0 0 2px #2563eb, 0 5px 12px rgba(37, 99, 235, 0.2);
         }
 
+        .card.ingredient.playable {
+            box-shadow: 0 0 0 2px #d97706, 0 5px 12px rgba(217, 119, 6, 0.22);
+        }
+
+        .card.rewindable {
+            border-style: dashed;
+            box-shadow: 0 0 0 1.5px rgba(37, 99, 235, 0.35);
+            opacity: 0.92;
+        }
+
         .card.depleted {
             opacity: 0.45;
             filter: grayscale(65%);
@@ -602,6 +612,47 @@
         .phase-wait {
             background: #fef3c7;
             color: #92400e;
+        }
+
+        .phase-banner-right {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .undo-pill-btn {
+            min-height: 26px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            border: 1px solid #93c5fd;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 0.74rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .undo-pill-btn:active {
+            transform: scale(0.97);
+        }
+
+        #table-feedback {
+            padding: 6px 10px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            line-height: 1.3;
+            background: #fffbeb;
+            color: #92400e;
+            border-top: 1px solid #fde68a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
         #play-zone-wrapper {
@@ -852,6 +903,12 @@
             color: #3e2500;
         }
 
+        .btn-skip {
+            background: #e0ecff;
+            color: #1e40af;
+            border: 1.5px solid #93c5fd;
+        }
+
         .btn-shop-jump {
             display: none;
             background: #eef2ff;
@@ -862,6 +919,10 @@
         .btn-end {
             background: linear-gradient(135deg, #2e7d32, #1b5e20);
             color: #fff;
+        }
+
+        .btn-end.btn-end-ready:not(:disabled) {
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.35);
         }
 
         .btn-primary {
@@ -1151,9 +1212,14 @@
             <section id="supply-panel" class="panel" aria-label="Supply shop">
                 <div class="panel-header">
                     <h2 class="panel-title">Supply shop</h2>
-                    <span id="empty-piles-indicator" style="font-size: 0.74rem; font-weight: 700; color: var(--ink-muted);">
-                        0 / 3 empty
-                    </span>
+                    <div class="phase-banner-right">
+                        <button id="btn-undo-shop" class="undo-pill-btn hidden" type="button" title="Return to action phase">
+                            ↩️ Undo
+                        </button>
+                        <span id="empty-piles-indicator" style="font-size: 0.74rem; font-weight: 700; color: var(--ink-muted);">
+                            0 / 3 empty
+                        </span>
+                    </div>
                 </div>
                 <div class="supply-filters" role="tablist" aria-label="Filter supply cards">
                     <button class="filter-chip active" type="button" data-filter="all">All (16)</button>
@@ -1171,7 +1237,12 @@
             <section id="table-panel" class="panel" aria-label="Play table">
                 <div id="phase-banner">
                     <span id="turn-label">Turn 1</span>
-                    <span id="phase-pill" class="phase-tag phase-action">Action phase</span>
+                    <div class="phase-banner-right">
+                        <button id="btn-undo-phase" class="undo-pill-btn hidden" type="button" title="Return to action phase">
+                            ↩️ Undo
+                        </button>
+                        <span id="phase-pill" class="phase-tag phase-action">Action phase</span>
+                    </div>
                 </div>
 
                 <div id="play-zone-wrapper">
@@ -1180,6 +1251,10 @@
                         <span id="play-zone-count">0 cards</span>
                     </div>
                     <div id="play-area"></div>
+                </div>
+
+                <div id="table-feedback" class="hidden" role="status" aria-live="polite">
+                    <span id="table-feedback-text"></span>
                 </div>
 
                 <div id="hand-section">
@@ -1287,8 +1362,8 @@
                     Ties go to the chef who took fewer turns!
                 </p>
                 <ol style="padding-left: 20px; margin: 8px 0 14px;">
-                    <li><strong>Action phase:</strong> Play 1 blue action card from your hand (some grant extra actions, cards, buys, or coins).</li>
-                    <li><strong>Buy phase:</strong> Play gold ingredient cards for coins, then buy cards from the Supply shop. Purchased cards go to your discard pile and reshuffle when your draw deck runs out.</li>
+                    <li><strong>Action phase:</strong> Play 1 blue action card from your hand (some grant extra actions, cards, buys, or coins), or tap <strong>Skip actions</strong> to move to buying.</li>
+                    <li><strong>Buy phase:</strong> Play gold ingredient cards for coins (or tap any affordable card in the supply shop to auto-spend ingredients) and purchase cards into your discard pile.</li>
                     <li><strong>Cleanup:</strong> Played and remaining hand cards discard automatically, and you draw 5 fresh cards.</li>
                 </ol>
                 <h3 style="margin: 12px 0 6px; font-size: 0.95rem; color: var(--berry-dark);">Card catalog</h3>
@@ -1328,12 +1403,16 @@
         let aiPaused = false;
         let isBusy = false;
         let sessionToken = 0;
+        let activeModalAbort = null;
+        let lastRenderedTurnKey = '';
 
         const splashEl = document.getElementById('splash-screen');
         const shellEl = document.getElementById('app-shell');
         const workspaceEl = document.getElementById('workspace');
         const logContentEl = document.getElementById('log-content');
         const inspectorTextEl = document.getElementById('inspector-text');
+        const tableFeedbackEl = document.getElementById('table-feedback');
+        const tableFeedbackTextEl = document.getElementById('table-feedback-text');
 
         const engine = new DonutEngine({
             onLog: (msg) => appendLog(msg),
@@ -1347,6 +1426,35 @@
             requestAnimationFrame(() => {
                 renderQueued = false;
                 renderAll();
+            });
+        }
+
+        function showTableFeedback(msg) {
+            inspectorTextEl.textContent = msg;
+            tableFeedbackTextEl.textContent = msg;
+            tableFeedbackEl.classList.remove('hidden');
+        }
+
+        function clearTableFeedback() {
+            tableFeedbackTextEl.textContent = '';
+            tableFeedbackEl.classList.add('hidden');
+        }
+
+        function cancelPendingModal() {
+            if (activeModalAbort) {
+                const abort = activeModalAbort;
+                activeModalAbort = null;
+                abort();
+            }
+            document.getElementById('selection-modal').classList.add('hidden');
+        }
+
+        function sortCardsForDisplay(cards) {
+            const order = { action: 0, ingredient: 1, victory: 2 };
+            return [...cards].sort((a, b) => {
+                const ta = order[CARDS[a.id].type[0]] ?? 3;
+                const tb = order[CARDS[b.id].type[0]] ?? 3;
+                return ta - tb || CARDS[b.id].cost - CARDS[a.id].cost;
             });
         }
 
@@ -1389,9 +1497,11 @@
         function startNewGame(mode) {
             sessionToken++;
             const myToken = sessionToken;
+            cancelPendingModal();
+            clearTableFeedback();
             isBusy = false;
             aiPaused = false;
-            document.getElementById('selection-modal').classList.add('hidden');
+            lastRenderedTurnKey = '';
             document.getElementById('gameover-modal').classList.add('hidden');
             logContentEl.innerHTML = '';
 
@@ -1422,6 +1532,7 @@
             try {
                 while (token === sessionToken && !engine.isGameOver) {
                     const current = engine.beginTurn();
+                    clearTableFeedback();
                     renderAll();
                     if (!current || engine.isGameOver) break;
 
@@ -1449,7 +1560,8 @@
         // --- Human UI Controller for Interactive Card Prompts ---
         const humanController = {
             selectCardsFromHand(player, opts) {
-                const candidates = opts.candidates || player.hand;
+                const rawCandidates = opts.candidates || player.hand;
+                const candidates = sortCardsForDisplay(rawCandidates);
                 const min = Math.min(opts.min || 0, candidates.length);
                 const max = Math.min(
                     opts.max !== undefined ? opts.max : candidates.length,
@@ -1458,7 +1570,8 @@
 
                 if (candidates.length === 0) return Promise.resolve([]);
 
-                return new Promise((resolve) => {
+                return new Promise((resolve, reject) => {
+                    activeModalAbort = () => reject(new Error('SESSION_ABORTED'));
                     const modal = document.getElementById('selection-modal');
                     const titleEl = document.getElementById('modal-title');
                     const msgEl = document.getElementById('modal-message');
@@ -1515,11 +1628,13 @@
 
                     confirmBtn.onclick = () => {
                         if (selected.length < min) return;
+                        activeModalAbort = null;
                         modal.classList.add('hidden');
                         resolve([...selected]);
                     };
 
                     skipBtn.onclick = () => {
+                        activeModalAbort = null;
                         modal.classList.add('hidden');
                         resolve([]);
                     };
@@ -1533,7 +1648,8 @@
                 const eligible = engine.getGainableCards(maxCost);
                 if (eligible.length === 0) return Promise.resolve(null);
 
-                return new Promise((resolve) => {
+                return new Promise((resolve, reject) => {
+                    activeModalAbort = () => reject(new Error('SESSION_ABORTED'));
                     const modal = document.getElementById('selection-modal');
                     const titleEl = document.getElementById('modal-title');
                     const msgEl = document.getElementById('modal-message');
@@ -1565,6 +1681,7 @@
                             <div class="card-desc">${def.shortText}</div>
                         `;
                         el.addEventListener('click', () => {
+                            activeModalAbort = null;
                             confirmBtn.classList.remove('hidden');
                             modal.classList.add('hidden');
                             resolve(key);
@@ -1586,17 +1703,48 @@
             inspectorTextEl.textContent = `${def.emoji} ${def.name} (${def.cost} coins): ${def.text}`;
 
             if (def.type.includes(CARD_TYPES.ACTION)) {
-                if (engine.turnPhase !== 'action' || active.actions <= 0) return;
+                const canRewindAndPlay =
+                    engine.turnPhase === 'buy' &&
+                    engine.canUndoBuyPhase() &&
+                    engine.buyPhaseSnapshot.hand.some((c) => c.uid === card.uid);
+                const canPlayNow =
+                    (engine.turnPhase === 'action' && active.actions > 0) || canRewindAndPlay;
+
+                if (!canPlayNow) {
+                    if (engine.cardsBoughtThisTurn > 0) {
+                        showTableFeedback(`🛒 Cannot play ${def.name} after buying a card this turn.`);
+                    } else {
+                        showTableFeedback(`⚡ No actions left to play ${def.name} this turn (0 actions remaining).`);
+                    }
+                    return;
+                }
+
+                clearTableFeedback();
                 isBusy = true;
                 renderAll();
                 try {
                     await engine.playActionCard(active, card, humanController);
+                } catch (err) {
+                    if (!err || err.message !== 'SESSION_ABORTED') {
+                        console.error(err);
+                    }
                 } finally {
                     isBusy = false;
                     renderAll();
                 }
             } else if (def.type.includes(CARD_TYPES.INGREDIENT)) {
+                if (engine.turnPhase === 'action' && engine.hasPlayableActions(active)) {
+                    showTableFeedback('⚡ Action phase: play blue action cards first, or tap Skip actions.');
+                    return;
+                }
+                if (!engine.canPlayIngredients(active)) {
+                    showTableFeedback('🛒 Cannot play more ingredients after buying a card this turn.');
+                    return;
+                }
+                clearTableFeedback();
                 engine.playIngredient(active, card);
+            } else {
+                showTableFeedback(`🍩 ${def.name} scores ${def.points} point${def.points === 1 ? '' : 's'} at game end.`);
             }
         }
 
@@ -1607,36 +1755,58 @@
             const active = engine.players[engine.activePlayerIndex];
             if (!active || active.isAI || isBusy || engine.isGameOver) return;
 
+            if (engine.turnPhase === 'action' && engine.hasPlayableActions(active)) {
+                showTableFeedback(`⚡ Play your action cards or tap Skip actions before buying ${def.name}.`);
+                return;
+            }
             if ((engine.supply[cardId] || 0) <= 0) {
-                inspectorTextEl.textContent = `${def.name} is sold out!`;
+                showTableFeedback(`${def.name} is sold out!`);
                 return;
             }
             if (active.buys <= 0) {
-                inspectorTextEl.textContent = `No buys remaining this turn.`;
-                return;
-            }
-            if (active.coins < def.cost) {
-                const unplayedCoins = active.getHandIngredientCoins();
-                if (unplayedCoins > 0 && active.coins + unplayedCoins >= def.cost) {
-                    inspectorTextEl.textContent = `Tap "Play ingredients (+${unplayedCoins})" below first to afford ${def.name}!`;
-                } else {
-                    inspectorTextEl.textContent = `Need ${def.cost} coins for ${def.name} (you have ${active.coins}).`;
-                }
+                showTableFeedback('🛒 No buys remaining this turn — tap End turn.');
                 return;
             }
 
+            const unplayedCoins = engine.canPlayIngredients(active)
+                ? active.getHandIngredientCoins()
+                : 0;
+            const spendableCoins = active.coins + unplayedCoins;
+
+            if (spendableCoins < def.cost) {
+                showTableFeedback(`🪙 Need ${def.cost} coins for ${def.name} (you have ${spendableCoins}).`);
+                return;
+            }
+
+            clearTableFeedback();
+            if (unplayedCoins > 0) {
+                engine.playAllIngredients(active);
+            }
             engine.buyCard(active, cardId);
         }
 
-        function onPlayAllIngredients() {
+        function onPrimaryDockAction() {
             const active = engine.players[engine.activePlayerIndex];
             if (!active || active.isAI || isBusy || engine.isGameOver) return;
-            engine.playAllIngredients(active);
+            clearTableFeedback();
+            if (engine.turnPhase === 'action' && engine.hasPlayableActions(active)) {
+                engine.enterBuyPhase(active, true);
+            } else {
+                engine.playAllIngredients(active);
+            }
+        }
+
+        function onUndoPhase() {
+            const active = engine.players[engine.activePlayerIndex];
+            if (!active || active.isAI || isBusy || engine.isGameOver) return;
+            clearTableFeedback();
+            engine.undoBuyPhase();
         }
 
         function onEndTurn() {
             const active = engine.players[engine.activePlayerIndex];
             if (!active || active.isAI || isBusy || engine.isGameOver) return;
+            clearTableFeedback();
             const myToken = sessionToken;
             const res = engine.finishTurn();
             if (res) {
@@ -1693,14 +1863,24 @@
             listEl.innerHTML = '';
 
             const active = engine.players[engine.activePlayerIndex];
-            const humanCanBuy =
-                Boolean(active) && !active.isAI && !isBusy && !engine.isGameOver && active.buys > 0;
+            const humanInBuyPhase =
+                Boolean(active) &&
+                !active.isAI &&
+                !isBusy &&
+                !engine.isGameOver &&
+                engine.turnPhase === 'buy' &&
+                active.buys > 0;
+            const unplayedCoins =
+                humanInBuyPhase && engine.canPlayIngredients(active)
+                    ? active.getHandIngredientCoins()
+                    : 0;
+            const spendableCoins = humanInBuyPhase ? active.coins + unplayedCoins : 0;
 
             let affordableCount = 0;
             for (const key of SUPPLY_ORDER) {
                 const def = CARDS[key];
                 const count = engine.supply[key];
-                const canAfford = humanCanBuy && count > 0 && active.coins >= def.cost;
+                const canAfford = humanInBuyPhase && count > 0 && spendableCoins >= def.cost;
                 if (canAfford && key !== 'flour') affordableCount++;
 
                 if (supplyFilter !== 'all' && def.type[0] !== supplyFilter) continue;
@@ -1731,13 +1911,17 @@
             document.getElementById('badge-shop').textContent = String(affordableCount);
             document
                 .getElementById('tab-btn-shop')
-                .classList.toggle('shop-ready', humanCanBuy && engine.turnPhase === 'buy' && affordableCount > 0);
+                .classList.toggle('shop-ready', humanInBuyPhase && affordableCount > 0);
         }
 
         function renderTableAndHand() {
             const active = engine.players[engine.activePlayerIndex];
             const viewer = getPerspectivePlayer();
             const isHumanTurn = Boolean(active) && !active.isAI && !engine.isGameOver;
+            const showUndo = isHumanTurn && !isBusy && engine.canUndoBuyPhase();
+
+            document.getElementById('btn-undo-phase').classList.toggle('hidden', !showUndo);
+            document.getElementById('btn-undo-shop').classList.toggle('hidden', !showUndo);
 
             document.getElementById('turn-label').textContent = `${active.name} • Turn ${active.turnsTaken || 1}`;
             const phasePill = document.getElementById('phase-pill');
@@ -1767,7 +1951,9 @@
                 const hint = document.createElement('div');
                 hint.className = 'empty-hint';
                 hint.textContent = isHumanTurn
-                    ? 'Play actions or ingredients from your hand below.'
+                    ? engine.turnPhase === 'action'
+                        ? 'Play blue action cards below, or tap Skip actions.'
+                        : 'Play gold ingredients or open Shop to buy cards.'
                     : 'Waiting for cards to hit the counter...';
                 playAreaEl.appendChild(hint);
             } else {
@@ -1796,17 +1982,14 @@
                 document.getElementById('hand-label').textContent = `Your hand (${viewer.hand.length})`;
                 document.getElementById('hand-hint').textContent = isHumanTurn
                     ? engine.turnPhase === 'action'
-                        ? 'Tap an action or play ingredients'
-                        : 'Play ingredients or open Shop to buy'
+                        ? 'Tap a blue action card or Skip actions'
+                        : active.buys > 0
+                            ? 'Play ingredients or buy in Shop'
+                            : 'No buys left — tap End turn'
                     : 'Next-turn hand (waiting for Donut Bot)';
             }
 
-            const sortedHand = [...viewer.hand].sort((a, b) => {
-                const order = { action: 0, ingredient: 1, victory: 2 };
-                const ta = order[CARDS[a.id].type[0]] ?? 3;
-                const tb = order[CARDS[b.id].type[0]] ?? 3;
-                return ta - tb || CARDS[b.id].cost - CARDS[a.id].cost;
-            });
+            const sortedHand = sortCardsForDisplay(viewer.hand);
 
             for (const c of sortedHand) {
                 const def = CARDS[c.id];
@@ -1816,8 +1999,16 @@
                     def.type.includes(CARD_TYPES.ACTION) &&
                     engine.turnPhase === 'action' &&
                     viewer.actions > 0;
+                const canRewindAction =
+                    showUndo &&
+                    def.type.includes(CARD_TYPES.ACTION) &&
+                    engine.buyPhaseSnapshot.hand.some((h) => h.uid === c.uid);
                 const canPlayIng =
-                    isHumanTurn && !isBusy && def.type.includes(CARD_TYPES.INGREDIENT);
+                    isHumanTurn &&
+                    !isBusy &&
+                    engine.turnPhase === 'buy' &&
+                    engine.canPlayIngredients(viewer) &&
+                    def.type.includes(CARD_TYPES.INGREDIENT);
 
                 const el = document.createElement('button');
                 el.type = 'button';
@@ -1825,6 +2016,8 @@
                 el.className = `card hand-card ${def.type[0]}`;
                 if (canPlayAction || canPlayIng) {
                     el.classList.add('playable');
+                } else if (canRewindAction) {
+                    el.classList.add('rewindable');
                 } else {
                     el.classList.add('disabled-card');
                 }
@@ -1840,6 +2033,12 @@
                 el.addEventListener('click', () => onHandCardClick(c));
                 handContainer.appendChild(el);
             }
+
+            const turnKey = `${engine.turnCount}_${engine.activePlayerIndex}`;
+            if (turnKey !== lastRenderedTurnKey) {
+                lastRenderedTurnKey = turnKey;
+                handContainer.scrollLeft = 0;
+            }
         }
 
         function renderDeckAndStats() {
@@ -1853,13 +2052,28 @@
             document.getElementById('stat-coins').textContent = String(statSource.coins);
             document.getElementById('stat-deck').textContent = `${viewer.deck.length}/${viewer.discard.length}`;
 
-            const handIngCoins = viewer.getHandIngredientCoins();
             const playAllBtn = document.getElementById('btn-play-all');
-            playAllBtn.disabled = !isHumanTurn || handIngCoins === 0;
-            playAllBtn.textContent =
-                handIngCoins > 0 ? `🪙 Play ingredients (+${handIngCoins})` : '🪙 Play ingredients';
+            if (isHumanTurn && engine.turnPhase === 'action' && engine.hasPlayableActions(viewer)) {
+                playAllBtn.className = 'btn btn-skip';
+                playAllBtn.disabled = false;
+                playAllBtn.textContent = '⏭️ Skip actions';
+            } else {
+                const canPlayIng = isHumanTurn && engine.canPlayIngredients(viewer);
+                const handIngCoins = viewer.getHandIngredientCoins();
+                playAllBtn.className = 'btn btn-ing';
+                playAllBtn.disabled = !canPlayIng || handIngCoins === 0;
+                playAllBtn.textContent =
+                    canPlayIng && handIngCoins > 0
+                        ? `🪙 Play ingredients (+${handIngCoins})`
+                        : '🪙 Play ingredients';
+            }
 
-            document.getElementById('btn-end-turn').disabled = !isHumanTurn;
+            const endTurnBtn = document.getElementById('btn-end-turn');
+            endTurnBtn.disabled = !isHumanTurn;
+            endTurnBtn.classList.toggle(
+                'btn-end-ready',
+                isHumanTurn && engine.turnPhase === 'buy' && statSource.buys === 0
+            );
             updateShopToggleButton();
 
             // Deck breakdown panel
@@ -1975,8 +2189,9 @@
 
         document.getElementById('btn-menu').addEventListener('click', () => {
             sessionToken++;
+            cancelPendingModal();
+            clearTableFeedback();
             isBusy = false;
-            document.getElementById('selection-modal').classList.add('hidden');
             document.getElementById('gameover-modal').classList.add('hidden');
             shellEl.classList.add('hidden');
             splashEl.classList.remove('hidden');
@@ -1994,7 +2209,9 @@
             });
         });
 
-        document.getElementById('btn-play-all').addEventListener('click', onPlayAllIngredients);
+        document.getElementById('btn-play-all').addEventListener('click', onPrimaryDockAction);
+        document.getElementById('btn-undo-phase').addEventListener('click', onUndoPhase);
+        document.getElementById('btn-undo-shop').addEventListener('click', onUndoPhase);
         document.getElementById('btn-shop-toggle').addEventListener('click', () => {
             setMobileTab(activeTab === 'shop' ? 'table' : 'shop');
         });
@@ -2009,6 +2226,8 @@
         document.getElementById('btn-gameover-replay').addEventListener('click', () => startNewGame(engine.mode));
         document.getElementById('btn-gameover-menu').addEventListener('click', () => {
             sessionToken++;
+            cancelPendingModal();
+            clearTableFeedback();
             document.getElementById('gameover-modal').classList.add('hidden');
             shellEl.classList.add('hidden');
             splashEl.classList.remove('hidden');

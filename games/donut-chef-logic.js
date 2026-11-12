@@ -96,6 +96,7 @@
                 if (!chosen || chosen.length === 0) return;
                 engine.discardCards(player, chosen);
                 engine.drawCards(player, chosen.length);
+                engine.notify();
             }
         },
         chapel: {
@@ -243,8 +244,10 @@
 
                 const cardDef = CARDS[chosenCard.id];
                 engine.log(`${player.name} triples ${cardDef.name}!`);
+                engine.notify();
                 for (let i = 0; i < 3; i++) {
                     engine.applyBasicCardStats(player, cardDef);
+                    engine.notify();
                     if (cardDef.onPlay) {
                         await cardDef.onPlay(engine, player, controller);
                     }
@@ -395,6 +398,8 @@
             this.activePlayerIndex = 0;
             this.turnPhase = 'action';
             this.turnCount = 0;
+            this.cardsBoughtThisTurn = 0;
+            this.buyPhaseSnapshot = null;
             this.isGameOver = false;
             this.gameResult = null;
 
@@ -463,6 +468,64 @@
             );
         }
 
+        hasPlayableActions(player) {
+            if (!player || player.actions <= 0) return false;
+            return player.hand.some((c) => CARDS[c.id].type.includes(CARD_TYPES.ACTION));
+        }
+
+        canPlayIngredients(player) {
+            if (!player || this.isGameOver || this.cardsBoughtThisTurn > 0) return false;
+            return player.hand.some((c) => CARDS[c.id].type.includes(CARD_TYPES.INGREDIENT));
+        }
+
+        enterBuyPhase(player, allowUndo = true) {
+            if (this.isGameOver || !player) return;
+            if (this.turnPhase === 'action') {
+                if (allowUndo && this.hasPlayableActions(player)) {
+                    this.buyPhaseSnapshot = {
+                        playerIndex: this.activePlayerIndex,
+                        actions: player.actions,
+                        buys: player.buys,
+                        coins: player.coins,
+                        hand: [...player.hand],
+                        playArea: [...player.playArea]
+                    };
+                } else {
+                    this.buyPhaseSnapshot = null;
+                }
+                this.turnPhase = 'buy';
+                player.actions = 0;
+                this.notify();
+            }
+        }
+
+        canUndoBuyPhase() {
+            if (this.isGameOver || this.turnPhase !== 'buy' || this.cardsBoughtThisTurn > 0) {
+                return false;
+            }
+            return (
+                Boolean(this.buyPhaseSnapshot) &&
+                this.buyPhaseSnapshot.playerIndex === this.activePlayerIndex &&
+                this.buyPhaseSnapshot.actions > 0
+            );
+        }
+
+        undoBuyPhase() {
+            if (!this.canUndoBuyPhase()) return false;
+            const snap = this.buyPhaseSnapshot;
+            const p = this.players[this.activePlayerIndex];
+            p.actions = snap.actions;
+            p.buys = snap.buys;
+            p.coins = snap.coins;
+            p.hand = [...snap.hand];
+            p.playArea = [...snap.playArea];
+            this.turnPhase = 'action';
+            this.buyPhaseSnapshot = null;
+            this.log(`${p.name} returns to action phase`);
+            this.notify();
+            return true;
+        }
+
         beginTurn() {
             if (this.isGameOver) return null;
             this.turnCount++;
@@ -476,9 +539,15 @@
             p.actions = 1;
             p.buys = 1;
             p.coins = 0;
+            this.cardsBoughtThisTurn = 0;
+            this.buyPhaseSnapshot = null;
 
-            const hasActions = p.hand.some((c) => CARDS[c.id].type.includes(CARD_TYPES.ACTION));
-            this.turnPhase = hasActions ? 'action' : 'buy';
+            if (this.hasPlayableActions(p)) {
+                this.turnPhase = 'action';
+            } else {
+                this.turnPhase = 'buy';
+                p.actions = 0;
+            }
 
             this.log(`--- ${p.name} (turn ${p.turnsTaken}) ---`);
             this.notify();
@@ -493,12 +562,23 @@
         }
 
         async playActionCard(player, cardInstance, controller) {
-            if (this.isGameOver) return false;
-            if (this.turnPhase !== 'action') return false;
-            if (player.actions <= 0) return false;
+            if (this.isGameOver || !cardInstance) return false;
 
             const cardDef = CARDS[cardInstance.id];
             if (!cardDef || !cardDef.type.includes(CARD_TYPES.ACTION)) return false;
+
+            // If the player entered Buy phase / played basic ingredients early without buying anything yet,
+            // deterministically rewind basic ingredients back to hand so the Action card plays cleanly.
+            if (
+                this.turnPhase === 'buy' &&
+                this.canUndoBuyPhase() &&
+                this.buyPhaseSnapshot.hand.some((c) => c.uid === cardInstance.uid)
+            ) {
+                this.undoBuyPhase();
+            }
+
+            if (this.turnPhase !== 'action') return false;
+            if (player.actions <= 0) return false;
 
             const moved = this.moveCard(player.hand, player.playArea, cardInstance.uid);
             if (!moved) return false;
@@ -506,16 +586,14 @@
             player.actions--;
             this.log(`${player.name} plays ${cardDef.name}`);
             this.applyBasicCardStats(player, cardDef);
+            this.notify();
 
             if (cardDef.onPlay) {
                 await cardDef.onPlay(this, player, controller);
             }
 
-            const stillHasPlayableActions =
-                player.actions > 0 &&
-                player.hand.some((c) => CARDS[c.id].type.includes(CARD_TYPES.ACTION));
-            if (!stillHasPlayableActions) {
-                this.turnPhase = 'buy';
+            if (!this.hasPlayableActions(player)) {
+                this.enterBuyPhase(player, false);
             }
 
             this.notify();
@@ -523,14 +601,18 @@
         }
 
         playIngredient(player, cardInstance) {
-            if (this.isGameOver) return false;
+            if (this.isGameOver || this.cardsBoughtThisTurn > 0 || !cardInstance) return false;
             const cardDef = CARDS[cardInstance.id];
             if (!cardDef || !cardDef.type.includes(CARD_TYPES.INGREDIENT)) return false;
+            if (!player.hand.some((c) => c.uid === cardInstance.uid)) return false;
+
+            if (this.turnPhase === 'action') {
+                this.enterBuyPhase(player, true);
+            }
 
             const moved = this.moveCard(player.hand, player.playArea, cardInstance.uid);
             if (!moved) return false;
 
-            this.turnPhase = 'buy';
             player.coins += cardDef.coins;
             this.log(`${player.name} plays ${cardDef.name} (+${cardDef.coins} coin${cardDef.coins > 1 ? 's' : ''})`);
             this.notify();
@@ -538,17 +620,18 @@
         }
 
         playAllIngredients(player) {
-            if (this.isGameOver) return 0;
+            if (this.isGameOver || this.cardsBoughtThisTurn > 0) return 0;
             const ingredients = player.hand.filter((c) =>
                 CARDS[c.id].type.includes(CARD_TYPES.INGREDIENT)
             );
+            if (this.turnPhase === 'action') {
+                this.enterBuyPhase(player, true);
+            }
             if (ingredients.length === 0) {
-                this.turnPhase = 'buy';
                 this.notify();
                 return 0;
             }
 
-            this.turnPhase = 'buy';
             let gainedCoins = 0;
             for (const ing of ingredients) {
                 const moved = this.moveCard(player.hand, player.playArea, ing.uid);
@@ -557,7 +640,7 @@
                 }
             }
             player.coins += gainedCoins;
-            this.log(`${player.name} plays ${ingredients.length} ingredient${ingredients.length > 1 ? 's' : ''} (+${gainedCoins} coins)`);
+            this.log(`${player.name} plays ${ingredients.length} ingredient${ingredients.length > 1 ? 's' : ''} (+${gainedCoins} coin${gainedCoins === 1 ? '' : 's'})`);
             this.notify();
             return gainedCoins;
         }
@@ -570,7 +653,11 @@
             if ((this.supply[cardId] || 0) <= 0) return false;
             if (player.coins < cardDef.cost) return false;
 
-            this.turnPhase = 'buy';
+            if (this.turnPhase === 'action') {
+                this.enterBuyPhase(player, false);
+            }
+            this.buyPhaseSnapshot = null;
+            this.cardsBoughtThisTurn++;
             player.coins -= cardDef.cost;
             player.buys--;
             this.supply[cardId]--;
@@ -634,6 +721,8 @@
             p.actions = 0;
             p.buys = 0;
             p.coins = 0;
+            this.cardsBoughtThisTurn = 0;
+            this.buyPhaseSnapshot = null;
 
             this.drawCards(p, 5);
 
@@ -765,10 +854,23 @@
                 );
 
                 if (opts.reason === 'cellar_discard') {
-                    // Discard Victory cards & surplus Flour if deck has better cards
-                    return candidates
-                        .filter((c) => CARDS[c.id].type.includes(CARD_TYPES.VICTORY))
-                        .slice(0, max);
+                    // Discard Victory cards & surplus terminal actions beyond remaining actions
+                    const toDiscard = [];
+                    let spareActions = player.actions;
+                    for (const c of candidates) {
+                        if (toDiscard.length >= max) break;
+                        const def = CARDS[c.id];
+                        if (def.type.includes(CARD_TYPES.VICTORY)) {
+                            toDiscard.push(c);
+                        } else if (def.type.includes(CARD_TYPES.ACTION) && !def.actions) {
+                            if (spareActions > 0) {
+                                spareActions--;
+                            } else {
+                                toDiscard.push(c);
+                            }
+                        }
+                    }
+                    return toDiscard;
                 }
 
                 if (opts.reason === 'chapel_trash') {
@@ -921,6 +1023,15 @@
                 return 'cellar';
             }
             if (isFreeGain && canPick('donut_hole')) return 'donut_hole';
+        }
+
+        // Mandatory free gains (Free sample / Batter bargain) must pick an eligible card if any remain
+        if (isFreeGain) {
+            const eligible = engine.getGainableCards(budget);
+            if (eligible.length > 0) {
+                eligible.sort((a, b) => CARDS[b].cost - CARDS[a].cost);
+                return eligible[0];
+            }
         }
 
         // Never voluntarily buy 0-cost Flour to bloat deck unless forced free gain with nothing else

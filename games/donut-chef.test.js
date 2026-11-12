@@ -128,3 +128,103 @@ test('AI never buys 0-cost Flour and simulated AI games finish cleanly within tu
         assert.ok(finished.gameResult.standings[0].score >= 6);
     }
 });
+
+test('Playing ingredients early zeroes actions, supports Undo, and auto-rewinds when playing Crate before buying', async () => {
+    const engine = new DonutEngine();
+    engine.reset('human');
+    const p = engine.players[0];
+
+    const crate = createCardInstance('smithy');
+    const flour1 = createCardInstance('flour');
+    const sugar1 = createCardInstance('sugar');
+    p.hand = [crate, flour1, sugar1];
+    p.deck = [
+        createCardInstance('flour'),
+        createCardInstance('flour'),
+        createCardInstance('lard')
+    ];
+    p.discard = [];
+    p.playArea = [];
+
+    engine.beginTurn();
+    assert.strictEqual(engine.turnPhase, 'action');
+    assert.strictEqual(p.actions, 1);
+
+    // Player prematurely plays ingredients while Crate is still in hand
+    const gainedCoins = engine.playAllIngredients(p);
+    assert.strictEqual(gainedCoins, 3);
+    assert.strictEqual(engine.turnPhase, 'buy');
+    // Actions counter truthfully drops to 0 in Buy phase, while Undo remains available before buying
+    assert.strictEqual(p.actions, 0);
+    assert.strictEqual(engine.canUndoBuyPhase(), true);
+
+    // Clicking Crate before buying any card auto-rewinds the basic ingredients and plays Crate (+3 cards)
+    const playedCrate = await engine.playActionCard(p, crate, {});
+    assert.strictEqual(playedCrate, true);
+    assert.strictEqual(p.playArea.length, 1);
+    assert.strictEqual(p.playArea[0].uid, crate.uid);
+    // Original 2 ingredients returned to hand + 3 drawn cards = 5 cards in hand, ready for Buy phase
+    assert.strictEqual(p.hand.length, 5);
+    assert.strictEqual(p.coins, 0);
+    assert.strictEqual(engine.turnPhase, 'buy');
+    assert.strictEqual(engine.canUndoBuyPhase(), false);
+
+    // Now play all ingredients (including newly drawn Lard!) for 1 + 2 + 1 + 1 + 3 = 8 coins
+    const fullCoins = engine.playAllIngredients(p);
+    assert.strictEqual(fullCoins, 8);
+    assert.strictEqual(p.coins, 8);
+});
+
+test('Buying a card locks Buy phase so neither Actions nor extra hand Ingredients can be played afterward', async () => {
+    const engine = new DonutEngine();
+    engine.reset('human');
+    const p = engine.players[0];
+
+    const crate = createCardInstance('smithy');
+    const market = createCardInstance('market');
+    const sugar = createCardInstance('sugar');
+    const extraFlour = createCardInstance('flour');
+    p.hand = [market, crate, sugar, extraFlour];
+    p.deck = [createCardInstance('donut_hole')];
+    p.discard = [];
+    p.playArea = [];
+
+    engine.beginTurn();
+    // Play Shop sign (+1 card, +1 action, +1 buy, +1 coin) -> now 1 action, 2 buys, 1 coin
+    await engine.playActionCard(p, market, {});
+    assert.strictEqual(p.actions, 1);
+    assert.strictEqual(p.buys, 2);
+    assert.strictEqual(p.coins, 1);
+
+    // Play only Sugar (+2 coins -> 3 coins total), entering Buy phase with Crate & Flour still in hand
+    assert.strictEqual(engine.playIngredient(p, sugar), true);
+    assert.strictEqual(engine.canUndoBuyPhase(), true);
+    assert.strictEqual(engine.canPlayIngredients(p), true);
+
+    // Buy Donut hole (cost 2) using 1 buy -> locks Buy phase!
+    assert.strictEqual(engine.buyCard(p, 'donut_hole'), true);
+    assert.strictEqual(engine.cardsBoughtThisTurn, 1);
+    assert.strictEqual(engine.canUndoBuyPhase(), false);
+    assert.strictEqual(engine.canPlayIngredients(p), false);
+
+    // Neither Crate nor the unplayed Flour in hand may be played after buying a card
+    assert.strictEqual(await engine.playActionCard(p, crate, {}), false);
+    assert.strictEqual(engine.playIngredient(p, extraFlour), false);
+    assert.strictEqual(engine.playAllIngredients(p), 0);
+});
+
+test('Mandatory free gain (Free sample / Batter bargain) falls back to remaining eligible supply cards', () => {
+    const engine = new DonutEngine();
+    engine.reset('ai');
+    const p = engine.players[0];
+
+    // Empty every supply pile up to cost 4 except 0-cost Flour
+    for (const key of SUPPLY_ORDER) {
+        if (key !== 'flour') engine.supply[key] = 0;
+    }
+
+    // Voluntary buy still declines 0-cost Flour, but mandatory free gain must pick Flour
+    assert.strictEqual(chooseBestGainOrBuy(engine, p, 4, false), null);
+    assert.strictEqual(chooseBestGainOrBuy(engine, p, 4, true), 'flour');
+});
+
