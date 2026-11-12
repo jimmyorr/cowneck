@@ -632,15 +632,107 @@
         .seed-code-line {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .seed-code-btn {
+            appearance: none;
+            border: 1px dashed var(--panel-border);
+            background: var(--panel-recess);
+            border-radius: 8px;
+            padding: 3px 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--ink-primary);
+            transition: background-color 0.14s ease, border-color 0.14s ease;
+        }
+
+        .seed-code-btn:hover {
+            background: #ffffff;
+            border-color: var(--accent);
+        }
+
+        .seed-code-btn[hidden],
+        .seed-edit-form[hidden] {
+            display: none;
         }
 
         .seed-code {
             font-family: var(--font-mono);
-            font-size: 0.86rem;
+            font-size: 0.84rem;
             font-weight: 600;
             color: var(--ink-primary);
             letter-spacing: 0.03em;
+        }
+
+        .seed-edit-icon {
+            width: 12px;
+            height: 12px;
+            color: var(--ink-muted);
+            flex-shrink: 0;
+        }
+
+        .seed-edit-form {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .seed-input {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            width: 132px;
+            padding: 3px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--accent);
+            background: #ffffff;
+            color: var(--ink-primary);
+        }
+
+        .seed-input:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 1px;
+        }
+
+        .seed-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mini-action-btn {
+            appearance: none;
+            border: 1px solid var(--panel-border);
+            background: var(--chassis-top);
+            color: var(--ink-secondary);
+            border-radius: 9px;
+            height: 30px;
+            padding: 0 9px;
+            font-size: 0.73rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+        }
+
+        .mini-action-btn:hover {
+            background: #ffffff;
+            color: var(--ink-primary);
+        }
+
+        .mini-action-btn[aria-pressed="true"] {
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+            border-color: hsla(24, 50%, 45%, 0.32);
         }
 
         .section-tag {
@@ -1099,6 +1191,107 @@
             width: 100%;
         }
 
+        /* Saved Cassette Favorites Shelf */
+        .cassette-empty {
+            font-size: 0.75rem;
+            color: var(--ink-muted);
+            background: var(--panel-recess);
+            border: 1px dashed var(--panel-border);
+            border-radius: 10px;
+            padding: 9px 11px;
+            text-align: center;
+        }
+
+        .cassette-empty[hidden],
+        .cassette-list[hidden] {
+            display: none;
+        }
+
+        .cassette-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 156px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .cassette-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 6px;
+            background: var(--panel-recess);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 3px 5px 3px 3px;
+            transition: border-color 0.14s ease, background-color 0.14s ease;
+        }
+
+        .cassette-item.is-active {
+            background: var(--chassis-top);
+            border-color: var(--accent);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        .cassette-load-btn {
+            appearance: none;
+            border: none;
+            background: transparent;
+            color: var(--ink-primary);
+            cursor: pointer;
+            text-align: left;
+            padding: 5px 7px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .cassette-load-btn:hover {
+            background: rgba(255, 255, 255, 0.55);
+        }
+
+        .cassette-seed {
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--ink-primary);
+            white-space: nowrap;
+        }
+
+        .cassette-meta {
+            font-size: 0.71rem;
+            color: var(--ink-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cassette-remove-btn {
+            appearance: none;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--ink-muted);
+            border-radius: 7px;
+            width: 26px;
+            height: 26px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.92rem;
+            line-height: 1;
+        }
+
+        .cassette-remove-btn:hover {
+            color: var(--ink-primary);
+            background: rgba(255, 255, 255, 0.65);
+            border-color: var(--panel-border);
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *,
             *::before,
@@ -1153,6 +1346,17 @@
             <line x1="6" x2="6" y1="2" y2="4" />
             <line x1="10" x2="10" y1="2" y2="4" />
             <line x1="14" x2="14" y1="2" y2="4" />
+        </symbol>
+        <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </symbol>
+        <symbol id="icon-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16Z" />
+        </symbol>
+        <symbol id="icon-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
         </symbol>
     </svg>
 
@@ -1353,10 +1557,27 @@
                     <div class="seed-row">
                         <div class="seed-info">
                             <div class="seed-code-line">
-                                <span class="seed-code" id="seed-code">AMBER-408</span>
+                                <button type="button" class="seed-code-btn" id="seed-edit-btn" title="Click to enter a custom track seed">
+                                    <span class="seed-code" id="seed-code">AMBER-408</span>
+                                    <svg class="seed-edit-icon" aria-hidden="true"><use href="#icon-edit"></use></svg>
+                                </button>
+                                <form id="seed-edit-form" class="seed-edit-form" hidden>
+                                    <input type="text" id="seed-input" class="seed-input" maxlength="18" spellcheck="false" autocomplete="off" aria-label="Custom track seed">
+                                    <button type="submit" class="mini-action-btn">Load</button>
+                                </form>
                                 <span class="section-tag" id="section-label">Standby</span>
                             </div>
                             <span class="track-meta" id="track-meta">F major · 79 BPM · 8-chord cycle</span>
+                        </div>
+                        <div class="seed-actions">
+                            <button type="button" id="save-tape-btn" class="mini-action-btn" aria-pressed="false" title="Save this track to your cassette shelf">
+                                <svg width="13" height="13" aria-hidden="true"><use href="#icon-bookmark"></use></svg>
+                                <span id="save-tape-label">Save</span>
+                            </button>
+                            <button type="button" id="share-seed-btn" class="mini-action-btn" title="Copy shareable track link">
+                                <svg width="13" height="13" aria-hidden="true"><use href="#icon-link"></use></svg>
+                                <span id="share-seed-label">Copy link</span>
+                            </button>
                         </div>
                     </div>
 
@@ -1384,6 +1605,18 @@
                             <span class="voice-val" id="lead-voice-val">Dream pluck</span>
                         </button>
                     </div>
+                </div>
+
+                <!-- Saved Cassette Favorites Shelf -->
+                <div class="module-card" id="cassette-shelf-card">
+                    <div class="module-header">
+                        <h2 class="module-title">Cassette shelf</h2>
+                        <span class="module-hint" id="tape-count">0 saved</span>
+                    </div>
+                    <div class="cassette-empty" id="cassette-empty">
+                        No saved tapes yet — click Save on any beat you want to keep.
+                    </div>
+                    <div class="cassette-list" id="cassette-list" role="list" hidden></div>
                 </div>
             </section>
 
@@ -1510,7 +1743,7 @@
 
                         <div class="control-item">
                             <div class="control-label-row">
-                                <label for="amb-rain">Window rain</label>
+                                <label for="amb-rain">Eaves drips &amp; thunder</label>
                                 <span class="control-readout" id="amb-rain-val">0%</span>
                             </div>
                             <input type="range" id="amb-rain" data-ambience="rain" min="0" max="100" value="0" class="h-slider">
@@ -1550,10 +1783,10 @@
                 <button type="button" data-close-help class="ghost-btn" aria-label="Close guide">Close</button>
             </div>
             <div class="modal-body">
-                <p><strong>Generative track seeds:</strong> Every seed composes a wistful chord loop with close-voiced 9th clusters, gentle fingerpicked inner voices, gliding sub-bass, and sparse melodic motifs.</p>
+                <p><strong>Shareable seeds &amp; cassette shelf:</strong> Click the seed badge to enter any custom seed code, use <em>Copy link</em> to share an exact beat URL, or click <em>Save</em> to keep favorite loops on your cassette shelf.</p>
                 <p><strong>Radio flow &amp; arrangement:</strong> With <em>Radio flow</em> enabled, a fresh track blooms every 16 bars. Turn it off anytime to loop a favorite mood indefinitely.</p>
-                <p><strong>Intimate &amp; dreamy voices:</strong> Cycle between resampled Soft Felt piano, Warm Rhodes, breathing Dream Synth pads, and Hollow Guitar — paired with upper-register Felt Droplets, nocturnal Celesta Box chimes, Dream Pluck, or Muted Nylon leads.</p>
-                <p><strong>Tape &amp; room breathing:</strong> Dual-rate capstan wow &amp; flutter, pillowy foley drums, stereo ping-pong echo, and gentle kick-sidechain breathing weave the vinyl, rain, and night air into the beat.</p>
+                <p><strong>Intimate &amp; dreamy voices:</strong> Cycle between resampled Soft felt piano, Warm Rhodes, breathing Dream synth pads, and Hollow guitar — paired with upper-register Felt droplets, Celesta chimes, Dream pluck, or Muted guitar leads.</p>
+                <p><strong>Tape &amp; room breathing:</strong> Dual-rate capstan wow &amp; flutter, pillowy foley drums, stereo ping-pong echo, discrete eaves water drips &amp; distant thunder, and gentle kick-sidechain breathing weave the room into the beat.</p>
             </div>
             <button type="button" data-close-help class="secondary-btn modal-close-full">Back to studio</button>
         </div>
@@ -1562,6 +1795,8 @@
     <script type="module">
         // --- Safe Storage Helper ---
         const PREFS_KEY = 'lofi_pup_studio_prefs_v2';
+        const TAPES_KEY = 'lofi_pup_saved_tapes_v1';
+        const MAX_SAVED_TAPES = 12;
 
         function loadSavedPrefs() {
             try {
@@ -1582,12 +1817,45 @@
             }
         }
 
+        function loadSavedTapes() {
+            try {
+                const raw = window.localStorage.getItem(TAPES_KEY);
+                if (!raw) return [];
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) return [];
+                return parsed.filter((item) => item && typeof item.seed === 'string' && typeof item.scene === 'string');
+            } catch {
+                return [];
+            }
+        }
+
+        function saveTapes(tapes) {
+            try {
+                window.localStorage.setItem(TAPES_KEY, JSON.stringify(tapes));
+            } catch {
+                // Ignore storage errors in restricted contexts
+            }
+        }
+
         // --- Deterministic Seeded PRNG (Mulberry32) ---
         const SEED_WORDS = [
             'AMBER', 'MAPLE', 'CEDAR', 'DRIFT', 'VELVET', 'CLOUD',
             'HONEY', 'MOSS', 'EMBER', 'FERN', 'COCOA', 'MIST',
             'DUSK', 'WILLOW', 'PEACH', 'LINEN', 'BIRCH', 'HAZE',
         ];
+
+        function normalizeSeedCode(raw) {
+            if (typeof raw !== 'string') return null;
+            const cleaned = raw
+                .trim()
+                .toUpperCase()
+                .replace(/[\s_]+/g, '-')
+                .replace(/[^A-Z0-9-]/g, '')
+                .replace(/-+/g, '-')
+                .replace(/^-|-$/g, '')
+                .slice(0, 18);
+            return cleaned.length > 0 ? cleaned : null;
+        }
 
         function hashString(str) {
             let h = 2166136261 >>> 0;
@@ -1923,20 +2191,40 @@
             };
         }
 
-        // --- Studio State ---
+        // --- Studio State & URL Permalinks ---
+        function readInitialUrlState() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const rawScene = params.get('scene');
+                const rawSeed = normalizeSeedCode(params.get('seed'));
+                const rawKeys = params.get('keys');
+                const rawLead = params.get('lead');
+                return {
+                    scene: rawScene && Object.hasOwn(SCENE_CONFIGS, rawScene) ? rawScene : null,
+                    seed: rawSeed,
+                    keys: rawKeys && Object.hasOwn(KEY_VOICE_LABELS, rawKeys) ? rawKeys : null,
+                    lead: rawLead && Object.hasOwn(LEAD_VOICE_LABELS, rawLead) ? rawLead : null,
+                };
+            } catch {
+                return { scene: null, seed: null, keys: null, lead: null };
+            }
+        }
+
+        const initialUrlState = readInitialUrlState();
         const savedPrefs = loadSavedPrefs();
-        let currentScene = savedPrefs?.scene && Object.hasOwn(SCENE_CONFIGS, savedPrefs.scene)
-            ? savedPrefs.scene
-            : 'sunset';
-        let radioMode = savedPrefs?.radioMode ?? true;
+        let savedTapes = loadSavedTapes();
+
+        let currentScene = initialUrlState.scene
+            || (savedPrefs?.scene && Object.hasOwn(SCENE_CONFIGS, savedPrefs.scene) ? savedPrefs.scene : 'sunset');
+        let radioMode = initialUrlState.seed ? false : (savedPrefs?.radioMode ?? true);
         let arrangeMode = savedPrefs?.arrangeMode ?? true;
 
         // Voice overrides: null means follow each track seed's curated instrument choice
-        let keyVoiceOverride = null;
-        let leadVoiceOverride = null;
+        let keyVoiceOverride = initialUrlState.keys;
+        let leadVoiceOverride = initialUrlState.lead;
         let userAdjustedFilter = false;
 
-        let currentSeed = generateSeedCode();
+        let currentSeed = initialUrlState.seed || generateSeedCode();
         let currentTrack = composeTrackFromSeed(currentSeed, currentScene);
         let bpm = currentTrack.bpm;
 
@@ -1978,11 +2266,13 @@
         let hasStartedOnce = false;
         let stepCount = 0;
         let nextNoteTime = 0;
+        let nextThunderTime = 0;
         let timerID = 0;
         let visualizerRafId = 0;
         let pauseSuspendTimer = 0;
         let chordUiTimer = 0;
         let bannerTimer = 0;
+        let shareFeedbackTimer = 0;
         let activeChordGain = null;
         let activePadGain = null;
         let activeBassGain = null;
@@ -2045,6 +2335,16 @@
         const statusText = document.getElementById('status-text');
         const chordDisplay = document.getElementById('chord-display');
         const seedCodeEl = document.getElementById('seed-code');
+        const seedEditBtn = document.getElementById('seed-edit-btn');
+        const seedEditForm = document.getElementById('seed-edit-form');
+        const seedInput = document.getElementById('seed-input');
+        const saveTapeBtn = document.getElementById('save-tape-btn');
+        const saveTapeLabel = document.getElementById('save-tape-label');
+        const shareSeedBtn = document.getElementById('share-seed-btn');
+        const shareSeedLabel = document.getElementById('share-seed-label');
+        const cassetteListEl = document.getElementById('cassette-list');
+        const cassetteEmptyEl = document.getElementById('cassette-empty');
+        const tapeCountEl = document.getElementById('tape-count');
         const sectionLabelEl = document.getElementById('section-label');
         const trackMetaEl = document.getElementById('track-meta');
         const playBtn = document.getElementById('play-btn');
@@ -2122,6 +2422,87 @@
             });
         }
 
+        function getTapeId(sceneId, seedStr) {
+            return `${sceneId}:${seedStr}`;
+        }
+
+        function buildShareUrl() {
+            const url = new URL(window.location.href);
+            url.search = '';
+            url.searchParams.set('scene', currentScene);
+            url.searchParams.set('seed', currentSeed);
+            if (keyVoiceOverride) url.searchParams.set('keys', keyVoiceOverride);
+            if (leadVoiceOverride) url.searchParams.set('lead', leadVoiceOverride);
+            return url.toString();
+        }
+
+        function syncUrlState() {
+            try {
+                const nextUrl = new URL(window.location.href);
+                nextUrl.search = '';
+                nextUrl.searchParams.set('scene', currentScene);
+                nextUrl.searchParams.set('seed', currentSeed);
+                if (keyVoiceOverride) nextUrl.searchParams.set('keys', keyVoiceOverride);
+                if (leadVoiceOverride) nextUrl.searchParams.set('lead', leadVoiceOverride);
+                window.history.replaceState(null, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`);
+            } catch {
+                // Ignore history errors in restricted contexts
+            }
+        }
+
+        function renderCassetteShelf() {
+            const activeId = getTapeId(currentScene, currentSeed);
+            const isSaved = savedTapes.some((t) => getTapeId(t.scene, t.seed) === activeId);
+
+            saveTapeBtn.setAttribute('aria-pressed', String(isSaved));
+            saveTapeLabel.textContent = isSaved ? 'Saved' : 'Save';
+            tapeCountEl.textContent = `${savedTapes.length} saved`;
+
+            cassetteListEl.replaceChildren();
+            if (savedTapes.length === 0) {
+                cassetteEmptyEl.hidden = false;
+                cassetteListEl.hidden = true;
+                return;
+            }
+
+            cassetteEmptyEl.hidden = true;
+            cassetteListEl.hidden = false;
+
+            for (const tape of savedTapes) {
+                const tapeId = getTapeId(tape.scene, tape.seed);
+                const row = document.createElement('div');
+                row.className = tapeId === activeId ? 'cassette-item is-active' : 'cassette-item';
+                row.setAttribute('role', 'listitem');
+
+                const loadBtn = document.createElement('button');
+                loadBtn.type = 'button';
+                loadBtn.className = 'cassette-load-btn';
+                loadBtn.dataset.loadTape = tapeId;
+
+                const seedSpan = document.createElement('span');
+                seedSpan.className = 'cassette-seed';
+                seedSpan.textContent = tape.seed;
+
+                const metaSpan = document.createElement('span');
+                metaSpan.className = 'cassette-meta';
+                const sceneName = SCENE_CONFIGS[tape.scene]?.name || 'Studio';
+                metaSpan.textContent = `${sceneName} · ${tape.keyName || ''} · ${tape.bpm || ''} BPM`;
+
+                loadBtn.append(seedSpan, metaSpan);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'cassette-remove-btn';
+                removeBtn.dataset.removeTape = tapeId;
+                removeBtn.setAttribute('aria-label', `Remove ${tape.seed}`);
+                removeBtn.title = 'Remove saved tape';
+                removeBtn.textContent = '×';
+
+                row.append(loadBtn, removeBtn);
+                cassetteListEl.appendChild(row);
+            }
+        }
+
         function syncTrackUi() {
             bodyEl.dataset.scene = currentScene;
             bodyEl.style.setProperty('--pup-bob-ms', `${Math.round(60000 / bpm)}ms`);
@@ -2155,6 +2536,9 @@
                 if (input) input.value = String(val);
                 if (readout) readout.textContent = `${val}%`;
             }
+
+            renderCassetteShelf();
+            syncUrlState();
         }
 
         syncTrackUi();
@@ -2449,39 +2833,6 @@
                         R[i] += pop * (1 - pan);
                     }
                 }
-            } else if (type === 'rain') {
-                let lpL = 0;
-                let lpR = 0;
-                let hpL = 0;
-                let hpR = 0;
-                let prevL = 0;
-                let prevR = 0;
-                let dropEnvL = 0;
-                let dropEnvR = 0;
-
-                for (let i = 0; i < len; i++) {
-                    const t = i / sr;
-                    const gust = 0.82 + 0.18 * Math.sin((2 * Math.PI * t) / seconds);
-                    const wL = Math.random() * 2 - 1;
-                    const wR = Math.random() * 2 - 1;
-
-                    // Soft steady rain bed against window glass
-                    lpL += 0.14 * (wL - lpL);
-                    lpR += 0.14 * (wR - lpR);
-                    hpL = 0.88 * (hpL + lpL - prevL);
-                    hpR = 0.88 * (hpR + lpR - prevR);
-                    prevL = lpL;
-                    prevR = lpR;
-
-                    // Individual soft window water droplets
-                    if (Math.random() > 0.9975) dropEnvL = 0.25 + Math.random() * 0.35;
-                    if (Math.random() > 0.9975) dropEnvR = 0.25 + Math.random() * 0.35;
-                    dropEnvL *= 0.986;
-                    dropEnvR *= 0.986;
-
-                    L[i] = (hpL * 0.55 * gust) + wL * dropEnvL * 0.28;
-                    R[i] = (hpR * 0.55 * gust) + wR * dropEnvR * 0.28;
-                }
             } else if (type === 'night') {
                 let breezeL = 0;
                 let breezeR = 0;
@@ -2492,7 +2843,7 @@
                     breezeL += 0.015 * ((Math.random() * 2 - 1) - breezeL);
                     breezeR += 0.015 * ((Math.random() * 2 - 1) - breezeR);
 
-                    // Two gentle distant crickets in stereo field (~4.1kHz & ~4.28kHzchirp trains)
+                    // Two gentle distant crickets in stereo field (~4.1kHz & ~4.28kHz chirp trains)
                     pA += (2 * Math.PI * 4120) / sr;
                     pB += (2 * Math.PI * 4290) / sr;
 
@@ -2537,6 +2888,52 @@
             return applySeamlessLoopFade(buf, 0.25);
         }
 
+        function buildThunderBuffer(ctx, variant = 0) {
+            const sr = ctx.sampleRate;
+            const seconds = variant === 0 ? 4.2 : 3.7;
+            const len = Math.floor(sr * seconds);
+            const buf = ctx.createBuffer(2, len, sr);
+            const L = buf.getChannelData(0);
+            const R = buf.getChannelData(1);
+
+            const alpha = 1 - Math.exp((-2 * Math.PI * 78) / sr);
+            let s1L = 0;
+            let s2L = 0;
+            let s3L = 0;
+            let s1R = 0;
+            let s2R = 0;
+            let s3R = 0;
+            let subPhaseA = 0;
+            let subPhaseB = 0;
+
+            for (let i = 0; i < len; i++) {
+                const t = i / sr;
+                // Multi-crest distant cloud-to-cloud roll envelope
+                const swell1 = Math.pow(Math.min(1, t / 0.52), 2) * Math.exp(-t * 1.15);
+                const t2 = Math.max(0, t - (variant === 0 ? 1.05 : 0.82));
+                const swell2 = Math.pow(Math.min(1, t2 / 0.38), 2) * Math.exp(-t2 * 1.35) * 0.78;
+                const env = (swell1 + swell2) * Math.sin(Math.min(1, (seconds - t) / 0.45) * Math.PI * 0.5);
+
+                // 3-stage cascaded 78 Hz lowpass on independent stereo pressure waves (zero hiss)
+                s1L += alpha * ((Math.random() * 2 - 1) - s1L);
+                s2L += alpha * (s1L - s2L);
+                s3L += alpha * (s2L - s3L);
+
+                s1R += alpha * ((Math.random() * 2 - 1) - s1R);
+                s2R += alpha * (s1R - s2R);
+                s3R += alpha * (s2R - s3R);
+
+                // Subtle 44 Hz & 63 Hz distant horizon sub-body
+                subPhaseA += (2 * Math.PI * (44 - t * 1.8)) / sr;
+                subPhaseB += (2 * Math.PI * (63 - t * 2.2)) / sr;
+                const subBody = (Math.sin(subPhaseA) * 0.22 + Math.sin(subPhaseB) * 0.12) * env;
+
+                L[i] = Math.tanh((s3L * 4.4 * env + subBody) * 1.25) * 0.58;
+                R[i] = Math.tanh((s3R * 4.4 * env + subBody * 0.92) * 1.25) * 0.58;
+            }
+            return buf;
+        }
+
         // --- Gain & Ambience Routing Helpers ---
 
         function getKeyPanDepth(kv) {
@@ -2565,7 +2962,7 @@
         function computeAmbienceTarget(key) {
             if (!isPlaying) return 0;
             const raw = (ambienceLevels[key] ?? 0) / 100;
-            const scale = key === 'vinyl' ? 0.22 : key === 'rain' ? 0.34 : key === 'night' ? 0.26 : 0.28;
+            const scale = key === 'vinyl' ? 0.22 : key === 'rain' ? 0.72 : key === 'night' ? 0.26 : 0.28;
             return raw * scale;
         }
 
@@ -2736,6 +3133,10 @@
                 feltHammer: buildFeltHammerBuffer(audioCtx),
                 musicBoxPluck: buildMusicBoxPluckBuffer(audioCtx),
                 shaker: buildShakerBuffer(audioCtx),
+                thunder: [
+                    buildThunderBuffer(audioCtx, 0),
+                    buildThunderBuffer(audioCtx, 1),
+                ],
                 kick: {
                     sunset: buildKickBuffer(audioCtx, { subHz: 45, punchHz: 78, duration: 0.44, drive: 1.46, clickLevel: 0.10 }),
                     rainy: buildKickBuffer(audioCtx, { subHz: 42, punchHz: 66, duration: 0.46, drive: 1.26, clickLevel: 0.05 }),
@@ -2818,8 +3219,21 @@
             mixerNodes.lead.connect(leadRevSend);
             leadRevSend.connect(reverbConvolver);
 
-            // Start 4 Stereo Environmental Ambience Loops (vinyl & rain breathe with kick sidechain)
+            // Environmental Ambience: looped beds for vinyl/night/cafe; discrete event bus for rain (eaves drips & thunder)
             for (const key of Object.keys(ambienceGains)) {
+                const gainNode = audioCtx.createGain();
+                gainNode.gain.value = 0;
+                ambienceGains[key] = gainNode;
+
+                if (key === 'rain') {
+                    gainNode.connect(ambienceDuckGain);
+                    const rainRevSend = audioCtx.createGain();
+                    rainRevSend.gain.value = 0.54;
+                    gainNode.connect(rainRevSend);
+                    rainRevSend.connect(reverbConvolver);
+                    continue;
+                }
+
                 const src = audioCtx.createBufferSource();
                 src.buffer = buildAmbienceBuffer(audioCtx, key);
                 src.loop = true;
@@ -2837,13 +3251,9 @@
                     filter.frequency.value = 4800;
                 }
 
-                const gainNode = audioCtx.createGain();
-                gainNode.gain.value = 0;
-                ambienceGains[key] = gainNode;
-
                 src.connect(filter);
                 filter.connect(gainNode);
-                if (key === 'vinyl' || key === 'rain') {
+                if (key === 'vinyl') {
                     gainNode.connect(ambienceDuckGain);
                 } else {
                     gainNode.connect(masterGain);
@@ -2860,6 +3270,113 @@
         }
 
         // --- Acoustic, Resampled & Dream Synth Voices ---
+
+        function spawnWaterPlink(time, baseHz, velocity, panVal) {
+            if (!audioCtx || !ambienceGains.rain) return;
+            const dur = 0.075 + Math.random() * 0.045;
+            const chirpEnd = baseHz * (1.62 + Math.random() * 0.34);
+
+            const osc = audioCtx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(baseHz, time);
+            osc.frequency.exponentialRampToValueAtTime(chirpEnd, time + 0.030);
+
+            const glassHarm = audioCtx.createOscillator();
+            glassHarm.type = 'sine';
+            glassHarm.frequency.setValueAtTime(baseHz * 2.38, time);
+            const harmGain = audioCtx.createGain();
+            harmGain.gain.setValueAtTime(0.08 * velocity, time);
+            harmGain.gain.exponentialRampToValueAtTime(0.001, time + 0.016);
+
+            const softLp = audioCtx.createBiquadFilter();
+            softLp.type = 'lowpass';
+            softLp.frequency.value = 1950;
+
+            const env = audioCtx.createGain();
+            env.gain.setValueAtTime(0.0001, time);
+            env.gain.linearRampToValueAtTime(0.16 * velocity, time + 0.003);
+            env.gain.exponentialRampToValueAtTime(0.0008, time + dur);
+
+            const panner = typeof audioCtx.createStereoPanner === 'function'
+                ? audioCtx.createStereoPanner()
+                : audioCtx.createGain();
+            if ('pan' in panner) panner.pan.setValueAtTime(panVal, time);
+
+            osc.connect(softLp);
+            glassHarm.connect(harmGain);
+            harmGain.connect(softLp);
+            softLp.connect(env);
+            env.connect(panner);
+            panner.connect(ambienceGains.rain);
+
+            osc.addEventListener('ended', () => {
+                try {
+                    panner.disconnect();
+                } catch {
+                    // Ignore
+                }
+            });
+
+            osc.start(time);
+            glassHarm.start(time);
+            osc.stop(time + dur + 0.02);
+            glassHarm.stop(time + 0.024);
+        }
+
+        function triggerEavesDrip(time) {
+            const deepDrop = Math.random() < 0.28;
+            const baseHz = deepDrop
+                ? 275 + Math.random() * 135
+                : 480 + Math.random() * 440;
+            const vel = 0.45 + Math.random() * 0.50;
+            const pan = (Math.random() * 2 - 1) * 0.72;
+            spawnWaterPlink(time, baseHz, vel, pan);
+
+            if (Math.random() < 0.24) {
+                const splashDelay = 0.068 + Math.random() * 0.055;
+                spawnWaterPlink(time + splashDelay, baseHz * 1.32, vel * 0.44, pan * 0.85);
+            }
+        }
+
+        function triggerDistantThunder(time) {
+            if (!audioCtx || !ambienceGains.rain || !drumSamples?.thunder?.length) return;
+            const buf = drumSamples.thunder[Math.floor(Math.random() * drumSamples.thunder.length)];
+            const src = audioCtx.createBufferSource();
+            src.buffer = buf;
+            src.playbackRate.value = 0.86 + Math.random() * 0.24;
+
+            const skyLp = audioCtx.createBiquadFilter();
+            skyLp.type = 'lowpass';
+            skyLp.frequency.value = 112;
+            skyLp.Q.value = 0.7;
+
+            const panner = typeof audioCtx.createStereoPanner === 'function'
+                ? audioCtx.createStereoPanner()
+                : audioCtx.createGain();
+            if ('pan' in panner) {
+                const startPan = (Math.random() * 2 - 1) * 0.55;
+                panner.pan.setValueAtTime(startPan, time);
+                panner.pan.linearRampToValueAtTime(-startPan * 0.65, time + 3.4);
+            }
+
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.72 + Math.random() * 0.26, time);
+
+            src.connect(skyLp);
+            skyLp.connect(gain);
+            gain.connect(panner);
+            panner.connect(ambienceGains.rain);
+
+            src.addEventListener('ended', () => {
+                try {
+                    panner.disconnect();
+                } catch {
+                    // Ignore
+                }
+            });
+
+            src.start(time);
+        }
 
         function triggerSidechainDuck(time, depth = 0.48) {
             if (!sidechainGain || !audioCtx) return;
@@ -3865,6 +4382,23 @@
                     }
                 }
             }
+
+            // 5. Discrete Eaves Water Drips & Occasional Distant Thunder (zero continuous noise hiss)
+            const rainNorm = (ambienceLevels.rain ?? 0) / 100;
+            if (rainNorm > 0) {
+                const dripProb = 0.035 + rainNorm * 0.34;
+                if (Math.random() < dripProb) {
+                    triggerEavesDrip(time + Math.random() * secPer16th * 0.92);
+                }
+                if (rainNorm >= 0.14) {
+                    if (nextThunderTime <= 0) {
+                        nextThunderTime = time + 5.5 + Math.random() * 8.0;
+                    } else if (time >= nextThunderTime) {
+                        triggerDistantThunder(time + Math.random() * 0.15);
+                        nextThunderTime = time + 14 + (1 - rainNorm) * 14 + Math.random() * 11;
+                    }
+                }
+            }
         }
 
         function nextStep() {
@@ -3995,6 +4529,7 @@
                     hasStartedOnce = true;
                     stepCount = 0;
                     nextNoteTime = audioCtx.currentTime + 0.06;
+                    nextThunderTime = audioCtx.currentTime + 5.5 + Math.random() * 8.0;
 
                     masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
                     masterGain.gain.setTargetAtTime(0.64, audioCtx.currentTime, 0.08);
@@ -4067,6 +4602,41 @@
             }
         }
 
+        function openSeedEditor() {
+            seedInput.value = currentSeed;
+            seedEditBtn.hidden = true;
+            seedEditForm.hidden = false;
+            seedInput.focus();
+            seedInput.select();
+        }
+
+        function closeSeedEditor(restoreFocus = false) {
+            if (seedEditForm.hidden) return;
+            seedEditForm.hidden = true;
+            seedEditBtn.hidden = false;
+            if (restoreFocus) {
+                seedEditBtn.focus();
+            }
+        }
+
+        function applyCustomSeed(rawSeed) {
+            const normalized = normalizeSeedCode(rawSeed);
+            closeSeedEditor(true);
+            if (!normalized) return;
+
+            currentSeed = normalized;
+            currentTrack = composeTrackFromSeed(currentSeed, currentScene);
+            bpm = currentTrack.bpm;
+            activeChordObj = currentTrack.chords[0];
+            activeChordName = activeChordObj.name;
+            syncTrackUi();
+
+            if (isPlaying && audioCtx) {
+                restartLivePhrase();
+            }
+            flashBanner(`Seed ${currentSeed}`);
+        }
+
         function switchScene(sceneId) {
             if (!Object.hasOwn(SCENE_CONFIGS, sceneId)) return;
             const changed = currentScene !== sceneId;
@@ -4117,10 +4687,153 @@
             }
         }
 
+        function toggleSaveCurrentTape() {
+            const activeId = getTapeId(currentScene, currentSeed);
+            const existingIdx = savedTapes.findIndex((t) => getTapeId(t.scene, t.seed) === activeId);
+
+            if (existingIdx !== -1) {
+                savedTapes.splice(existingIdx, 1);
+                saveTapes(savedTapes);
+                renderCassetteShelf();
+                flashBanner('Removed tape');
+                return;
+            }
+
+            const entry = {
+                seed: currentSeed,
+                scene: currentScene,
+                keyName: currentTrack.keyName,
+                bpm: currentTrack.bpm,
+                keys: keyVoiceOverride,
+                lead: leadVoiceOverride,
+                filterHz: Number(filterSlider.value),
+                wobble: Number(wobbleSlider.value),
+                space: Number(spaceSlider.value),
+            };
+            savedTapes = [entry, ...savedTapes].slice(0, MAX_SAVED_TAPES);
+            saveTapes(savedTapes);
+            renderCassetteShelf();
+            flashBanner(`Saved ${currentSeed}`);
+        }
+
+        function loadCassetteTape(tapeId) {
+            const tape = savedTapes.find((t) => getTapeId(t.scene, t.seed) === tapeId);
+            if (!tape || !Object.hasOwn(SCENE_CONFIGS, tape.scene)) return;
+
+            currentScene = tape.scene;
+            currentSeed = tape.seed;
+            keyVoiceOverride = tape.keys && Object.hasOwn(KEY_VOICE_LABELS, tape.keys) ? tape.keys : null;
+            leadVoiceOverride = tape.lead && Object.hasOwn(LEAD_VOICE_LABELS, tape.lead) ? tape.lead : null;
+
+            Object.assign(ambienceLevels, SCENE_CONFIGS[currentScene].ambiencePreset);
+            applyAllAmbienceGains(0.22);
+
+            const targetFilter = typeof tape.filterHz === 'number'
+                ? tape.filterHz
+                : SCENE_CONFIGS[currentScene].filterPreset;
+            filterSlider.value = String(targetFilter);
+            if (typeof tape.wobble === 'number') wobbleSlider.value = String(tape.wobble);
+            if (typeof tape.space === 'number') spaceSlider.value = String(tape.space);
+
+            if (audioCtx) {
+                if (lofiFilter) lofiFilter.frequency.setTargetAtTime(Number(filterSlider.value), audioCtx.currentTime, 0.12);
+                if (wobbleGain && wobbleDelayGain) {
+                    const wVal = Number(wobbleSlider.value);
+                    wobbleGain.gain.setTargetAtTime(wVal, audioCtx.currentTime, 0.06);
+                    wobbleDelayGain.gain.setTargetAtTime(wVal * 0.000032, audioCtx.currentTime, 0.06);
+                }
+                if (reverbReturnGain && tapeDelayReturn) {
+                    const sNorm = Number(spaceSlider.value) / 100;
+                    reverbReturnGain.gain.setTargetAtTime(sNorm * 0.96, audioCtx.currentTime, 0.06);
+                    tapeDelayReturn.gain.setTargetAtTime(sNorm * 0.88, audioCtx.currentTime, 0.06);
+                }
+            }
+
+            currentTrack = composeTrackFromSeed(currentSeed, currentScene);
+            bpm = currentTrack.bpm;
+            activeChordObj = currentTrack.chords[0];
+            activeChordName = activeChordObj.name;
+            persistPrefs();
+            syncTrackUi();
+
+            if (isPlaying && audioCtx) {
+                restartLivePhrase();
+            }
+            flashBanner(`Tape ${currentSeed}`);
+        }
+
+        function removeCassetteTape(tapeId) {
+            savedTapes = savedTapes.filter((t) => getTapeId(t.scene, t.seed) !== tapeId);
+            saveTapes(savedTapes);
+            renderCassetteShelf();
+        }
+
+        async function copyShareLink() {
+            const shareUrl = buildShareUrl();
+            let copied = false;
+            try {
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(shareUrl);
+                    copied = true;
+                }
+            } catch {
+                copied = false;
+            }
+            if (!copied) {
+                try {
+                    const temp = document.createElement('textarea');
+                    temp.value = shareUrl;
+                    temp.setAttribute('readonly', '');
+                    temp.style.position = 'fixed';
+                    temp.style.opacity = '0';
+                    document.body.appendChild(temp);
+                    temp.select();
+                    document.execCommand('copy');
+                    temp.remove();
+                } catch {
+                    // Ignore fallback copy failure
+                }
+            }
+
+            shareSeedLabel.textContent = 'Copied';
+            window.clearTimeout(shareFeedbackTimer);
+            shareFeedbackTimer = window.setTimeout(() => {
+                shareSeedLabel.textContent = 'Copy link';
+            }, 1600);
+            flashBanner('Share link copied');
+        }
+
         // --- Event Listeners ---
 
         playBtn.addEventListener('click', togglePlayback);
         newTrackBtn.addEventListener('click', () => generateNewTrack(true));
+
+        seedEditBtn.addEventListener('click', openSeedEditor);
+        seedEditForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            applyCustomSeed(seedInput.value);
+        });
+        seedInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closeSeedEditor(true);
+            }
+        });
+
+        saveTapeBtn.addEventListener('click', toggleSaveCurrentTape);
+        shareSeedBtn.addEventListener('click', copyShareLink);
+
+        cassetteListEl.addEventListener('click', (e) => {
+            const loadBtn = e.target.closest('[data-load-tape]');
+            if (loadBtn) {
+                loadCassetteTape(loadBtn.dataset.loadTape);
+                return;
+            }
+            const removeBtn = e.target.closest('[data-remove-tape]');
+            if (removeBtn) {
+                removeCassetteTape(removeBtn.dataset.removeTape);
+            }
+        });
 
         radioModeBtn.addEventListener('click', () => {
             radioMode = !radioMode;
