@@ -20,38 +20,51 @@ async function attachGuards(page) {
     return errors;
 }
 
-test.describe('Lofi Pup', () => {
-    test('loads offline without external CDNs, syncs slider readouts, and encapsulates state', async ({ page }) => {
+test.describe('Lofi Pup generative studio', () => {
+    test('loads offline without external dependencies, renders 6-stem mixer and 4 ambience layers, and encapsulates state', async ({ page }) => {
         const errors = await attachGuards(page);
         await page.goto('/games/lofi-pup.html');
 
         await expect(page).toHaveTitle(/Lofi Pup/);
-        await expect(page.locator('#status-text')).toHaveText('READY...');
-        await expect(page.locator('#filter-val')).toHaveText('800Hz');
-        await expect(page.locator('#crackle-val')).toHaveText('15%');
-        await expect(page.locator('#wobble-val')).toHaveText('Low');
+        await expect(page.locator('h1')).toContainText('Lofi Pup');
+        await expect(page.locator('#status-text')).toHaveText('Ready');
+        await expect(page.locator('#filter-val')).toHaveText('2800Hz');
+        await expect(page.locator('#wobble-val')).toHaveText('Subtle');
+        await expect(page.locator('#space-val')).toHaveText('36%');
         await expect(page.locator('#chord-display')).toHaveText('--');
-        await expect(page.locator('#chord-display')).toHaveClass(/text-amber-600/);
+        await expect(page.locator('#seed-code')).toHaveText(/^[A-Z]+-\d{3}$/);
+
+        // Score minigame clutter is completely gone
+        await expect(page.locator('#score-val')).toHaveCount(0);
+
+        // Verify all 6 studio mixer channels are present and active
+        for (const stem of ['kick', 'snare', 'hihat', 'bass', 'chord', 'lead']) {
+            await expect(page.locator(`#mix-${stem}`)).toHaveAttribute('aria-pressed', 'true');
+            await expect(page.locator(`[data-mixer-volume="${stem}"]`)).toBeVisible();
+        }
+
+        // Verify all 4 environmental ambience sliders are present
+        for (const amb of ['vinyl', 'rain', 'night', 'cafe']) {
+            await expect(page.locator(`#amb-${amb}`)).toBeVisible();
+        }
 
         // Verify GA4 config function is defined and module state does not leak globals
         const globalsCheck = await page.evaluate(() => ({
             hasGtag: typeof window.gtag === 'function',
             hasDataLayerConfig: Array.isArray(window.dataLayer)
                 && window.dataLayer.some((entry) => entry[0] === 'config' && entry[1] === 'G-6RNVL7JZVJ'),
-            leakedSwitchStation: typeof window.switchStation,
+            leakedSwitchScene: typeof window.switchScene,
             leakedToggleInstrument: typeof window.toggleInstrument,
-            leakedPoints: typeof window.points,
         }));
         expect(globalsCheck).toEqual({
             hasGtag: true,
             hasDataLayerConfig: true,
-            leakedSwitchStation: 'undefined',
+            leakedSwitchScene: 'undefined',
             leakedToggleInstrument: 'undefined',
-            leakedPoints: 'undefined',
         });
 
         // Verify cross-browser vertical fader styling and touch target width
-        const kickFaderMetrics = await page.locator('[data-mixer-volume="kick"]').evaluate((el) => {
+        const bassFaderMetrics = await page.locator('[data-mixer-volume="bass"]').evaluate((el) => {
             const cs = window.getComputedStyle(el);
             const rect = el.getBoundingClientRect();
             return {
@@ -60,9 +73,9 @@ test.describe('Lofi Pup', () => {
                 width: rect.width,
             };
         });
-        expect(kickFaderMetrics.writingMode).toBe('vertical-lr');
-        expect(kickFaderMetrics.direction).toBe('rtl');
-        expect(kickFaderMetrics.width).toBeGreaterThanOrEqual(20);
+        expect(bassFaderMetrics.writingMode).toBe('vertical-lr');
+        expect(bassFaderMetrics.direction).toBe('rtl');
+        expect(bassFaderMetrics.width).toBeGreaterThanOrEqual(20);
 
         // Verify wobble slider label transitions across all ranges
         const wobble = page.locator('#wobble-slider');
@@ -70,13 +83,13 @@ test.describe('Lofi Pup', () => {
         await wobble.dispatchEvent('input');
         await expect(page.locator('#wobble-val')).toHaveText('Off');
 
-        await wobble.fill('30');
+        await wobble.fill('25');
         await wobble.dispatchEvent('input');
-        await expect(page.locator('#wobble-val')).toHaveText('Medium');
+        await expect(page.locator('#wobble-val')).toHaveText('Warm');
 
         await wobble.fill('45');
         await wobble.dispatchEvent('input');
-        await expect(page.locator('#wobble-val')).toHaveText('High');
+        await expect(page.locator('#wobble-val')).toHaveText('Warped');
 
         expect(errors).toEqual([]);
     });
@@ -92,78 +105,96 @@ test.describe('Lofi Pup', () => {
         });
 
         await page.goto('/games/lofi-pup.html');
-        await expect(page.locator('#best-score')).toHaveText('0000');
+        await page.locator('#play-btn').click();
+        await expect(page.locator('#play-btn')).toHaveAttribute('aria-pressed', 'true');
+
+        await page.locator('#btn-rainy').click();
+        await expect(page.locator('body')).toHaveAttribute('data-scene', 'rainy');
+
+        await page.locator('#radio-mode-btn').click();
+        await expect(page.locator('#radio-mode-btn')).toHaveAttribute('aria-pressed', 'false');
 
         await page.locator('#play-btn').click();
-        await expect(page.locator('#status-text')).toHaveText('PLAYING...');
-        await page.locator('#mix-kick').click();
-
-        await page.locator('#play-btn').click();
-        await expect(page.locator('#status-text')).toHaveText('PAUSED');
+        await expect(page.locator('#status-text')).toHaveText('Paused');
         expect(errors).toEqual([]);
     });
 
-    test('manages playback, instant chord unmute, scoring dedup, and paused station switching', async ({ page }) => {
+    test('composes seeded tracks, switches 4 cozy scenes live, cycles key/lead voices, and manages stem mutes', async ({ page }) => {
         const errors = await attachGuards(page);
         await page.goto('/games/lofi-pup.html');
+
+        const initialSeed = await page.locator('#seed-code').textContent();
 
         const playBtn = page.locator('#play-btn');
         await playBtn.click();
         await expect(playBtn).toHaveAttribute('aria-pressed', 'true');
         await expect(playBtn).toHaveAttribute('aria-label', 'Pause');
-        await expect(page.locator('#status-text')).toHaveText('PLAYING...');
 
-        // Wait for initial Sunset chord (Dm9) to appear
-        await expect(page.locator('#chord-display')).toHaveText('Dm9', { timeout: 2000 });
+        // Wait for live voice-led jazz chord symbol to appear
+        await expect(page.locator('#chord-display')).not.toHaveText('--', { timeout: 2000 });
+        const initialChord = await page.locator('#chord-display').textContent();
+        expect(initialChord).toMatch(/^[A-G][b#]?(maj9|maj7#11|m9|m11|m6|13|13sus|7b13|7alt|m7b5)$/);
 
-        // Rapidly click mix-kick twice on the same beat: only the first toggle should score
-        await page.evaluate(() => {
-            const btn = document.getElementById('mix-kick');
-            btn.click();
-            btn.click();
-        });
-        const streakAfterDoubleClick = await page.locator('#streak-val').textContent();
-        expect(['x0', 'x1']).toContain(streakAfterDoubleClick);
-
-        // Mute chord -> displays "--", then unmute -> immediately restores "Dm9"
+        // Mute chord -> displays "--", then unmute -> immediately restores active chord symbol
         const mixChord = page.locator('#mix-chord');
         await mixChord.click();
         await expect(page.locator('#chord-display')).toHaveText('--');
         await mixChord.click();
-        await expect(page.locator('#chord-display')).toHaveText('Dm9');
+        await expect(page.locator('#chord-display')).toHaveText(initialChord);
+
+        // Roll a new track seed while playing
+        await page.locator('#new-track-btn').click();
+        await expect(page.locator('#seed-code')).not.toHaveText(initialSeed);
+
+        // Cycle key and lead voices during live playback
+        await page.locator('#chord-voice-btn').click();
+        await expect(page.locator('#chord-voice-val')).toContainText('★');
+        await page.locator('#lead-voice-btn').click();
+        await expect(page.locator('#lead-voice-val')).toContainText('★');
+
+        // Switch across all 4 scenes while playing and verify ambience & scene updates
+        await page.locator('#btn-rainy').click();
+        await expect(page.locator('body')).toHaveAttribute('data-scene', 'rainy');
+        await expect(page.locator('#amb-rain-val')).toHaveText('48%');
+        await expect(page.locator('#chord-display')).not.toHaveText('--');
+
+        await page.locator('#btn-midnight').click();
+        await expect(page.locator('body')).toHaveAttribute('data-scene', 'midnight');
+        await expect(page.locator('#amb-night-val')).toHaveText('38%');
+
+        await page.locator('#btn-cafe').click();
+        await expect(page.locator('body')).toHaveAttribute('data-scene', 'cafe');
+        await expect(page.locator('#amb-cafe-val')).toHaveText('44%');
 
         // Pause playback
         await playBtn.click();
-        await expect(page.locator('#status-text')).toHaveText('PAUSED');
+        await expect(page.locator('#status-text')).toHaveText('Paused');
         await expect(page.locator('#chord-display')).toHaveText('--');
-
-        // Switch station rapidly while paused and confirm PAUSED is restored after banner timeout
-        await page.locator('#btn-rainy').click();
-        await page.locator('#btn-midnight').click();
-        await expect(page.locator('#status-text')).toHaveText('MIDNIGHT NEON');
-        await expect(page.locator('#chord-display')).toHaveClass(/text-purple-500/);
-        await expect(page.locator('#status-text')).toHaveText('PAUSED', { timeout: 3000 });
 
         expect(errors).toEqual([]);
     });
 
-    test('opens help modal accessibly and restores focus on Escape', async ({ page }) => {
+    test('opens studio guide modal accessibly, supports keyboard shortcuts, and restores focus on Escape', async ({ page }) => {
         const errors = await attachGuards(page);
         await page.goto('/games/lofi-pup.html');
 
-        const helpTrigger = page.locator('[data-help="filter"]');
-        await helpTrigger.focus();
-        await helpTrigger.click();
+        // Keyboard shortcut '1' toggles Kick stem mute
+        await page.keyboard.press('1');
+        await expect(page.locator('#mix-kick')).toHaveAttribute('aria-pressed', 'false');
+        await page.keyboard.press('1');
+        await expect(page.locator('#mix-kick')).toHaveAttribute('aria-pressed', 'true');
+
+        const helpBtn = page.locator('#help-btn');
+        await helpBtn.focus();
+        await helpBtn.click();
 
         const modal = page.locator('#help-modal');
         await expect(modal).toBeVisible();
-        await expect(modal).toHaveAttribute('aria-hidden', 'false');
-        await expect(page.locator('#help-title')).toHaveText('Lofi Filter');
+        await expect(page.locator('#help-title')).toHaveText('Lofi Pup studio guide');
 
         await page.keyboard.press('Escape');
         await expect(modal).toBeHidden();
-        await expect(modal).toHaveAttribute('aria-hidden', 'true');
-        await expect(helpTrigger).toBeFocused();
+        await expect(helpBtn).toBeFocused();
 
         expect(errors).toEqual([]);
     });
