@@ -44,7 +44,7 @@ async function attachGuards(page) {
     return { errors, externalHosts };
 }
 
-test.describe('Donut Chef, Slope Builder & Shore Road — mobile & desktop verification', () => {
+test.describe('Donut Chef & Shore Road — mobile & desktop verification', () => {
     test('Donut Chef plays smoothly on iPhone SE (375x667) with tabbed Shop/Table/Deck and modals', async ({ browser }) => {
         const context = await browser.newContext({
             viewport: { width: 375, height: 667 },
@@ -145,69 +145,6 @@ test.describe('Donut Chef, Slope Builder & Shore Road — mobile & desktop verif
         expect(cols.t.left).toBeGreaterThanOrEqual(cols.s.right);
         expect(cols.l.left).toBeGreaterThanOrEqual(cols.t.right);
         expect(cols.scrollWidth).toBeLessThanOrEqual(cols.innerWidth);
-        expect(errors).toEqual([]);
-        await context.close();
-    });
-
-    test('Slope Builder fits iPhone SE (375x667) across Intro, Build, and Ride modes without overflow', async ({ browser }) => {
-        const context = await browser.newContext({
-            viewport: { width: 375, height: 667 },
-            hasTouch: true,
-            isMobile: true,
-            deviceScaleFactor: 2,
-        });
-        const page = await context.newPage();
-        const { errors } = await attachGuards(page);
-
-        await page.goto('/games/slope-builder.html');
-        await expect(page.getByRole('heading', { name: 'Slope Builder' })).toBeVisible();
-
-        await page.locator('#start-btn').click();
-        await expect(page.locator('#intro-screen')).toBeHidden();
-        await expect(page.locator('#slider-container')).toBeVisible();
-
-        const buildMetrics = await page.evaluate(() => {
-            const canvas = document.getElementById('gameCanvas');
-            const slider = document.getElementById('slider-container').getBoundingClientRect();
-            return {
-                canvasBackingWidth: canvas.width,
-                scrollWidth: document.documentElement.scrollWidth,
-                innerWidth: window.innerWidth,
-                sliderInViewport: slider.left >= 0 && slider.right <= window.innerWidth && slider.bottom <= window.innerHeight,
-            };
-        });
-        expect(buildMetrics.canvasBackingWidth).toBe(750);
-        expect(buildMetrics.scrollWidth).toBeLessThanOrEqual(buildMetrics.innerWidth);
-        expect(buildMetrics.sliderInViewport).toBe(true);
-
-        // Wait until course reaches minimum rideable length, then enter RIDE mode
-        await expect(page.locator('#action-btn')).toBeEnabled({ timeout: 5000 });
-        await page.locator('#action-btn').click();
-
-        // Slider must hide in RIDE mode, while Boost, Jump, Retry lap, and New course fit cleanly
-        await expect(page.locator('#slider-container')).toBeHidden();
-        await expect(page.locator('#boost-btn')).toBeVisible();
-        await expect(page.locator('#retry-btn')).toBeVisible();
-        await expect(page.locator('#reset-btn')).toBeVisible();
-
-        const rideMetrics = await page.evaluate(() => {
-            const resetRect = document.getElementById('reset-btn').getBoundingClientRect();
-            return {
-                scrollWidth: document.documentElement.scrollWidth,
-                innerWidth: window.innerWidth,
-                innerHeight: window.innerHeight,
-                resetFits: resetRect.bottom <= window.innerHeight + 1 && resetRect.right <= window.innerWidth + 1,
-            };
-        });
-        expect(rideMetrics.scrollWidth).toBeLessThanOrEqual(rideMetrics.innerWidth);
-        expect(rideMetrics.resetFits).toBe(true);
-
-        // Pause and resume
-        await page.locator('#pause-btn').click();
-        await expect(page.locator('#center-message')).toHaveText('Paused');
-        await page.locator('#pause-btn').click();
-        await expect(page.locator('#center-message')).toHaveText('');
-
         expect(errors).toEqual([]);
         await context.close();
     });

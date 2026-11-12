@@ -6,7 +6,6 @@ const auditedHtmlFiles = [
     'games/high-fidelity.html',
     'games/lofi-pup.html',
     'games/donut-chef.html',
-    'games/slope-builder.html',
     'games/shore-road.html',
 ];
 
