@@ -61,10 +61,11 @@
     </script>
     <!-- sync-end:metadata -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone@7.29.14/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="wizard-logic.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 
@@ -89,6 +90,21 @@
             }
         }
 
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.25s ease-out forwards;
+        }
+
         .suit-red {
             color: #ef4444;
         }
@@ -103,63 +119,12 @@
     <div id="root"></div>
 
     <script type="text/babel" data-plugins="transform-react-jsx">
-        const { useState, useEffect, useRef, useMemo } = React;
-
-        // --- Constants ---
-        const SUITS = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
-        const SUIT_ICONS = { Hearts: '♥', Diamonds: '♦', Clubs: '♣', Spades: '♠', None: '?' };
-        const ALL_BOTS = [
-            { name: 'Oliver', desc: 'Calculated and cautious.' },
-            { name: 'Miles', desc: 'Aggressive bidder.' },
-            { name: 'Kirby 🐱', desc: 'Unpredictable and chaotic.' },
-            { name: 'Pookie', desc: 'Playful but smart.' },
-            { name: 'Jimmy', desc: 'Mathematical and precise.' },
-            { name: 'Leon 😼', desc: 'Intuitive and lucky.' },
-            { name: 'Shantih 😿', desc: 'Grumpy but solid.' }
-        ];
-        const BOT_NAMES = ALL_BOTS.map(b => b.name);
-
-        // --- Logic Utilities ---
-        const shuffle = (array) => {
-            const arr = [...array];
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[arr[j] ? j : 0]] = [arr[j], arr[i]];
-            }
-            return arr;
-        };
-
-        const createDeck = () => {
-            const deck = [];
-            SUITS.forEach(suit => {
-                for (let v = 1; v <= 13; v++) deck.push({ suit, value: v, type: 'normal' });
-            });
-            for (let i = 0; i < 4; i++) {
-                deck.push({ suit: 'None', value: 0, type: 'jester' });
-                deck.push({ suit: 'None', value: 14, type: 'wizard' });
-            }
-            return shuffle(deck);
-        };
-
-        const getCardDisplay = (card) => {
-            if (card.type === 'jester') return 'J';
-            if (card.type === 'wizard') return 'W';
-            if (card.value === 1) return 'A';
-            if (card.value === 11) return 'J';
-            if (card.value === 12) return 'Q';
-            if (card.value === 13) return 'K';
-            return card.value;
-        };
-
-        const getCardIcon = (card) => {
-            if (card.type === 'jester') return '🤡';
-            if (card.type === 'wizard') return '🧙';
-            return SUIT_ICONS[card.suit];
-        };
+        const { useState, useEffect, useRef } = React;
 
         // --- Components ---
 
         const Card = ({ card, onClick, disabled, size = 'md', className = '' }) => {
+            if (!card) return null;
             const isRed = card.suit === 'Hearts' || card.suit === 'Diamonds';
             const display = getCardDisplay(card);
             const icon = getCardIcon(card);
@@ -168,6 +133,7 @@
                 <div
                     onClick={!disabled ? onClick : undefined}
                     className={`card-proportion bg-white rounded-lg border-2 border-slate-300 flex flex-col justify-between p-1 md:p-2 cursor-pointer transition-all card-shadow select-none
+                        ${size === 'sm' ? '!w-16 md:!w-20' : ''}
                         ${disabled ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:-translate-y-2 hover:border-blue-500'}
                         ${className}`}
                 >
@@ -186,29 +152,37 @@
             );
         };
 
-        const HUD = ({ players, round, trumpCard, playerBid, playerTricks, logs }) => (
-            <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                    <h3 className="text-xs text-slate-400 font-bold mb-1">Round</h3>
-                    <p className="text-xl font-bold">{round}</p>
-                </div>
-                <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 flex flex-col items-center">
-                    <h3 className="text-xs text-slate-400 font-bold mb-1">Trump</h3>
-                    {trumpCard ? (
-                        <div className="flex items-center gap-2">
-                            <span className={`text-2xl ${['Hearts', 'Diamonds'].includes(trumpCard.suit) ? 'text-red-500' : 'text-white'}`}>
-                                {getCardIcon(trumpCard)}
+        const HUD = ({ players, round, maxRounds, trumpCard, trumpSuit, playerBid, playerTricks }) => {
+            const isRedTrump = trumpSuit === 'Hearts' || trumpSuit === 'Diamonds';
+            return (
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                        <h3 className="text-xs text-slate-400 font-bold mb-1">Round</h3>
+                        <p className="text-xl font-bold">{round} <span className="text-xs text-slate-500 font-normal">/ {maxRounds}</span></p>
+                    </div>
+                    <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 flex flex-col items-center justify-center">
+                        <h3 className="text-xs text-slate-400 font-bold mb-1">Trump</h3>
+                        {trumpSuit !== 'None' ? (
+                            <div className="flex items-center gap-1.5">
+                                {trumpCard?.type === 'wizard' && <span className="text-lg" title="Chosen by Wizard">🧙</span>}
+                                <span className={`text-2xl leading-none ${isRedTrump ? 'text-red-500' : 'text-white'}`}>
+                                    {SUIT_ICONS[trumpSuit]}
+                                </span>
+                                <span className="text-xs font-semibold">{trumpSuit}</span>
+                            </div>
+                        ) : (
+                            <span className="text-lg font-bold italic text-slate-400">
+                                {trumpCard?.type === 'jester' ? '🤡 None' : 'None'}
                             </span>
-                            <span className="text-xs">{trumpCard.type === 'normal' ? trumpCard.suit : trumpCard.type}</span>
-                        </div>
-                    ) : <span className="text-xl font-bold italic">None</span>}
+                        )}
+                    </div>
+                    <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                        <h3 className="text-xs text-slate-400 font-bold mb-1">{players[0]?.name || 'You'}'s bid</h3>
+                        <p className="text-xl font-bold">{playerTricks} / {playerBid}</p>
+                    </div>
                 </div>
-                <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                    <h3 className="text-xs text-slate-400 font-bold mb-1">{players[0]?.name || 'You'}'s bid</h3>
-                    <p className="text-xl font-bold">{playerTricks} / {playerBid}</p>
-                </div>
-            </div>
-        );
+            );
+        };
 
         const ScoreBoard = ({ players, currentTurn }) => (
             <div className="bg-slate-800/80 backdrop-blur border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
@@ -233,30 +207,35 @@
 
         // --- Rules Modal Component ---
         const RulesModal = ({ isOpen, onClose }) => {
-            if (!isOpen) return null;
             const [activeTab, setActiveTab] = useState('overview'); // overview, cards, trump
 
             useEffect(() => {
+                if (!isOpen) return;
                 const handleKeyDown = (e) => {
-                    if (e.key === 'Escape') onClose();
+                    if (e.key === 'Escape') {
+                        e.stopPropagation();
+                        onClose();
+                    }
                 };
                 window.addEventListener('keydown', handleKeyDown);
                 return () => window.removeEventListener('keydown', handleKeyDown);
-            }, [onClose]);
+            }, [isOpen, onClose]);
+
+            if (!isOpen) return null;
 
             return (
                 <div 
                     onClick={onClose} 
-                    className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in"
                 >
                     <div 
                         onClick={(e) => e.stopPropagation()} 
-                        className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+                        className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden"
                     >
                         {/* Header */}
                         <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-800/40">
                             <h2 className="text-2xl font-black bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent flex items-center gap-2">
-                                🧙 Wizard Guide & Rules
+                                🧙 Wizard guide & rules
                             </h2>
                             <button 
                                 onClick={onClose} 
@@ -275,26 +254,26 @@
                                 onClick={() => setActiveTab('overview')}
                                 className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'overview' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
                             >
-                                📋 Overview & Play
+                                📋 Overview & play
                             </button>
                             <button
                                 onClick={() => setActiveTab('cards')}
                                 className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'cards' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
                             >
-                                🧙 Special Cards
+                                🧙 Special cards
                             </button>
                             <button
                                 onClick={() => setActiveTab('trump')}
                                 className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'trump' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
                             >
-                                🎺 Trump & Scoring
+                                🎺 Trump & scoring
                             </button>
                         </div>
 
                         {/* Content */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-6 text-slate-300">
                             {activeTab === 'overview' && (
-                                <div className="space-y-4 animate-in fade-in duration-150">
+                                <div className="space-y-4 animate-fade-in">
                                     <div>
                                         <h3 className="text-lg font-bold text-white mb-1">Objective</h3>
                                         <p className="text-sm leading-relaxed text-slate-400">
@@ -302,31 +281,31 @@
                                         </p>
                                     </div>
                                     <div className="border-t border-slate-800/80 pt-4">
-                                        <h3 className="text-lg font-bold text-white mb-2">Round Progression</h3>
+                                        <h3 className="text-lg font-bold text-white mb-2">Round progression</h3>
                                         <p className="text-sm leading-relaxed text-slate-400 mb-2">
-                                            The game has 15 rounds. Each round, you are dealt a number of cards equal to the round number:
+                                            Using a 60-card deck, the number of rounds depends on player count (20 rounds for 3p, 15 for 4p, 12 for 5p, 10 for 6p). Each round deals cards equal to the round number:
                                         </p>
                                         <div className="bg-slate-950/40 border border-slate-800 p-3 rounded-2xl flex justify-around text-center text-xs">
                                             <div>
                                                 <span className="block text-slate-500 font-semibold">Round 1</span>
-                                                <span className="text-lg font-black text-blue-400">1 Card</span>
+                                                <span className="text-lg font-black text-blue-400">1 card</span>
                                             </div>
                                             <div className="flex items-center text-slate-600 font-bold">➔</div>
                                             <div>
-                                                <span className="block text-slate-500 font-semibold">Round 8</span>
-                                                <span className="text-lg font-black text-indigo-400">8 Cards</span>
+                                                <span className="block text-slate-500 font-semibold">Mid-game</span>
+                                                <span className="text-lg font-black text-indigo-400">+1 / round</span>
                                             </div>
                                             <div className="flex items-center text-slate-600 font-bold">➔</div>
                                             <div>
-                                                <span className="block text-slate-500 font-semibold">Round 15</span>
-                                                <span className="text-lg font-black text-purple-400">15 Cards</span>
+                                                <span className="block text-slate-500 font-semibold">Final round</span>
+                                                <span className="text-lg font-black text-purple-400">Full 60 dealt</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="border-t border-slate-800/80 pt-4">
-                                        <h3 className="text-lg font-bold text-white mb-2">Trick Play</h3>
+                                        <h3 className="text-lg font-bold text-white mb-2">Trick play</h3>
                                         <ul className="text-sm space-y-2 list-disc pl-5 text-slate-400 leading-relaxed">
-                                            <li>The leading player plays any card.</li>
+                                            <li>The leading player plays any card. Normal cards rank from <strong className="text-white">Ace (high)</strong> down to <strong className="text-white">2 (low)</strong>.</li>
                                             <li>Other players must <strong className="text-white">follow suit</strong> (play the same suit as the led card) if they have one in their hand.</li>
                                             <li>If they do not have a card of the led suit, they can play any other card (including trump).</li>
                                             <li><strong className="text-white">Exceptions:</strong> Wizards and Jesters can be played at any time, even if you have cards of the led suit!</li>
@@ -336,7 +315,7 @@
                             )}
 
                             {activeTab === 'cards' && (
-                                <div className="space-y-4 animate-in fade-in duration-150">
+                                <div className="space-y-4 animate-fade-in">
                                     <div className="bg-slate-950/30 border border-slate-800 p-4 rounded-2xl flex gap-4 items-start">
                                         <div className="w-16 h-24 bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl border border-indigo-400 flex flex-col justify-between p-2 shadow-lg flex-shrink-0 select-none">
                                             <span className="text-sm font-bold leading-none text-indigo-200">W</span>
@@ -345,7 +324,7 @@
                                         </div>
                                         <div className="space-y-1">
                                             <h4 className="text-base font-extrabold text-white flex items-center gap-1.5">
-                                                🧙 The Wizard <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">4 in Deck</span>
+                                                🧙 The Wizard <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">4 in deck</span>
                                             </h4>
                                             <p className="text-xs text-slate-400 leading-relaxed">
                                                 The ultimate trick-winner. A Wizard beats all other cards, including high trump cards.
@@ -366,14 +345,14 @@
                                         </div>
                                         <div className="space-y-1">
                                             <h4 className="text-base font-extrabold text-white flex items-center gap-1.5">
-                                                🤡 The Jester <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-400 border border-slate-500/30">4 in Deck</span>
+                                                🤡 The Jester <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-500/20 text-slate-400 border border-slate-500/30">4 in deck</span>
                                             </h4>
                                             <p className="text-xs text-slate-400 leading-relaxed">
                                                 The ultimate throw-away card. A Jester is essentially worth zero and cannot win, making it perfect for avoiding unwanted tricks.
                                             </p>
                                             <ul className="text-xs list-disc pl-4 text-slate-400 space-y-1 pt-1">
                                                 <li>Can be played at any time, regardless of lead suit.</li>
-                                                <li>A Jester <strong className="text-white">never wins</strong> a trick, unless the trick consists *entirely* of Jesters (in which case the first Jester wins).</li>
+                                                <li>A Jester <strong className="text-white">never wins</strong> a trick, unless the trick consists <em>entirely</em> of Jesters (in which case the first Jester wins).</li>
                                                 <li>If a Jester is led, the first non-Jester played after it determines the lead suit.</li>
                                             </ul>
                                         </div>
@@ -382,50 +361,50 @@
                             )}
 
                             {activeTab === 'trump' && (
-                                <div className="space-y-4 animate-in fade-in duration-150">
+                                <div className="space-y-4 animate-fade-in">
                                     <div>
-                                        <h3 className="text-lg font-bold text-white mb-2">🎺 The Trump Suit</h3>
+                                        <h3 className="text-lg font-bold text-white mb-2">🎺 The trump suit</h3>
                                         <p className="text-sm leading-relaxed text-slate-400 mb-3">
-                                            Trump cards are powerful game-changers. Any card of the Trump suit beats any card of the normal lead suit, regardless of their face values.
+                                            Trump cards are powerful game-changers. Any card of the trump suit beats any card of the normal lead suit, regardless of their face values.
                                         </p>
                                         <div className="bg-slate-950/30 border border-slate-800 p-4 rounded-2xl space-y-3 text-xs">
-                                            <h4 className="font-extrabold text-white">How Trump is decided each round:</h4>
+                                            <h4 className="font-extrabold text-white">How trump is decided each round:</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                 <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                                                    <span className="font-bold text-red-400">♦/♥/♣/♠ Normal Card Flipped:</span>
-                                                    <p className="text-slate-400 mt-1">The flipped card's suit is the Trump suit for the entire round.</p>
+                                                    <span className="font-bold text-red-400">♦/♥/♣/♠ Normal card flipped:</span>
+                                                    <p className="text-slate-400 mt-1">The flipped card's suit is the trump suit for the entire round.</p>
                                                 </div>
                                                 <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                                                    <span className="font-bold text-blue-400">🧙 Wizard Flipped:</span>
-                                                    <p className="text-slate-400 mt-1">A random suit is chosen as the Trump suit.</p>
+                                                    <span className="font-bold text-blue-400">🧙 Wizard flipped:</span>
+                                                    <p className="text-slate-400 mt-1">A random suit is chosen as the trump suit.</p>
                                                 </div>
                                                 <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                                                    <span className="font-bold text-slate-400">🤡 Jester Flipped:</span>
-                                                    <p className="text-slate-400 mt-1">There is no Trump suit for this round (No Trump).</p>
+                                                    <span className="font-bold text-slate-400">🤡 Jester flipped:</span>
+                                                    <p className="text-slate-400 mt-1">There is no trump suit for this round (no trump).</p>
                                                 </div>
                                                 <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                                                    <span className="font-bold text-purple-400">Round 15 (No Upcard):</span>
-                                                    <p className="text-slate-400 mt-1">Since all cards are dealt, no card is flipped and there is No Trump.</p>
+                                                    <span className="font-bold text-purple-400">Final round (no upcard):</span>
+                                                    <p className="text-slate-400 mt-1">Since all 60 cards are dealt, no card is flipped and there is no trump.</p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="border-t border-slate-800/80 pt-4">
-                                        <h3 className="text-lg font-bold text-white mb-2">💯 Scoring System</h3>
+                                        <h3 className="text-lg font-bold text-white mb-2">💯 Scoring system</h3>
                                         <p className="text-sm leading-relaxed text-slate-400 mb-3">
                                             Scoring is based strictly on your ability to accurately estimate your trick count.
                                         </p>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div className="bg-emerald-950/20 border border-emerald-500/30 p-3.5 rounded-2xl">
-                                                <h4 className="text-emerald-400 font-extrabold text-sm mb-1">Correct Bid (Made it!)</h4>
+                                                <h4 className="text-emerald-400 font-extrabold text-sm mb-1">Correct bid (made it!)</h4>
                                                 <p className="text-xs text-slate-300">
                                                     You receive <strong className="text-emerald-300">20 points</strong> base, plus <strong className="text-emerald-300">10 points</strong> for each trick you won.
                                                 </p>
                                                 <span className="inline-block mt-2 text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono">Example: Bid 2, Won 2 = +40 pts</span>
                                             </div>
                                             <div className="bg-rose-950/20 border border-rose-500/30 p-3.5 rounded-2xl">
-                                                <h4 className="text-rose-400 font-extrabold text-sm mb-1">Incorrect Bid (Over/Under)</h4>
+                                                <h4 className="text-rose-400 font-extrabold text-sm mb-1">Incorrect bid (over/under)</h4>
                                                 <p className="text-xs text-slate-300">
                                                     You lose <strong className="text-rose-300">10 points</strong> for each trick you were off (whether you won too many or too few).
                                                 </p>
@@ -443,7 +422,7 @@
                                 onClick={onClose}
                                 className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-95 text-sm"
                             >
-                                Let's Play!
+                                Let's play!
                             </button>
                         </div>
                     </div>
@@ -454,11 +433,10 @@
         // --- Main App ---
 
         function App() {
-            const [gameState, setGameState] = useState('start'); // start, bidding, playing, roundEnd, gameEnd
+            const [gameState, setGameState] = useState('start'); // start, bidding, playing, roundEnd, gameEnd, simulationResults
             const [players, setPlayers] = useState([]);
-            const [deck, setDeck] = useState([]);
             const [round, setRound] = useState(1);
-            const [maxRounds] = useState(15);
+            const [maxRounds, setMaxRounds] = useState(15);
             const [trumpCard, setTrumpCard] = useState(null);
             const [trumpSuit, setTrumpSuit] = useState('None');
             const [currentTrick, setCurrentTrick] = useState([]);
@@ -473,52 +451,77 @@
             const [selectedOpponents, setSelectedOpponents] = useState(BOT_NAMES.slice(0, 3));
             const [hoveredOpponent, setHoveredOpponent] = useState(null);
             const [showRules, setShowRules] = useState(false);
+            const [simCount, setSimCount] = useState(100);
+            const [lastSimulatedCount, setLastSimulatedCount] = useState(100);
+            const [showAdvanced, setShowAdvanced] = useState(false);
+
+            const timerRef = useRef(null);
 
             useEffect(() => {
-                const savedName = localStorage.getItem('wizard_playerName');
-                if (savedName) setPlayerName(savedName);
+                try {
+                    const savedName = localStorage.getItem('wizard_playerName');
+                    if (savedName !== null) setPlayerName(savedName);
+                } catch { /* ignore */ }
             }, []);
 
             useEffect(() => {
-                if (playerName) localStorage.setItem('wizard_playerName', playerName);
+                try {
+                    if (playerName) localStorage.setItem('wizard_playerName', playerName);
+                    else localStorage.removeItem('wizard_playerName');
+                } catch { /* ignore */ }
             }, [playerName]);
 
-            const [simCount, setSimCount] = useState(100);
-            const [showAdvanced, setShowAdvanced] = useState(false);
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    const inMatch = gameState === 'bidding' || gameState === 'playing' || gameState === 'roundEnd';
+                    if (e.key === 'Escape' && inMatch && !showRules) {
+                        setIsPaused(p => !p);
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [gameState, showRules]);
+
+            useEffect(() => () => clearTimeout(timerRef.current), []);
+
+            const addLog = (msg) => setLogs(prev => [msg, ...prev].slice(0, 50));
 
             const startSimulationWithCount = () => {
-                setGameState('simulating');
+                const boundedCount = Math.min(2000, Math.max(1, simCount));
                 const stats = {};
-                selectedOpponents.forEach(n => stats[n] = 0);
+                selectedOpponents.forEach(n => { stats[n] = 0; });
 
-                for (let i = 0; i < simCount; i++) {
+                for (let i = 0; i < boundedCount; i++) {
                     const simPlayers = selectedOpponents.map((name, id) => ({ id, name, isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] }));
                     runFullGameSync(simPlayers);
                     simPlayers.sort((a, b) => b.score - a.score);
                     stats[simPlayers[0].name]++;
                 }
+                setLastSimulatedCount(boundedCount);
                 setSimulationStats(stats);
                 setGameState('simulationResults');
             };
 
-            const timerRef = useRef(null);
-
-            const addLog = (msg) => setLogs(prev => [msg, ...prev].slice(0, 50));
-
             const initGame = (spectator = false) => {
+                clearTimeout(timerRef.current);
+                setIsPaused(false);
                 const initialPlayers = [];
                 if (!spectator) {
-                    initialPlayers.push({ id: 0, name: playerName || 'You', isHuman: true, score: 0, bid: 0, tricks: 0, hand: [] });
+                    initialPlayers.push({ id: 0, name: playerName.trim() || 'You', isHuman: true, score: 0, bid: 0, tricks: 0, hand: [] });
                 } else {
-                    initialPlayers.push({ id: 0, name: BOT_NAMES[4], isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] });
+                    const seatZeroBot = BOT_NAMES.find(n => !selectedOpponents.includes(n)) || 'Dealer';
+                    initialPlayers.push({ id: 0, name: seatZeroBot, isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] });
                 }
 
                 selectedOpponents.forEach((name, i) => {
                     initialPlayers.push({ id: i + 1, name, isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] });
                 });
 
+                const totalRounds = getMaxRounds(initialPlayers.length);
+                setMaxRounds(totalRounds);
                 setPlayers(initialPlayers);
                 setRound(1);
+                setLogs([`A ${totalRounds}-round game of Wizard has begun!`]);
                 setSpectatorMode(spectator);
                 startRound(1, initialPlayers);
             };
@@ -528,69 +531,53 @@
                 const dealtPlayers = currentPlayers.map(p => ({ ...p, hand: [], bid: 0, tricks: 0 }));
 
                 for (let i = 0; i < r; i++) {
-                    dealtPlayers.forEach(p => p.hand.push(fullDeck.pop()));
+                    dealtPlayers.forEach(p => {
+                        const card = fullDeck.pop();
+                        if (card) p.hand.push(card);
+                    });
                 }
 
                 const upcard = fullDeck.length > 0 ? fullDeck.pop() : null;
                 let tSuit = 'None';
                 if (upcard) {
                     if (upcard.type === 'wizard') {
-                        tSuit = SUITS[Math.floor(Math.random() * 4)];
+                        tSuit = SUITS[Math.floor(Math.random() * SUITS.length)];
                         addLog(`Wizard flipped! Trump is ${tSuit}.`);
                     } else if (upcard.type === 'jester') {
-                        addLog(`Jester flipped! No trump.`);
+                        addLog('Jester flipped! No trump.');
                     } else {
                         tSuit = upcard.suit;
                     }
+                } else {
+                    addLog('Final round! All 60 cards dealt — no trump.');
                 }
 
-                setDeck(fullDeck);
                 setTrumpCard(upcard);
                 setTrumpSuit(tSuit);
                 setPlayers(dealtPlayers);
-                setGameState('bidding');
-                setTurn(r % dealtPlayers.length); // Rotate dealer
+                setTurn(r % dealtPlayers.length);
                 setLeadSuit('None');
                 setCurrentTrick([]);
                 setGameState('bidding');
             };
 
             const handleBid = (bidVal) => {
-                const newPlayers = [...players];
-                newPlayers[0].bid = bidVal;
-
-                // AI bids
-                for (let i = 1; i < newPlayers.length; i++) {
-                    newPlayers[i].bid = calculateAIBid(newPlayers[i], round, trumpSuit);
-                }
+                const newPlayers = players.map((p, i) => {
+                    if (i === 0) return { ...p, bid: bidVal };
+                    return { ...p, bid: calculateBotBid(p, round, trumpSuit) };
+                });
 
                 setPlayers(newPlayers);
                 setGameState('playing');
                 addLog(`Bids are locked in. Round ${round} begins!`);
             };
 
-            const calculateAIBid = (bot, r, tSuit) => {
-                let strength = 0;
-                bot.hand.forEach(c => {
-                    if (c.type === 'wizard') strength += 0.8;
-                    else if (c.suit === tSuit) strength += 0.4;
-                    else if (c.value >= 11) strength += 0.25;
-                });
-                return Math.min(r, Math.round(strength + (Math.random() * 0.4 - 0.2)));
-            };
-
-            const isValidPlay = (pIdx, card, hand, leadS) => {
-                if (leadS === 'None' || card.type !== 'normal') return true;
-                const hasLeadSuit = hand.some(c => c.suit === leadS && c.type === 'normal');
-                if (hasLeadSuit && card.suit !== leadS) return false;
-                return true;
-            };
-
             const executePlay = (pIdx, cardIdx) => {
+                if (currentTrick.length >= players.length) return;
                 const p = players[pIdx];
+                if (!p) return;
                 const card = p.hand[cardIdx];
-
-                if (!isValidPlay(pIdx, card, p.hand, leadSuit)) return;
+                if (!card || !isValidPlay(card, p.hand, leadSuit)) return;
 
                 const newHand = [...p.hand];
                 newHand.splice(cardIdx, 1);
@@ -611,58 +598,31 @@
             };
 
             useEffect(() => {
-                if (gameState === 'playing' && currentTrick.length === players.length) {
+                if (isPaused) return;
+                if (gameState === 'playing' && players.length > 0 && currentTrick.length === players.length) {
                     timerRef.current = setTimeout(() => resolveTrick(), fastForward ? 100 : 1000);
-                } else if (gameState === 'playing' && !players[turn].isHuman) {
+                } else if (gameState === 'playing' && players[turn] && !players[turn].isHuman && currentTrick.length < players.length) {
                     timerRef.current = setTimeout(() => aiMove(), fastForward ? 50 : 800);
-                } else if (gameState === 'bidding' && spectatorMode) {
-                    timerRef.current = setTimeout(() => handleBid(calculateAIBid(players[0], round, trumpSuit)), 500);
+                } else if (gameState === 'bidding' && spectatorMode && players[0]) {
+                    timerRef.current = setTimeout(() => handleBid(calculateBotBid(players[0], round, trumpSuit)), fastForward ? 100 : 500);
                 }
                 return () => clearTimeout(timerRef.current);
-            }, [turn, currentTrick, gameState, spectatorMode]);
+            }, [turn, currentTrick, gameState, spectatorMode, isPaused, fastForward]);
 
             const aiMove = () => {
                 const p = players[turn];
-                let choices = p.hand.map((c, i) => ({ c, i })).filter(o => isValidPlay(turn, o.c, p.hand, leadSuit));
-
-                // Simple AI logic: try to win if low on tricks, else play low
-                if (p.tricks < p.bid) {
-                    choices.sort((a, b) => b.c.value - a.c.value);
-                } else {
-                    choices.sort((a, b) => a.c.value - b.c.value);
-                }
-                executePlay(turn, choices[0].i);
+                if (!p || p.hand.length === 0) return;
+                const cardIdx = chooseAICardIndex(p, leadSuit, trumpSuit);
+                executePlay(turn, cardIdx);
             };
 
             const resolveTrick = () => {
-                const numPlayers = players.length;
-                let winnerIdx = currentTrick[0].pIdx;
-                let winningCard = currentTrick[0].card;
+                if (currentTrick.length === 0) return;
+                const winnerIdx = determineTrickWinner(currentTrick, trumpSuit);
 
-                const wizardPlay = currentTrick.find(t => t.card.type === 'wizard');
-                if (wizardPlay) {
-                    winnerIdx = wizardPlay.pIdx;
-                } else {
-                    const allJesters = currentTrick.every(t => t.card.type === 'jester');
-                    if (allJesters) {
-                        winnerIdx = currentTrick[0].pIdx;
-                    } else {
-                        for (let i = 1; i < numPlayers; i++) {
-                            const { pIdx, card } = currentTrick[i];
-                            if (card.type === 'jester') continue;
-                            if (trumpSuit !== 'None' && card.suit === trumpSuit && winningCard.suit !== trumpSuit) {
-                                winningCard = card;
-                                winnerIdx = pIdx;
-                            } else if (card.suit === winningCard.suit && card.value > winningCard.value) {
-                                winningCard = card;
-                                winnerIdx = pIdx;
-                            }
-                        }
-                    }
-                }
-
-                const newPlayers = [...players];
-                newPlayers[winnerIdx].tricks++;
+                const newPlayers = players.map((p, idx) => (
+                    idx === winnerIdx ? { ...p, tricks: p.tricks + 1 } : p
+                ));
                 setPlayers(newPlayers);
                 addLog(`${newPlayers[winnerIdx].name} took the trick.`);
 
@@ -678,9 +638,7 @@
             const resolveRound = (finalPlayers) => {
                 const scoredPlayers = finalPlayers.map(p => {
                     const diff = Math.abs(p.tricks - p.bid);
-                    let gain = 0;
-                    if (diff === 0) gain = 20 + (p.tricks * 10);
-                    else gain = -(diff * 10);
+                    const gain = diff === 0 ? (20 + p.tricks * 10) : -(diff * 10);
                     return { ...p, score: p.score + gain };
                 });
                 setPlayers(scoredPlayers);
@@ -688,63 +646,24 @@
             };
 
             const nextRound = () => {
-                if (round === maxRounds) {
+                if (round >= maxRounds) {
                     setGameState('gameEnd');
                     if (window.confetti) window.confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 } else {
-                    setRound(round + 1);
-                    startRound(round + 1);
+                    const nextR = round + 1;
+                    setRound(nextR);
+                    startRound(nextR);
                 }
             };
 
-            // --- Simulation Logic ---
-            const startSimulation = () => {
-                setGameState('simulating');
-                const stats = {};
-                selectedOpponents.forEach(n => stats[n] = 0);
-
-                // Run 100 simulations
-                for (let i = 0; i < 100; i++) {
-                    const simPlayers = selectedOpponents.map((name, id) => ({ id, name, isHuman: false, score: 0, bid: 0, tricks: 0, hand: [] }));
-                    runFullGameSync(simPlayers);
-                    simPlayers.sort((a, b) => b.score - a.score);
-                    stats[simPlayers[0].name]++;
-                }
-                setSimulationStats(stats);
-                setGameState('simulationResults');
+            const returnToMenu = () => {
+                clearTimeout(timerRef.current);
+                setIsPaused(false);
+                setCurrentTrick([]);
+                setGameState('start');
             };
 
-            const runFullGameSync = (simPlayers) => {
-                const numPlayers = simPlayers.length;
-                for (let r = 1; r <= 15; r++) {
-                    const deck = createDeck();
-                    simPlayers.forEach(p => { p.hand = []; p.tricks = 0; for (let j = 0; j < r; j++) p.hand.push(deck.pop()); });
-                    const up = deck.pop();
-                    let tSuit = up && up.type === 'normal' ? up.suit : (up && up.type === 'wizard' ? SUITS[0] : 'None');
-
-                    simPlayers.forEach(p => p.bid = Math.min(r, Math.round(p.hand.reduce((acc, c) => acc + (c.type === 'wizard' ? 0.8 : (c.suit === tSuit ? 0.4 : 0)), 0))));
-
-                    // Simple play simulation (randomized valid play)
-                    for (let t = 0; t < r; t++) {
-                        let lSuit = 'None';
-                        let trick = [];
-                        let pTurn = r % numPlayers; // Simplified turn
-                        for (let j = 0; j < numPlayers; j++) {
-                            const p = simPlayers[(pTurn + j) % numPlayers];
-                            let valid = p.hand.filter(c => lSuit === 'None' || c.type !== 'normal' || (p.hand.some(ch => ch.suit === lSuit && ch.type === 'normal') ? c.suit === lSuit : true));
-                            const play = valid[0];
-                            p.hand.splice(p.hand.indexOf(play), 1);
-                            trick.push({ id: (pTurn + j) % numPlayers, card: play });
-                            if (lSuit === 'None' && play.type !== 'jester') lSuit = play.type === 'wizard' ? 'Wizard' : play.suit;
-                        }
-                        // Winner determination (simplified logic)
-                        let winnerIdx = trick[0].id;
-                        trick.forEach(tk => { if (tk.card.type === 'wizard' && tk.id !== trick[0].id) winnerIdx = tk.id; }); // first wizard wins logic skipped for simplicity
-                        simPlayers[winnerIdx].tricks++;
-                    }
-                    simPlayers.forEach(p => p.score += (p.tricks === p.bid ? (20 + p.tricks * 10) : (-Math.abs(p.tricks - p.bid) * 10)));
-                }
-            };
+            const trickComplete = players.length > 0 && currentTrick.length >= players.length;
 
             return (
                 <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-6xl mx-auto">
@@ -807,7 +726,7 @@
                                             Play
                                         </button>
                                         <button onClick={() => setShowRules(true)} className="w-full bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 py-3 rounded-2xl font-bold text-lg transition-all active:scale-95 flex items-center justify-center gap-2">
-                                             Rules Guide 📖
+                                            Rules guide 📖
                                         </button>
                                     </div>
                                 </div>
@@ -827,21 +746,23 @@
                                             onClick={() => setShowAdvanced(!showAdvanced)}
                                             className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-4 ml-1 flex items-center gap-2 hover:text-slate-400 transition-colors"
                                         >
-                                            Advanced Mode {showAdvanced ? '▼' : '▶'}
+                                            Advanced mode {showAdvanced ? '▼' : '▶'}
                                         </button>
 
                                         {showAdvanced && (
-                                            <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 space-y-4 animate-fade-in">
                                                 <div className="flex items-center justify-between">
                                                     <label className="text-sm font-bold text-slate-400">Number of games:</label>
                                                     <input
                                                         type="number"
+                                                        min="1"
+                                                        max="2000"
                                                         value={simCount}
-                                                        onChange={(e) => setSimCount(Math.max(1, parseInt(e.target.value) || 1))}
+                                                        onChange={(e) => setSimCount(Math.min(2000, Math.max(1, parseInt(e.target.value, 10) || 1)))}
                                                         className="w-24 bg-slate-900 border border-slate-700 rounded-xl p-2 text-center text-white focus:outline-none focus:border-blue-500"
                                                     />
                                                 </div>
-                                                <button onClick={() => startSimulationWithCount()} className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold transition-all border border-slate-700 text-sm">
+                                                <button onClick={startSimulationWithCount} className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold transition-all border border-slate-700 text-sm">
                                                     Simulate
                                                 </button>
                                             </div>
@@ -852,21 +773,25 @@
                         </div>
                     )}
 
-                    {(gameState === 'bidding' || gameState === 'playing' || gameState === 'roundEnd') && (
+                    {(gameState === 'bidding' || gameState === 'playing' || gameState === 'roundEnd') && players.length > 0 && (
                         <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-8">
                             {/* Left: Table & Hand */}
                             <div className="lg:col-span-3 flex flex-col">
-                                <HUD players={players} round={round} trumpCard={trumpCard} playerBid={players[0].bid} playerTricks={players[0].tricks} />
+                                <HUD players={players} round={round} maxRounds={maxRounds} trumpCard={trumpCard} trumpSuit={trumpSuit} playerBid={players[0].bid} playerTricks={players[0].tricks} />
 
                                 <div className="flex-1 bg-slate-900/50 rounded-3xl border border-slate-800 relative flex items-center justify-center p-8 min-h-[300px]">
-                                    <div className="flex gap-4">
+                                    <div className="flex flex-wrap justify-center gap-4">
                                         {currentTrick.map((t, i) => (
-                                            <div key={i} className="flex flex-col items-center animate-bounce">
+                                            <div key={`${t.pIdx}-${i}`} className="flex flex-col items-center animate-fade-in">
                                                 <Card card={t.card} disabled size="sm" />
-                                                <span className="text-[10px] font-bold text-slate-500 mt-2">{players[t.pIdx].name}</span>
+                                                <span className="text-[10px] font-bold text-slate-400 mt-2">{players[t.pIdx]?.name}</span>
                                             </div>
                                         ))}
-                                        {currentTrick.length === 0 && <p className="text-slate-600 italic">Play a card to start the trick</p>}
+                                        {currentTrick.length === 0 && (
+                                            <p className="text-slate-600 italic">
+                                                {spectatorMode ? `Waiting for ${players[turn]?.name}...` : (turn === 0 ? 'Play a card to start the trick' : `Waiting for ${players[turn]?.name}...`)}
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="absolute top-4 right-4 flex gap-2 items-center">
                                         <button 
@@ -875,12 +800,12 @@
                                         >
                                             Rules ℹ️
                                         </button>
-                                        {gameState === 'playing' && (
+                                        {(gameState === 'playing' || spectatorMode) && (
                                             <button onClick={() => setFastForward(!fastForward)} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${fastForward ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-300'}`}>
                                                 {fastForward ? '⏩ Fast mode' : '🐢 Normal speed'}
                                             </button>
                                         )}
-                                        <button onClick={() => setIsPaused(true)} className="p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors">
+                                        <button onClick={() => setIsPaused(true)} aria-label="Pause game" className="p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors">
                                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                         </button>
                                     </div>
@@ -889,15 +814,17 @@
                                 {/* Hand Area */}
                                 <div className="mt-8">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-sm font-bold text-slate-400 tracking-widest">Your hand</h3>
+                                        <h3 className="text-sm font-bold text-slate-400 tracking-widest">
+                                            {spectatorMode ? `${players[0].name}'s hand` : 'Your hand'}
+                                        </h3>
                                         <span className="text-xs text-slate-500">{players[0].hand.length} card{players[0].hand.length !== 1 ? 's' : ''} remaining</span>
                                     </div>
                                     <div className="flex flex-wrap gap-2 justify-center">
                                         {players[0].hand.map((c, i) => (
                                             <Card
-                                                key={i}
+                                                key={`${c.type}-${c.suit}-${c.value}-${i}`}
                                                 card={c}
-                                                disabled={gameState !== 'playing' || turn !== 0 || !isValidPlay(0, c, players[0].hand, leadSuit)}
+                                                disabled={spectatorMode || gameState !== 'playing' || turn !== 0 || trickComplete || !isValidPlay(c, players[0].hand, leadSuit)}
                                                 onClick={() => executePlay(0, i)}
                                             />
                                         ))}
@@ -922,10 +849,14 @@
 
                     {/* Overlays */}
                     {gameState === 'bidding' && !spectatorMode && (
-                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-                            <div className="bg-slate-900 border border-slate-700 p-8 rounded-3xl max-w-lg w-full text-center shadow-2xl">
+                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex items-center justify-center p-6">
+                            <div className="bg-slate-900 border border-slate-700 p-8 rounded-3xl max-w-lg w-full text-center shadow-2xl animate-fade-in">
                                 <h2 className="text-3xl font-bold mb-2">Place your bid</h2>
-                                <p className="text-slate-400 mb-8">How many tricks will you take in round {round}?</p>
+                                <p className="text-slate-400 mb-3">How many tricks will you take in round {round}?</p>
+                                <p className="text-xs text-slate-500 mb-6">
+                                    Trump: <strong className="text-slate-200">{trumpSuit === 'None' ? 'No trump' : `${SUIT_ICONS[trumpSuit]} ${trumpSuit}`}</strong>
+                                    {' • '}Your hand: <strong className="text-slate-200">{players[0]?.hand.map(c => `${getCardDisplay(c)}${getCardIcon(c)}`).join('  ')}</strong>
+                                </p>
                                 <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
                                     {Array.from({ length: round + 1 }, (_, i) => (
                                         <button key={i} onClick={() => handleBid(i)} className="bg-slate-800 hover:bg-blue-600 p-4 rounded-xl font-bold text-lg transition-all active:scale-95 border border-slate-700">
@@ -938,27 +869,29 @@
                     )}
 
                     {gameState === 'roundEnd' && (
-                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-6 text-center">
-                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-md w-full shadow-2xl">
+                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex items-center justify-center p-6 text-center">
+                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-md w-full shadow-2xl animate-fade-in">
                                 <h2 className="text-4xl font-bold mb-4">Round {round} results</h2>
                                 <div className="space-y-3 mb-8">
                                     {players.map(p => (
                                         <div key={p.id} className="flex justify-between items-center bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                                            <span className="font-medium">{p.name} {p.tricks} / {p.bid}</span>
+                                            <span className="font-medium">{p.name} ({p.tricks} / {p.bid})</span>
                                             <span className={`font-bold ${p.tricks === p.bid ? 'text-green-500' : 'text-red-500'}`}>
-                                                {p.tricks === p.bid ? 20 + p.tricks * 10 : -(Math.abs(p.tricks - p.bid) * 10)} pts
+                                                {p.tricks === p.bid ? `+${20 + p.tricks * 10}` : -(Math.abs(p.tricks - p.bid) * 10)} pts
                                             </span>
                                         </div>
                                     ))}
                                 </div>
-                                <button onClick={nextRound} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold text-lg transition-all active:scale-95">Next round</button>
+                                <button onClick={nextRound} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold text-lg transition-all active:scale-95">
+                                    {round >= maxRounds ? 'View final standings' : 'Next round'}
+                                </button>
                             </div>
                         </div>
                     )}
 
                     {gameState === 'gameEnd' && (
-                        <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-6 text-center">
-                            <div className="bg-slate-900 border border-slate-700 p-12 rounded-3xl max-w-lg w-full shadow-2xl border-t-4 border-t-blue-500">
+                        <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-40 flex items-center justify-center p-6 text-center">
+                            <div className="bg-slate-900 border border-slate-700 p-12 rounded-3xl max-w-lg w-full shadow-2xl border-t-4 border-t-blue-500 animate-fade-in">
                                 <h2 className="text-5xl font-black mb-2 italic">Finita la commedia</h2>
                                 <p className="text-slate-400 mb-8">The magic has faded. Here is the final standing.</p>
                                 <div className="space-y-4 mb-10">
@@ -969,23 +902,23 @@
                                         </div>
                                     ))}
                                 </div>
-                                <button onClick={() => location.reload()} className="w-full bg-white text-slate-950 py-4 rounded-2xl font-black text-xl hover:bg-slate-200 transition-all active:scale-95">Play again</button>
+                                <button onClick={returnToMenu} className="w-full bg-white text-slate-950 py-4 rounded-2xl font-black text-xl hover:bg-slate-200 transition-all active:scale-95">Play again</button>
                             </div>
                         </div>
                     )}
 
-                    {gameState === 'simulationResults' && (
-                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center p-6 text-center">
-                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-lg w-full shadow-2xl">
+                    {gameState === 'simulationResults' && simulationStats && (
+                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex items-center justify-center p-6 text-center">
+                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-lg w-full shadow-2xl animate-fade-in">
                                 <h2 className="text-3xl font-bold mb-2">Simulation results</h2>
-                                <p className="text-slate-400 mb-8 font-medium">Win counts over 100 simulated games.</p>
+                                <p className="text-slate-400 mb-8 font-medium">Win counts over {lastSimulatedCount} simulated game{lastSimulatedCount === 1 ? '' : 's'}.</p>
                                 <div className="space-y-4 mb-10">
                                     {Object.entries(simulationStats).sort((a, b) => b[1] - a[1]).map(([name, wins]) => (
                                         <div key={name} className="flex justify-between items-center bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
                                             <span className="font-bold">{name}</span>
                                             <div className="flex items-center gap-4">
                                                 <div className="w-32 h-3 bg-slate-700 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-blue-500" style={{ width: `${wins}%` }}></div>
+                                                    <div className="h-full bg-blue-500" style={{ width: `${(wins / Math.max(1, lastSimulatedCount)) * 100}%` }}></div>
                                                 </div>
                                                 <span className="text-xl font-bold">{wins}</span>
                                             </div>
@@ -999,11 +932,11 @@
 
                     {isPaused && (
                         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-6">
-                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-sm w-full text-center">
+                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-sm w-full text-center animate-fade-in">
                                 <h2 className="text-3xl font-bold mb-8">Game paused</h2>
                                 <div className="flex flex-col gap-4">
                                     <button onClick={() => setIsPaused(false)} className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold transition-all active:scale-95">Resume game</button>
-                                    <button onClick={() => location.reload()} className="bg-slate-800 hover:bg-slate-700 text-slate-300 py-4 rounded-2xl font-bold transition-all">Quit to menu</button>
+                                    <button onClick={returnToMenu} className="bg-slate-800 hover:bg-slate-700 text-slate-300 py-4 rounded-2xl font-bold transition-all">Quit to menu</button>
                                 </div>
                             </div>
                         </div>

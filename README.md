@@ -5,7 +5,7 @@ Source code for [cowneck.com](https://cowneck.com) — interactive web games, ge
 ## Project structure
 
 - `index.html` — Main landing page.
-- `games/` — Standalone HTML5 web games (including **🐶 Lofi Pup** at `games/lofi-pup.html`) and the games catalog (`games/index.html`).
+- `games/` — Standalone HTML5 web games (including **🐶 Lofi Pup** at `games/lofi-pup.html`, **High Society** at `games/high-society/`, and **Wizard** at `games/wizard.html`) and the games catalog (`games/index.html`).
 - `math/` — Interactive mathematics essays and visualizations.
 - `music/` — Music collection explorer.
 - `mcu/` — Marvel Cinematic Universe tracker.
@@ -21,7 +21,7 @@ Source code for [cowneck.com](https://cowneck.com) — interactive web games, ge
 ### Prerequisites
 
 - **Python 3.10+** (for local static serving and metadata/asset scripts; `Pillow` is only needed when regenerating image assets).
-- **Node.js 20+** and **Google Chrome / Chromium** (for linting and headless Playwright tests).
+- **Node.js 20+** and **Google Chrome / Chromium** (for linting, Node unit tests, and headless Playwright tests).
 
 ### Install developer dependencies
 
@@ -37,12 +37,13 @@ Serve the static site from the repository root:
 python3 -m http.server 8000 --bind 127.0.0.1
 ```
 
-Then open `http://127.0.0.1:8000/games/lofi-pup.html`.
+Then open `http://127.0.0.1:8000/` (for example `http://127.0.0.1:8000/games/lofi-pup.html`).
 
 ## Scripts
 
 - `npm run sync:metadata` — Sync metadata, structured data, analytics tags, and `sitemap.xml` across all game pages (works from any working directory).
 - `npm run build:og` — Regenerate the social preview image (`og-image.jpg`).
 - `npm run lint` — Run ESLint with zero warnings allowed (`--max-warnings=0`).
+- `npm run test:unit` — Run Node unit and regression tests for High Society and Wizard.
 - `npm run test:e2e` — Run headless Playwright end-to-end tests.
-- `npm test` — Run both linting and end-to-end tests.
+- `npm test` — Run linting, unit tests, and end-to-end tests.

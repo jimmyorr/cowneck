@@ -1,34 +1,24 @@
 const test = require('node:test');
 const assert = require('node:assert');
 
-// Mock out browser variables that high-society.js expects
-global.React = {
-    useState: () => [null, () => { }],
-    useEffect: () => { },
-    useRef: () => ({ current: null })
-};
-global.window = {};
-
 const {
-    MONEY_CARDS,
-    INITIAL_DECK,
     sumArray,
     shuffle,
-    getSubsets,
     calculateAIBid,
     calculateFinalScores,
     createInitialPlayers,
     getNextTurn,
-    resolveAuction
+    resolveAuction,
+    simulateSingleGame
 } = require('./js/logic.js');
 
-test('sumArray', (t) => {
+test('sumArray', () => {
     assert.strictEqual(sumArray([]), 0, 'Empty array should sum to 0');
     assert.strictEqual(sumArray([1, 2, 3]), 6, 'Should sum positive numbers');
     assert.strictEqual(sumArray([-1, 1]), 0, 'Should handle negative numbers');
 });
 
-test('shuffle correctly randomizes array without losing elements', (t) => {
+test('shuffle correctly randomizes array without losing elements', () => {
     const original = Array.from({ length: 100 }, (_, i) => i);
     const shuffled = shuffle(original);
 
@@ -37,16 +27,15 @@ test('shuffle correctly randomizes array without losing elements', (t) => {
     assert.deepStrictEqual([...shuffled].sort((a, b) => a - b), [...original].sort((a, b) => a - b), 'Should contain same elements');
 });
 
-test('calculateAIBid: High Roller (Miles) avoids negatives but pays heavy for prestiges', (t) => {
+test('calculateAIBid: High Roller (Miles) avoids negatives but pays heavy for prestiges', () => {
     const mockAI = {
         name: 'Miles',
-        hand: [1, 5, 10],
+        hand: [1, 2, 3, 4, 6, 8, 10, 12, 15, 20, 25],
         bid: []
     };
     const prestigeCard = { type: 'prestige', value: 'x2', name: 'Prestige', isDark: true };
     const disgraceCard = { type: 'disgrace', value: '-5', name: 'Passé! (-5)', isDark: false };
 
-    // Test on prestige card, current bid 5, he should bid over
     let bid = calculateAIBid({
         ai: mockAI,
         deckLength: 10,
@@ -55,11 +44,9 @@ test('calculateAIBid: High Roller (Miles) avoids negatives but pays heavy for pr
         sumArray
     });
 
-    // Can bid up to 25 according to his rules
     assert.ok(bid !== null, "Miles should bid on a prestige card");
     assert.ok(sumArray(bid) > 5, "Miles bid must strictly beat currentHighestBid");
 
-    // Test on disgrace card, he might drop, or try to avoid
     bid = calculateAIBid({
         ai: mockAI,
         deckLength: 10,
@@ -70,7 +57,7 @@ test('calculateAIBid: High Roller (Miles) avoids negatives but pays heavy for pr
     assert.ok(bid !== null, "Miles generally avoids disgrace by bidding over small thresholds");
 });
 
-test('calculateAIBid: Penny Pincher (Oliver) passes early on prestige', (t) => {
+test('calculateAIBid: Penny Pincher (Oliver) passes early on prestige', () => {
     const mockAI = {
         name: 'Oliver',
         hand: [1, 2, 5, 10, 12],
@@ -78,8 +65,7 @@ test('calculateAIBid: Penny Pincher (Oliver) passes early on prestige', (t) => {
     };
     const prestigeCard = { type: 'prestige', value: 'x2', name: 'Prestige', isDark: true };
 
-    // Oliver max willingness for prestige is 14. If current is 15, he passes
-    let bid = calculateAIBid({
+    const bid = calculateAIBid({
         ai: mockAI,
         deckLength: 10,
         revealedCard: prestigeCard,
@@ -90,19 +76,17 @@ test('calculateAIBid: Penny Pincher (Oliver) passes early on prestige', (t) => {
     assert.strictEqual(bid, null, "Oliver should drop out if the bid exceeds 14 for prestige");
 });
 
-test('calculateFinalScores: Accurately eliminates lowest money player, calculates base scores, and handles multipliers/divisors', (t) => {
-    // Player 1: Has lowest money -> gets eliminated, score 0
+test('calculateFinalScores: Accurately eliminates lowest money player, calculates base scores, and handles multipliers/divisors', () => {
     const p1 = {
         name: 'Poor Player',
-        hand: [1], // Total 1
+        hand: [1],
         bid: [],
         won: [{ type: 'luxury', value: 10 }]
     };
 
-    // Player 2: Middle money -> gets base score minus 5 for passed card
     const p2 = {
         name: 'Passé Player',
-        hand: [2, 3], // Total 5
+        hand: [2, 3],
         bid: [],
         won: [
             { type: 'luxury', value: 20 },
@@ -110,15 +94,14 @@ test('calculateFinalScores: Accurately eliminates lowest money player, calculate
         ]
     };
 
-    // Player 3: High money -> gets a multiplier and a divisor
     const p3 = {
         name: 'Crypto Bro',
-        hand: [10], // Total 10
+        hand: [10],
         bid: [],
         won: [
             { type: 'luxury', value: 15 },
-            { type: 'prestige', value: 'x2' }, // x2
-            { id: 'd3', type: 'disgrace', value: '/2' } // Divide by 2
+            { type: 'prestige', value: 'x2' },
+            { id: 'd3', type: 'disgrace', value: '/2' }
         ]
     };
 
@@ -139,14 +122,24 @@ test('calculateFinalScores: Accurately eliminates lowest money player, calculate
     assert.ok(!finalP3.isEliminated, "Player 3 survives");
     assert.strictEqual(finalP3.score, 15, "Player 3 score is Math.ceil((15 * 2) / 2) = 15");
 
-    // finalPlayers array should be sorted by score descending, then money descending.
-    // p2 and p3 both have score 15. p3 has 10 money, p2 has 5 money. p3 should be first.
     assert.strictEqual(finalPlayers[0].name, 'Crypto Bro', 'Crypto Bro wins tie breaker based on remaining money');
     assert.strictEqual(finalPlayers[1].name, 'Passé Player', 'Passé Player is 2nd');
     assert.strictEqual(finalPlayers[2].name, 'Poor Player', 'Poor Player is last');
 });
 
-test('createInitialPlayers: correctly sets up human and AI players', (t) => {
+test('calculateFinalScores: does not eliminate everyone when all players tie on remaining money', () => {
+    const players = [
+        { name: 'Alice', hand: [10], bid: [], won: [{ type: 'luxury', value: 8 }] },
+        { name: 'Bob', hand: [4, 6], bid: [], won: [{ type: 'luxury', value: 5 }] },
+        { name: 'Charlie', hand: [10], bid: [], won: [{ type: 'luxury', value: 3 }] }
+    ];
+    const { finalPlayers } = calculateFinalScores(players, sumArray);
+    assert.ok(finalPlayers.every(p => !p.isEliminated), 'Nobody should be eliminated when all players tie on money');
+    assert.strictEqual(finalPlayers[0].name, 'Alice');
+    assert.strictEqual(finalPlayers[0].score, 8);
+});
+
+test('createInitialPlayers: correctly sets up human and AI players', () => {
     const players = createInitialPlayers({
         spectatorMode: false,
         playerName: 'Alice',
@@ -161,7 +154,7 @@ test('createInitialPlayers: correctly sets up human and AI players', (t) => {
     assert.strictEqual(players[1].isAI, true, 'Second player is AI');
 });
 
-test('getNextTurn: skips players who have passed', (t) => {
+test('getNextTurn: skips players who have passed', () => {
     const players = [
         { id: 0, passed: false },
         { id: 1, passed: true },
@@ -172,26 +165,35 @@ test('getNextTurn: skips players who have passed', (t) => {
     assert.strictEqual(nextTurn, 2, 'Should skip player 1 because they passed');
 });
 
-test('resolveAuction: correctly handles luxury auction winner', (t) => {
+test('resolveAuction: correctly handles luxury auction winner even when player IDs are reordered', () => {
     const players = [
-        { id: 0, hand: [5], bid: [10], won: [] },
-        { id: 1, hand: [5], bid: [8], won: [] } // Losing player
+        { id: 10, name: 'Bob', hand: [5], bid: [8], won: [] },
+        { id: 20, name: 'Alice', hand: [5], bid: [10], won: [] }
     ];
 
     const card = { type: 'luxury', value: 5, name: 'Jewels' };
 
     const { updatedPlayers, logs } = resolveAuction({
         players,
-        winnerId: 0,
+        winnerId: 20,
         revealedCard: card,
         currentHighestBid: 10
     });
 
-    assert.strictEqual(updatedPlayers[0].won.length, 1, 'Winner gets the card');
-    assert.strictEqual(updatedPlayers[0].bid.length, 0, 'Winner bid is cleared');
-    assert.strictEqual(updatedPlayers[0].hand.length, 1, 'Winner hand is unchanged (spent 10)');
+    assert.strictEqual(updatedPlayers[1].won.length, 1, 'Winner gets the card');
+    assert.strictEqual(updatedPlayers[1].bid.length, 0, 'Winner bid is cleared');
+    assert.strictEqual(updatedPlayers[1].hand.length, 1, 'Winner hand is unchanged (spent 10)');
+    assert.ok(logs[0].includes('Alice'), 'Log records actual winner name by id');
 
-    assert.strictEqual(updatedPlayers[1].hand.length, 2, 'Loser gets their bid back into hand');
-    assert.strictEqual(updatedPlayers[1].bid.length, 0, 'Loser bid is cleared');
+    assert.strictEqual(updatedPlayers[0].hand.length, 2, 'Loser gets their bid back into hand');
+    assert.strictEqual(updatedPlayers[0].bid.length, 0, 'Loser bid is cleared');
 });
 
+test('simulateSingleGame: completes full games cleanly across bot counts', () => {
+    for (let i = 0; i < 25; i++) {
+        const { finalPlayers, minMoney } = simulateSingleGame(['Miles', 'Oliver', 'Claire', 'Chester']);
+        assert.strictEqual(finalPlayers.length, 4);
+        assert.ok(finalPlayers[0], 'Should produce a sorted winner at index 0');
+        assert.strictEqual(typeof minMoney, 'number');
+    }
+});

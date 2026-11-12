@@ -87,19 +87,26 @@ function calculateAIBid({ ai, deckLength, revealedCard, currentHighestBid, sumAr
 
     let bestAdditionalCards = null;
     let lowestSufficientTotal = Infinity;
-    const allCombinations = getSubsets(ai.hand);
 
-    for (const combo of allCombinations) {
-        const proposedTotal = currentBidTotal + sumArray(combo);
-        if (proposedTotal > currentHighestBid && proposedTotal <= maxWillingness) {
-            if (proposedTotal < lowestSufficientTotal) {
-                lowestSufficientTotal = proposedTotal;
-                bestAdditionalCards = combo;
-            } else if (proposedTotal === lowestSufficientTotal) {
-                if (bestAdditionalCards && combo.length < bestAdditionalCards.length) bestAdditionalCards = combo;
+    const searchCombos = (idx, chosen, comboSum) => {
+        if (idx === ai.hand.length) {
+            const proposedTotal = currentBidTotal + comboSum;
+            if (proposedTotal > currentHighestBid && proposedTotal <= maxWillingness) {
+                if (proposedTotal < lowestSufficientTotal || (proposedTotal === lowestSufficientTotal && bestAdditionalCards && chosen.length < bestAdditionalCards.length)) {
+                    lowestSufficientTotal = proposedTotal;
+                    bestAdditionalCards = [...chosen];
+                }
             }
+            return;
         }
-    }
+        if (currentBidTotal + comboSum <= maxWillingness) {
+            chosen.push(ai.hand[idx]);
+            searchCombos(idx + 1, chosen, comboSum + ai.hand[idx]);
+            chosen.pop();
+        }
+        searchCombos(idx + 1, chosen, comboSum);
+    };
+    searchCombos(0, [], 0);
 
     if (isNegativeAuction && currentHighestBid === 0 && Math.random() < 0.2) bestAdditionalCards = null;
 
@@ -107,11 +114,14 @@ function calculateAIBid({ ai, deckLength, revealedCard, currentHighestBid, sumAr
 }
 
 function calculateFinalScores(players, sumFn) {
-    let finalPlayers = players.map(p => ({ ...p, hand: [...p.hand, ...p.bid], bid: [] }));
+    let finalPlayers = players.map(p => ({ ...p, hand: [...p.hand, ...p.bid], bid: [], isEliminated: false }));
 
     let minMoney = Infinity;
     finalPlayers.forEach(p => { const money = sumFn(p.hand); if (money < minMoney) minMoney = money; });
-    finalPlayers.forEach(p => { if (sumFn(p.hand) === minMoney) p.isEliminated = true; });
+    const allTiedMin = finalPlayers.length > 0 && finalPlayers.every(p => sumFn(p.hand) === minMoney);
+    if (!allTiedMin) {
+        finalPlayers.forEach(p => { if (sumFn(p.hand) === minMoney) p.isEliminated = true; });
+    }
 
     finalPlayers.forEach(p => {
         if (p.isEliminated) { p.score = 0; return; }
@@ -166,7 +176,7 @@ function resolveAuction({ players, winnerId, revealedCard, currentHighestBid }) 
     const updatedPlayers = JSON.parse(JSON.stringify(players));
     let logs = [];
 
-    const winner = updatedPlayers[winnerId];
+    const winner = updatedPlayers.find(p => p.id === winnerId) || updatedPlayers[winnerId];
 
     if (isNegativeAuction) {
         updatedPlayers.forEach(p => {
@@ -209,7 +219,64 @@ function resolveAuction({ players, winnerId, revealedCard, currentHighestBid }) 
     return { updatedPlayers, logs };
 }
 
+function simulateSingleGame(selectedOpponents) {
+    let players = createInitialPlayers({ spectatorMode: true, playerName: '', selectedOpponents, MONEY_CARDS });
+    const deck = shuffle(INITIAL_DECK);
+    let darkCardsDrawn = 0;
+    let turn = Math.floor(Math.random() * players.length);
+
+    while (deck.length > 0) {
+        const card = deck.shift();
+        if (card.isDark) {
+            darkCardsDrawn++;
+            if (darkCardsDrawn >= 4) break;
+        }
+        players = players.map(p => ({ ...p, passed: false, bid: [] }));
+        let currentHighestBid = 0;
+
+        while (true) {
+            const current = players[turn];
+            const additionalCards = current.hand.length > 0
+                ? calculateAIBid({ ai: current, deckLength: deck.length, revealedCard: card, currentHighestBid, sumArray })
+                : null;
+
+            if (additionalCards && additionalCards.length > 0) {
+                const newHand = [...current.hand];
+                for (const c of additionalCards) {
+                    const idx = newHand.indexOf(c);
+                    if (idx > -1) newHand.splice(idx, 1);
+                }
+                const newBid = [...current.bid, ...additionalCards];
+                players[turn] = { ...current, hand: newHand, bid: newBid };
+                currentHighestBid = sumArray(newBid);
+                turn = getNextTurn(players, turn);
+            } else {
+                players[turn] = { ...current, passed: true };
+                if (card.type === 'disgrace') {
+                    ({ updatedPlayers: players } = resolveAuction({ players, winnerId: current.id, revealedCard: card, currentHighestBid }));
+                    break;
+                }
+                const active = players.filter(p => !p.passed);
+                if (active.length === 1) {
+                    const winnerId = active[0].id;
+                    ({ updatedPlayers: players } = resolveAuction({ players, winnerId, revealedCard: card, currentHighestBid }));
+                    turn = players.findIndex(p => p.id === winnerId);
+                    if (turn === -1) turn = 0;
+                    break;
+                }
+                if (active.length === 0) {
+                    turn = (turn + 1) % players.length;
+                    break;
+                }
+                turn = getNextTurn(players, turn);
+            }
+        }
+    }
+
+    return calculateFinalScores(players, sumArray);
+}
+
 // Support Node.js testing
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { MONEY_CARDS, INITIAL_DECK, sumArray, shuffle, getSubsets, calculateAIBid, calculateFinalScores, createInitialPlayers, getNextTurn, resolveAuction };
+    module.exports = { MONEY_CARDS, INITIAL_DECK, sumArray, shuffle, getSubsets, calculateAIBid, calculateFinalScores, createInitialPlayers, getNextTurn, resolveAuction, simulateSingleGame };
 }

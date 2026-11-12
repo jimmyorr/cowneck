@@ -62,7 +62,7 @@ window.onYouTubeIframeAPIReady = function() {
       'playsinline': 1,
       'autoplay': 1,
       'controls': 0,
-      'origin': 'https://cowneck.com'
+      'origin': window.location.origin || 'https://cowneck.com'
     },
     events: {
       'onReady': () => {
@@ -107,30 +107,41 @@ playPauseBtn.addEventListener('click', () => {
 async function init() {
   try {
     let data;
-    const customData = localStorage.getItem('customLikes');
+    let customData = null;
+    try {
+      customData = localStorage.getItem('customLikes');
+    } catch {
+      /* ignore storage errors */
+    }
     if (customData) {
-      data = JSON.parse(customData);
-      appTitle.innerText = "My Liked Music";
-      docTitle.innerText = "My Liked Music";
+      const parsed = JSON.parse(customData);
+      if (!Array.isArray(parsed)) {
+        localStorage.removeItem('customLikes');
+        throw new Error('Stored customLikes is not a valid JSON array');
+      }
+      data = parsed;
+      appTitle.innerText = "My liked music";
+      docTitle.innerText = "My liked music";
       clearDataBtn.classList.remove('hidden');
     } else {
       const response = await fetch('./likes.json');
       data = await response.json();
-      appTitle.innerText = "Jimmy's Liked Music";
-      docTitle.innerText = "Jimmy's Liked Music";
+      appTitle.innerText = "Jimmy's liked music";
+      docTitle.innerText = "Jimmy's liked music";
       clearDataBtn.classList.add('hidden');
     }
     
     // Filter out GPM locker tracks and clean up artist names
-    const validSongs = data.filter(song => !song.title || !song.title.includes('TrackUniquenessId'));
+    const validSongs = data.filter(song => song && typeof song === 'object' && (!song.title || !song.title.includes('TrackUniquenessId')));
     
     allSongs = validSongs.map((song, index) => {
-      let cleanArtist = song.artist || "Unknown Artist";
+      let cleanArtist = song.artist || "Unknown artist";
       if (cleanArtist.endsWith(" - Topic")) {
         cleanArtist = cleanArtist.substring(0, cleanArtist.length - 8);
       }
       return { 
         ...song, 
+        title: song.title || "Untitled",
         artist: cleanArtist,
         originalIndex: index 
       };
@@ -195,12 +206,16 @@ async function init() {
 }
 
 // URL Generators
+function sanitizeYouTubeId(id) {
+  return String(id || '').replace(/[^A-Za-z0-9_-]/g, '');
+}
+
 function getVideoUrl(videoId) {
-  return `https://music.youtube.com/watch?v=${videoId}`;
+  return `https://music.youtube.com/watch?v=${sanitizeYouTubeId(videoId)}`;
 }
 
 function getChannelUrl(channelId) {
-  return `https://music.youtube.com/channel/${channelId}`;
+  return `https://music.youtube.com/channel/${sanitizeYouTubeId(channelId)}`;
 }
 
 function getArtistColor(artistName) {
@@ -277,7 +292,7 @@ function renderArtistChart() {
   // Group by artist
   const artistMap = {};
   filteredSongs.forEach(song => {
-    if (!song.artist || song.artist === "Unknown Artist") return;
+    if (!song.artist || song.artist.toLowerCase() === "unknown artist") return;
     if (!artistMap[song.artist]) {
       artistMap[song.artist] = { count: 0, totalViews: 0, minIndex: song.originalIndex, maxIndex: song.originalIndex };
     }
@@ -349,13 +364,14 @@ function renderGrid(reset = true) {
   const pageSongs = filteredSongs.slice(start, end);
   
   const html = pageSongs.map(song => {
-    const videoUrl = getVideoUrl(song.video_id);
+    const safeVideoId = sanitizeYouTubeId(song.video_id);
+    const videoUrl = getVideoUrl(safeVideoId);
     const channelUrl = getChannelUrl(song.channel_id);
-    const thumbnailUrl = `https://i.ytimg.com/vi/${song.video_id}/mqdefault.jpg`;
+    const thumbnailUrl = `https://i.ytimg.com/vi/${safeVideoId}/mqdefault.jpg`;
     
     return `
       <div class="song-card">
-        <div class="thumbnail-container" data-video-id="${song.video_id}" data-thumbnail-url="${thumbnailUrl}" style="cursor: pointer;">
+        <div class="thumbnail-container" data-video-id="${safeVideoId}" data-thumbnail-url="${thumbnailUrl}" style="cursor: pointer;">
           <img src="${thumbnailUrl}" alt="${escapeHtml(song.title)}" class="thumbnail" loading="lazy" />
           <div class="play-overlay">
             <svg class="play-icon" viewBox="0 0 24 24">
@@ -364,10 +380,10 @@ function renderGrid(reset = true) {
           </div>
         </div>
         <div class="song-info">
-          <a href="${videoUrl}" target="_blank" class="song-title" title="${escapeHtml(song.title)}">
+          <a href="${videoUrl}" target="_blank" rel="noopener noreferrer" class="song-title" title="${escapeHtml(song.title)}">
             ${escapeHtml(song.title)}
           </a>
-          <a href="${channelUrl}" target="_blank" class="song-artist" title="${escapeHtml(song.artist)}">
+          <a href="${channelUrl}" target="_blank" rel="noopener noreferrer" class="song-artist" title="${escapeHtml(song.artist)}">
             ${escapeHtml(song.artist)}
           </a>
           ${song.views !== undefined && song.views !== null ? `<span class="song-meta">${escapeHtml(formatViews(song.views))}</span>` : ''}
@@ -408,7 +424,7 @@ function updateStats() {
   
   const artistCounts = {};
   allSongs.forEach(song => {
-    if (song.artist && song.artist !== "Unknown Artist") {
+    if (song.artist && song.artist.toLowerCase() !== "unknown artist") {
       artistCounts[song.artist] = (artistCounts[song.artist] || 0) + 1;
     }
   });
@@ -428,7 +444,6 @@ function updateStats() {
 // Filter and sort the songs array
 function filterAndSortSongs() {
   const searchTerm = searchInput.value.toLowerCase();
-  const sortBy = sortSelect.value;
   const isHiddenGems = hiddenGemsToggle.checked;
 
   filteredSongs = allSongs.filter(song => {
@@ -557,11 +572,14 @@ function handleFileUpload(file) {
   reader.onload = (event) => {
     try {
       const jsonStr = event.target.result;
-      JSON.parse(jsonStr); // Validate it's JSON
+      const parsed = JSON.parse(jsonStr);
+      if (!Array.isArray(parsed)) {
+        throw new Error('Uploaded JSON must be an array of songs.');
+      }
       localStorage.setItem('customLikes', jsonStr);
       window.location.reload(); // Reload for clean state
     } catch (err) {
-      alert("Invalid JSON file. Please try again or check file size.");
+      alert("Invalid JSON file. Please upload a valid likes JSON array.");
       console.error(err);
     }
     fileUpload.value = ""; // Reset input

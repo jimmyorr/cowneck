@@ -865,18 +865,21 @@
                 fileReader.onload = function(evt) {
                     try {
                         const parsedData = JSON.parse(evt.target.result);
+                        if (!parsedData || typeof parsedData !== "object" || Array.isArray(parsedData)) {
+                            throw new Error("Expected a JSON object mapping movie IDs to booleans.");
+                        }
                         Object.keys(parsedData).forEach(key => {
-                            const isWatched = parsedData[key] === true;
-                            localStorage.setItem(key, isWatched);
-                            
                             const match = state.movies.find(m => m.id === key);
-                            if (match) match.watched = isWatched;
+                            if (!match) return;
+                            const isWatched = parsedData[key] === true;
+                            match.watched = isWatched;
+                            localStorage.setItem(key, isWatched);
                         });
                         
                         render();
                         showToast("🎉 Checklist imported successfully!");
                         DOM.actionsOverlay.classList.remove("active");
-                    } catch(err) {
+                    } catch {
                         alert("Error parsing file. Make sure it is a valid checklist export JSON.");
                     }
                 };

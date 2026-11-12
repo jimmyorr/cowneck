@@ -44,19 +44,7 @@ const renderCard = (card, size = 'large') => {
     return (
         <div className={`${containerClasses} ${bgClasses}`}>
             <div className={titleClasses}>{card.name}</div>
-            {(card.type === 'luxury' || card.type === 'prestige') && (
-                <div className={valueClasses}>{displayValue}</div>
-            )}
+            <div className={valueClasses}>{displayValue}</div>
         </div>
     );
 };
-
-const renderMoneyCard = (val, isSelected = false, onClick = null) => (
-    <div
-        onClick={onClick}
-        className={`shrink-0 relative w-10 h-14 sm:w-16 sm:h-24 rounded shadow-sm border border-gray-400 flex items-center justify-center font-bold text-green-900 cursor-pointer transition-all text-sm sm:text-base
-          ${isSelected ? 'bg-yellow-200 -translate-y-2 sm:-translate-y-4 shadow-lg border-yellow-500 border-2 z-10' : 'bg-white hover:-translate-y-1 sm:hover:-translate-y-2'}`}
-    >
-        {val}k
-    </div>
-);

@@ -361,14 +361,29 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, getDoc, collection } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-        // Firebase Setup
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // Firebase Setup (optional; falls back to localStorage on static hosting)
+        const LOCAL_SAVE_KEY = 'catLoafManor_save';
+        let app = null;
+        let auth = null;
+        let db = null;
+        let hasFirebase = false;
+        try {
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                if (firebaseConfig && Object.keys(firebaseConfig).length > 0) {
+                    app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    hasFirebase = true;
+                }
+            }
+        } catch {
+            /* ignore invalid or missing Firebase config */
+        }
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'cat-loaf-manor';
 
         let user = null;
+        let autoSaveInterval = null;
 
         const getInitialState = () => ({
             loafs: 0,
@@ -409,7 +424,8 @@
             stories: []
         });
 
-        window.state = getInitialState();
+        let state = getInitialState();
+        window.state = state;
 
         const loafCountEl = document.getElementById('loaf-count');
         const perSecondEl = document.getElementById('per-second');
@@ -467,29 +483,34 @@
         };
 
         window.manualSave = async () => {
-            if (!user) return;
+            const payload = {
+                loafs: state.loafs,
+                totalLoafs: state.totalLoafs,
+                helpers: state.helpers,
+                houseParts: state.houseParts,
+                stories: state.stories,
+                settings: state.settings,
+                timestamp: Date.now()
+            };
             statusIndicator.innerText = "Saving progress...";
             try {
-                const saveRef = doc(db, 'artifacts', appId, 'users', user.uid, 'saveData', 'main');
-                await setDoc(saveRef, {
-                    loafs: state.loafs,
-                    totalLoafs: state.totalLoafs,
-                    helpers: state.helpers,
-                    houseParts: state.houseParts,
-                    stories: state.stories,
-                    settings: state.settings,
-                    timestamp: Date.now()
-                });
+                if (hasFirebase && db && user) {
+                    const saveRef = doc(db, 'artifacts', appId, 'users', user.uid, 'saveData', 'main');
+                    await setDoc(saveRef, payload);
+                } else {
+                    localStorage.setItem(LOCAL_SAVE_KEY, JSON.stringify(payload));
+                }
                 document.getElementById('last-saved').innerText = `Saved at ${new Date().toLocaleTimeString()}`;
                 statusIndicator.innerText = "Progress saved!";
                 setTimeout(() => { if (statusIndicator.innerText === "Progress saved!") statusIndicator.innerText = ""; }, 3000);
-            } catch (e) {
+            } catch {
                 statusIndicator.innerText = "Error saving!";
             }
         };
 
         window.resetGame = async () => {
             state = getInitialState();
+            window.state = state;
             document.querySelectorAll('.house-part').forEach(p => p.classList.remove('visible'));
             document.getElementById('win-message').classList.add('hidden');
             document.getElementById('shop-house-container').classList.remove('hidden');
@@ -501,7 +522,7 @@
             updateUI();
             hideResetConfirmation();
             toggleSettings();
-            await manualSave();
+            await window.manualSave();
         };
 
         // Game Logic
@@ -607,48 +628,60 @@
             }
         };
 
-        const loadGame = async () => {
-            if (!user) return;
-            statusIndicator.innerText = "Loading manor...";
-            try {
-                const saveRef = doc(db, 'artifacts', appId, 'users', user.uid, 'saveData', 'main');
-                const docSnap = await getDoc(saveRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    state.loafs = data.loafs || 0;
-                    state.totalLoafs = data.totalLoafs || 0;
-                    state.settings = data.settings || state.settings;
-                    state.stories = data.stories || [];
+        const applySavedData = (data) => {
+            state.loafs = data.loafs || 0;
+            state.totalLoafs = data.totalLoafs || 0;
+            state.settings = data.settings || state.settings;
+            state.stories = data.stories || [];
 
-                    if (data.helpers) {
-                        for (let key in data.helpers) {
-                            if (state.helpers[key]) {
-                                state.helpers[key].count = data.helpers[key].count;
-                                state.helpers[key].cost = data.helpers[key].cost;
-                            }
+            if (data.helpers) {
+                for (const key in data.helpers) {
+                    if (state.helpers[key]) {
+                        state.helpers[key].count = data.helpers[key].count;
+                        state.helpers[key].cost = data.helpers[key].cost;
+                    }
+                }
+            }
+
+            if (data.houseParts) {
+                data.houseParts.forEach((savedPart, idx) => {
+                    if (state.houseParts[idx]) {
+                        state.houseParts[idx].purchased = savedPart.purchased;
+                        if (savedPart.purchased) {
+                            const visual = document.getElementById(`house-${state.houseParts[idx].id}`);
+                            if (visual) visual.classList.add('visible');
                         }
                     }
+                });
+            }
 
-                    if (data.houseParts) {
-                        data.houseParts.forEach((savedPart, idx) => {
-                            if (state.houseParts[idx]) {
-                                state.houseParts[idx].purchased = savedPart.purchased;
-                                if (savedPart.purchased) {
-                                    const visual = document.getElementById(`house-${state.houseParts[idx].id}`);
-                                    if (visual) visual.classList.add('visible');
-                                }
-                            }
-                        });
+            document.getElementById('last-saved').innerText = data.timestamp ? `Loaded save from ${new Date(data.timestamp).toLocaleTimeString()}` : 'No save found';
+            statusIndicator.innerText = "Manor loaded!";
+            setTimeout(() => { if (statusIndicator.innerText === "Manor loaded!") statusIndicator.innerText = ""; }, 3000);
+        };
+
+        const loadGame = async () => {
+            statusIndicator.innerText = "Loading manor...";
+            try {
+                let data = null;
+                if (hasFirebase && db && user) {
+                    const saveRef = doc(db, 'artifacts', appId, 'users', user.uid, 'saveData', 'main');
+                    const docSnap = await getDoc(saveRef);
+                    if (docSnap.exists()) {
+                        data = docSnap.data();
                     }
+                } else {
+                    const raw = localStorage.getItem(LOCAL_SAVE_KEY);
+                    if (raw) data = JSON.parse(raw);
+                }
 
-                    document.getElementById('last-saved').innerText = data.timestamp ? `Loaded save from ${new Date(data.timestamp).toLocaleTimeString()}` : 'No save found';
-                    statusIndicator.innerText = "Manor loaded!";
-                    setTimeout(() => { if (statusIndicator.innerText === "Manor loaded!") statusIndicator.innerText = ""; }, 3000);
+                if (data) {
+                    applySavedData(data);
                 } else {
                     statusIndicator.innerText = "New bakery started!";
                     setTimeout(() => { if (statusIndicator.innerText === "New bakery started!") statusIndicator.innerText = ""; }, 3000);
                 }
-            } catch (e) {
+            } catch {
                 statusIndicator.innerText = "Error loading!";
             }
             renderStory();
@@ -675,25 +708,38 @@
             updateUI();
         });
 
+        const startAutoSave = () => {
+            if (!autoSaveInterval) {
+                autoSaveInterval = setInterval(() => window.manualSave(), 60000);
+            }
+        };
+
         // Initialize App
         const init = async () => {
             initFence();
-            const initAuth = async () => {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+            if (hasFirebase && auth) {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    onAuthStateChanged(auth, (u) => {
+                        user = u;
+                        if (user) {
+                            loadGame();
+                            startAutoSave();
+                        }
+                    });
+                } catch {
+                    hasFirebase = false;
+                    await loadGame();
+                    startAutoSave();
                 }
-            };
-            await initAuth();
-            onAuthStateChanged(auth, (u) => {
-                user = u;
-                if (user) {
-                    loadGame();
-                    // Auto-save every 60 seconds
-                    setInterval(manualSave, 60000);
-                }
-            });
+            } else {
+                await loadGame();
+                startAutoSave();
+            }
 
             // Fast loop for loaf accumulation
             setInterval(() => {

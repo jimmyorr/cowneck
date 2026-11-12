@@ -4,7 +4,11 @@ Generate a 1200x630 social preview image (Open Graph / Twitter card) for cowneck
 Minimal split layout matching the homepage aesthetic.
 """
 import os
+from pathlib import Path
 from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+os.chdir(ROOT_DIR)
 
 
 def load_font(size, weight="regular"):
@@ -19,7 +23,25 @@ def load_font(size, weight="regular"):
         index_map = {"bold": 1, "demi": 10, "medium": 10, "regular": 0}
         return ImageFont.truetype(helv_path, size, index=index_map.get(weight, 0))
 
-    return ImageFont.load_default()
+    linux_candidates = (
+        [
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        ]
+        if weight in ("bold", "demi")
+        else [
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        ]
+    )
+    for font_path in linux_candidates:
+        if os.path.exists(font_path):
+            return ImageFont.truetype(font_path, size)
+
+    try:
+        return ImageFont.load_default(size=size)
+    except TypeError:
+        return ImageFont.load_default()
 
 
 def draw_radial_glow(canvas, center_x, center_y, radius, color_rgb, max_alpha):
