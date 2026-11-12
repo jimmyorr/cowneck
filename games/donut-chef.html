@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Donut Chef</title>
     <!-- sync-start:metadata -->
     <meta name="description" content="A deck-building strategy game where you bake delicious recipes and out-bake your rival.">
@@ -62,1338 +62,1960 @@
     </script>
     <style>
         :root {
-            --bg-color: #fdf6e3;
-            --bg-gradient: radial-gradient(circle at 50% 50%, #fdf6e3 0%, #f5e6d3 100%);
-            --text-color: #586e75;
-            --card-radius: 10px;
-            --card-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-            --primary-action: #268bd2;
-            --primary-ingredient: #b58900;
-            --primary-victory: #859900;
+            --bg-cream: #fdf6e3;
+            --bg-warm: #f4e6cf;
+            --surface: #ffffff;
+            --surface-soft: rgba(255, 255, 255, 0.78);
+            --ink: #2c3a47;
+            --ink-muted: #5f6f7d;
+            --berry: #c2185b;
+            --berry-dark: #880e4f;
+            --action-blue: #1565c0;
+            --action-bg: #e8f4fd;
+            --action-border: #42a5f5;
+            --ing-gold: #8a5a00;
+            --ing-bg: #fff8dc;
+            --ing-border: #f5b400;
+            --vic-green: #1b5e20;
+            --vic-bg: #e8f5e9;
+            --vic-border: #43a047;
+            --affordable-ring: #16a34a;
+            --radius-lg: 14px;
+            --radius-md: 10px;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg-gradient);
-            color: var(--text-color);
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
             margin: 0;
             padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        #game-container {
-            flex: 1;
-            display: grid;
-            grid-template-rows: auto 1fr auto;
-            grid-template-columns: 320px 1fr 280px;
-            /* Wider supply column */
-            gap: 15px;
-            padding: 15px;
+            width: 100%;
             height: 100%;
-            box-sizing: border-box;
-            max-width: 1800px;
-            margin: 0 auto;
-            width: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at 50% 35%, var(--bg-cream) 0%, var(--bg-warm) 100%);
+            color: var(--ink);
         }
 
-        /* Layout Areas */
-        #supply-area {
-            grid-row: 1 / 4;
-            grid-column: 1;
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(5px);
-            border-radius: 12px;
-            padding: 10px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: row;
-            /* wrap cards */
-            flex-wrap: wrap;
-            align-content: flex-start;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
-        }
-
-        #supply-area h3 {
-            width: 100%;
-            text-align: center;
-            margin-top: 5px;
-            color: #d33682;
-            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
-            padding-bottom: 5px;
-        }
-
-        /* Supply cards - Compact mode */
-        #supply-list {
-            display: contents;
-        }
-
-        /* Use contents to let children participate in flex container */
-
-        #supply-area .card {
-            width: 90px;
-            height: 125px;
-            font-size: 0.7em;
-        }
-
-        #supply-area .card-emoji {
-            font-size: 1.8em;
-            margin: 2px 0;
-        }
-
-        #supply-area .card-body {
-            padding: 0;
-            align-items: flex-end;
-            padding-bottom: 5px;
-        }
-
-        #center-area {
-            grid-row: 1 / 3;
-            grid-column: 2;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        #opponent-area {
-            height: 70px;
-            background: rgba(255, 255, 255, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 1.1em;
-            color: #657b83;
-        }
-
-        #play-area {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.3);
-            border: 2px dashed rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-content: flex-start;
-            justify-content: center;
-            overflow-y: auto;
-        }
-
-        #log-area {
-            grid-row: 1 / 4;
-            grid-column: 3;
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            overflow-y: auto;
-            font-size: 0.9em;
-            box-shadow: var(--card-shadow);
-            display: flex;
-            flex-direction: column;
-        }
-
-        #log-content {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column-reverse;
-        }
-
-        #player-area {
-            grid-row: 3;
-            grid-column: 2;
-            background: white;
-            border-radius: 16px 16px 0 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-        }
-
-        #hand-container {
-            display: flex;
-            gap: -35px;
-            justify-content: center;
-            min-height: 160px;
-            padding: 15px 0;
-            overflow-x: visible;
-            /* Prevent clipping */
-        }
-
-        #hand-container .card {
-            margin-right: -55px;
-            transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-            transform-origin: center bottom;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-        }
-
-        #hand-container .card:hover {
-            transform: translateY(-30px) scale(1.1) rotate(0deg) !important;
-            z-index: 1000;
-            margin-right: 15px;
-            margin-left: 15px;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
-        }
-
-        #hand-container .card:last-child {
-            margin-right: 0;
-        }
-
-        #player-stats {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            font-weight: bold;
-            font-size: 1.3em;
-            background: #eee;
-            padding: 8px 30px;
-            border-radius: 30px;
-            align-self: center;
-            color: #444;
-        }
-
-        #controls-area {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        /* Card Styles */
-        .card {
-            width: 120px;
-            height: 180px;
-            border-radius: var(--card-radius);
-            border: 2px solid white;
-            padding: 6px;
-            font-size: 0.85em;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background: white;
-            box-shadow: var(--card-shadow);
-            user-select: none;
-            cursor: pointer;
-            position: relative;
-            box-sizing: border-box;
-            transition: transform 0.2s;
-        }
-
-        .card.ingredient {
-            background: linear-gradient(135deg, #fffbe6 0%, #fff1b8 100%);
-            border-color: #ffd700;
-            color: #876800;
-        }
-
-        .card.victory {
-            background: linear-gradient(135deg, #f0f5e0 0%, #d9f7be 100%);
-            border-color: #4caf50;
-            color: #237804;
-        }
-
-        .card.action {
-            background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
-            border-color: #2196f3;
-            color: #0050b3;
-        }
-
-        .card.reaction {
-            background: linear-gradient(135deg, #e6f7ff 0%, #91d5ff 100%);
-            border-color: #40a9ff;
-            color: #003a8c;
-        }
-
-        .card-header {
-            font-weight: 800;
-            text-align: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            padding-bottom: 3px;
-            padding-left: 15px;
-            /* CLEARANCE FOR COST COIN */
-            padding-right: 2px;
-            line-height: 1.1;
-        }
-
-        .card-emoji {
-            font-size: 2.5em;
-            text-align: center;
-            margin: 5px 0;
-            text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5);
-        }
-
-        .card-cost {
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            background: linear-gradient(135deg, #ffd700, #ffec3d);
-            border: 2px solid white;
-            border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.1em;
-            color: #876800;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            z-index: 5;
-        }
-
-        .card-body {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 2px 0;
-            font-size: 0.9em;
-            line-height: 1.2;
-        }
-
-        .card-type {
-            font-size: 0.7em;
-            text-align: center;
-            opacity: 0.7;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: none;
-        }
-
-        /* Hide type for cleaner look */
-
-        /* Utility */
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: 800;
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: #ccc;
-            color: #333;
-            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
-            transition: all 0.1s;
-        }
-
-        .btn:active {
-            transform: translateY(2px);
-            box-shadow: none;
-        }
-
-        .btn-primary {
-            background: var(--primary-action);
-            color: white;
-        }
-
-        .btn-success {
-            background: var(--primary-victory);
-            color: white;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            filter: grayscale(100%);
+        button {
+            font-family: inherit;
         }
 
         .hidden {
             display: none !important;
         }
 
-        #modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        #modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            max-width: 90%;
-            max-height: 90%;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        #modal-cards {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        .selected {
-            outline: 4px solid #d33682;
-            transform: translateY(-8px);
-            box-shadow: 0 10px 20px rgba(211, 54, 130, 0.3);
-        }
-
-        /* Splash Screen */
+        /* Splash screen */
         #splash-screen {
             position: fixed;
-            top: 0;
-            left: 0;
+            inset: 0;
+            z-index: 3000;
+            background: radial-gradient(circle at 50% 30%, #fffdf7 0%, #f3dfc1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: calc(16px + var(--safe-top)) 16px calc(16px + var(--safe-bottom));
+            overflow-y: auto;
+        }
+
+        .splash-card {
             width: 100%;
-            height: 100%;
-            background: var(--bg-gradient);
+            max-width: 420px;
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 28px 24px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(68, 42, 18, 0.16);
+            border: 2px solid rgba(194, 24, 91, 0.12);
+        }
+
+        .splash-icon {
+            font-size: 3rem;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .splash-title {
+            margin: 0;
+            font-size: clamp(2rem, 7vw, 2.6rem);
+            font-weight: 900;
+            color: var(--berry);
+            letter-spacing: -0.02em;
+        }
+
+        .splash-subtitle {
+            margin: 10px 0 22px;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            color: var(--ink-muted);
+        }
+
+        .splash-actions {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-        }
-
-        #splash-content {
-            text-align: center;
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-        }
-
-        #splash-title {
-            font-size: 3.5rem;
-            margin: 0 0 20px 0;
-            color: #d33682;
-            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+            gap: 10px;
         }
 
         .splash-btn {
-            display: block;
-            width: 200px;
-            margin: 15px auto;
-            padding: 15px;
-            font-size: 1.2rem;
+            width: 100%;
+            min-height: 48px;
+            padding: 12px 18px;
             border: none;
-            border-radius: 50px;
-            background: var(--primary-action);
-            color: white;
+            border-radius: 999px;
+            font-size: 1rem;
+            font-weight: 800;
             cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .splash-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        .splash-btn:active {
+            transform: scale(0.98);
+        }
+
+        .splash-btn-primary {
+            background: linear-gradient(135deg, #d81b60, #ad1457);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(194, 24, 91, 0.3);
         }
 
         .splash-btn-ai {
-            background: #6c71c4;
+            background: linear-gradient(135deg, #3949ab, #283593);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(40, 53, 147, 0.25);
+        }
+
+        .splash-btn-ghost {
+            background: #f5efe6;
+            color: var(--ink);
+            border: 1px solid #e2d5c3;
+        }
+
+        /* App shell */
+        #app-shell {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            max-width: 1720px;
+            margin: 0 auto;
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+        }
+
+        /* Top bar */
+        #top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+            z-index: 20;
+        }
+
+        .top-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .brand-pill {
+            font-weight: 900;
+            font-size: 1rem;
+            color: var(--berry);
+            white-space: nowrap;
+        }
+
+        #opponent-pill {
+            display: block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #f3ede2;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--ink);
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #opponent-pill.thinking {
+            background: #fff3cd;
+            color: #7c4d00;
+            border: 1px solid #f5c242;
+        }
+
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            min-height: 36px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: #fff;
+            color: var(--ink);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .icon-btn.active {
+            background: #ffe082;
+            border-color: #f5b400;
+            color: #5d3a00;
+        }
+
+        /* Mobile navigation tabs */
+        #mobile-tabs {
+            display: none;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.72);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+        }
+
+        .mobile-tab {
+            min-height: 40px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--ink-muted);
+            font-size: 0.82rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 4px 6px;
+        }
+
+        .mobile-tab.active {
+            background: var(--berry);
+            color: #fff;
+            border-color: var(--berry);
+            box-shadow: 0 2px 8px rgba(194, 24, 91, 0.25);
+        }
+
+        .mobile-tab.shop-ready:not(.active) {
+            border-color: var(--affordable-ring);
+            color: #15803d;
+            background: #f0fdf4;
+        }
+
+        .tab-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            background: rgba(0, 0, 0, 0.08);
+            color: inherit;
+        }
+
+        .mobile-tab.active .tab-badge {
+            background: rgba(255, 255, 255, 0.25);
+            color: #fff;
+        }
+
+        /* Main 3-column desktop / tabbed mobile workspace */
+        #workspace {
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 350px minmax(0, 1fr) 290px;
+            gap: 12px;
+            padding: 10px 12px 0;
+        }
+
+        .panel {
+            background: var(--surface-soft);
+            backdrop-filter: blur(6px);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(0, 0, 0, 0.07);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 9px 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.65);
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: var(--berry-dark);
+        }
+
+        /* Supply shop */
+        .supply-filters {
+            display: flex;
+            gap: 4px;
+            padding: 6px 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
+            overflow-x: auto;
+        }
+
+        .filter-chip {
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            background: #fff;
+            color: var(--ink-muted);
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            min-height: 28px;
+        }
+
+        .filter-chip.active {
+            background: var(--ink);
+            color: #fff;
+            border-color: var(--ink);
+        }
+
+        #card-inspector {
+            padding: 7px 10px;
+            background: #fffdf6;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+            font-size: 0.78rem;
+            line-height: 1.35;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        #supply-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            align-content: start;
+        }
+
+        /* Card styling */
+        .card {
+            position: relative;
+            border-radius: var(--radius-md);
+            border: 2px solid #d0d7de;
+            background: #fff;
+            padding: 6px 7px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            user-select: none;
+            cursor: pointer;
+            transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07);
+            text-align: center;
+        }
+
+        .card.ingredient {
+            background: linear-gradient(155deg, #fffdf0 0%, var(--ing-bg) 100%);
+            border-color: var(--ing-border);
+            color: var(--ing-gold);
+        }
+
+        .card.victory {
+            background: linear-gradient(155deg, #f5fbf5 0%, var(--vic-bg) 100%);
+            border-color: var(--vic-border);
+            color: var(--vic-green);
+        }
+
+        .card.action {
+            background: linear-gradient(155deg, #f3f9ff 0%, var(--action-bg) 100%);
+            border-color: var(--action-border);
+            color: var(--action-blue);
+        }
+
+        .card.affordable {
+            box-shadow: 0 0 0 2px var(--affordable-ring), 0 4px 10px rgba(22, 163, 74, 0.18);
+        }
+
+        .card.playable {
+            box-shadow: 0 0 0 2px #2563eb, 0 5px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .card.depleted {
+            opacity: 0.45;
+            filter: grayscale(65%);
+            cursor: not-allowed;
+        }
+
+        .card.disabled-card {
+            opacity: 0.72;
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+        }
+
+        .card-cost {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd54f, #ffb300);
+            border: 1.5px solid #fff;
+            color: #5d3a00;
+            font-weight: 900;
+            font-size: 0.76rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0;
+        }
+
+        .card-count {
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.08);
+            color: var(--ink);
+        }
+
+        .card-count.low {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .card-name {
+            font-weight: 800;
+            font-size: 0.78rem;
+            line-height: 1.15;
+            margin-top: 3px;
+        }
+
+        .card-emoji {
+            font-size: 1.45rem;
+            line-height: 1.15;
+            margin: 2px 0;
+        }
+
+        .card-desc {
+            font-size: 0.69rem;
+            line-height: 1.2;
+            font-weight: 600;
+            opacity: 0.92;
+        }
+
+        .supply-card {
+            min-height: 106px;
+        }
+
+        .supply-card:hover:not(.depleted) {
+            transform: translateY(-2px);
+        }
+
+        /* Table panel (Play area + Hand) */
+        #table-panel {
+            background: rgba(255, 255, 255, 0.55);
+        }
+
+        #phase-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.8);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            font-size: 0.82rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .phase-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 800;
+        }
+
+        .phase-action {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .phase-buy {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .phase-wait {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        #play-zone-wrapper {
+            flex: 1;
+            min-height: 84px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .zone-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--ink-muted);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #play-area {
+            flex: 1;
+            border: 1.5px dashed rgba(0, 0, 0, 0.12);
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-content: flex-start;
+            justify-content: center;
+            min-height: 62px;
+        }
+
+        .played-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 9px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            border: 1.5px solid #cbd5e1;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .played-chip.ingredient {
+            background: var(--ing-bg);
+            border-color: var(--ing-border);
+            color: var(--ing-gold);
+        }
+
+        .played-chip.action {
+            background: var(--action-bg);
+            border-color: var(--action-border);
+            color: var(--action-blue);
+        }
+
+        .empty-hint {
+            margin: auto;
+            font-size: 0.8rem;
+            color: var(--ink-muted);
+            text-align: center;
+        }
+
+        /* Hand section */
+        #hand-section {
+            background: rgba(255, 255, 255, 0.92);
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 8px 10px;
+            flex-shrink: 0;
+        }
+
+        #hand-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 2px 6px;
+            justify-content: center;
+            scroll-snap-type: x proximity;
+        }
+
+        .hand-card {
+            width: 112px;
+            min-width: 112px;
+            min-height: 138px;
+            scroll-snap-align: start;
+        }
+
+        .hand-card:hover:not(.disabled-card) {
+            transform: translateY(-5px);
+        }
+
+        /* Log & deck breakdown panel */
+        #deck-summary {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .deck-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .metric-box {
+            background: #f8f5ef;
+            border-radius: 8px;
+            padding: 5px 4px;
+        }
+
+        .metric-val {
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: var(--ink);
+        }
+
+        .metric-lbl {
+            font-size: 0.66rem;
+            font-weight: 700;
+            color: var(--ink-muted);
+        }
+
+        #deck-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            max-height: 86px;
+            overflow-y: auto;
+        }
+
+        .deck-pill {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: var(--ink);
+        }
+
+        #log-content {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 10px 12px;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .log-entry {
-            margin-bottom: 5px;
-            padding: 2px 0;
-            border-bottom: 1px dashed #eee;
+            padding: 3px 0;
+            border-bottom: 1px dashed rgba(0, 0, 0, 0.06);
+            line-height: 1.3;
         }
 
         .log-turn {
+            margin-top: 6px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: #fce4ec;
+            color: var(--berry-dark);
             font-weight: 800;
-            margin: 10px 0 5px 0;
-            color: #d33682;
-            text-transform: uppercase;
-            font-size: 0.85em;
-            background: whitesmoke;
+            font-size: 0.76rem;
+            border-bottom: none;
+        }
+
+        /* Persistent bottom action & stats dock */
+        #bottom-dock {
+            flex-shrink: 0;
+            background: #fff;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            z-index: 25;
+        }
+
+        .stats-strip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #f4efe6;
+            font-size: 0.84rem;
+            font-weight: 800;
+            color: var(--ink);
+            white-space: nowrap;
+        }
+
+        .stat-pill.highlight-coins {
+            background: #fff8dc;
+            border: 1px solid #f5b400;
+            color: #7a4f00;
+        }
+
+        .dock-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .btn {
+            min-height: 44px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            font-size: 0.86rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: transform 0.1s ease, opacity 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .btn-ing {
+            background: linear-gradient(135deg, #ffb300, #f59e0b);
+            color: #3e2500;
+        }
+
+        .btn-shop-jump {
+            display: none;
+            background: #eef2ff;
+            color: #3730a3;
+            border: 1.5px solid #818cf8;
+        }
+
+        .btn-end {
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: var(--action-blue);
+            color: #fff;
+        }
+
+        .btn-neutral {
+            background: #e2e8f0;
+            color: var(--ink);
+        }
+
+        /* Modals */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 4000;
+            background: rgba(15, 23, 42, 0.62);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: calc(12px + var(--safe-top)) 12px calc(12px + var(--safe-bottom));
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 620px;
+            max-height: 88dvh;
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--berry-dark);
+        }
+
+        .modal-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        #modal-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+            gap: 10px;
             padding: 4px;
-            border-radius: 4px;
-            text-align: center;
-            letter-spacing: 1px;
+        }
+
+        .card.selected {
+            outline: 3px solid var(--berry);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 18px rgba(194, 24, 91, 0.25);
+        }
+
+        .modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        /* Scoreboard rows */
+        .score-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: #f8f5ef;
+            margin-bottom: 8px;
+        }
+
+        .score-row.winner {
+            background: #fef9c3;
+            border: 2px solid #eab308;
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .rule-card-item {
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+        }
+
+        /* Mobile & tablet responsive overrides (< 1024px) */
+        @media (max-width: 1023px) {
+            #mobile-tabs {
+                display: grid;
+            }
+
+            #workspace {
+                grid-template-columns: 1fr;
+                padding: 6px 8px 0;
+            }
+
+            #workspace[data-active-tab="table"] #supply-panel,
+            #workspace[data-active-tab="table"] #log-panel {
+                display: none;
+            }
+
+            #workspace[data-active-tab="shop"] #table-panel,
+            #workspace[data-active-tab="shop"] #log-panel {
+                display: none;
+            }
+
+            #workspace[data-active-tab="log"] #supply-panel,
+            #workspace[data-active-tab="log"] #table-panel {
+                display: none;
+            }
+
+            #supply-list {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 6px;
+                padding: 6px;
+            }
+
+            .supply-card {
+                min-height: 98px;
+                padding: 5px;
+            }
+
+            .supply-card .card-name {
+                font-size: 0.72rem;
+            }
+
+            .supply-card .card-emoji {
+                font-size: 1.2rem;
+                margin: 1px 0;
+            }
+
+            .supply-card .card-desc {
+                font-size: 0.63rem;
+            }
+
+            #hand-container {
+                justify-content: flex-start;
+            }
+
+            .hand-card {
+                width: 100px;
+                min-width: 100px;
+                min-height: 122px;
+            }
+
+            #bottom-dock {
+                padding: 6px 8px;
+                gap: 6px;
+            }
+
+            .stats-strip {
+                width: 100%;
+                justify-content: space-between;
+                gap: 4px;
+                flex-wrap: nowrap;
+            }
+
+            .stat-pill {
+                flex: 1 1 0;
+                min-width: 0;
+                justify-content: center;
+                padding: 4px 5px;
+                font-size: 0.72rem;
+                gap: 3px;
+            }
+
+            .dock-buttons {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .dock-buttons .btn {
+                flex: 1;
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
+
+            .btn-shop-jump {
+                display: inline-flex;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .brand-text-full {
+                display: none;
+            }
+
+            .icon-btn {
+                padding: 6px 8px;
+                font-size: 0.74rem;
+            }
+
+            .supply-card .card-cost {
+                width: 20px;
+                height: 20px;
+                font-size: 0.7rem;
+            }
         }
     </style>
 </head>
 
 <body>
-
+    <!-- Splash screen -->
     <div id="splash-screen">
-        <div id="splash-content">
-            <h1 id="splash-title">🍩 Donut Chef 👨‍🍳</h1>
-            <button class="splash-btn" onclick="startGame('human')">NEW GAME</button>
-            <button class="splash-btn splash-btn-ai" onclick="startGame('ai')">AI BATTLE 🤖</button>
-        </div>
-    </div>
-
-    <div id="game-container" class="hidden">
-        <div id="supply-area">
-            <h3>Supply</h3>
-            <div id="supply-list"></div>
-        </div>
-
-        <div id="center-area">
-            <div id="opponent-area">
-                Opponent: <span id="opp-status">Waiting...</span>
-            </div>
-            <div id="play-area">
-                <!-- Played cards go here -->
-            </div>
-        </div>
-
-        <div id="log-area">
-            <h3>Game Log</h3>
-            <div id="log-content"></div>
-        </div>
-
-        <div id="player-area">
-            <div id="player-stats">
-                <span>Actions: <span id="stat-actions">1</span></span>
-                <span>Buys: <span id="stat-buys">1</span></span>
-                <span>Coins: <span id="stat-coins">0</span></span>
-            </div>
-            <div id="controls-area">
-                <button id="btn-play-all" class="btn">💎 Play All Ingredients</button>
-                <button id="btn-end-turn" class="btn btn-success">✅ End Turn</button>
-            </div>
-            <div id="hand-container">
-                <!-- Player Hand -->
+        <div class="splash-card">
+            <div class="splash-icon" aria-hidden="true">🍩👨‍🍳</div>
+            <h1 class="splash-title">Donut Chef</h1>
+            <p class="splash-subtitle">
+                Draft ingredients, chain kitchen actions, and bake high-scoring donut recipes before the shop runs out.
+            </p>
+            <div class="splash-actions">
+                <button id="btn-start-human" class="splash-btn splash-btn-primary" type="button">
+                    🧑‍🍳 Play vs Donut Bot
+                </button>
+                <button id="btn-start-ai" class="splash-btn splash-btn-ai" type="button">
+                    🤖 Watch AI battle
+                </button>
+                <button id="btn-splash-rules" class="splash-btn splash-btn-ghost" type="button">
+                    📖 How to play
+                </button>
             </div>
         </div>
     </div>
 
-    <div id="modal-overlay" class="hidden">
-        <div id="modal-content">
-            <h2 id="modal-title">Select Cards</h2>
-            <div id="modal-message"></div>
-            <div id="modal-cards"></div>
-            <div id="modal-buttons">
-                <button id="modal-confirm" class="btn btn-primary">Confirm</button>
+    <!-- Main game shell -->
+    <div id="app-shell" class="hidden">
+        <header id="top-bar">
+            <div class="top-left">
+                <span class="brand-pill">🍩 <span class="brand-text-full">Donut Chef</span></span>
+                <div id="opponent-pill">🤖 Waiting...</div>
+            </div>
+            <div class="top-right">
+                <button id="btn-speed" class="icon-btn" type="button" title="Toggle fast AI speed">
+                    ⚡ Fast
+                </button>
+                <button id="btn-rules" class="icon-btn" type="button">
+                    📖 Rules
+                </button>
+                <button id="btn-menu" class="icon-btn" type="button">
+                    🔄 Menu
+                </button>
+            </div>
+        </header>
+
+        <nav id="mobile-tabs" aria-label="Game views">
+            <button class="mobile-tab active" type="button" data-tab="table">
+                🃏 Table <span id="badge-table" class="tab-badge">5</span>
+            </button>
+            <button id="tab-btn-shop" class="mobile-tab" type="button" data-tab="shop">
+                🏪 Shop <span id="badge-shop" class="tab-badge">0</span>
+            </button>
+            <button class="mobile-tab" type="button" data-tab="log">
+                📜 Deck <span id="badge-score" class="tab-badge">3 pts</span>
+            </button>
+        </nav>
+
+        <main id="workspace" data-active-tab="table">
+            <!-- Left column: Supply shop -->
+            <section id="supply-panel" class="panel" aria-label="Supply shop">
+                <div class="panel-header">
+                    <h2 class="panel-title">Supply shop</h2>
+                    <span id="empty-piles-indicator" style="font-size: 0.74rem; font-weight: 700; color: var(--ink-muted);">
+                        0 / 3 empty
+                    </span>
+                </div>
+                <div class="supply-filters" role="tablist" aria-label="Filter supply cards">
+                    <button class="filter-chip active" type="button" data-filter="all">All (16)</button>
+                    <button class="filter-chip" type="button" data-filter="ingredient">Ingredients</button>
+                    <button class="filter-chip" type="button" data-filter="action">Actions</button>
+                    <button class="filter-chip" type="button" data-filter="victory">Recipes</button>
+                </div>
+                <div id="card-inspector">
+                    <span id="inspector-text">Tap an affordable card during your buy phase to purchase it.</span>
+                </div>
+                <div id="supply-list"></div>
+            </section>
+
+            <!-- Center column: Table & hand -->
+            <section id="table-panel" class="panel" aria-label="Play table">
+                <div id="phase-banner">
+                    <span id="turn-label">Turn 1</span>
+                    <span id="phase-pill" class="phase-tag phase-action">Action phase</span>
+                </div>
+
+                <div id="play-zone-wrapper">
+                    <div class="zone-label">
+                        <span id="play-zone-title">Played this turn</span>
+                        <span id="play-zone-count">0 cards</span>
+                    </div>
+                    <div id="play-area"></div>
+                </div>
+
+                <div id="hand-section">
+                    <div class="zone-label">
+                        <span id="hand-label">Your hand</span>
+                        <span id="hand-hint">Tap blue actions or gold ingredients</span>
+                    </div>
+                    <div id="hand-container"></div>
+                </div>
+            </section>
+
+            <!-- Right column: Deck stats & game log -->
+            <section id="log-panel" class="panel" aria-label="Deck stats and game log">
+                <div class="panel-header">
+                    <h2 class="panel-title">Your bakery deck</h2>
+                    <span id="trash-count-label" style="font-size: 0.74rem; font-weight: 700; color: var(--ink-muted);">
+                        🗑️ Trash: 0
+                    </span>
+                </div>
+                <div id="deck-summary">
+                    <div class="deck-metrics">
+                        <div class="metric-box">
+                            <div id="metric-vp" class="metric-val">3</div>
+                            <div class="metric-lbl">Points</div>
+                        </div>
+                        <div class="metric-box">
+                            <div id="metric-total" class="metric-val">10</div>
+                            <div class="metric-lbl">Cards</div>
+                        </div>
+                        <div class="metric-box">
+                            <div id="metric-draw" class="metric-val">5</div>
+                            <div class="metric-lbl">Draw</div>
+                        </div>
+                        <div class="metric-box">
+                            <div id="metric-discard" class="metric-val">0</div>
+                            <div class="metric-lbl">Discard</div>
+                        </div>
+                    </div>
+                    <div id="deck-pills"></div>
+                </div>
+                <div class="panel-header" style="border-top: 1px solid rgba(0,0,0,0.05);">
+                    <h2 class="panel-title">Game log</h2>
+                </div>
+                <div id="log-content"></div>
+            </section>
+        </main>
+
+        <!-- Persistent bottom dock -->
+        <footer id="bottom-dock">
+            <div class="stats-strip">
+                <div class="stat-pill">⚡ Actions: <span id="stat-actions">1</span></div>
+                <div class="stat-pill">🛒 Buys: <span id="stat-buys">1</span></div>
+                <div class="stat-pill highlight-coins">🪙 Coins: <span id="stat-coins">0</span></div>
+                <div class="stat-pill">🂠 Deck: <span id="stat-deck">5</span></div>
+            </div>
+
+            <div id="human-controls" class="dock-buttons">
+                <button id="btn-play-all" class="btn btn-ing" type="button">
+                    🪙 Play ingredients
+                </button>
+                <button id="btn-shop-toggle" class="btn btn-shop-jump" type="button">
+                    🏪 Shop
+                </button>
+                <button id="btn-end-turn" class="btn btn-end" type="button">
+                    ✅ End turn
+                </button>
+            </div>
+
+            <div id="ai-spectator-controls" class="dock-buttons hidden">
+                <button id="btn-ai-pause" class="btn btn-neutral" type="button">⏸ Pause</button>
+                <button id="btn-ai-restart" class="btn btn-primary" type="button">🔄 New AI match</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Card selection modal (for Clear crumbs, Clean sweep, Late night, etc.) -->
+    <div id="selection-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 id="modal-title" class="modal-title">Select cards</h2>
+                <span id="modal-counter" class="phase-tag phase-action">0 selected</span>
+            </div>
+            <div id="modal-message" style="font-size: 0.88rem; color: var(--ink-muted);"></div>
+            <div class="modal-body">
+                <div id="modal-cards"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-skip" class="btn btn-neutral hidden" type="button">Skip</button>
+                <button id="modal-confirm" class="btn btn-primary" type="button">Confirm</button>
             </div>
         </div>
     </div>
 
-    <script>
-        /**
-         * DONUT CHEF
-         * A Deck Building Game
-         */
+    <!-- Rules & card catalog modal -->
+    <div id="rules-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 id="rules-title" class="modal-title">📖 How to play Donut Chef</h2>
+                <button id="btn-close-rules" class="icon-btn" type="button">✕ Close</button>
+            </div>
+            <div class="modal-body" style="font-size: 0.88rem; line-height: 1.5;">
+                <p style="margin-top: 0;">
+                    <strong>Goal:</strong> Finish with the most victory points (🍩 recipes) in your deck when either the
+                    <strong>Premium donut</strong> pile is empty or any <strong>3 supply piles</strong> run out.
+                    Ties go to the chef who took fewer turns!
+                </p>
+                <ol style="padding-left: 20px; margin: 8px 0 14px;">
+                    <li><strong>Action phase:</strong> Play 1 blue action card from your hand (some grant extra actions, cards, buys, or coins).</li>
+                    <li><strong>Buy phase:</strong> Play gold ingredient cards for coins, then buy cards from the Supply shop. Purchased cards go to your discard pile and reshuffle when your draw deck runs out.</li>
+                    <li><strong>Cleanup:</strong> Played and remaining hand cards discard automatically, and you draw 5 fresh cards.</li>
+                </ol>
+                <h3 style="margin: 12px 0 6px; font-size: 0.95rem; color: var(--berry-dark);">Card catalog</h3>
+                <div id="rules-catalog" class="rules-grid"></div>
+            </div>
+        </div>
+    </div>
 
-        const CARD_TYPES = {
-            INGREDIENT: 'ingredient',
-            VICTORY: 'victory',
-            ACTION: 'action',
-            REACTION: 'reaction'
-        };
+    <!-- Game over scoreboard modal -->
+    <div id="gameover-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="gameover-title">
+        <div class="modal-box" style="max-width: 480px;">
+            <div class="modal-header">
+                <h2 id="gameover-title" class="modal-title">🏆 Bakery closed!</h2>
+            </div>
+            <div id="gameover-reason" style="font-size: 0.86rem; color: var(--ink-muted);"></div>
+            <div id="gameover-scores" class="modal-body"></div>
+            <div class="modal-footer">
+                <button id="btn-gameover-menu" class="btn btn-neutral" type="button">🏠 Main menu</button>
+                <button id="btn-gameover-replay" class="btn btn-primary" type="button">🔄 Play again</button>
+            </div>
+        </div>
+    </div>
 
-        const CARDS = {
-            // Ingredient
-            flour: { id: 'flour', name: 'Flour', emoji: '🥡', type: [CARD_TYPES.INGREDIENT], cost: 0, coins: 1, text: "+1 Coin" },
-            sugar: { id: 'sugar', name: 'Sugar', emoji: '🍬', type: [CARD_TYPES.INGREDIENT], cost: 3, coins: 2, text: "+2 Coins" },
-            lard: { id: 'lard', name: 'Lard', emoji: '🥓', type: [CARD_TYPES.INGREDIENT], cost: 6, coins: 3, text: "+3 Coins" },
+    <script src="./donut-chef-logic.js"></script>
+    <script type="module">
+        const {
+            CARD_TYPES,
+            CARDS,
+            SUPPLY_ORDER,
+            DonutEngine,
+            runAITurn
+        } = window.DonutChefLogic;
 
-            // Victory
-            donut_hole: { id: 'donut_hole', name: 'Donut Hole', emoji: '🥯', type: [CARD_TYPES.VICTORY], cost: 2, points: 1, text: "1 Point" },
-            donut: { id: 'donut', name: 'Donut', emoji: '🍩', type: [CARD_TYPES.VICTORY], cost: 5, points: 3, text: "3 Points" },
-            premium_donut: { id: 'premium_donut', name: 'Premium', emoji: '👑🍩', type: [CARD_TYPES.VICTORY], cost: 8, points: 6, text: "6 Points" },
+        let activeTab = 'table';
+        let supplyFilter = 'all';
+        let fastMode = false;
+        let aiPaused = false;
+        let isBusy = false;
+        let sessionToken = 0;
 
-            // Others
-            curse: { id: 'curse', name: 'Burnt Donut', emoji: '🤢', type: [CARD_TYPES.VICTORY], cost: 0, points: -1, text: "-1 Point" },
-            dumpster: { id: 'dumpster', name: 'Dumpster', emoji: '🗑️', type: [], cost: 0, text: "Trash Pile" },
+        const splashEl = document.getElementById('splash-screen');
+        const shellEl = document.getElementById('app-shell');
+        const workspaceEl = document.getElementById('workspace');
+        const logContentEl = document.getElementById('log-content');
+        const inspectorTextEl = document.getElementById('inspector-text');
 
-            // Actions
-            cellar: {
-                id: 'cellar', name: 'Clear Crumbs', emoji: '🧹', type: [CARD_TYPES.ACTION], cost: 2,
-                actions: 1,
-                text: "+1 Action.<br>Discard any number of cards, then draw that many.",
-                onPlay: async (G, player) => {
-                    await G.ui.selectCardsToDiscard(player, 'any', 'Discard to draw replacements')
-                        .then(cards => {
-                            G.engine.discardCards(player, cards);
-                            G.engine.drawCards(player, cards.length);
-                        });
-                }
-            },
-            chapel: {
-                id: 'chapel', name: 'Clean Sweep', emoji: '🧼', type: [CARD_TYPES.ACTION], cost: 2,
-                text: "Trash up to 4 cards from your hand.",
-                onPlay: async (G, player) => {
-                    await G.ui.selectCardsToTrash(player, 4, 'Trash up to 4 cards')
-                        .then(cards => {
-                            G.engine.trashCards(player, cards);
-                        });
-                }
-            },
-            oasis: {
-                id: 'oasis', name: 'Sweet Deal', emoji: '🌴', type: [CARD_TYPES.ACTION], cost: 3,
-                cards: 1, actions: 1, coins: 1,
-                text: "+1 Card, +1 Action, +1 Coin.<br>Discard a card.",
-                onPlay: async (G, player) => {
-                    await G.ui.selectCardsToDiscard(player, 1, 'Discard a card', { min: 1, max: 1 })
-                        .then(cards => {
-                            G.engine.discardCards(player, cards);
-                        });
-                }
-            },
-            workshop: {
-                id: 'workshop', name: 'Free Sample', emoji: '🎁', type: [CARD_TYPES.ACTION], cost: 3,
-                text: "Gain a card costing up to 4 Coins.",
-                onPlay: async (G, player) => {
-                    await G.ui.selectCardToGain(4)
-                        .then(cardId => {
-                            if (cardId) G.engine.gainCard(player, cardId);
-                        });
-                }
-            },
-            smithy: {
-                id: 'smithy', name: 'Crate', emoji: '📦', type: [CARD_TYPES.ACTION], cost: 4,
-                cards: 3,
-                text: "+3 Cards"
-            },
-            festival: {
-                id: 'festival', name: 'Stacked Pots', emoji: '🥞', type: [CARD_TYPES.ACTION], cost: 5,
-                actions: 2, buys: 1, coins: 2,
-                text: "+2 Actions, +1 Buy, +2 Coins"
-            },
-            laboratory: {
-                id: 'laboratory', name: 'Recipe Research', emoji: '🔬', type: [CARD_TYPES.ACTION], cost: 5,
-                cards: 2, actions: 1,
-                text: "+2 Cards<br>+1 Action"
-            },
-            market: {
-                id: 'market', name: 'Shop Sign', emoji: '🏪', type: [CARD_TYPES.ACTION], cost: 5,
-                cards: 1, actions: 1, buys: 1, coins: 1,
-                text: "+1 Card, +1 Action<br>+1 Buy, +1 Coin"
-            },
-            kings_court: {
-                id: 'kings_court', name: 'Late Night', emoji: '🌙', type: [CARD_TYPES.ACTION], cost: 7,
-                text: "You may play an Action card from your hand three times.",
-                onPlay: async (G, player) => {
-                    const actions = player.hand.filter(c => CARDS[c.id].type.includes(CARD_TYPES.ACTION));
-                    if (actions.length === 0) return;
+        const engine = new DonutEngine({
+            onLog: (msg) => appendLog(msg),
+            onStateChange: () => scheduleRender()
+        });
 
-                    await G.ui.selectOneCardFromHand(player, c => CARDS[c.id].type.includes(CARD_TYPES.ACTION), "Choose an action to play 3x")
-                        .then(async (cardId) => {
-                            if (!cardId) return;
-                            G.engine.moveCard(player.hand, player.playArea, cardId); // Simulate play
-                            const cardDef = CARDS[cardId];
-                            G.log(`${player.name} plays ${cardDef.name} 3 times!`);
-                            for (let i = 0; i < 3; i++) {
-                                G.engine.applyBasicCardStats(player, cardDef);
-                                if (cardDef.onPlay) await cardDef.onPlay(G, player);
-                            }
-                        });
-                }
-            },
-            expand: {
-                id: 'expand', name: 'Batter Bargain', emoji: '🥣', type: [CARD_TYPES.ACTION], cost: 7,
-                text: "Trash a card from your hand.<br>Gain a card costing up to 3 Coins more than it.",
-                onPlay: async (G, player) => {
-                    await G.ui.selectCardsToTrash(player, 1, 'Trash a card to expand', { min: 1, max: 1 })
-                        .then(async (trashedCards) => {
-                            if (trashedCards.length === 0) return;
-                            const trashed = CARDS[trashedCards[0].id];
-                            G.engine.trashCards(player, trashedCards);
-                            const maxCost = trashed.cost + 3;
-                            await G.ui.selectCardToGain(maxCost)
-                                .then(gainId => {
-                                    if (gainId) G.engine.gainCard(player, gainId);
-                                });
-                        });
-                }
-            }
-        };
+        let renderQueued = false;
+        function scheduleRender() {
+            if (renderQueued) return;
+            renderQueued = true;
+            requestAnimationFrame(() => {
+                renderQueued = false;
+                renderAll();
+            });
+        }
 
-        // Donut names flavor text
-        const DONUT_NAMES = [
-            "Square", "Starry", "Calamari", "Airy", "Cone-y", "Macaroni", "Wispy", "Crispy", "Major", "Minor",
-            "Kiwi jam", "Open clam", "Huckleberry", "Spiced rum pear", "Shriner", "Cherry-frosted lemon bar",
-            "Peanut-brickle buttermilk", "Gooey cocoa-mocha silk", "Eclair", "Glazed"
-        ];
-
-        // --- GAME STATE ---
-
-        class Game {
-            constructor() {
-                this.players = [];
-                this.supply = {};
-                this.trash = [];
-                this.activePlayerIndex = 0;
-                this.turnPhase = 'action'; // action, buy, cleanup
-                this.turnCount = 0;
-                this.ui = new UI(this);
-                this.engine = new Engine(this);
-                this.mode = 'human'; // 'human' or 'ai'
-            }
-
-            init(mode) {
-                this.mode = mode;
-                // Initialize Supply
-                this.supply = {
-                    flour: 50, sugar: 40, lard: 30,
-                    donut_hole: 12, donut: 10, premium_donut: 10,
-                    cellar: 10, chapel: 10, oasis: 10, workshop: 10, smithy: 10,
-                    festival: 10, laboratory: 10, market: 10, kings_court: 10, expand: 10
-                };
-
-                // Initialize Players
-                if (mode === 'ai') {
-                    this.players = [
-                        new Player('Chef Glaze 🤖', true),
-                        new Player('Chef Sprinkles 🤖', true)
-                    ];
-                } else {
-                    this.players = [
-                        new Player('Human 🧑‍🍳', false),
-                        new Player('Donut Bot 🤖', true)
-                    ];
-                }
-
-                // Initial Decks
-                this.players.forEach(p => {
-                    // 7 Flour, 3 Donut Holes
-                    for (let i = 0; i < 7; i++) p.deck.push(this.createCard('flour'));
-                    for (let i = 0; i < 3; i++) p.deck.push(this.createCard('donut_hole'));
-                    this.engine.shuffle(p.deck);
-                    this.engine.drawCards(p, 5);
-                });
-
-                document.getElementById('splash-screen').classList.add('hidden');
-                document.getElementById('game-container').classList.remove('hidden');
-
-                this.updateState();
-                this.log("Game Started!");
-                this.turnCount = 0;
-                this.engine.startTurn();
-            }
-
-            createCard(id) {
-                return { id: id, uid: Math.random().toString(36).substr(2, 9) };
-            }
-
-            log(msg) {
-                this.ui.log(msg);
-            }
-
-            updateState() {
-                if (!this.renderPending) {
-                    this.renderPending = true;
-                    requestAnimationFrame(() => {
-                        this.ui.render();
-                        this.renderPending = false;
-                    });
-                }
+        function appendLog(msg) {
+            const entry = document.createElement('div');
+            entry.className = msg.startsWith('---') ? 'log-entry log-turn' : 'log-entry';
+            entry.textContent = msg;
+            logContentEl.prepend(entry);
+            while (logContentEl.children.length > 60) {
+                logContentEl.removeChild(logContentEl.lastChild);
             }
         }
 
-        class Player {
-            constructor(name, isAI) {
-                this.name = name;
-                this.isAI = isAI;
-                this.deck = [];
-                this.hand = [];
-                this.discard = [];
-                this.playArea = [];
+        function setMobileTab(tab) {
+            activeTab = tab;
+            workspaceEl.dataset.activeTab = tab;
+            document.querySelectorAll('.mobile-tab').forEach((btn) => {
+                btn.classList.toggle('active', btn.dataset.tab === tab);
+            });
+            updateShopToggleButton();
+        }
 
-                this.actions = 1;
-                this.buys = 1;
-                this.coins = 0;
+        function updateShopToggleButton() {
+            const btn = document.getElementById('btn-shop-toggle');
+            if (activeTab === 'shop') {
+                const viewer = getPerspectivePlayer();
+                btn.textContent = `🃏 Hand (${viewer.hand.length})`;
+            } else {
+                btn.textContent = '🏪 Shop';
             }
         }
 
-        class Engine {
-            constructor(game) {
-                this.game = game;
+        function getPerspectivePlayer() {
+            if (engine.mode === 'human') {
+                return engine.players[0];
             }
-
-            shuffle(deck) {
-                for (let i = deck.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [deck[i], deck[j]] = [deck[j], deck[i]];
-                }
-            }
-
-            drawCards(player, count) {
-                for (let i = 0; i < count; i++) {
-                    if (player.deck.length === 0) {
-                        if (player.discard.length === 0) break; // Cannot draw
-                        // Reshuffle discard into deck
-                        player.deck = [...player.discard];
-                        player.discard = [];
-                        this.shuffle(player.deck);
-                    }
-                    player.hand.push(player.deck.pop());
-                }
-            }
-
-            async startTurn() {
-                this.game.turnCount++;
-                if (this.game.turnCount > 300) {
-                    this.game.log("--- TURN LIMIT REACHED ---");
-                    this.endGame();
-                    return;
-                }
-
-                const p = this.game.players[this.game.activePlayerIndex];
-                p.actions = 1;
-                p.buys = 1;
-                p.coins = 0;
-                this.game.turnPhase = 'action';
-                this.game.log(`--- ${p.name}'s Turn ---`);
-                this.game.updateState();
-
-                if (p.isAI) {
-                    await this.game.ui.runAI(p);
-                }
-            }
-
-            async endTurn() {
-                const p = this.game.players[this.game.activePlayerIndex];
-
-                // Discard hand and play area
-                p.discard.push(...p.hand);
-                p.discard.push(...p.playArea);
-                p.hand = [];
-                p.playArea = [];
-
-                // Draw new hand
-                this.drawCards(p, 5);
-
-                // Check Game Over
-                if (this.checkGameOver()) {
-                    this.endGame();
-                    return;
-                }
-
-                // Switch Player
-                this.game.activePlayerIndex = (this.game.activePlayerIndex + 1) % this.game.players.length;
-
-                // Break recursion stack for AI vs AI
-                setTimeout(() => this.startTurn(), 0);
-            }
-
-            checkGameOver() {
-                if (this.game.supply['premium_donut'] === 0) return true;
-                let emptyPiles = 0;
-                for (let key in this.game.supply) {
-                    if (this.game.supply[key] === 0) emptyPiles++;
-                }
-                return emptyPiles >= 3;
-            }
-
-            endGame() {
-                this.game.log("--- GAME OVER ---");
-                let scores = [];
-                this.game.players.forEach(p => {
-                    const allCards = [...p.deck, ...p.hand, ...p.discard, ...p.playArea];
-                    let score = 0;
-                    allCards.forEach(c => {
-                        const def = CARDS[c.id];
-                        if (def.points) score += def.points;
-                    });
-                    scores.push({ name: p.name, score: score });
-                    this.game.log(`${p.name}: ${score} points`);
-                });
-
-                const winner = scores.reduce((prev, current) => (prev.score > current.score) ? prev : current);
-                alert(`Game Over! Winner: ${winner.name} with ${winner.score} points.`);
-            }
-
-            applyBasicCardStats(player, cardDef) {
-                if (cardDef.actions) player.actions += cardDef.actions;
-                if (cardDef.buys) player.buys += cardDef.buys;
-                if (cardDef.coins) player.coins += cardDef.coins;
-                if (cardDef.cards) this.drawCards(player, cardDef.cards);
-            }
-
-            async playCard(player, cardInstance) {
-                if (this.game.turnPhase !== 'action') return;
-                if (player.actions <= 0) {
-                    this.game.log("No actions left!");
-                    return;
-                }
-
-                const cardDef = CARDS[cardInstance.id];
-                if (!cardDef.type.includes(CARD_TYPES.ACTION)) return;
-
-                // Move to play area
-                this.moveCard(player.hand, player.playArea, cardInstance.uid);
-                player.actions--;
-
-                this.game.log(`${player.name} plays ${cardDef.name}`);
-
-                this.applyBasicCardStats(player, cardDef);
-
-                if (cardDef.onPlay) {
-                    await cardDef.onPlay(this.game, player);
-                }
-
-                this.game.updateState();
-            }
-
-            playIngredient(player, cardInstance) {
-                if (this.game.turnPhase === 'action') {
-                    this.game.turnPhase = 'buy'; // Auto switch to buy phase on first ingredient
-                }
-
-                const cardDef = CARDS[cardInstance.id];
-                if (!cardDef.type.includes(CARD_TYPES.INGREDIENT)) return;
-
-                this.moveCard(player.hand, player.playArea, cardInstance.uid);
-                player.coins += cardDef.coins;
-                this.game.log(`${player.name} plays ${cardDef.name} (+${cardDef.coins})`);
-                this.game.updateState();
-            }
-
-            playAllIngredients(player) {
-                if (this.game.turnPhase === 'action') {
-                    this.game.turnPhase = 'buy';
-                }
-
-                // Find all ingredients
-                const ingredients = player.hand.filter(c => CARDS[c.id].type.includes(CARD_TYPES.INGREDIENT));
-                ingredients.forEach(t => {
-                    this.moveCard(player.hand, player.playArea, t.uid);
-                    player.coins += CARDS[t.id].coins;
-                });
-                if (ingredients.length > 0)
-                    this.game.log(`${player.name} plays all ingredients`);
-                this.game.updateState();
-            }
-
-            buyCard(player, cardId) {
-                if (this.game.turnPhase === 'action') this.game.turnPhase = 'buy';
-
-                if (player.buys <= 0) {
-                    this.game.log("No buys left!");
-                    return;
-                }
-
-                const cardDef = CARDS[cardId];
-                if (this.game.supply[cardId] <= 0) {
-                    this.game.log("Pile empty!");
-                    return;
-                }
-
-                if (player.coins < cardDef.cost) {
-                    this.game.log("Not enough coins!");
-                    return;
-                }
-
-                player.coins -= cardDef.cost;
-                player.buys--;
-                this.game.supply[cardId]--;
-
-                const newCard = this.game.createCard(cardId);
-                player.discard.push(newCard);
-
-                this.game.log(`${player.name} buys ${cardDef.name}`);
-                this.game.updateState();
-            }
-
-            gainCard(player, cardId) {
-                if (this.game.supply[cardId] > 0) {
-                    this.game.supply[cardId]--;
-                    player.discard.push(this.game.createCard(cardId));
-                    this.game.log(`${player.name} gains ${CARDS[cardId].name}`);
-                } else {
-                    this.game.log(`Could not gain ${CARDS[cardId].name} (Empty)`);
-                }
-                this.game.updateState();
-            }
-
-            trashCards(player, cards) {
-                cards.forEach(c => {
-                    this.moveCard(player.hand, this.game.trash, c.uid); // Move to void essentially
-                    this.game.log(`${player.name} trashes ${CARDS[c.id].name}`);
-                });
-            }
-
-            discardCards(player, cards) {
-                cards.forEach(c => {
-                    this.moveCard(player.hand, player.discard, c.uid);
-                    this.game.log(`${player.name} discards ${CARDS[c.id].name}`);
-                });
-            }
-
-            moveCard(fromArray, toArray, uid) {
-                const idx = fromArray.findIndex(c => c.uid === uid);
-                if (idx !== -1) {
-                    const card = fromArray.splice(idx, 1)[0];
-                    if (toArray) toArray.push(card);
-                }
-            }
+            return engine.players[engine.activePlayerIndex] || engine.players[0];
         }
 
-        class UI {
-            constructor(game) {
-                this.game = game;
-                this.resolveSelection = null;
+        function startNewGame(mode) {
+            sessionToken++;
+            const myToken = sessionToken;
+            isBusy = false;
+            aiPaused = false;
+            document.getElementById('selection-modal').classList.add('hidden');
+            document.getElementById('gameover-modal').classList.add('hidden');
+            logContentEl.innerHTML = '';
 
-                // Bind UI Event Listeners
-                document.getElementById('btn-end-turn').onclick = () => this.game.engine.endTurn();
-                document.getElementById('btn-play-all').onclick = () => {
-                    const p = this.game.players[this.game.activePlayerIndex];
-                    this.game.engine.playAllIngredients(p);
-                };
+            engine.reset(mode);
+            splashEl.classList.add('hidden');
+            shellEl.classList.remove('hidden');
 
-                document.getElementById('modal-confirm').onclick = () => this.confirmSelection();
+            document.getElementById('human-controls').classList.toggle('hidden', mode === 'ai');
+            document.getElementById('ai-spectator-controls').classList.toggle('hidden', mode !== 'ai');
+            document.getElementById('btn-ai-pause').textContent = '⏸ Pause';
+
+            setMobileTab('table');
+            inspectorTextEl.textContent = 'Tap an affordable card during your buy phase to purchase it.';
+            appendLog('New kitchen shift started!');
+            advanceTurnLoop(myToken);
+        }
+
+        async function waitStep(token, ms) {
+            const stepMs = fastMode ? Math.min(80, Math.floor(ms * 0.2)) : ms;
+            await new Promise((r) => setTimeout(r, stepMs));
+            while (aiPaused && token === sessionToken && !engine.isGameOver) {
+                await new Promise((r) => setTimeout(r, 120));
             }
+            if (token !== sessionToken) throw new Error('SESSION_ABORTED');
+        }
 
-            render() {
-                this.renderSupply();
-                this.renderPlayer();
-                this.renderPlayArea();
-                this.renderOpponent();
-                this.updateControls();
-            }
+        async function advanceTurnLoop(token) {
+            try {
+                while (token === sessionToken && !engine.isGameOver) {
+                    const current = engine.beginTurn();
+                    renderAll();
+                    if (!current || engine.isGameOver) break;
 
-            log(msg) {
-                const logEl = document.getElementById('log-content');
-                const entry = document.createElement('div');
-                entry.className = 'log-entry';
-                if (msg.startsWith('---')) entry.className += ' log-turn';
-                entry.innerText = msg;
-                logEl.prepend(entry);
-
-                if (logEl.children.length > 20) {
-                    logEl.removeChild(logEl.lastChild);
-                }
-            }
-
-            renderSupply() {
-                const list = document.getElementById('supply-list');
-                list.innerHTML = '';
-
-                // Group by type or just list? Let's order by cost.
-                const supplyKeys = Object.keys(this.game.supply).sort((a, b) => CARDS[a].cost - CARDS[b].cost);
-
-                supplyKeys.forEach(key => {
-                    const count = this.game.supply[key];
-                    const def = CARDS[key];
-                    const item = document.createElement('div');
-                    item.className = `card ${def.type[0]}`;
-                    if (count === 0) item.style.opacity = '0.5';
-
-                    item.innerHTML = `
-                <div class="card-cost">${def.cost}</div>
-                <div class="card-header">${def.name} (${count})</div>
-                <div class="card-emoji">${def.emoji || ''}</div>
-                <div class="card-body">${def.text}</div>
-            `;
-
-                    item.onclick = () => this.handleSupplyClick(key);
-                    list.appendChild(item);
-                });
-            }
-
-            renderPlayer() {
-                const p = this.game.players[this.game.activePlayerIndex];
-                if (p.isAI) return; // Don't render AI hand
-
-                document.getElementById('stat-actions').innerText = p.actions;
-                document.getElementById('stat-buys').innerText = p.buys;
-                document.getElementById('stat-coins').innerText = p.coins;
-
-                const handContainer = document.getElementById('hand-container');
-                handContainer.innerHTML = '';
-
-                p.hand.sort((a, b) => {
-                    // Sort: Action, Ingredient, Victory
-                    const typeOrder = { action: 0, ingredient: 1, victory: 2 };
-                    const typeA = typeOrder[CARDS[a.id].type[0]] || 3;
-                    const typeB = typeOrder[CARDS[b.id].type[0]] || 3;
-                    return typeA - typeB || CARDS[b.id].cost - CARDS[a.id].cost;
-                });
-
-                p.hand.forEach(c => {
-                    const def = CARDS[c.id];
-                    const el = document.createElement('div');
-                    el.className = `card ${def.type[0]}`;
-
-                    el.innerHTML = `
-                <div class="card-cost">${def.cost}</div>
-                <div class="card-header">${def.name}</div>
-                <div class="card-emoji">${def.emoji || ''}</div>
-                <div class="card-body">${def.text}</div>
-            `;
-                    el.onclick = () => this.handleHandClick(c);
-                    handContainer.appendChild(el);
-                });
-            }
-
-            renderPlayArea() {
-                const p = this.game.players[this.game.activePlayerIndex];
-                const area = document.getElementById('play-area');
-                area.innerHTML = '';
-                p.playArea.forEach(c => {
-                    const def = CARDS[c.id];
-                    const el = document.createElement('div');
-                    el.className = `card ${def.type[0]}`;
-                    el.style.transform = 'scale(0.85)';
-                    el.innerHTML = `
-                <div class="card-cost">${def.cost}</div>
-                <div class="card-header">${def.name}</div>
-                <div class="card-emoji">${def.emoji || ''}</div>
-             `;
-                    area.appendChild(el);
-                });
-            }
-
-            renderOpponent() {
-                const pIndex = (this.game.activePlayerIndex + 1) % 2;
-                const p = this.game.players[pIndex];
-                const text = `${p.name} - Hand: ${p.hand.length}, Deck: ${p.deck.length}`;
-                document.getElementById('opp-status').innerText = text;
-            }
-
-            updateControls() {
-                const p = this.game.players[this.game.activePlayerIndex];
-                if (p.isAI) {
-                    document.getElementById('controls-area').classList.add('hidden');
-                } else {
-                    document.getElementById('controls-area').classList.remove('hidden');
-                }
-            }
-
-            handleHandClick(card) {
-                const p = this.game.players[this.game.activePlayerIndex];
-                const def = CARDS[card.id];
-
-                if (def.type.includes(CARD_TYPES.ACTION)) {
-                    this.game.engine.playCard(p, card);
-                } else if (def.type.includes(CARD_TYPES.INGREDIENT)) {
-                    this.game.engine.playIngredient(p, card);
-                }
-            }
-
-            handleSupplyClick(cardId) {
-                const p = this.game.players[this.game.activePlayerIndex];
-                // Can only buy in buy phase or if we have buys? 
-                // Dominion rule: Playing an ingredient starts buy phase. Buying a card also enforces buy phase.
-                this.game.engine.buyCard(p, cardId);
-            }
-
-            // --- Selection UI ---
-
-            showModal(title, msg) {
-                document.getElementById('modal-overlay').classList.remove('hidden');
-                document.getElementById('modal-title').innerText = title;
-                document.getElementById('modal-message').innerText = msg;
-                document.getElementById('modal-cards').innerHTML = '';
-                document.getElementById('modal-confirm').classList.add('hidden');
-            }
-
-            hideModal() {
-                document.getElementById('modal-overlay').classList.add('hidden');
-            }
-
-            // Promise-based selection
-            async selectCardsToDiscard(player, count, msg, options = {}) {
-                return this.selectCards(player.hand, count, msg, 'Discard', options);
-            }
-            async selectCardsToTrash(player, count, msg, options = {}) {
-                return this.selectCards(player.hand, count, msg, 'Trash', options);
-            }
-            async selectOneCardFromHand(player, filterFunc, msg) {
-                const candidates = player.hand.filter(filterFunc);
-                if (candidates.length === 0) return null;
-                const result = await this.selectCards(candidates, 1, msg, 'Select', { min: 1, max: 1 });
-                return result.length > 0 ? result[0].id : null;
-            }
-
-            async selectCardToGain(maxCost) {
-                // Special modal for supply
-                return new Promise(resolve => {
-                    this.showModal('Gain a Card', `Choose a card costing up to ${maxCost}`);
-                    const container = document.getElementById('modal-cards');
-
-                    for (let key in this.game.supply) {
-                        const def = CARDS[key];
-                        if (def.cost <= maxCost && this.game.supply[key] > 0) {
-                            const el = document.createElement('div');
-                            el.className = `card ${def.type[0]}`;
-                            el.innerHTML = `<div class="card-header">${def.name}</div><div class="card-cost">${def.cost}</div>`;
-                            el.onclick = () => {
-                                this.hideModal();
-                                resolve(key);
-                            };
-                            container.appendChild(el);
-                        }
-                    }
-
-                    // Add a "Cancel/None" option if it's optional? Usually forced if available.
-                    // But if nothing available?
-                    if (container.children.length === 0) {
-                        this.hideModal();
-                        resolve(null);
-                    }
-                });
-            }
-
-            async selectCards(sourceList, countOrString, msg, actionBtnText, options = {}) {
-                // options: min, max. If countOrString is 'any', min=0, max=sourceList.length
-                let min = 0, max = 0;
-                if (countOrString === 'any') {
-                    min = 0;
-                    max = sourceList.length;
-                } else {
-                    max = countOrString;
-                    min = options.min !== undefined ? options.min : 0;
-                }
-
-                return new Promise(resolve => {
-                    if (sourceList.length === 0) {
-                        resolve([]);
+                    if (!current.isAI) {
+                        // Wait for human interaction
                         return;
                     }
 
-                    this.showModal(msg, `Select ${min === max ? min : min + '-' + max} cards.`);
-                    const container = document.getElementById('modal-cards');
+                    isBusy = true;
+                    renderAll();
+                    await runAITurn(engine, current, () => waitStep(token, 380));
+                    isBusy = false;
+                    renderAll();
+                }
+
+                if (token === sessionToken && engine.isGameOver && engine.gameResult) {
+                    showGameOverModal(engine.gameResult);
+                }
+            } catch (err) {
+                if (err && err.message === 'SESSION_ABORTED') return;
+                console.error(err);
+            }
+        }
+
+        // --- Human UI Controller for Interactive Card Prompts ---
+        const humanController = {
+            selectCardsFromHand(player, opts) {
+                const candidates = opts.candidates || player.hand;
+                const min = Math.min(opts.min || 0, candidates.length);
+                const max = Math.min(
+                    opts.max !== undefined ? opts.max : candidates.length,
+                    candidates.length
+                );
+
+                if (candidates.length === 0) return Promise.resolve([]);
+
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('selection-modal');
+                    const titleEl = document.getElementById('modal-title');
+                    const msgEl = document.getElementById('modal-message');
+                    const counterEl = document.getElementById('modal-counter');
+                    const cardsEl = document.getElementById('modal-cards');
                     const confirmBtn = document.getElementById('modal-confirm');
-                    confirmBtn.innerText = actionBtnText;
+                    const skipBtn = document.getElementById('modal-skip');
+
                     confirmBtn.classList.remove('hidden');
+                    titleEl.textContent = opts.title || 'Select cards';
+                    msgEl.textContent = opts.message || '';
+                    cardsEl.innerHTML = '';
 
-                    let selected = [];
+                    const selected = [];
+                    const syncSelectionState = () => {
+                        const rangeText = min === max ? `${min}` : `${min}–${max}`;
+                        counterEl.textContent = `${selected.length} / ${rangeText} selected`;
+                        confirmBtn.textContent = opts.confirmLabel || 'Confirm';
+                        confirmBtn.disabled = selected.length < min;
+                        skipBtn.classList.toggle('hidden', min > 0);
+                    };
 
-                    // Render selection cards
-                    sourceList.forEach(c => {
+                    candidates.forEach((c) => {
                         const def = CARDS[c.id];
-                        const el = document.createElement('div');
+                        const el = document.createElement('button');
+                        el.type = 'button';
                         el.className = `card ${def.type[0]}`;
-                        el.innerHTML = `<div class="card-header">${def.name}</div><div class="card-emoji">${def.emoji || ''}</div>`;
-
-                        el.onclick = () => {
+                        el.innerHTML = `
+                            <div class="card-top">
+                                <span class="card-cost">${def.cost}</span>
+                            </div>
+                            <div class="card-emoji">${def.emoji}</div>
+                            <div class="card-name">${def.name}</div>
+                            <div class="card-desc">${def.shortText}</div>
+                        `;
+                        el.addEventListener('click', () => {
                             const idx = selected.indexOf(c);
                             if (idx >= 0) {
                                 selected.splice(idx, 1);
                                 el.classList.remove('selected');
-                            } else {
-                                if (selected.length < max) {
-                                    selected.push(c);
-                                    el.classList.add('selected');
-                                }
+                            } else if (max === 1) {
+                                selected.length = 0;
+                                cardsEl.querySelectorAll('.card.selected').forEach((n) => n.classList.remove('selected'));
+                                selected.push(c);
+                                el.classList.add('selected');
+                            } else if (selected.length < max) {
+                                selected.push(c);
+                                el.classList.add('selected');
                             }
-                        };
-                        container.appendChild(el);
+                            syncSelectionState();
+                        });
+                        cardsEl.appendChild(el);
                     });
 
-                    this.resolveSelection = () => {
-                        if (selected.length >= min) {
-                            this.hideModal();
-                            resolve(selected);
-                        } else {
-                            alert(`Please select at least ${min} cards.`);
-                        }
+                    confirmBtn.onclick = () => {
+                        if (selected.length < min) return;
+                        modal.classList.add('hidden');
+                        resolve([...selected]);
                     };
 
-                    confirmBtn.onclick = this.resolveSelection;
+                    skipBtn.onclick = () => {
+                        modal.classList.add('hidden');
+                        resolve([]);
+                    };
+
+                    syncSelectionState();
+                    modal.classList.remove('hidden');
+                });
+            },
+
+            selectCardToGain(_player, maxCost, opts = {}) {
+                const eligible = engine.getGainableCards(maxCost);
+                if (eligible.length === 0) return Promise.resolve(null);
+
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('selection-modal');
+                    const titleEl = document.getElementById('modal-title');
+                    const msgEl = document.getElementById('modal-message');
+                    const counterEl = document.getElementById('modal-counter');
+                    const cardsEl = document.getElementById('modal-cards');
+                    const confirmBtn = document.getElementById('modal-confirm');
+                    const skipBtn = document.getElementById('modal-skip');
+
+                    titleEl.textContent = opts.title || 'Gain a card';
+                    msgEl.textContent = opts.message || `Tap a card costing up to ${maxCost} coins`;
+                    counterEl.textContent = `Up to ${maxCost} coins`;
+                    confirmBtn.classList.add('hidden');
+                    skipBtn.classList.add('hidden');
+                    cardsEl.innerHTML = '';
+
+                    eligible.forEach((key) => {
+                        const def = CARDS[key];
+                        const count = engine.supply[key];
+                        const el = document.createElement('button');
+                        el.type = 'button';
+                        el.className = `card ${def.type[0]}`;
+                        el.innerHTML = `
+                            <div class="card-top">
+                                <span class="card-cost">${def.cost}</span>
+                                <span class="card-count">×${count}</span>
+                            </div>
+                            <div class="card-emoji">${def.emoji}</div>
+                            <div class="card-name">${def.name}</div>
+                            <div class="card-desc">${def.shortText}</div>
+                        `;
+                        el.addEventListener('click', () => {
+                            confirmBtn.classList.remove('hidden');
+                            modal.classList.add('hidden');
+                            resolve(key);
+                        });
+                        cardsEl.appendChild(el);
+                    });
+
+                    modal.classList.remove('hidden');
                 });
             }
+        };
 
-            // AI Logic placeholder
-            async runAI(player) {
-                // Sleep for realism
-                await new Promise(r => setTimeout(r, 1000));
+        // --- Interactions ---
+        async function onHandCardClick(card) {
+            const active = engine.players[engine.activePlayerIndex];
+            if (!active || active.isAI || isBusy || engine.isGameOver) return;
 
-                // 1. Play Action? 
-                // Simple AI: Play first action found. 
-                // Iterate until no actions or no more cards
-                let actionCards = player.hand.filter(c => CARDS[c.id].type.includes(CARD_TYPES.ACTION));
-                while (player.actions > 0 && actionCards.length > 0) {
-                    const cardToPlay = actionCards[0];
-                    // Mock choices for complex cards for AI to avoid stuck UI
-                    // We need to bypass UI prompts for AI
-                    await this.forcePlayAI(player, cardToPlay);
+            const def = CARDS[card.id];
+            inspectorTextEl.textContent = `${def.emoji} ${def.name} (${def.cost} coins): ${def.text}`;
 
-                    // Refresh list
-                    actionCards = player.hand.filter(c => CARDS[c.id].type.includes(CARD_TYPES.ACTION));
-                    await new Promise(r => setTimeout(r, 500));
-                }
-
-                // 2. Play Ingredients
-                this.game.engine.playAllIngredients(player);
-                await new Promise(r => setTimeout(r, 500));
-
-                // 3. Buy
-                // Buy most expensive affordable
-                let bestKey = null;
-                let maxCost = -1;
-
-                // Priority: Provincs (Premium Donut) > Dutchy (Donut) if rich? 
-                // Random Strategy: Big Money
-                Object.keys(this.game.supply).forEach(key => {
-                    const cost = CARDS[key].cost;
-                    if (this.game.supply[key] > 0 && player.coins >= cost && cost > maxCost) {
-                        // Don't buy curse/copper equivalents if useless? 
-                        // Just greedy max cost.
-                        maxCost = cost;
-                        bestKey = key;
-                    }
-                });
-
-                if (bestKey) {
-                    this.game.engine.buyCard(player, bestKey);
-                    await new Promise(r => setTimeout(r, 500));
-                }
-
-                this.game.engine.endTurn();
-            }
-
-            // Helper to run playCard without UI interaction for AI
-            async forcePlayAI(player, card) {
-                // We override the UI selectors for AI locally?
-                // Actually, we can just "monkey patch" the UI methods briefly or pass a flag
-                // But simpler: AI just plays actions that don't require decisions, or we implement random decision for AI
-
-                // Store original methods
-                const originalSelectCards = this.selectCards;
-                const originalSelectGain = this.selectCardToGain;
-
-                // Mock method replacements
-                this.selectCards = async (list, count, msg, btn, opts) => {
-                    // AI strategy: always pick first N available or 0 if optional
-                    const min = opts && opts.min ? opts.min : 0;
-                    return list.slice(0, min);
-                };
-                this.selectCardToGain = async (maxCost) => {
-                    // Find most expensive
-                    let best = null;
-                    let bsCost = -1;
-                    for (let k in this.game.supply) {
-                        if (CARDS[k].cost <= maxCost && this.game.supply[k] > 0 && CARDS[k].cost > bsCost) {
-                            best = k; bsCost = CARDS[k].cost;
-                        }
-                    }
-                    return best;
-                };
-
+            if (def.type.includes(CARD_TYPES.ACTION)) {
+                if (engine.turnPhase !== 'action' || active.actions <= 0) return;
+                isBusy = true;
+                renderAll();
                 try {
-                    await this.game.engine.playCard(player, card);
+                    await engine.playActionCard(active, card, humanController);
                 } finally {
-                    // Restore
-                    this.selectCards = originalSelectCards;
-                    this.selectCardToGain = originalSelectGain;
+                    isBusy = false;
+                    renderAll();
                 }
+            } else if (def.type.includes(CARD_TYPES.INGREDIENT)) {
+                engine.playIngredient(active, card);
             }
         }
 
-        // Global Launcher
-        const game = new Game();
-        function startGame(mode) {
-            game.init(mode);
+        function onSupplyCardClick(cardId) {
+            const def = CARDS[cardId];
+            inspectorTextEl.textContent = `${def.emoji} ${def.name} (cost ${def.cost}, left ${engine.supply[cardId]}): ${def.text}`;
+
+            const active = engine.players[engine.activePlayerIndex];
+            if (!active || active.isAI || isBusy || engine.isGameOver) return;
+
+            if ((engine.supply[cardId] || 0) <= 0) {
+                inspectorTextEl.textContent = `${def.name} is sold out!`;
+                return;
+            }
+            if (active.buys <= 0) {
+                inspectorTextEl.textContent = `No buys remaining this turn.`;
+                return;
+            }
+            if (active.coins < def.cost) {
+                const unplayedCoins = active.getHandIngredientCoins();
+                if (unplayedCoins > 0 && active.coins + unplayedCoins >= def.cost) {
+                    inspectorTextEl.textContent = `Tap "Play ingredients (+${unplayedCoins})" below first to afford ${def.name}!`;
+                } else {
+                    inspectorTextEl.textContent = `Need ${def.cost} coins for ${def.name} (you have ${active.coins}).`;
+                }
+                return;
+            }
+
+            engine.buyCard(active, cardId);
         }
 
+        function onPlayAllIngredients() {
+            const active = engine.players[engine.activePlayerIndex];
+            if (!active || active.isAI || isBusy || engine.isGameOver) return;
+            engine.playAllIngredients(active);
+        }
+
+        function onEndTurn() {
+            const active = engine.players[engine.activePlayerIndex];
+            if (!active || active.isAI || isBusy || engine.isGameOver) return;
+            const myToken = sessionToken;
+            const res = engine.finishTurn();
+            if (res) {
+                showGameOverModal(res);
+                return;
+            }
+            if (activeTab === 'shop') {
+                setMobileTab('table');
+            }
+            advanceTurnLoop(myToken);
+        }
+
+        // --- Rendering ---
+        function renderAll() {
+            if (!engine.players || engine.players.length === 0) return;
+            renderTopBar();
+            renderSupply();
+            renderTableAndHand();
+            renderDeckAndStats();
+        }
+
+        function renderTopBar() {
+            const oppPill = document.getElementById('opponent-pill');
+            const active = engine.players[engine.activePlayerIndex];
+            const isNarrow = window.innerWidth < 520;
+
+            if (engine.mode === 'human') {
+                const bot = engine.players[1];
+                const botTurn = active === bot && !engine.isGameOver;
+                oppPill.classList.toggle('thinking', botTurn);
+                if (botTurn) {
+                    oppPill.textContent = isNarrow
+                        ? `🤖 Bot turn… (${bot.getScore()} pts)`
+                        : `🤖 Donut Bot thinking… (${bot.getScore()} pts)`;
+                } else {
+                    oppPill.textContent = isNarrow
+                        ? `🤖 Bot: ${bot.getScore()} pts`
+                        : `🤖 Bot: ${bot.getScore()} pts · Deck ${bot.deck.length}`;
+                }
+            } else {
+                const [p0, p1] = engine.players;
+                oppPill.classList.add('thinking');
+                oppPill.textContent = isNarrow
+                    ? `${p0.getScore()} vs ${p1.getScore()} pts`
+                    : `${p0.name}: ${p0.getScore()} vs ${p1.name}: ${p1.getScore()}`;
+            }
+
+            const emptyCount = engine.getEmptyPiles().length;
+            document.getElementById('empty-piles-indicator').textContent = `${emptyCount} / 3 empty`;
+        }
+
+        function renderSupply() {
+            const listEl = document.getElementById('supply-list');
+            listEl.innerHTML = '';
+
+            const active = engine.players[engine.activePlayerIndex];
+            const humanCanBuy =
+                Boolean(active) && !active.isAI && !isBusy && !engine.isGameOver && active.buys > 0;
+
+            let affordableCount = 0;
+            for (const key of SUPPLY_ORDER) {
+                const def = CARDS[key];
+                const count = engine.supply[key];
+                const canAfford = humanCanBuy && count > 0 && active.coins >= def.cost;
+                if (canAfford && key !== 'flour') affordableCount++;
+
+                if (supplyFilter !== 'all' && def.type[0] !== supplyFilter) continue;
+
+                const cardEl = document.createElement('button');
+                cardEl.type = 'button';
+                cardEl.dataset.cardId = key;
+                cardEl.className = `card supply-card ${def.type[0]}`;
+                if (count === 0) cardEl.classList.add('depleted');
+                else if (canAfford) cardEl.classList.add('affordable');
+
+                cardEl.innerHTML = `
+                    <div class="card-top">
+                        <span class="card-cost">${def.cost}</span>
+                        <span class="card-count ${count <= 2 ? 'low' : ''}">${count === 0 ? 'Out' : '×' + count}</span>
+                    </div>
+                    <div class="card-emoji">${def.emoji}</div>
+                    <div class="card-name">${def.name}</div>
+                    <div class="card-desc">${def.shortText}</div>
+                `;
+                cardEl.addEventListener('mouseenter', () => {
+                    inspectorTextEl.textContent = `${def.emoji} ${def.name} (cost ${def.cost}, left ${count}): ${def.text}`;
+                });
+                cardEl.addEventListener('click', () => onSupplyCardClick(key));
+                listEl.appendChild(cardEl);
+            }
+
+            document.getElementById('badge-shop').textContent = String(affordableCount);
+            document
+                .getElementById('tab-btn-shop')
+                .classList.toggle('shop-ready', humanCanBuy && engine.turnPhase === 'buy' && affordableCount > 0);
+        }
+
+        function renderTableAndHand() {
+            const active = engine.players[engine.activePlayerIndex];
+            const viewer = getPerspectivePlayer();
+            const isHumanTurn = Boolean(active) && !active.isAI && !engine.isGameOver;
+
+            document.getElementById('turn-label').textContent = `${active.name} • Turn ${active.turnsTaken || 1}`;
+            const phasePill = document.getElementById('phase-pill');
+            if (engine.isGameOver) {
+                phasePill.className = 'phase-tag phase-wait';
+                phasePill.textContent = 'Game over';
+            } else if (active.isAI) {
+                phasePill.className = 'phase-tag phase-wait';
+                phasePill.textContent = 'Bot turn';
+            } else if (engine.turnPhase === 'action') {
+                phasePill.className = 'phase-tag phase-action';
+                phasePill.textContent = 'Action phase';
+            } else {
+                phasePill.className = 'phase-tag phase-buy';
+                phasePill.textContent = 'Buy phase';
+            }
+
+            // Played cards area (compact grouped chips so large combo turns never overflow)
+            const playAreaEl = document.getElementById('play-area');
+            playAreaEl.innerHTML = '';
+            document.getElementById('play-zone-title').textContent = active.isAI
+                ? `${active.name} played`
+                : 'Played this turn';
+            document.getElementById('play-zone-count').textContent = `${active.playArea.length} card${active.playArea.length === 1 ? '' : 's'}`;
+
+            if (active.playArea.length === 0) {
+                const hint = document.createElement('div');
+                hint.className = 'empty-hint';
+                hint.textContent = isHumanTurn
+                    ? 'Play actions or ingredients from your hand below.'
+                    : 'Waiting for cards to hit the counter...';
+                playAreaEl.appendChild(hint);
+            } else {
+                const grouped = new Map();
+                for (const c of active.playArea) {
+                    grouped.set(c.id, (grouped.get(c.id) || 0) + 1);
+                }
+                for (const [id, qty] of grouped.entries()) {
+                    const def = CARDS[id];
+                    const chip = document.createElement('div');
+                    chip.className = `played-chip ${def.type[0]}`;
+                    chip.textContent = `${def.emoji} ${def.name}${qty > 1 ? ' ×' + qty : ''}`;
+                    playAreaEl.appendChild(chip);
+                }
+            }
+
+            // Hand area: in Human mode, always show Human's hand (even while Bot acts, so you can plan!)
+            const handContainer = document.getElementById('hand-container');
+            handContainer.innerHTML = '';
+            document.getElementById('badge-table').textContent = String(viewer.hand.length);
+
+            if (engine.mode === 'ai') {
+                document.getElementById('hand-label').textContent = `${viewer.name}'s hand (${viewer.hand.length})`;
+                document.getElementById('hand-hint').textContent = 'AI spectator mode';
+            } else {
+                document.getElementById('hand-label').textContent = `Your hand (${viewer.hand.length})`;
+                document.getElementById('hand-hint').textContent = isHumanTurn
+                    ? engine.turnPhase === 'action'
+                        ? 'Tap an action or play ingredients'
+                        : 'Play ingredients or open Shop to buy'
+                    : 'Next-turn hand (waiting for Donut Bot)';
+            }
+
+            const sortedHand = [...viewer.hand].sort((a, b) => {
+                const order = { action: 0, ingredient: 1, victory: 2 };
+                const ta = order[CARDS[a.id].type[0]] ?? 3;
+                const tb = order[CARDS[b.id].type[0]] ?? 3;
+                return ta - tb || CARDS[b.id].cost - CARDS[a.id].cost;
+            });
+
+            for (const c of sortedHand) {
+                const def = CARDS[c.id];
+                const canPlayAction =
+                    isHumanTurn &&
+                    !isBusy &&
+                    def.type.includes(CARD_TYPES.ACTION) &&
+                    engine.turnPhase === 'action' &&
+                    viewer.actions > 0;
+                const canPlayIng =
+                    isHumanTurn && !isBusy && def.type.includes(CARD_TYPES.INGREDIENT);
+
+                const el = document.createElement('button');
+                el.type = 'button';
+                el.dataset.cardId = c.id;
+                el.className = `card hand-card ${def.type[0]}`;
+                if (canPlayAction || canPlayIng) {
+                    el.classList.add('playable');
+                } else {
+                    el.classList.add('disabled-card');
+                }
+
+                el.innerHTML = `
+                    <div class="card-top">
+                        <span class="card-cost">${def.cost}</span>
+                    </div>
+                    <div class="card-emoji">${def.emoji}</div>
+                    <div class="card-name">${def.name}</div>
+                    <div class="card-desc">${def.shortText}</div>
+                `;
+                el.addEventListener('click', () => onHandCardClick(c));
+                handContainer.appendChild(el);
+            }
+        }
+
+        function renderDeckAndStats() {
+            const active = engine.players[engine.activePlayerIndex];
+            const viewer = getPerspectivePlayer();
+            const isHumanTurn = Boolean(active) && !active.isAI && !isBusy && !engine.isGameOver;
+
+            const statSource = engine.mode === 'human' && isHumanTurn ? viewer : active;
+            document.getElementById('stat-actions').textContent = String(statSource.actions);
+            document.getElementById('stat-buys').textContent = String(statSource.buys);
+            document.getElementById('stat-coins').textContent = String(statSource.coins);
+            document.getElementById('stat-deck').textContent = `${viewer.deck.length}/${viewer.discard.length}`;
+
+            const handIngCoins = viewer.getHandIngredientCoins();
+            const playAllBtn = document.getElementById('btn-play-all');
+            playAllBtn.disabled = !isHumanTurn || handIngCoins === 0;
+            playAllBtn.textContent =
+                handIngCoins > 0 ? `🪙 Play ingredients (+${handIngCoins})` : '🪙 Play ingredients';
+
+            document.getElementById('btn-end-turn').disabled = !isHumanTurn;
+            updateShopToggleButton();
+
+            // Deck breakdown panel
+            const vp = viewer.getScore();
+            document.getElementById('badge-score').textContent = `${vp} pts`;
+            document.getElementById('metric-vp').textContent = String(vp);
+            document.getElementById('metric-total').textContent = String(viewer.getAllCards().length);
+            document.getElementById('metric-draw').textContent = String(viewer.deck.length);
+            document.getElementById('metric-discard').textContent = String(viewer.discard.length);
+            document.getElementById('trash-count-label').textContent = `🗑️ Trash: ${engine.trash.length}`;
+
+            const pillsEl = document.getElementById('deck-pills');
+            pillsEl.innerHTML = '';
+            const counts = viewer.getCardCounts();
+            for (const key of SUPPLY_ORDER) {
+                if (!counts[key]) continue;
+                const def = CARDS[key];
+                const pill = document.createElement('span');
+                pill.className = 'deck-pill';
+                pill.textContent = `${def.emoji} ${def.name} ×${counts[key]}`;
+                pillsEl.appendChild(pill);
+            }
+        }
+
+        function showGameOverModal(result) {
+            const modal = document.getElementById('gameover-modal');
+            const titleEl = document.getElementById('gameover-title');
+            const reasonEl = document.getElementById('gameover-reason');
+            const scoresEl = document.getElementById('gameover-scores');
+
+            if (result.isTie) {
+                titleEl.textContent = '🤝 Shared bakery victory!';
+            } else if (!result.winner.isAI) {
+                titleEl.textContent = '🏆 Master Donut Chef!';
+            } else {
+                titleEl.textContent = `🤖 ${result.winner.name} wins!`;
+            }
+
+            if (result.emptyPiles.includes('premium_donut')) {
+                reasonEl.textContent = 'All Premium donuts sold out!';
+            } else if (result.emptyPiles.length >= 3) {
+                const names = result.emptyPiles.map((k) => CARDS[k].name).join(', ');
+                reasonEl.textContent = `Three supply piles emptied (${names}).`;
+            } else {
+                reasonEl.textContent = `Turn limit reached after ${result.turnCount} turns.`;
+            }
+
+            scoresEl.innerHTML = '';
+            result.standings.forEach((s, idx) => {
+                const row = document.createElement('div');
+                const isWinnerRow = !result.isTie && idx === 0;
+                row.className = `score-row ${isWinnerRow ? 'winner' : ''}`;
+                const recipeSummary = ['premium_donut', 'donut', 'donut_hole']
+                    .filter((k) => s.counts[k])
+                    .map((k) => `${CARDS[k].emoji}×${s.counts[k]}`)
+                    .join('  ');
+
+                row.innerHTML = `
+                    <div>
+                        <div style="font-weight: 900; font-size: 1rem;">${isWinnerRow ? '👑 ' : ''}${s.name}</div>
+                        <div style="font-size: 0.78rem; color: var(--ink-muted);">
+                            ${s.turnsTaken} turns • ${s.totalCards} cards ${recipeSummary ? '• ' + recipeSummary : ''}
+                        </div>
+                    </div>
+                    <div style="font-size: 1.35rem; font-weight: 900; color: var(--berry-dark);">
+                        ${s.score} pts
+                    </div>
+                `;
+                scoresEl.appendChild(row);
+            });
+
+            modal.classList.remove('hidden');
+        }
+
+        function populateRulesCatalog() {
+            const cat = document.getElementById('rules-catalog');
+            cat.innerHTML = '';
+            for (const key of SUPPLY_ORDER) {
+                const def = CARDS[key];
+                const div = document.createElement('div');
+                div.className = 'rule-card-item';
+                div.innerHTML = `
+                    <div style="font-weight: 800;">${def.emoji} ${def.name} <span style="opacity:0.7;">(${def.cost} coins)</span></div>
+                    <div style="color: var(--ink-muted); margin-top: 2px;">${def.text}</div>
+                `;
+                cat.appendChild(div);
+            }
+        }
+
+        // --- Wire Event Listeners ---
+        document.getElementById('btn-start-human').addEventListener('click', () => startNewGame('human'));
+        document.getElementById('btn-start-ai').addEventListener('click', () => startNewGame('ai'));
+        document.getElementById('btn-splash-rules').addEventListener('click', () => {
+            document.getElementById('rules-modal').classList.remove('hidden');
+        });
+
+        document.getElementById('btn-rules').addEventListener('click', () => {
+            document.getElementById('rules-modal').classList.remove('hidden');
+        });
+        document.getElementById('btn-close-rules').addEventListener('click', () => {
+            document.getElementById('rules-modal').classList.add('hidden');
+        });
+        document.getElementById('rules-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'rules-modal') {
+                document.getElementById('rules-modal').classList.add('hidden');
+            }
+        });
+
+        document.getElementById('btn-speed').addEventListener('click', (e) => {
+            fastMode = !fastMode;
+            e.currentTarget.classList.toggle('active', fastMode);
+        });
+
+        document.getElementById('btn-menu').addEventListener('click', () => {
+            sessionToken++;
+            isBusy = false;
+            document.getElementById('selection-modal').classList.add('hidden');
+            document.getElementById('gameover-modal').classList.add('hidden');
+            shellEl.classList.add('hidden');
+            splashEl.classList.remove('hidden');
+        });
+
+        document.querySelectorAll('.mobile-tab').forEach((btn) => {
+            btn.addEventListener('click', () => setMobileTab(btn.dataset.tab));
+        });
+
+        document.querySelectorAll('.filter-chip').forEach((chip) => {
+            chip.addEventListener('click', () => {
+                supplyFilter = chip.dataset.filter;
+                document.querySelectorAll('.filter-chip').forEach((c) => c.classList.toggle('active', c === chip));
+                renderSupply();
+            });
+        });
+
+        document.getElementById('btn-play-all').addEventListener('click', onPlayAllIngredients);
+        document.getElementById('btn-shop-toggle').addEventListener('click', () => {
+            setMobileTab(activeTab === 'shop' ? 'table' : 'shop');
+        });
+        document.getElementById('btn-end-turn').addEventListener('click', onEndTurn);
+
+        document.getElementById('btn-ai-pause').addEventListener('click', (e) => {
+            aiPaused = !aiPaused;
+            e.currentTarget.textContent = aiPaused ? '▶ Resume' : '⏸ Pause';
+        });
+        document.getElementById('btn-ai-restart').addEventListener('click', () => startNewGame('ai'));
+
+        document.getElementById('btn-gameover-replay').addEventListener('click', () => startNewGame(engine.mode));
+        document.getElementById('btn-gameover-menu').addEventListener('click', () => {
+            sessionToken++;
+            document.getElementById('gameover-modal').classList.add('hidden');
+            shellEl.classList.add('hidden');
+            splashEl.classList.remove('hidden');
+        });
+
+        populateRulesCatalog();
+        window.__donutChefEngine = engine;
     </script>
 </body>
 

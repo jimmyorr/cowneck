@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Shore Road Merge Simulator</title>
     <!-- sync-start:metadata -->
     <meta name="description" content="Simulate the infamous southbound merge near Mill Pond Rd. Tune driver personalities from zipper mergers to early mergers and observe real-time traffic flow.">
@@ -60,7 +60,6 @@
     </script>
     <!-- sync-end:metadata -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -107,6 +106,15 @@
             box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
             cursor: pointer;
         }
+        @media (pointer: coarse) {
+            input[type=range] {
+                height: 8px;
+            }
+            input[type=range]::-webkit-slider-thumb {
+                width: 24px;
+                height: 24px;
+            }
+        }
         html, body {
             height: 100%;
             height: 100dvh;
@@ -119,20 +127,22 @@
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
+        #sim-top-bar {
+            top: max(0.625rem, calc(env(safe-area-inset-top, 0px) + 0.35rem));
+        }
         @media (max-width: 767px) {
             #controls-panel {
                 top: auto;
                 bottom: 0;
-                /* Keep drawer comfortably below Safari address bar and dynamic island */
-                max-height: calc(100dvh - max(56px, calc(env(safe-area-inset-top) + 12px)));
-                max-height: calc(100svh - max(56px, calc(env(safe-area-inset-top) + 12px)));
+                max-height: calc(100dvh - max(56px, calc(env(safe-area-inset-top, 0px) + 12px)));
+                max-height: calc(100svh - max(56px, calc(env(safe-area-inset-top, 0px) + 12px)));
                 height: auto;
-                padding-bottom: max(1.25rem, calc(env(safe-area-inset-bottom) + 0.75rem));
+                padding-bottom: max(1.25rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));
                 overscroll-behavior: contain;
                 -webkit-overflow-scrolling: touch;
             }
             #mobile-bottom-bar {
-                bottom: max(0.75rem, env(safe-area-inset-bottom));
+                bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
             }
         }
     </style>
@@ -143,7 +153,7 @@
     <div id="sheet-backdrop" class="fixed inset-0 bg-black/65 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none md:hidden"></div>
 
     <!-- CONTROLS & STATS PANEL: MODAL SHEET ON MOBILE, COMPACT SIDEBAR ON DESKTOP -->
-    <aside id="controls-panel" class="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl custom-glass p-4 md:p-3.5 shadow-2xl transition-transform duration-300 ease-out transform translate-y-full md:translate-y-0 md:static md:w-80 lg:w-[335px] md:h-full md:rounded-2xl md:flex md:flex-col md:justify-start md:gap-2.5 shrink-0 overflow-y-auto md:overflow-y-hidden">
+    <aside id="controls-panel" class="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl custom-glass p-4 md:p-3.5 shadow-2xl transition-transform duration-300 ease-out transform translate-y-full md:translate-y-0 md:static md:w-80 lg:w-[335px] md:h-full md:rounded-2xl md:flex md:flex-col md:justify-start md:gap-2.5 shrink-0 overflow-y-auto md:overflow-y-auto">
         
         <!-- Mobile Pull Handle -->
         <div id="mobile-pull-handle" class="w-12 h-1.5 bg-slate-600 hover:bg-slate-500 rounded-full mx-auto mb-2.5 md:hidden cursor-pointer shrink-0"></div>
@@ -152,42 +162,42 @@
         <div>
             <div class="flex items-center">
                 <div class="flex items-center gap-2">
-                    <span class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs shadow-inner">
-                        <i class="fa-solid fa-road"></i>
+                    <span class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs shadow-inner" aria-hidden="true">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20L9 4"/><path d="M19 20L15 4"/><path d="M12 6v2"/><path d="M12 12v2"/><path d="M12 18v2"/></svg>
                     </span>
                     <div>
-                        <h1 class="text-sm lg:text-base font-bold text-white tracking-tight leading-none">Shore Road Simulator</h1>
+                        <h1 class="text-sm lg:text-base font-bold text-white tracking-tight leading-none">Shore Road simulator</h1>
                         <p class="text-[10px] text-slate-400 font-medium mt-0.5">Southbound merge @ Mill Pond Rd</p>
                     </div>
                 </div>
             </div>
 
             <!-- Quick Presets -->
-            <div class="grid grid-cols-3 gap-1 mt-2">
-                <button id="preset-rush" class="py-1 px-1 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-center border border-slate-700/60 active:scale-95">
-                    🚗 Rush Hour
+            <div class="grid grid-cols-3 gap-1.5 mt-2">
+                <button id="preset-rush" type="button" class="min-h-[36px] md:min-h-0 py-2 md:py-1 px-1 text-[10.5px] md:text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-center border border-slate-700/60 active:scale-95">
+                    🚗 Rush hour
                 </button>
-                <button id="preset-zipper" class="py-1 px-1 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 transition text-center border border-slate-700/60 active:scale-95">
+                <button id="preset-zipper" type="button" class="min-h-[36px] md:min-h-0 py-2 md:py-1 px-1 text-[10.5px] md:text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 transition text-center border border-slate-700/60 active:scale-95">
                     🟢 Zipper 80%
                 </button>
-                <button id="preset-early" class="py-1 px-1 text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 transition text-center border border-slate-700/60 active:scale-95">
+                <button id="preset-early" type="button" class="min-h-[36px] md:min-h-0 py-2 md:py-1 px-1 text-[10.5px] md:text-[10px] font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 transition text-center border border-slate-700/60 active:scale-95">
                     🔵 Early 90%
                 </button>
             </div>
         </div>
 
-        <!-- Sliders Group (Compact, no redundant text blocks) -->
+        <!-- Sliders Group (Compact, coupled complementary split) -->
         <div class="space-y-1.5 my-2">
             <!-- Zipper Slider -->
             <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800/80">
                 <div class="slider-label !mb-1">
                     <span class="flex items-center gap-1.5 text-emerald-400 text-[11px]">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                        Zipper Mergers
+                        Zipper mergers
                     </span>
                     <span id="val-zipper" class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-bold">50%</span>
                 </div>
-                <input type="range" id="slider-zipper" min="0" max="100" value="50" class="!accent-emerald-400">
+                <input type="range" id="slider-zipper" min="0" max="100" value="50" class="!accent-emerald-400" aria-label="Zipper mergers percentage">
             </div>
 
             <!-- Early Merge Slider -->
@@ -195,11 +205,11 @@
                 <div class="slider-label !mb-1">
                     <span class="flex items-center gap-1.5 text-sky-400 text-[11px]">
                         <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-                        Early Mergers
+                        Early mergers
                     </span>
                     <span id="val-early" class="font-mono text-[10px] px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-400 font-bold">50%</span>
                 </div>
-                <input type="range" id="slider-early" min="0" max="100" value="50" class="!accent-sky-400">
+                <input type="range" id="slider-early" min="0" max="100" value="50" class="!accent-sky-400" aria-label="Early mergers percentage">
             </div>
 
             <!-- Traffic Volume & Sim Speed (2 columns) -->
@@ -209,51 +219,49 @@
                         <span class="text-[10px]">Volume</span>
                         <span id="val-volume" class="font-mono text-[10px] text-amber-400 font-bold">Heavy</span>
                     </div>
-                    <input type="range" id="slider-volume" min="1" max="100" value="70" class="!accent-amber-400">
+                    <input type="range" id="slider-volume" min="1" max="100" value="70" class="!accent-amber-400" aria-label="Traffic volume">
                 </div>
                 <div class="bg-slate-900/60 p-1.5 rounded-xl border border-slate-800/80">
                     <div class="slider-label !mb-1">
                         <span class="text-[10px]">Speed</span>
                         <span id="val-speed" class="font-mono text-[10px] text-purple-400 font-bold">1x</span>
                     </div>
-                    <input type="range" id="slider-speed" min="1" max="10" value="1" class="!accent-purple-400">
+                    <input type="range" id="slider-speed" min="1" max="10" value="1" class="!accent-purple-400" aria-label="Simulation speed">
                 </div>
             </div>
-            
-            <p class="text-[9px] text-red-400 font-semibold text-center hidden" id="warning-total">Total adjusted to 100%</p>
         </div>
 
         <!-- Live Performance Dashboard (Modular Tabs: Flow, Eco, Driver Mood) -->
         <div>
             <div class="flex items-center justify-between mb-1">
                 <span class="text-[9.5px] font-bold tracking-wider uppercase text-slate-400 flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Live Metrics
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Live metrics
                 </span>
                 <span id="stat-backup-ft" class="text-[9.5px] font-mono text-slate-400">Queue: 0 ft</span>
             </div>
 
             <!-- Category Tab Switcher -->
-            <div class="grid grid-cols-3 gap-1 bg-slate-950/70 p-0.5 rounded-lg border border-slate-800/80 text-[9.5px] font-semibold mb-1.5">
-                <button id="tab-btn-flow" class="py-1 px-1 rounded-md bg-sky-500/20 text-sky-400 border border-sky-500/30 transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-gauge-high text-[8.5px]"></i> Flow
+            <div class="grid grid-cols-3 gap-1 bg-slate-950/70 p-0.5 rounded-lg border border-slate-800/80 text-[10px] font-semibold mb-1.5">
+                <button id="tab-btn-flow" type="button" class="min-h-[32px] md:min-h-0 py-1.5 md:py-1 px-1 rounded-md bg-sky-500/20 text-sky-400 border border-sky-500/30 transition flex items-center justify-center gap-1">
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14l4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg> Flow
                 </button>
-                <button id="tab-btn-eco" class="py-1 px-1 rounded-md text-slate-400 hover:text-white border border-transparent transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-leaf text-[8.5px]"></i> Eco
+                <button id="tab-btn-eco" type="button" class="min-h-[32px] md:min-h-0 py-1.5 md:py-1 px-1 rounded-md text-slate-400 hover:text-white border border-transparent transition flex items-center justify-center gap-1">
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg> Eco
                 </button>
-                <button id="tab-btn-mood" class="py-1 px-1 rounded-md text-slate-400 hover:text-white border border-transparent transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-face-smile text-[8.5px]"></i> Mood
+                <button id="tab-btn-mood" type="button" class="min-h-[32px] md:min-h-0 py-1.5 md:py-1 px-1 rounded-md text-slate-400 hover:text-white border border-transparent transition flex items-center justify-center gap-1">
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> Mood
                 </button>
             </div>
             
-            <!-- Fixed Height Metrics Panels Wrapper to prevent any bouncing or vertical shifting -->
-            <div id="metrics-panels-wrapper" class="h-[228px] min-h-[228px]">
+            <!-- Flexible height on mobile, steady height on desktop -->
+            <div id="metrics-panels-wrapper" class="min-h-[228px] md:h-[228px]">
                 <!-- PANEL 1: FLOW & QUEUE (Default View) -->
                 <div id="panel-metrics-flow" class="space-y-1.5">
                     <div class="grid grid-cols-2 gap-1.5">
                         <!-- 1. Total Cars -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
                             <div class="flex items-center justify-between text-[10px] leading-none">
-                                <span class="text-slate-400">Total Cars</span>
+                                <span class="text-slate-400">Total cars</span>
                                 <span id="stat-sim-clock" class="font-mono text-[9px] text-slate-500">00:00</span>
                             </div>
                             <div class="flex items-baseline gap-1 leading-none">
@@ -274,7 +282,7 @@
 
                         <!-- 3. Cars in Queue -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-slate-400 leading-none">Cars in Queue</span>
+                            <span class="text-[10px] text-slate-400 leading-none">Cars in queue</span>
                             <div class="leading-none">
                                 <span id="stat-backup" class="font-mono text-sm font-bold text-amber-300">0 cars</span>
                             </div>
@@ -283,17 +291,17 @@
 
                         <!-- 4. Avg Corridor Speed -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-slate-400 leading-none">Avg Speed</span>
+                            <span class="text-[10px] text-slate-400 leading-none">Avg speed</span>
                             <div class="leading-none">
                                 <span id="stat-avg-speed" class="font-mono text-sm font-bold text-cyan-300">35 <span class="text-[9.5px] text-slate-400 font-normal">mph</span></span>
                             </div>
-                            <span id="stat-speed-label" class="text-[9px] font-mono text-emerald-400 leading-none">Free Flow</span>
+                            <span id="stat-speed-label" class="text-[9px] font-mono text-emerald-400 leading-none">Free flow</span>
                         </div>
 
                         <!-- 5. Avg Zipper Time -->
                         <div class="bg-emerald-950/40 p-2 rounded-xl border border-emerald-900/40 flex flex-col justify-between h-[52px]">
                             <div class="flex items-center justify-between text-[10px] leading-none">
-                                <span class="text-emerald-300">Zipper Time</span>
+                                <span class="text-emerald-300">Zipper time</span>
                                 <span id="stat-zipper-count" class="font-mono text-[9px] text-emerald-400/80">0 cars</span>
                             </div>
                             <div class="leading-none">
@@ -305,7 +313,7 @@
                         <!-- 6. Avg Early Time -->
                         <div class="bg-sky-950/40 p-2 rounded-xl border border-sky-900/40 flex flex-col justify-between h-[52px]">
                             <div class="flex items-center justify-between text-[10px] leading-none">
-                                <span class="text-sky-300">Early / Thru</span>
+                                <span class="text-sky-300">Early / thru</span>
                                 <span id="stat-early-count" class="font-mono text-[9px] text-sky-400/80">0 cars</span>
                             </div>
                             <div class="leading-none">
@@ -319,17 +327,17 @@
                     <div class="p-2 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-1.5 h-[52px] flex flex-col justify-between">
                         <div class="flex items-center justify-between text-[10px] leading-none">
                             <span class="text-slate-400 flex items-center gap-1">
-                                <i class="fa-solid fa-arrows-split-up-and-left text-[9px] text-slate-500"></i>
-                                Lane Balance (Pre-Merge)
+                                <svg class="w-3 h-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/></svg>
+                                Lane balance (pre-merge)
                             </span>
-                            <span id="stat-lane-balance" class="font-mono text-[9.5px] text-slate-300">50% Left / 50% Right</span>
+                            <span id="stat-lane-balance" class="font-mono text-[9.5px] text-slate-300">50% left / 50% right</span>
                         </div>
                         <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
                             <div id="lane-bar-left" class="bg-emerald-400 h-full transition-all duration-300" style="width: 50%" title="Left lane usage"></div>
                             <div id="lane-bar-right" class="bg-sky-400 h-full transition-all duration-300" style="width: 50%" title="Right lane usage"></div>
                         </div>
                         <div class="flex items-center justify-between text-[9.5px] pt-1 border-t border-slate-800/60 font-mono leading-none">
-                            <span class="text-slate-400">Merge Delta:</span>
+                            <span class="text-slate-400">Merge delta:</span>
                             <span id="stat-advantage" class="font-semibold text-slate-400 truncate">Awaiting data...</span>
                         </div>
                     </div>
@@ -340,7 +348,7 @@
                     <div class="grid grid-cols-2 gap-1.5">
                         <!-- 1. Total Wait / Idle Time -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-slate-400 leading-none">Total Idle Wait</span>
+                            <span class="text-[10px] text-slate-400 leading-none">Total idle wait</span>
                             <div class="leading-none">
                                 <span id="stat-idle-time" class="font-mono text-sm font-bold text-amber-300">0.0m</span>
                             </div>
@@ -349,7 +357,7 @@
 
                         <!-- 2. Fuel Wasted -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-slate-400 leading-none">Fuel Wasted</span>
+                            <span class="text-[10px] text-slate-400 leading-none">Fuel wasted</span>
                             <div class="leading-none">
                                 <span id="stat-fuel-wasted" class="font-mono text-sm font-bold text-orange-400">0.00 <span class="text-[9.5px] text-slate-400 font-normal">gal</span></span>
                             </div>
@@ -358,7 +366,7 @@
 
                         <!-- 3. CO2 Generated -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-slate-400 leading-none">CO₂ Emitted</span>
+                            <span class="text-[10px] text-slate-400 leading-none">CO₂ emitted</span>
                             <div class="leading-none">
                                 <span id="stat-co2-emitted" class="font-mono text-sm font-bold text-rose-400">0.0 <span class="text-[9.5px] text-slate-400 font-normal">lbs</span></span>
                             </div>
@@ -367,7 +375,7 @@
 
                         <!-- 4. Capacity Efficiency -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-slate-400 leading-none">Road Capacity</span>
+                            <span class="text-[10px] text-slate-400 leading-none">Road capacity</span>
                             <div class="leading-none">
                                 <span id="stat-capacity-pct" class="font-mono text-sm font-bold text-emerald-400">0%</span>
                             </div>
@@ -376,7 +384,7 @@
 
                         <!-- 5. Avg Delay Per Car -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-slate-400 leading-none">Avg Idle Delay</span>
+                            <span class="text-[10px] text-slate-400 leading-none">Avg idle delay</span>
                             <div class="leading-none">
                                 <span id="stat-avg-idle" class="font-mono text-sm font-bold text-cyan-300">0.0s</span>
                             </div>
@@ -385,11 +393,11 @@
 
                         <!-- 6. Eco Grade -->
                         <div class="bg-emerald-950/40 p-2 rounded-xl border border-emerald-900/40 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-emerald-300 leading-none">Eco Efficiency</span>
+                            <span class="text-[10px] text-emerald-300 leading-none">Eco efficiency</span>
                             <div class="leading-none">
                                 <span id="stat-eco-grade" class="font-mono text-sm font-bold text-emerald-400">A+</span>
                             </div>
-                            <span id="stat-eco-grade-label" class="text-[9px] font-mono text-emerald-400/80 leading-none">Optimal Flow</span>
+                            <span id="stat-eco-grade-label" class="text-[9px] font-mono text-emerald-400/80 leading-none">Optimal flow</span>
                         </div>
                     </div>
 
@@ -397,17 +405,17 @@
                     <div class="p-2 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-1.5 h-[52px] flex flex-col justify-between">
                         <div class="flex items-center justify-between text-[10px] leading-none">
                             <span class="text-slate-400 flex items-center gap-1">
-                                <i class="fa-solid fa-leaf text-emerald-400 text-[8px]"></i>
-                                Idle Eco Impact
+                                <svg class="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                                Idle eco impact
                             </span>
-                            <span id="stat-eco-summary" class="font-mono text-[9.5px] text-emerald-400 font-semibold truncate max-w-[170px]">Near Zero Idling</span>
+                            <span id="stat-eco-summary" class="font-mono text-[9.5px] text-emerald-400 font-semibold truncate max-w-[170px]">Near-zero idling</span>
                         </div>
                         <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden flex">
                             <div id="bar-eco-eff" class="bg-emerald-400 h-full transition-all duration-300" style="width: 90%" title="Corridor eco efficiency"></div>
                         </div>
                         <div class="flex items-center justify-between text-[9.5px] pt-1 border-t border-slate-800/60 font-mono leading-none">
-                            <span class="text-slate-400">Idle Fuel Penalty:</span>
-                            <span id="stat-eco-penalty" class="font-semibold text-slate-300 truncate">Low Congestion Waste</span>
+                            <span class="text-slate-400">Idle fuel penalty:</span>
+                            <span id="stat-eco-penalty" class="font-semibold text-slate-300 truncate">Low congestion waste</span>
                         </div>
                     </div>
                 </div>
@@ -424,12 +432,12 @@
                             <div class="leading-none">
                                 <span id="stat-frustration" class="font-mono text-sm font-bold text-emerald-400">0%</span>
                             </div>
-                            <span id="stat-frustration-label" class="text-[9px] font-mono text-emerald-400/80 leading-none">Calm Commute</span>
+                            <span id="stat-frustration-label" class="text-[9px] font-mono text-emerald-400/80 leading-none">Calm commute</span>
                         </div>
 
                         <!-- 2. Courtesy Yield Rate -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-slate-400 leading-none">Courtesy Yields</span>
+                            <span class="text-[10px] text-slate-400 leading-none">Courtesy yields</span>
                             <div class="leading-none">
                                 <span id="stat-courtesy-rate" class="font-mono text-sm font-bold text-sky-400">100%</span>
                             </div>
@@ -438,7 +446,7 @@
 
                         <!-- 3. Forced Stops at Cones -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-slate-400 leading-none">Forced Stops</span>
+                            <span class="text-[10px] text-slate-400 leading-none">Forced stops</span>
                             <div class="leading-none">
                                 <span id="stat-forced-stops" class="font-mono text-sm font-bold text-amber-300">0 cars</span>
                             </div>
@@ -447,7 +455,7 @@
 
                         <!-- 4. Smooth Merges -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-slate-400 leading-none">Smooth Merges</span>
+                            <span class="text-[10px] text-slate-400 leading-none">Smooth merges</span>
                             <div class="leading-none">
                                 <span id="stat-smooth-merges" class="font-mono text-sm font-bold text-emerald-400">0 cars</span>
                             </div>
@@ -456,7 +464,7 @@
 
                         <!-- 5. Honk Alerts -->
                         <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800 flex flex-col justify-between h-[52px]">
-                            <span class="text-[10px] text-slate-400 leading-none">Honk Alerts</span>
+                            <span class="text-[10px] text-slate-400 leading-none">Honk alerts</span>
                             <div class="leading-none">
                                 <span id="stat-honk-count" class="font-mono text-sm font-bold text-yellow-300">0</span>
                             </div>
@@ -477,17 +485,17 @@
                     <div class="p-2 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-1.5 h-[52px] flex flex-col justify-between">
                         <div class="flex items-center justify-between text-[10px] leading-none">
                             <span class="text-slate-400 flex items-center gap-1">
-                                <i class="fa-solid fa-bullhorn text-sky-400 text-[9px]"></i>
-                                Driver Sentiment
+                                <svg class="w-3 h-3 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+                                Driver sentiment
                             </span>
-                            <span id="stat-mood-summary" class="font-mono text-[9.5px] text-emerald-400 font-semibold truncate max-w-[170px]">Relaxed Commute</span>
+                            <span id="stat-mood-summary" class="font-mono text-[9.5px] text-emerald-400 font-semibold truncate max-w-[170px]">Relaxed commute</span>
                         </div>
                         <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden flex">
                             <div id="bar-mood-calm" class="bg-emerald-400 h-full transition-all duration-300" style="width: 100%" title="Calm commute ratio"></div>
                         </div>
                         <div class="flex items-center justify-between text-[9.5px] pt-1 border-t border-slate-800/60 font-mono leading-none">
-                            <span class="text-slate-400">Road Harmony:</span>
-                            <span id="stat-harmony-label" class="font-semibold text-slate-300 truncate">High Driver Courtesy</span>
+                            <span class="text-slate-400">Road harmony:</span>
+                            <span id="stat-harmony-label" class="font-semibold text-slate-300 truncate">High driver courtesy</span>
                         </div>
                     </div>
                 </div>
@@ -497,13 +505,15 @@
 
         <!-- Action Buttons (mt-auto pushes gracefully to bottom of panel) -->
         <div class="mt-auto pt-1 flex flex-col gap-1.5">
-            <button id="btn-reset" class="w-full py-2.5 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-1.5 shrink-0">
-                <i class="fa-solid fa-rotate-right text-[11px]"></i> Clear Traffic & Restart
+            <button id="btn-reset" type="button" class="w-full min-h-[42px] py-2.5 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.98] text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-1.5 shrink-0">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                Clear traffic &amp; restart
             </button>
 
             <!-- Close Sheet Button (Mobile Only) -->
-            <button id="btn-close-sheet" class="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-slate-200 text-xs font-bold rounded-xl border border-slate-700/80 md:hidden flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-chevron-down text-[11px]"></i> Close & Watch Traffic
+            <button id="btn-close-sheet" type="button" class="w-full min-h-[42px] py-2.5 px-3 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-slate-200 text-xs font-bold rounded-xl border border-slate-700/80 md:hidden flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                Close &amp; watch traffic
             </button>
         </div>
     </aside>
@@ -511,23 +521,26 @@
     <!-- RIGHT/MAIN PANEL: SIMULATOR CANVAS (FULL SCREEN ON MOBILE) -->
     <main id="sim-container" class="flex-1 w-full h-full rounded-none md:rounded-2xl shadow-2xl relative bg-[#1e293b] border-0 md:border md:border-slate-800/80 overflow-hidden flex items-center justify-center">
         
-        <!-- Floating Top Bar (View Controls & Queue Banner - Never Collide) -->
-        <div class="absolute top-2.5 md:top-3 inset-x-2.5 md:left-3 md:right-16 z-20 flex items-center justify-between pointer-events-none gap-2">
-            <!-- View Mode Segmented Controls -->
+        <!-- Floating Top Bar (View Controls, Pause & Queue Banner - Never Collide) -->
+        <div id="sim-top-bar" class="absolute inset-x-2.5 md:left-3 md:right-16 z-20 flex items-center justify-between pointer-events-none gap-1.5">
+            <!-- View Mode Segmented Controls + Pause -->
             <div class="pointer-events-auto flex items-center gap-1 bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-slate-700/60 shadow-lg text-[10px] sm:text-xs shrink-0">
-                <button id="view-full" class="px-2 sm:px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 bg-sky-500 text-white shadow-sm" title="Show entire road from spawn to merge">
-                    <i class="fa-solid fa-up-down-left-right text-[10px]"></i>
-                    <span>Full<span class="hidden sm:inline"> Corridor</span></span>
+                <button id="view-full" type="button" class="min-h-[32px] px-2 sm:px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 bg-sky-500 text-white shadow-sm" title="Show entire road from spawn to merge">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 15 6 6"/><path d="m15 9 6-6"/><path d="M21 16v5h-5"/><path d="M21 8V3h-5"/><path d="M3 16v5h5"/><path d="m3 21 6-6"/><path d="M3 8V3h5"/><path d="M9 9 3 3"/></svg>
+                    <span>Full<span class="hidden sm:inline"> corridor</span></span>
                 </button>
-                <button id="view-focus" class="px-2 sm:px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800" title="Zoom in on merge point">
-                    <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
-                    <span>Merge<span class="hidden sm:inline"> Zone</span></span>
+                <button id="view-focus" type="button" class="min-h-[32px] px-2 sm:px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 text-slate-300 hover:text-white hover:bg-slate-800" title="Zoom in on merge point">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    <span>Merge<span class="hidden sm:inline"> zone</span></span>
+                </button>
+                <button id="btn-pause-sim" type="button" class="min-h-[32px] px-2 sm:px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1 text-slate-200 hover:text-white hover:bg-slate-800 border-l border-slate-700/70" title="Pause or resume traffic simulation (Space)">
+                    <span id="pause-sim-label">⏸ Pause</span>
                 </button>
             </div>
 
             <!-- Floating Queue Length Banner -->
-            <div id="queue-banner" class="pointer-events-auto flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-xl border border-slate-700/60 shadow-lg text-[10px] sm:text-xs font-mono shrink-0">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+            <div id="queue-banner" class="pointer-events-auto flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-slate-700/60 shadow-lg text-[10px] sm:text-xs font-mono shrink-0">
+                <span id="queue-ping-dot" class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
                 <span id="queue-banner-text" class="text-slate-200 font-semibold">Queue: 0 cars</span>
             </div>
         </div>
@@ -536,15 +549,15 @@
         <canvas id="simCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
 
         <!-- MOBILE COLLAPSED BOTTOM BAR (PINNED AT BOTTOM) -->
-        <div id="mobile-bottom-bar" class="fixed bottom-3 inset-x-3 md:hidden z-30 custom-glass p-2.5 rounded-2xl shadow-2xl flex items-center justify-between cursor-pointer border border-white/10 active:scale-[0.99] transition">
+        <div id="mobile-bottom-bar" role="button" tabindex="0" aria-label="Open controls and live metrics" class="fixed bottom-3 inset-x-3 md:hidden z-30 custom-glass p-2.5 rounded-2xl shadow-2xl flex items-center justify-between cursor-pointer border border-white/10 active:scale-[0.99] transition">
             <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs shadow-inner">
-                    <i class="fa-solid fa-sliders"></i>
+                <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs shadow-inner" aria-hidden="true">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg>
                 </div>
                 <div>
                     <div class="flex items-center gap-1.5">
-                        <span class="text-xs font-bold text-white tracking-tight">Controls & Stats</span>
-                        <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-semibold">LIVE</span>
+                        <span class="text-xs font-bold text-white tracking-tight">Controls &amp; stats</span>
+                        <span id="mobile-live-pill" class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-semibold">Live</span>
                     </div>
                     <div class="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono mt-0.5">
                         <span id="mobile-stat-total" class="text-white font-semibold">0 cars</span>
@@ -557,13 +570,13 @@
             </div>
             <div class="flex items-center gap-1.5 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700/80 text-xs font-semibold text-sky-400 shadow-sm">
                 <span>Expand</span>
-                <i class="fa-solid fa-chevron-up text-[10px]"></i>
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
             </div>
         </div>
 
     </main>
 
-    <script>
+    <script type="module">
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
         const simContainer = document.getElementById('sim-container');
@@ -599,16 +612,15 @@
 
         // Settings
         let pZipper = 0.5;
-        let pEarly = 0.5;
         let trafficVolume = 0.07;
         let simSpeed = 1;
+        let isPaused = false;
 
         // State
         let cars = [];
         let carsPassed = 0;
         let totalSpawnedCars = 0;
         let simTime = 0;
-        let frameCount = 0;
         let visualFrameCount = 0;
         
         let zipperTotalTime = 0;
@@ -623,7 +635,6 @@
         let smoothMergeCount = 0;
         let honkCount = 0;
         let honkBubbles = [];
-        let activeMetricsTab = 'flow';
 
         const CAR_TYPES = {
             ZIPPER: { color: '#22c55e', name: 'Zipper', dotColor: '#4ade80' },
@@ -1141,7 +1152,7 @@
                     let avgMph = Math.round((avgSpeedUnits / 3.6) * 35);
                     avgSpeedEl.innerHTML = `${avgMph} <span class="text-[10px] text-slate-400 font-normal">mph</span>`;
                     if (avgMph >= 25) {
-                        speedLabelEl.innerText = "Free Flow";
+                        speedLabelEl.innerText = "Free flow";
                         speedLabelEl.className = "text-[9px] font-mono text-emerald-400";
                     } else if (avgMph >= 12) {
                         speedLabelEl.innerText = "Sluggish";
@@ -1179,10 +1190,10 @@
                         let diff = (eNum - zNum).toFixed(1);
                         if (eNum > zNum) {
                             let pct = Math.round(((eNum - zNum) / eNum) * 100);
-                            advEl.innerHTML = `<span class="text-emerald-400 font-bold">Late Merge +${diff}s faster (${pct}%)</span>`;
+                            advEl.innerHTML = `<span class="text-emerald-400 font-bold">Late merge +${diff}s faster (${pct}%)</span>`;
                         } else if (zNum > eNum) {
                             let pct = Math.round(((zNum - eNum) / zNum) * 100);
-                            advEl.innerHTML = `<span class="text-sky-400 font-bold">Thru Lane +${Math.abs(diff)}s faster (${pct}%)</span>`;
+                            advEl.innerHTML = `<span class="text-sky-400 font-bold">Thru lane +${Math.abs(diff)}s faster (${pct}%)</span>`;
                         } else {
                             advEl.innerHTML = `<span class="text-slate-300">Even corridor times</span>`;
                         }
@@ -1204,11 +1215,11 @@
                 if (total > 0) {
                     let leftPct = Math.round((leftCount / total) * 100);
                     let rightPct = 100 - leftPct;
-                    laneBalEl.innerText = `${leftPct}% Left / ${rightPct}% Right`;
+                    laneBalEl.innerText = `${leftPct}% left / ${rightPct}% right`;
                     barLeft.style.width = `${leftPct}%`;
                     barRight.style.width = `${rightPct}%`;
                 } else {
-                    laneBalEl.innerText = `50% Left / 50% Right`;
+                    laneBalEl.innerText = `50% left / 50% right`;
                     barLeft.style.width = `50%`;
                     barRight.style.width = `50%`;
                 }
@@ -1249,30 +1260,30 @@
                 if (capPct >= 60 && parseFloat(avgIdlePerCarSec) < 6) {
                     ecoGradeEl.innerText = "A+";
                     ecoGradeEl.className = "font-mono text-sm lg:text-base font-bold text-emerald-400";
-                    ecoGradeLabelEl.innerText = "Optimal Flow";
+                    ecoGradeLabelEl.innerText = "Optimal flow";
                     ecoGradeLabelEl.className = "text-[9px] font-mono text-emerald-400/80";
-                    ecoSummaryEl.innerText = "Clean Flow: Near-Zero Idling";
+                    ecoSummaryEl.innerText = "Clean flow: near-zero idling";
                     ecoSummaryEl.className = "font-semibold text-emerald-400";
                 } else if (capPct >= 40 && parseFloat(avgIdlePerCarSec) < 15) {
                     ecoGradeEl.innerText = "B";
                     ecoGradeEl.className = "font-mono text-sm lg:text-base font-bold text-cyan-400";
-                    ecoGradeLabelEl.innerText = "Moderate Idle";
+                    ecoGradeLabelEl.innerText = "Moderate idle";
                     ecoGradeLabelEl.className = "text-[9px] font-mono text-cyan-400/80";
-                    ecoSummaryEl.innerText = "Acceptable: Light Fuel Penalty";
+                    ecoSummaryEl.innerText = "Acceptable: light fuel penalty";
                     ecoSummaryEl.className = "font-semibold text-cyan-400";
                 } else if (capPct >= 20) {
                     ecoGradeEl.innerText = "C";
                     ecoGradeEl.className = "font-mono text-sm lg:text-base font-bold text-amber-400";
-                    ecoGradeLabelEl.innerText = "Heavy Idling";
+                    ecoGradeLabelEl.innerText = "Heavy idling";
                     ecoGradeLabelEl.className = "text-[9px] font-mono text-amber-400/80";
-                    ecoSummaryEl.innerText = "Warning: Long Idle Queue Burning Gas";
+                    ecoSummaryEl.innerText = "Warning: long idle queue burning gas";
                     ecoSummaryEl.className = "font-semibold text-amber-400";
                 } else {
                     ecoGradeEl.innerText = "F";
                     ecoGradeEl.className = "font-mono text-sm lg:text-base font-bold text-rose-400";
-                    ecoGradeLabelEl.innerText = "Gridlock Smog";
+                    ecoGradeLabelEl.innerText = "Gridlock smog";
                     ecoGradeLabelEl.className = "text-[9px] font-mono text-rose-400/80";
-                    ecoSummaryEl.innerText = "Severe: Massive Tailpipe Waste";
+                    ecoSummaryEl.innerText = "Severe: massive tailpipe waste";
                     ecoSummaryEl.className = "font-semibold text-rose-400";
                 }
             }
@@ -1299,11 +1310,11 @@
             if (frustEmojiEl && frustLabelEl) {
                 if (frustPct < 20) {
                     frustEmojiEl.innerText = "😌";
-                    frustLabelEl.innerText = "Calm Commute";
+                    frustLabelEl.innerText = "Calm commute";
                     frustLabelEl.className = "text-[9px] font-mono text-emerald-400/80";
                 } else if (frustPct < 50) {
                     frustEmojiEl.innerText = "😐";
-                    frustLabelEl.innerText = "Mild Delay";
+                    frustLabelEl.innerText = "Mild delay";
                     frustLabelEl.className = "text-[9px] font-mono text-sky-400/80";
                 } else if (frustPct < 75) {
                     frustEmojiEl.innerText = "😠";
@@ -1311,7 +1322,7 @@
                     frustLabelEl.className = "text-[9px] font-mono text-amber-400/80";
                 } else {
                     frustEmojiEl.innerText = "🤬";
-                    frustLabelEl.innerText = "Road Rage";
+                    frustLabelEl.innerText = "Road rage";
                     frustLabelEl.className = "text-[9px] font-mono text-rose-400 font-bold";
                 }
             }
@@ -1329,79 +1340,94 @@
                     temperEl.innerText = "Polite";
                     temperEl.className = "font-mono text-sm lg:text-base font-bold text-emerald-300";
                     temperLabelEl.innerText = "Cooperative drivers";
-                    moodSummaryEl.innerText = "High Courtesy & Cooperation";
+                    moodSummaryEl.innerText = "High courtesy & cooperation";
                     moodSummaryEl.className = "font-semibold text-emerald-400";
                 } else if (frustPct < 60) {
                     temperEl.innerText = "Cautious";
                     temperEl.className = "font-mono text-sm lg:text-base font-bold text-sky-300";
                     temperLabelEl.innerText = "Normal commute";
-                    moodSummaryEl.innerText = "Steady Merge Flow";
+                    moodSummaryEl.innerText = "Steady merge flow";
                     moodSummaryEl.className = "font-semibold text-sky-400";
                 } else {
                     temperEl.innerText = "Aggressive";
                     temperEl.className = "font-mono text-sm lg:text-base font-bold text-rose-400";
                     temperLabelEl.innerText = "Corridor queue strain";
-                    moodSummaryEl.innerText = "Heavy Congestion Delays";
+                    moodSummaryEl.innerText = "Heavy congestion delays";
                     moodSummaryEl.className = "font-semibold text-rose-400";
                 }
             }
         }
 
-        function loop() {
+        const STEP_MS = 1000 / 60;
+        let lastFrameNow = performance.now();
+        let simAccumulator = 0;
+
+        function stepSimulationOnce() {
+            simTime += STEP_MS;
+
+            if (Math.random() < trafficVolume) {
+                let leftSpace = !cars.some(c => c.currentLane === 0 && c.y < 50);
+                let rightSpace = !cars.some(c => c.currentLane === 1 && c.y < 50);
+                
+                let lane = -1;
+                let type = getCarType();
+
+                if (type === CAR_TYPES.ZIPPER) {
+                    if (leftSpace) {
+                        lane = 0;
+                    } else if (rightSpace) {
+                        // Lane 0 is blocked at spawn; enter continuing lane as through traffic
+                        lane = 1;
+                        type = CAR_TYPES.EARLY;
+                    }
+                } else { // CAR_TYPES.EARLY
+                    if (rightSpace) {
+                        lane = 1;
+                    }
+                }
+
+                if (lane !== -1) {
+                    let car = new Car(lane, type, simTime);
+                    cars.push(car);
+                    totalSpawnedCars++;
+                }
+            }
+
+            for (let i = cars.length - 1; i >= 0; i--) {
+                let car = cars[i];
+                car.update(cars);
+
+                if (car.y > worldHeight + car.height) {
+                    let travelTimeSecs = (simTime - car.spawnTime) / 1000;
+                    if (car.didMerge) {
+                        zipperTotalTime += travelTimeSecs;
+                        zipperCount++;
+                    } else {
+                        earlyTotalTime += travelTimeSecs;
+                        earlyCount++;
+                    }
+
+                    cars.splice(i, 1);
+                    carsPassed++;
+                }
+            }
+        }
+
+        function loop(now = performance.now()) {
             visualFrameCount++;
+            const delta = Math.min(100, Math.max(0, now - lastFrameNow));
+            lastFrameNow = now;
 
             camera.scale += (camera.targetScale - camera.scale) * 0.08;
             camera.y += (camera.targetY - camera.y) * 0.08;
 
-            for (let step = 0; step < simSpeed; step++) {
-                simTime += 16.666;
-                frameCount++;
-
-                if (Math.random() < trafficVolume) {
-                    let leftSpace = !cars.some(c => c.currentLane === 0 && c.y < 50);
-                    let rightSpace = !cars.some(c => c.currentLane === 1 && c.y < 50);
-                    
-                    let lane = -1;
-                    let type = getCarType();
-
-                    if (type === CAR_TYPES.ZIPPER) {
-                        if (leftSpace) {
-                            lane = 0;
-                        } else if (rightSpace) {
-                            // Lane 0 is blocked at spawn; enter continuing lane as through traffic
-                            lane = 1;
-                            type = CAR_TYPES.EARLY;
-                        }
-                    } else { // CAR_TYPES.EARLY
-                        if (rightSpace) {
-                            lane = 1;
-                        }
+            if (!isPaused) {
+                simAccumulator += delta;
+                while (simAccumulator >= STEP_MS) {
+                    for (let step = 0; step < simSpeed; step++) {
+                        stepSimulationOnce();
                     }
-
-                    if (lane !== -1) {
-                        let car = new Car(lane, type, simTime);
-                        cars.push(car);
-                        totalSpawnedCars++;
-                    }
-                }
-
-                for (let i = cars.length - 1; i >= 0; i--) {
-                    let car = cars[i];
-                    car.update(cars);
-
-                    if (car.y > worldHeight + car.height) {
-                        let travelTimeSecs = (simTime - car.spawnTime) / 1000;
-                        if (car.didMerge) {
-                            zipperTotalTime += travelTimeSecs;
-                            zipperCount++;
-                        } else {
-                            earlyTotalTime += travelTimeSecs;
-                            earlyCount++;
-                        }
-
-                        cars.splice(i, 1);
-                        carsPassed++;
-                    }
+                    simAccumulator -= STEP_MS;
                 }
             }
 
@@ -1425,8 +1451,10 @@
             // Floating Honk / Horn Bubbles
             for (let i = honkBubbles.length - 1; i >= 0; i--) {
                 let b = honkBubbles[i];
-                b.y -= 0.45;
-                b.life--;
+                if (!isPaused) {
+                    b.y -= 0.45;
+                    b.life--;
+                }
                 let alpha = Math.min(1, b.life / 15);
                 ctx.save();
                 ctx.translate(b.x, b.y);
@@ -1451,7 +1479,7 @@
             drawMiniMap();
             ctx.restore();
 
-            if (visualFrameCount % 20 === 0) updateStats();
+            if (!isPaused && visualFrameCount % 20 === 0) updateStats();
             requestAnimationFrame(loop);
         }
 
@@ -1460,44 +1488,71 @@
             const eSlider = document.getElementById('slider-early');
             const vSlider = document.getElementById('slider-volume');
             const sSlider = document.getElementById('slider-speed');
-            const warning = document.getElementById('warning-total');
+            const pauseBtn = document.getElementById('btn-pause-sim');
+            const pauseLabel = document.getElementById('pause-sim-label');
+            const queuePingDot = document.getElementById('queue-ping-dot');
+            const mobileLivePill = document.getElementById('mobile-live-pill');
 
-            function syncSliders() {
-                let z = parseInt(zSlider.value);
-                let e = parseInt(eSlider.value);
-                
-                let total = z + e;
-                if (total > 100) {
-                    warning.classList.remove('hidden');
-                    let scale = 100 / total;
-                    z = Math.round(z * scale);
+            function syncSliders(source = 'zipper') {
+                let z = parseInt(zSlider.value, 10);
+                let e = parseInt(eSlider.value, 10);
+
+                if (source === 'early') {
+                    e = Math.max(0, Math.min(100, e));
+                    z = 100 - e;
+                } else {
+                    z = Math.max(0, Math.min(100, z));
                     e = 100 - z;
-                    
-                    zSlider.value = z;
-                    eSlider.value = e;
-                    setTimeout(() => warning.classList.add('hidden'), 2000);
                 }
+
+                zSlider.value = String(z);
+                eSlider.value = String(e);
 
                 document.getElementById('val-zipper').innerText = z + '%';
                 document.getElementById('val-early').innerText = e + '%';
 
                 pZipper = z / 100;
-                pEarly = e / 100;
             }
 
-            zSlider.addEventListener('input', syncSliders);
-            eSlider.addEventListener('input', syncSliders);
+            zSlider.addEventListener('input', () => syncSliders('zipper'));
+            eSlider.addEventListener('input', () => syncSliders('early'));
 
             vSlider.addEventListener('input', (e) => {
-                let val = parseInt(e.target.value);
+                let val = parseInt(e.target.value, 10);
                 trafficVolume = (val / 1000) * 1.1;
                 let label = val > 80 ? 'Gridlock' : (val > 50 ? 'Heavy' : (val > 25 ? 'Moderate' : 'Light'));
                 document.getElementById('val-volume').innerText = label;
             });
 
             sSlider.addEventListener('input', (e) => {
-                simSpeed = parseInt(e.target.value);
+                simSpeed = parseInt(e.target.value, 10);
                 document.getElementById('val-speed').innerText = simSpeed + 'x';
+            });
+
+            function setPaused(nextPaused) {
+                isPaused = nextPaused;
+                if (pauseLabel) {
+                    pauseLabel.textContent = isPaused ? '▶ Resume' : '⏸ Pause';
+                }
+                if (queuePingDot) {
+                    queuePingDot.classList.toggle('animate-ping', !isPaused);
+                }
+                if (mobileLivePill) {
+                    mobileLivePill.textContent = isPaused ? 'Paused' : 'Live';
+                    mobileLivePill.className = isPaused
+                        ? 'text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono font-semibold'
+                        : 'text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-semibold';
+                }
+            }
+
+            if (pauseBtn) {
+                pauseBtn.addEventListener('click', () => setPaused(!isPaused));
+            }
+            window.addEventListener('keydown', (e) => {
+                if (e.key === ' ' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'BUTTON') {
+                    e.preventDefault();
+                    setPaused(!isPaused);
+                }
             });
 
             function resetSimulation() {
@@ -1505,7 +1560,6 @@
                 carsPassed = 0;
                 totalSpawnedCars = 0;
                 simTime = 0;
-                frameCount = 0;
                 visualFrameCount = 0;
                 zipperTotalTime = 0;
                 zipperCount = 0;
@@ -1533,21 +1587,21 @@
             const panelEco = document.getElementById('panel-metrics-eco');
             const panelMood = document.getElementById('panel-metrics-mood');
 
+            const tabBaseClass = "min-h-[32px] md:min-h-0 py-1.5 md:py-1 px-1 rounded-md transition flex items-center justify-center gap-1";
             function switchMetricsTab(tab) {
-                activeMetricsTab = tab;
                 [tabFlow, tabEco, tabMood].forEach(b => {
-                    b.className = "py-1 px-1.5 rounded-lg text-slate-400 hover:text-white border border-transparent transition flex items-center justify-center gap-1";
+                    b.className = `${tabBaseClass} text-slate-400 hover:text-white border border-transparent`;
                 });
                 [panelFlow, panelEco, panelMood].forEach(p => p.classList.add('hidden'));
 
                 if (tab === 'flow') {
-                    tabFlow.className = "py-1 px-1.5 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30 transition flex items-center justify-center gap-1";
+                    tabFlow.className = `${tabBaseClass} bg-sky-500/20 text-sky-400 border border-sky-500/30`;
                     panelFlow.classList.remove('hidden');
                 } else if (tab === 'eco') {
-                    tabEco.className = "py-1 px-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition flex items-center justify-center gap-1";
+                    tabEco.className = `${tabBaseClass} bg-emerald-500/20 text-emerald-400 border border-emerald-500/30`;
                     panelEco.classList.remove('hidden');
                 } else if (tab === 'mood') {
-                    tabMood.className = "py-1 px-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 transition flex items-center justify-center gap-1";
+                    tabMood.className = `${tabBaseClass} bg-amber-500/20 text-amber-400 border border-amber-500/30`;
                     panelMood.classList.remove('hidden');
                 }
             }
@@ -1558,28 +1612,25 @@
 
             // Presets
             document.getElementById('preset-rush').addEventListener('click', () => {
-                zSlider.value = 35;
-                eSlider.value = 65;
-                vSlider.value = 75;
-                syncSliders();
+                zSlider.value = '35';
+                vSlider.value = '75';
+                syncSliders('zipper');
                 vSlider.dispatchEvent(new Event('input'));
                 resetSimulation();
             });
 
             document.getElementById('preset-zipper').addEventListener('click', () => {
-                zSlider.value = 80;
-                eSlider.value = 20;
-                vSlider.value = 75;
-                syncSliders();
+                zSlider.value = '80';
+                vSlider.value = '75';
+                syncSliders('zipper');
                 vSlider.dispatchEvent(new Event('input'));
                 resetSimulation();
             });
 
             document.getElementById('preset-early').addEventListener('click', () => {
-                zSlider.value = 10;
-                eSlider.value = 90;
-                vSlider.value = 75;
-                syncSliders();
+                zSlider.value = '10';
+                vSlider.value = '75';
+                syncSliders('zipper');
                 vSlider.dispatchEvent(new Event('input'));
                 resetSimulation();
             });
@@ -1587,17 +1638,18 @@
             // View Mode Controls
             const btnFull = document.getElementById('view-full');
             const btnFocus = document.getElementById('view-focus');
+            const viewBaseClass = "min-h-[32px] px-2 sm:px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1";
 
             function setViewMode(mode) {
                 viewMode = mode;
                 [btnFull, btnFocus].forEach(b => {
-                    b.className = "px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800";
+                    b.className = `${viewBaseClass} text-slate-300 hover:text-white hover:bg-slate-800`;
                 });
 
                 if (mode === 'full') {
-                    btnFull.className = "px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 bg-sky-500 text-white shadow-sm";
+                    btnFull.className = `${viewBaseClass} bg-sky-500 text-white shadow-sm`;
                 } else if (mode === 'focus') {
-                    btnFocus.className = "px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5 bg-sky-500 text-white shadow-sm";
+                    btnFocus.className = `${viewBaseClass} bg-sky-500 text-white shadow-sm`;
                 }
                 updateCameraTargets();
             }
@@ -1626,7 +1678,15 @@
             }
 
             const pullHandle = document.getElementById('mobile-pull-handle');
-            if (bottomBar) bottomBar.addEventListener('click', openSheet);
+            if (bottomBar) {
+                bottomBar.addEventListener('click', openSheet);
+                bottomBar.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openSheet();
+                    }
+                });
+            }
             if (btnCloseSheet) btnCloseSheet.addEventListener('click', closeSheet);
             if (pullHandle) pullHandle.addEventListener('click', closeSheet);
             if (sheetBackdrop) sheetBackdrop.addEventListener('click', closeSheet);
