@@ -21,7 +21,7 @@ async function attachGuards(page) {
 }
 
 test.describe('Lofi Pup generative studio', () => {
-    test('loads offline without external dependencies, renders 6-stem mixer and 4 ambience layers, and encapsulates state', async ({ page }) => {
+    test('loads offline without external dependencies, renders 6-stem mixer and clean vinyl/room textures, and encapsulates state', async ({ page }) => {
         const errors = await attachGuards(page);
         await page.goto('/games/lofi-pup.html');
 
@@ -43,11 +43,12 @@ test.describe('Lofi Pup generative studio', () => {
             await expect(page.locator(`[data-mixer-volume="${stem}"]`)).toBeVisible();
         }
 
-        // Verify all 4 environmental ambience sliders are present and rain uses discrete eaves drips & thunder
-        for (const amb of ['vinyl', 'rain', 'night', 'cafe']) {
+        // Verify vinyl & cafe room textures are present while synthetic rain drips & night crickets are gone
+        for (const amb of ['vinyl', 'cafe']) {
             await expect(page.locator(`#amb-${amb}`)).toBeVisible();
         }
-        await expect(page.locator('label[for="amb-rain"]')).toHaveText('Eaves drips & thunder');
+        await expect(page.locator('#amb-rain')).toHaveCount(0);
+        await expect(page.locator('#amb-night')).toHaveCount(0);
 
         // Verify GA4 config function is defined and module state does not leak globals
         const globalsCheck = await page.evaluate(() => ({
@@ -137,7 +138,7 @@ test.describe('Lofi Pup generative studio', () => {
         // Wait for live voice-led chord symbol to appear
         await expect(page.locator('#chord-display')).not.toHaveText('--', { timeout: 2000 });
         const initialChord = await page.locator('#chord-display').textContent();
-        expect(initialChord).toMatch(/^[A-G][b#]?(maj9|add9|6\/9|maj7#11|m9|m11|m6|9sus4|7b13)$/);
+        expect(initialChord).toMatch(/^[A-G][b#]?(maj9|add9|6\/9|maj7#11|m9|m11|m6|m7b5|9sus4|13|7b13)$/);
 
         // Mute chord -> displays "--", then unmute -> immediately restores active chord symbol
         const mixChord = page.locator('#mix-chord');
@@ -156,22 +157,26 @@ test.describe('Lofi Pup generative studio', () => {
         await page.locator('#lead-voice-btn').click();
         await expect(page.locator('#lead-voice-val')).toContainText('★');
 
-        // Switch across all 4 scenes while playing and verify ambience, warmth & scene updates
+        // Switch across all 4 isolated musical lanes while playing and verify warmth, room space & dusty jazzhop BPM
         await page.locator('#btn-rainy').click();
         await expect(page.locator('body')).toHaveAttribute('data-scene', 'rainy');
-        await expect(page.locator('#amb-rain-val')).toHaveText('48%');
+        await expect(page.locator('#amb-vinyl-val')).toHaveText('24%');
         await expect(page.locator('#filter-val')).toHaveText('1620Hz');
+        await expect(page.locator('#space-val')).toHaveText('38%');
         await expect(page.locator('#chord-display')).not.toHaveText('--');
 
         await page.locator('#btn-midnight').click();
         await expect(page.locator('body')).toHaveAttribute('data-scene', 'midnight');
-        await expect(page.locator('#amb-night-val')).toHaveText('38%');
+        await expect(page.locator('#amb-vinyl-val')).toHaveText('18%');
         await expect(page.locator('#filter-val')).toHaveText('2050Hz');
+        await expect(page.locator('#space-val')).toHaveText('48%');
 
         await page.locator('#btn-cafe').click();
         await expect(page.locator('body')).toHaveAttribute('data-scene', 'cafe');
         await expect(page.locator('#amb-cafe-val')).toHaveText('44%');
-        await expect(page.locator('#filter-val')).toHaveText('2150Hz');
+        await expect(page.locator('#filter-val')).toHaveText('2450Hz');
+        await expect(page.locator('#space-val')).toHaveText('18%');
+        await expect(page.locator('#track-meta')).toHaveText(/jazzhop · (7[89]|8[0-5]) BPM/);
 
         // Pause playback
         await playBtn.click();
