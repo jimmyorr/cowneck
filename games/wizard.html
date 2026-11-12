@@ -12,7 +12,7 @@
   gtag('config', 'G-6RNVL7JZVJ');
 </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Wizard</title>
     <!-- sync-start:metadata -->
     <meta name="description" content="A game of mystical forecasting. Predict exactly how many card tricks you will take each round to score points and outsmart rivals.">
@@ -69,10 +69,16 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
 
-        body {
+        html, body {
             font-family: 'Inter', sans-serif;
             background-color: #0f172a;
             color: #f1f5f9;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .pb-safe {
+            padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
         }
 
         .card-shadow {
@@ -81,12 +87,28 @@
 
         .card-proportion {
             aspect-ratio: 2 / 3;
-            width: 80px;
+            width: 60px;
+        }
+
+        .card-proportion.card-compact {
+            width: 52px;
+        }
+
+        @media (min-width: 640px) {
+            .card-proportion {
+                width: 76px;
+            }
+            .card-proportion.card-compact {
+                width: 66px;
+            }
         }
 
         @media (min-width: 768px) {
             .card-proportion {
-                width: 100px;
+                width: 96px;
+            }
+            .card-proportion.card-compact {
+                width: 82px;
             }
         }
 
@@ -123,66 +145,95 @@
 
         // --- Components ---
 
-        const Card = ({ card, onClick, disabled, size = 'md', className = '' }) => {
+        const Card = ({ card, onClick, disabled, dimmed = false, size = 'md', compact = false, className = '' }) => {
             if (!card) return null;
             const isRed = card.suit === 'Hearts' || card.suit === 'Diamonds';
+            const suitColor = isRed ? 'text-red-500' : 'text-slate-800';
             const display = getCardDisplay(card);
             const icon = getCardIcon(card);
+            const label = card.type === 'wizard' ? 'Wizard' : card.type === 'jester' ? 'Jester' : `${display} of ${card.suit}`;
 
             return (
-                <div
+                <button
+                    type="button"
+                    disabled={disabled}
+                    aria-label={label}
                     onClick={!disabled ? onClick : undefined}
-                    className={`card-proportion bg-white rounded-lg border-2 border-slate-300 flex flex-col justify-between p-1 md:p-2 cursor-pointer transition-all card-shadow select-none
-                        ${size === 'sm' ? '!w-16 md:!w-20' : ''}
-                        ${disabled ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:-translate-y-2 hover:border-blue-500'}
+                    className={`card-proportion bg-white rounded-lg border-2 flex flex-col justify-between p-1 sm:p-1.5 md:p-2 transition-all card-shadow select-none text-left
+                        ${compact ? 'card-compact' : ''}
+                        ${size === 'sm' ? '!w-14 sm:!w-16 md:!w-20 border-slate-300' : ''}
+                        ${dimmed ? 'opacity-35 grayscale border-slate-300 cursor-not-allowed' : disabled ? 'opacity-90 border-slate-300 cursor-default' : 'border-blue-400 ring-1 ring-blue-400/30 cursor-pointer sm:hover:-translate-y-2 sm:hover:border-blue-500 active:scale-95'}
                         ${className}`}
                 >
-                    <div className={`text-xs md:text-sm font-bold flex flex-col leading-none ${isRed ? 'text-red-500' : 'text-slate-800'}`}>
+                    <div className={`text-[11px] sm:text-xs md:text-sm font-bold flex items-center gap-0.5 sm:flex-col sm:items-start leading-none ${suitColor}`}>
                         <span>{display}</span>
-                        <span>{icon}</span>
+                        <span className="text-[10px] sm:text-xs">{icon}</span>
                     </div>
-                    <div className="flex justify-center items-center flex-1 text-2xl md:text-4xl">
+                    <div className={`flex justify-center items-center flex-1 w-full text-xl sm:text-2xl md:text-4xl leading-none ${suitColor}`}>
                         {icon}
                     </div>
-                    <div className={`text-xs md:text-sm font-bold flex flex-col leading-none transform rotate-180 self-end ${isRed ? 'text-red-500' : 'text-slate-800'}`}>
+                    <div className={`text-[11px] sm:text-xs md:text-sm font-bold flex items-center gap-0.5 sm:flex-col sm:items-start leading-none transform rotate-180 self-end ${suitColor}`}>
                         <span>{display}</span>
-                        <span>{icon}</span>
+                        <span className="text-[10px] sm:text-xs">{icon}</span>
                     </div>
-                </div>
+                </button>
             );
         };
 
         const HUD = ({ players, round, maxRounds, trumpCard, trumpSuit, playerBid, playerTricks }) => {
             const isRedTrump = trumpSuit === 'Hearts' || trumpSuit === 'Diamonds';
+            const seatZeroName = players[0]?.name;
+            const bidHeader = (!seatZeroName || seatZeroName === 'You') ? 'Your bid' : `${seatZeroName}'s bid`;
             return (
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                        <h3 className="text-xs text-slate-400 font-bold mb-1">Round</h3>
-                        <p className="text-xl font-bold">{round} <span className="text-xs text-slate-500 font-normal">/ {maxRounds}</span></p>
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-2.5 sm:mb-4">
+                    <div className="bg-slate-800/60 p-2.5 sm:p-3 rounded-xl border border-slate-700 min-w-0">
+                        <h3 className="text-[11px] sm:text-xs text-slate-400 font-bold mb-0.5 sm:mb-1">Round</h3>
+                        <p className="text-base sm:text-xl font-bold leading-tight">{round} <span className="text-[11px] sm:text-xs text-slate-500 font-normal">/ {maxRounds}</span></p>
                     </div>
-                    <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700 flex flex-col items-center justify-center">
-                        <h3 className="text-xs text-slate-400 font-bold mb-1">Trump</h3>
+                    <div className="bg-slate-800/60 p-2.5 sm:p-3 rounded-xl border border-slate-700 flex flex-col items-center justify-center min-w-0">
+                        <h3 className="text-[11px] sm:text-xs text-slate-400 font-bold mb-0.5 sm:mb-1">Trump</h3>
                         {trumpSuit !== 'None' ? (
-                            <div className="flex items-center gap-1.5">
-                                {trumpCard?.type === 'wizard' && <span className="text-lg" title="Chosen by Wizard">🧙</span>}
-                                <span className={`text-2xl leading-none ${isRedTrump ? 'text-red-500' : 'text-white'}`}>
+                            <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+                                {trumpCard?.type === 'wizard' && <span className="text-sm sm:text-lg shrink-0" title="Chosen by Wizard">🧙</span>}
+                                <span className={`text-lg sm:text-2xl leading-none shrink-0 ${isRedTrump ? 'text-red-500' : 'text-white'}`}>
                                     {SUIT_ICONS[trumpSuit]}
                                 </span>
-                                <span className="text-xs font-semibold">{trumpSuit}</span>
+                                <span className="text-[11px] sm:text-xs font-semibold truncate">{trumpSuit}</span>
                             </div>
                         ) : (
-                            <span className="text-lg font-bold italic text-slate-400">
+                            <span className="text-sm sm:text-lg font-bold italic text-slate-400 truncate">
                                 {trumpCard?.type === 'jester' ? '🤡 None' : 'None'}
                             </span>
                         )}
                     </div>
-                    <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                        <h3 className="text-xs text-slate-400 font-bold mb-1">{players[0]?.name || 'You'}'s bid</h3>
-                        <p className="text-xl font-bold">{playerTricks} / {playerBid}</p>
+                    <div className="bg-slate-800/60 p-2.5 sm:p-3 rounded-xl border border-slate-700 min-w-0">
+                        <h3 className="text-[11px] sm:text-xs text-slate-400 font-bold mb-0.5 sm:mb-1 truncate">{bidHeader}</h3>
+                        <p className="text-base sm:text-xl font-bold leading-tight">{playerTricks} / {playerBid}</p>
                     </div>
                 </div>
             );
         };
+
+        const MobileStandingsStrip = ({ players, currentTurn }) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 mb-2.5 lg:hidden">
+                {players.map((p, i) => (
+                    <div
+                        key={p.id}
+                        className={`px-2.5 py-1.5 rounded-xl border flex items-center justify-between gap-1.5 min-w-0 transition-colors ${currentTurn === i ? 'bg-blue-900/40 border-blue-500/60' : 'bg-slate-800/50 border-slate-700/80'}`}
+                    >
+                        <div className="min-w-0">
+                            <div className={`text-xs font-bold truncate ${currentTurn === i ? 'text-blue-300' : 'text-slate-200'}`}>
+                                {p.name}
+                            </div>
+                            <div className="text-[10px] text-slate-400">
+                                Won {p.tricks}/{p.bid}
+                            </div>
+                        </div>
+                        <span className="text-xs font-extrabold text-white bg-slate-900/80 px-2 py-0.5 rounded-lg shrink-0">{p.score}</span>
+                    </div>
+                ))}
+            </div>
+        );
 
         const ScoreBoard = ({ players, currentTurn }) => (
             <div className="bg-slate-800/80 backdrop-blur border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
@@ -192,13 +243,13 @@
                 <div className="divide-y divide-slate-700">
                     {players.map((p, i) => (
                         <div key={p.id} className={`p-3 flex justify-between items-center ${currentTurn === i ? 'bg-blue-900/30' : ''}`}>
-                            <div className="flex flex-col">
-                                <span className={`text-sm font-medium ${currentTurn === i ? 'text-blue-400' : 'text-slate-200'}`}>
+                            <div className="flex flex-col min-w-0">
+                                <span className={`text-sm font-medium truncate ${currentTurn === i ? 'text-blue-400' : 'text-slate-200'}`}>
                                     {p.name} {p.isHuman ? '(You)' : ''}
                                 </span>
                                 <span className="text-xs text-slate-500">Bid: {p.bid} | Won: {p.tricks}</span>
                             </div>
-                            <span className="text-lg font-bold">{p.score}</span>
+                            <span className="text-lg font-bold shrink-0 ml-2">{p.score}</span>
                         </div>
                     ))}
                 </div>
@@ -226,20 +277,20 @@
             return (
                 <div 
                     onClick={onClose} 
-                    className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in"
+                    className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in"
                 >
                     <div 
                         onClick={(e) => e.stopPropagation()} 
-                        className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden"
+                        className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-2xl w-full max-h-[88dvh] flex flex-col shadow-2xl overflow-hidden"
                     >
                         {/* Header */}
-                        <div className="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-800/40">
-                            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent flex items-center gap-2">
+                        <div className="p-4 sm:p-5 border-b border-slate-800 flex justify-between items-center gap-2 bg-slate-800/40">
+                            <h2 className="text-lg sm:text-2xl font-black bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent flex items-center gap-2">
                                 🧙 Wizard guide & rules
                             </h2>
                             <button 
                                 onClick={onClose} 
-                                className="p-1.5 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors" 
+                                className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors shrink-0" 
                                 aria-label="Close rules"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,29 +300,29 @@
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex border-b border-slate-800 bg-slate-900/60 p-2 gap-1">
+                        <div className="flex border-b border-slate-800 bg-slate-900/60 p-1.5 sm:p-2 gap-1">
                             <button
                                 onClick={() => setActiveTab('overview')}
-                                className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'overview' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                                className={`flex-1 py-2 px-1.5 sm:px-3 rounded-xl text-[11px] sm:text-sm font-bold transition-all leading-tight ${activeTab === 'overview' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
                             >
                                 📋 Overview & play
                             </button>
                             <button
                                 onClick={() => setActiveTab('cards')}
-                                className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'cards' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                                className={`flex-1 py-2 px-1.5 sm:px-3 rounded-xl text-[11px] sm:text-sm font-bold transition-all leading-tight ${activeTab === 'cards' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
                             >
                                 🧙 Special cards
                             </button>
                             <button
                                 onClick={() => setActiveTab('trump')}
-                                className={`flex-1 py-2 px-3 rounded-xl text-xs md:text-sm font-bold transition-all ${activeTab === 'trump' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
+                                className={`flex-1 py-2 px-1.5 sm:px-3 rounded-xl text-[11px] sm:text-sm font-bold transition-all leading-tight ${activeTab === 'trump' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'}`}
                             >
                                 🎺 Trump & scoring
                             </button>
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 text-slate-300">
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6 text-slate-300">
                             {activeTab === 'overview' && (
                                 <div className="space-y-4 animate-fade-in">
                                     <div>
@@ -666,39 +717,41 @@
             const trickComplete = players.length > 0 && currentTrick.length >= players.length;
 
             return (
-                <div className="min-h-screen flex flex-col p-4 md:p-8 max-w-6xl mx-auto">
+                <div className="min-h-[100dvh] flex flex-col px-3 py-3 sm:p-6 md:p-8 pb-safe max-w-6xl mx-auto w-full">
                     {gameState === 'start' && (
-                        <div className="flex-1 flex flex-col items-center justify-center py-8">
-                            <div className="bg-slate-800/50 p-6 md:p-8 rounded-3xl border border-slate-700 max-w-xl w-full text-center shadow-2xl">
-                                <h1 className="text-4xl font-extrabold mb-2 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">Wizard</h1>
-                                <p className="text-slate-400 mb-6 text-sm">Predict exactly how many tricks you will win.</p>
+                        <div className="flex-1 flex flex-col items-center justify-start sm:justify-center py-2 sm:py-6">
+                            <div className="bg-slate-800/50 p-5 sm:p-8 rounded-3xl border border-slate-700 max-w-xl w-full text-center shadow-2xl my-auto">
+                                <h1 className="text-3xl sm:text-4xl font-extrabold mb-1.5 bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">Wizard</h1>
+                                <p className="text-slate-400 mb-5 text-xs sm:text-sm">Predict exactly how many tricks you will win.</p>
 
                                 {/* Path 1: Join / Play */}
-                                <div className="space-y-6 text-left mb-8">
+                                <div className="space-y-4 sm:space-y-5 text-left mb-5 sm:mb-7">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Your name</label>
+                                        <label htmlFor="wizard-player-name" className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">Your name</label>
                                         <input
+                                            id="wizard-player-name"
                                             type="text"
-                                            autoFocus
                                             value={playerName}
                                             onChange={(e) => setPlayerName(e.target.value)}
-                                            className="w-full bg-slate-900 border border-slate-700 rounded-2xl p-3 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-2xl p-3 text-white text-base focus:outline-none focus:border-blue-500 transition-colors"
                                             placeholder="Enter your name..."
                                             maxLength={12}
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Choose opponents ({selectedOpponents.length} selected):</label>
-                                        <div className="flex flex-wrap gap-2 mb-2">
+                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Choose 2–5 opponents ({selectedOpponents.length} selected):</label>
+                                        <div className="flex flex-wrap gap-2 justify-center sm:justify-start mb-2">
                                             {ALL_BOTS.map(bot => {
                                                 const isSelected = selectedOpponents.includes(bot.name);
                                                 return (
                                                     <button
                                                         key={bot.name}
+                                                        type="button"
                                                         onMouseEnter={() => setHoveredOpponent(bot)}
                                                         onMouseLeave={() => setHoveredOpponent(null)}
                                                         onClick={() => {
+                                                            setHoveredOpponent(bot);
                                                             if (isSelected) {
                                                                 if (selectedOpponents.length > 2) {
                                                                     setSelectedOpponents(selectedOpponents.filter(n => n !== bot.name));
@@ -709,33 +762,35 @@
                                                                 }
                                                             }
                                                         }}
-                                                        className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${isSelected ? 'bg-yellow-500 border-yellow-400 text-slate-900 shadow-lg shadow-yellow-500/20' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}
+                                                        className={`px-3.5 py-2 rounded-full text-xs font-bold border transition-all active:scale-95 min-h-[38px] ${isSelected ? 'bg-yellow-500 border-yellow-400 text-slate-900 shadow-lg shadow-yellow-500/20' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}
                                                     >
                                                         {bot.name}
                                                     </button>
                                                 );
                                             })}
                                         </div>
-                                        <div className="h-4 text-center">
-                                            {hoveredOpponent && <span className="text-[10px] text-blue-400 italic">{hoveredOpponent.desc}</span>}
+                                        <div className="min-h-[1.75rem] flex items-center justify-center text-center px-2">
+                                            <span className="text-[11px] text-blue-400 italic">
+                                                {hoveredOpponent ? hoveredOpponent.desc : 'Tap an opponent to preview their play style.'}
+                                            </span>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button onClick={() => initGame(false)} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95">
+                                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                        <button onClick={() => initGame(false)} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 px-3 rounded-2xl font-bold text-base sm:text-lg shadow-lg shadow-blue-500/20 transition-all active:scale-95 min-h-[48px]">
                                             Play
                                         </button>
-                                        <button onClick={() => setShowRules(true)} className="w-full bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 py-3 rounded-2xl font-bold text-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+                                        <button onClick={() => setShowRules(true)} className="w-full bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 py-3 px-3 rounded-2xl font-bold text-sm sm:text-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 min-h-[48px]">
                                             Rules guide 📖
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="border-t border-slate-700 my-8 pt-8">
+                                <div className="border-t border-slate-700 my-5 pt-5 sm:my-7 sm:pt-7">
                                     {/* Path 2: Spectate */}
-                                    <div className="text-left mb-8">
-                                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 ml-1">Watch a game</h3>
-                                        <button onClick={() => initGame(true)} className="w-full bg-slate-900 border border-slate-700 text-slate-400 py-4 rounded-2xl font-bold text-lg hover:bg-slate-800 transition-all">
+                                    <div className="text-left mb-5 sm:mb-6">
+                                        <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2.5 ml-1">Watch a game</h3>
+                                        <button onClick={() => initGame(true)} className="w-full bg-slate-900 border border-slate-700 text-slate-300 py-3 sm:py-3.5 rounded-2xl font-bold text-base sm:text-lg hover:bg-slate-800 transition-all active:scale-95 min-h-[48px]">
                                             Spectate
                                         </button>
                                     </div>
@@ -744,25 +799,26 @@
                                     <div className="text-left">
                                         <button
                                             onClick={() => setShowAdvanced(!showAdvanced)}
-                                            className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-4 ml-1 flex items-center gap-2 hover:text-slate-400 transition-colors"
+                                            className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 ml-1 py-1 flex items-center gap-2 hover:text-slate-300 transition-colors"
                                         >
                                             Advanced mode {showAdvanced ? '▼' : '▶'}
                                         </button>
 
                                         {showAdvanced && (
-                                            <div className="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 space-y-4 animate-fade-in">
-                                                <div className="flex items-center justify-between">
-                                                    <label className="text-sm font-bold text-slate-400">Number of games:</label>
+                                            <div className="bg-slate-900/50 p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3 mt-1 animate-fade-in">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <label htmlFor="wizard-sim-count" className="text-xs sm:text-sm font-bold text-slate-400">Number of games:</label>
                                                     <input
+                                                        id="wizard-sim-count"
                                                         type="number"
                                                         min="1"
                                                         max="2000"
                                                         value={simCount}
                                                         onChange={(e) => setSimCount(Math.min(2000, Math.max(1, parseInt(e.target.value, 10) || 1)))}
-                                                        className="w-24 bg-slate-900 border border-slate-700 rounded-xl p-2 text-center text-white focus:outline-none focus:border-blue-500"
+                                                        className="w-24 bg-slate-900 border border-slate-700 rounded-xl p-2 text-center text-white text-base focus:outline-none focus:border-blue-500"
                                                     />
                                                 </div>
-                                                <button onClick={startSimulationWithCount} className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl font-bold transition-all border border-slate-700 text-sm">
+                                                <button onClick={startSimulationWithCount} className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-3 rounded-xl font-bold transition-all border border-slate-700 text-sm min-h-[44px]">
                                                     Simulate
                                                 </button>
                                             </div>
@@ -774,72 +830,114 @@
                     )}
 
                     {(gameState === 'bidding' || gameState === 'playing' || gameState === 'roundEnd') && players.length > 0 && (
-                        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-8">
+                        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
                             {/* Left: Table & Hand */}
                             <div className="lg:col-span-3 flex flex-col">
                                 <HUD players={players} round={round} maxRounds={maxRounds} trumpCard={trumpCard} trumpSuit={trumpSuit} playerBid={players[0].bid} playerTricks={players[0].tricks} />
 
-                                <div className="flex-1 bg-slate-900/50 rounded-3xl border border-slate-800 relative flex items-center justify-center p-8 min-h-[300px]">
-                                    <div className="flex flex-wrap justify-center gap-4">
-                                        {currentTrick.map((t, i) => (
-                                            <div key={`${t.pIdx}-${i}`} className="flex flex-col items-center animate-fade-in">
-                                                <Card card={t.card} disabled size="sm" />
-                                                <span className="text-[10px] font-bold text-slate-400 mt-2">{players[t.pIdx]?.name}</span>
-                                            </div>
-                                        ))}
-                                        {currentTrick.length === 0 && (
-                                            <p className="text-slate-600 italic">
-                                                {spectatorMode ? `Waiting for ${players[turn]?.name}...` : (turn === 0 ? 'Play a card to start the trick' : `Waiting for ${players[turn]?.name}...`)}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="absolute top-4 right-4 flex gap-2 items-center">
-                                        <button 
-                                            onClick={() => setShowRules(true)} 
-                                            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-full text-xs font-bold transition-all border border-slate-700"
-                                        >
-                                            Rules ℹ️
-                                        </button>
-                                        {(gameState === 'playing' || spectatorMode) && (
-                                            <button onClick={() => setFastForward(!fastForward)} className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${fastForward ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-300'}`}>
-                                                {fastForward ? '⏩ Fast mode' : '🐢 Normal speed'}
+                                <MobileStandingsStrip players={players} currentTurn={turn} />
+
+                                <div className="flex-1 bg-slate-900/60 rounded-2xl sm:rounded-3xl border border-slate-800 flex flex-col overflow-hidden">
+                                    {/* Non-overlapping Table Control Strip */}
+                                    <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 border-b border-slate-800 bg-slate-900/80">
+                                        <div className="text-xs font-semibold truncate min-w-0">
+                                            {!spectatorMode && gameState === 'playing' && turn === 0 ? (
+                                                <span className="text-blue-400">
+                                                    Your turn{leadSuit !== 'None' ? ` • Lead: ${SUIT_ICONS[leadSuit] || ''} ${leadSuit}` : ''}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-400">
+                                                    Turn: <strong className="text-slate-200">{players[turn]?.name}</strong>
+                                                    {leadSuit !== 'None' ? ` • ${SUIT_ICONS[leadSuit] || ''} ${leadSuit}` : ''}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex gap-1.5 sm:gap-2 items-center shrink-0">
+                                            {(gameState === 'playing' || spectatorMode) && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFastForward(!fastForward)}
+                                                    title={fastForward ? 'Fast mode enabled' : 'Normal speed'}
+                                                    className={`px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 min-h-[34px] ${fastForward ? 'bg-orange-500 text-white' : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'}`}
+                                                >
+                                                    {fastForward ? '⏩' : '🐢'} <span className="hidden sm:inline">{fastForward ? 'Fast mode' : 'Normal speed'}</span>
+                                                </button>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowRules(true)}
+                                                title="Rules guide"
+                                                aria-label="Open rules guide"
+                                                className="px-2.5 sm:px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-full text-xs font-bold transition-all border border-slate-700 active:scale-95 min-h-[34px]"
+                                            >
+                                                📖 <span className="hidden sm:inline">Rules</span>
                                             </button>
-                                        )}
-                                        <button onClick={() => setIsPaused(true)} aria-label="Pause game" className="p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors">
-                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsPaused(true)}
+                                                aria-label="Pause game"
+                                                className="p-1.5 bg-slate-800 rounded-full hover:bg-slate-700 border border-slate-700 transition-colors min-h-[34px] min-w-[34px] flex items-center justify-center"
+                                            >
+                                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Trick Felt Area */}
+                                    <div className="flex-1 flex items-center justify-center p-4 sm:p-6 md:p-8 min-h-[150px] sm:min-h-[240px]">
+                                        <div className="flex flex-wrap justify-center gap-2.5 sm:gap-4">
+                                            {currentTrick.map((t, i) => (
+                                                <div key={`${t.pIdx}-${i}`} className="flex flex-col items-center animate-fade-in">
+                                                    <Card card={t.card} disabled size="sm" className="!opacity-100 !grayscale-0" />
+                                                    <span className="text-[10px] sm:text-xs font-bold text-slate-300 mt-1.5 max-w-[68px] truncate">{players[t.pIdx]?.name}</span>
+                                                </div>
+                                            ))}
+                                            {currentTrick.length === 0 && (
+                                                <p className="text-slate-500 italic text-xs sm:text-sm text-center">
+                                                    {spectatorMode ? `Waiting for ${players[turn]?.name}...` : (turn === 0 ? 'Tap a card below to lead the trick' : `Waiting for ${players[turn]?.name}...`)}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Hand Area */}
-                                <div className="mt-8">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-sm font-bold text-slate-400 tracking-widest">
+                                <div className="mt-3 sm:mt-6">
+                                    <div className="flex justify-between items-center mb-2.5 sm:mb-4">
+                                        <h3 className="text-xs sm:text-sm font-bold text-slate-400 tracking-wider">
                                             {spectatorMode ? `${players[0].name}'s hand` : 'Your hand'}
                                         </h3>
                                         <span className="text-xs text-slate-500">{players[0].hand.length} card{players[0].hand.length !== 1 ? 's' : ''} remaining</span>
                                     </div>
-                                    <div className="flex flex-wrap gap-2 justify-center">
-                                        {players[0].hand.map((c, i) => (
-                                            <Card
-                                                key={`${c.type}-${c.suit}-${c.value}-${i}`}
-                                                card={c}
-                                                disabled={spectatorMode || gameState !== 'playing' || turn !== 0 || trickComplete || !isValidPlay(c, players[0].hand, leadSuit)}
-                                                onClick={() => executePlay(0, i)}
-                                            />
-                                        ))}
+                                    <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center">
+                                        {players[0].hand.map((c, i) => {
+                                            const valid = isValidPlay(c, players[0].hand, leadSuit);
+                                            const isMyActiveTurn = !spectatorMode && gameState === 'playing' && turn === 0 && !trickComplete;
+                                            return (
+                                                <Card
+                                                    key={`${c.type}-${c.suit}-${c.value}-${i}`}
+                                                    card={c}
+                                                    compact={players[0].hand.length > 8}
+                                                    dimmed={isMyActiveTurn && !valid}
+                                                    disabled={!isMyActiveTurn || !valid}
+                                                    onClick={() => executePlay(0, i)}
+                                                />
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Right: Scores & Logs */}
-                            <div className="flex flex-col gap-6">
-                                <ScoreBoard players={players} currentTurn={turn} />
-                                <div className="flex-1 bg-slate-900/80 rounded-xl border border-slate-800 p-4 overflow-y-auto max-h-[300px] lg:max-h-none">
-                                    <h3 className="text-xs font-bold text-slate-500 mb-4">Recent events</h3>
-                                    <div className="space-y-3">
+                            <div className="flex flex-col gap-4 sm:gap-6">
+                                <div className="hidden lg:block">
+                                    <ScoreBoard players={players} currentTurn={turn} />
+                                </div>
+                                <div className="flex-1 bg-slate-900/80 rounded-xl border border-slate-800 p-3.5 sm:p-4 overflow-y-auto max-h-[180px] sm:max-h-[260px] lg:max-h-none">
+                                    <h3 className="text-xs font-bold text-slate-500 mb-2.5 sm:mb-4">Recent events</h3>
+                                    <div className="space-y-2 sm:space-y-3">
                                         {logs.map((log, i) => (
-                                            <p key={i} className="text-sm text-slate-300 leading-tight border-l-2 border-slate-700 pl-3">{log}</p>
+                                            <p key={i} className="text-xs sm:text-sm text-slate-300 leading-snug border-l-2 border-slate-700 pl-2.5 sm:pl-3">{log}</p>
                                         ))}
                                     </div>
                                 </div>
@@ -849,17 +947,41 @@
 
                     {/* Overlays */}
                     {gameState === 'bidding' && !spectatorMode && (
-                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex items-center justify-center p-6">
-                            <div className="bg-slate-900 border border-slate-700 p-8 rounded-3xl max-w-lg w-full text-center shadow-2xl animate-fade-in">
-                                <h2 className="text-3xl font-bold mb-2">Place your bid</h2>
-                                <p className="text-slate-400 mb-3">How many tricks will you take in round {round}?</p>
-                                <p className="text-xs text-slate-500 mb-6">
-                                    Trump: <strong className="text-slate-200">{trumpSuit === 'None' ? 'No trump' : `${SUIT_ICONS[trumpSuit]} ${trumpSuit}`}</strong>
-                                    {' • '}Your hand: <strong className="text-slate-200">{players[0]?.hand.map(c => `${getCardDisplay(c)}${getCardIcon(c)}`).join('  ')}</strong>
-                                </p>
-                                <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
+                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex items-center justify-center p-3 sm:p-6">
+                            <div className="bg-slate-900 border border-slate-700 p-4 sm:p-8 rounded-3xl max-w-lg w-full max-h-[88dvh] flex flex-col text-center shadow-2xl animate-fade-in">
+                                <h2 className="text-2xl sm:text-3xl font-bold mb-1">Place your bid</h2>
+                                <p className="text-xs sm:text-sm text-slate-400 mb-2.5">How many tricks will you take in round {round}?</p>
+                                <div className="text-xs text-slate-400 mb-2">
+                                    Trump:{' '}
+                                    <strong className={trumpSuit === 'Hearts' || trumpSuit === 'Diamonds' ? 'text-red-400' : 'text-slate-100'}>
+                                        {trumpSuit === 'None' ? 'No trump' : `${SUIT_ICONS[trumpSuit]} ${trumpSuit}`}
+                                    </strong>
+                                </div>
+                                <div className="flex flex-wrap justify-center gap-1.5 max-h-24 overflow-y-auto bg-slate-950/60 border border-slate-800 rounded-2xl p-2 mb-3.5">
+                                    {players[0]?.hand.map((c, idx) => {
+                                        const isRed = c.suit === 'Hearts' || c.suit === 'Diamonds';
+                                        const chipColor = c.type === 'wizard'
+                                            ? 'bg-indigo-950 text-blue-300 border-indigo-500/40'
+                                            : c.type === 'jester'
+                                              ? 'bg-slate-800 text-slate-300 border-slate-600'
+                                              : isRed
+                                                ? 'bg-white text-red-600 border-slate-300'
+                                                : 'bg-white text-slate-900 border-slate-300';
+                                        return (
+                                            <span key={idx} className={`px-2 py-0.5 rounded-lg border text-xs font-extrabold ${chipColor}`}>
+                                                {getCardDisplay(c)}{getCardIcon(c)}
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                                <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 sm:gap-3 overflow-y-auto py-0.5">
                                     {Array.from({ length: round + 1 }, (_, i) => (
-                                        <button key={i} onClick={() => handleBid(i)} className="bg-slate-800 hover:bg-blue-600 p-4 rounded-xl font-bold text-lg transition-all active:scale-95 border border-slate-700">
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            onClick={() => handleBid(i)}
+                                            className="bg-slate-800 hover:bg-blue-600 py-2.5 sm:p-3.5 rounded-xl font-bold text-base sm:text-lg transition-all active:scale-95 border border-slate-700 min-h-[44px]"
+                                        >
                                             {i}
                                         </button>
                                     ))}
@@ -869,20 +991,20 @@
                     )}
 
                     {gameState === 'roundEnd' && (
-                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex items-center justify-center p-6 text-center">
-                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-md w-full shadow-2xl animate-fade-in">
-                                <h2 className="text-4xl font-bold mb-4">Round {round} results</h2>
-                                <div className="space-y-3 mb-8">
+                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex items-center justify-center p-4 sm:p-6 text-center">
+                            <div className="bg-slate-900 border border-slate-700 p-5 sm:p-8 md:p-10 rounded-3xl max-w-md w-full max-h-[88dvh] overflow-y-auto shadow-2xl animate-fade-in">
+                                <h2 className="text-2xl sm:text-4xl font-bold mb-4">Round {round} results</h2>
+                                <div className="space-y-2.5 sm:space-y-3 mb-6 sm:mb-8">
                                     {players.map(p => (
-                                        <div key={p.id} className="flex justify-between items-center bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                                            <span className="font-medium">{p.name} ({p.tricks} / {p.bid})</span>
-                                            <span className={`font-bold ${p.tricks === p.bid ? 'text-green-500' : 'text-red-500'}`}>
+                                        <div key={p.id} className="flex justify-between items-center gap-2 bg-slate-800/50 p-3 rounded-xl border border-slate-700">
+                                            <span className="font-medium text-sm sm:text-base truncate">{p.name} ({p.tricks} / {p.bid})</span>
+                                            <span className={`font-bold text-sm sm:text-base shrink-0 ${p.tricks === p.bid ? 'text-green-500' : 'text-red-500'}`}>
                                                 {p.tricks === p.bid ? `+${20 + p.tricks * 10}` : -(Math.abs(p.tricks - p.bid) * 10)} pts
                                             </span>
                                         </div>
                                     ))}
                                 </div>
-                                <button onClick={nextRound} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold text-lg transition-all active:scale-95">
+                                <button onClick={nextRound} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3.5 sm:py-4 rounded-2xl font-bold text-base sm:text-lg transition-all active:scale-95 min-h-[48px]">
                                     {round >= maxRounds ? 'View final standings' : 'Next round'}
                                 </button>
                             </div>
@@ -890,53 +1012,53 @@
                     )}
 
                     {gameState === 'gameEnd' && (
-                        <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-40 flex items-center justify-center p-6 text-center">
-                            <div className="bg-slate-900 border border-slate-700 p-12 rounded-3xl max-w-lg w-full shadow-2xl border-t-4 border-t-blue-500 animate-fade-in">
-                                <h2 className="text-5xl font-black mb-2 italic">Finita la commedia</h2>
-                                <p className="text-slate-400 mb-8">The magic has faded. Here is the final standing.</p>
-                                <div className="space-y-4 mb-10">
+                        <div className="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-40 flex items-center justify-center p-4 sm:p-6 text-center">
+                            <div className="bg-slate-900 border border-slate-700 p-6 sm:p-10 md:p-12 rounded-3xl max-w-lg w-full max-h-[88dvh] overflow-y-auto shadow-2xl border-t-4 border-t-blue-500 animate-fade-in">
+                                <h2 className="text-3xl sm:text-5xl font-black mb-2 italic">Finita la commedia</h2>
+                                <p className="text-xs sm:text-base text-slate-400 mb-6 sm:mb-8">The magic has faded. Here is the final standing.</p>
+                                <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-10">
                                     {[...players].sort((a, b) => b.score - a.score).map((p, i) => (
-                                        <div key={p.id} className={`flex justify-between items-center p-4 rounded-2xl ${i === 0 ? 'bg-blue-600/20 border border-blue-500/30' : 'bg-slate-800/50 border border-slate-700'}`}>
-                                            <span className="text-lg font-bold">{i + 1}. {p.name}</span>
-                                            <span className="text-2xl font-black">{p.score}</span>
+                                        <div key={p.id} className={`flex justify-between items-center gap-2 p-3.5 sm:p-4 rounded-2xl ${i === 0 ? 'bg-blue-600/20 border border-blue-500/30' : 'bg-slate-800/50 border border-slate-700'}`}>
+                                            <span className="text-base sm:text-lg font-bold truncate">{i + 1}. {p.name}</span>
+                                            <span className="text-xl sm:text-2xl font-black shrink-0">{p.score}</span>
                                         </div>
                                     ))}
                                 </div>
-                                <button onClick={returnToMenu} className="w-full bg-white text-slate-950 py-4 rounded-2xl font-black text-xl hover:bg-slate-200 transition-all active:scale-95">Play again</button>
+                                <button onClick={returnToMenu} className="w-full bg-white text-slate-950 py-3.5 sm:py-4 rounded-2xl font-black text-lg sm:text-xl hover:bg-slate-200 transition-all active:scale-95 min-h-[48px]">Play again</button>
                             </div>
                         </div>
                     )}
 
                     {gameState === 'simulationResults' && simulationStats && (
-                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex items-center justify-center p-6 text-center">
-                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-lg w-full shadow-2xl animate-fade-in">
-                                <h2 className="text-3xl font-bold mb-2">Simulation results</h2>
-                                <p className="text-slate-400 mb-8 font-medium">Win counts over {lastSimulatedCount} simulated game{lastSimulatedCount === 1 ? '' : 's'}.</p>
-                                <div className="space-y-4 mb-10">
+                        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex items-center justify-center p-4 sm:p-6 text-center">
+                            <div className="bg-slate-900 border border-slate-700 p-5 sm:p-8 md:p-10 rounded-3xl max-w-lg w-full max-h-[88dvh] overflow-y-auto shadow-2xl animate-fade-in">
+                                <h2 className="text-2xl sm:text-3xl font-bold mb-2">Simulation results</h2>
+                                <p className="text-xs sm:text-base text-slate-400 mb-6 sm:mb-8 font-medium">Win counts over {lastSimulatedCount} simulated game{lastSimulatedCount === 1 ? '' : 's'}.</p>
+                                <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-10">
                                     {Object.entries(simulationStats).sort((a, b) => b[1] - a[1]).map(([name, wins]) => (
-                                        <div key={name} className="flex justify-between items-center bg-slate-800/50 p-4 rounded-2xl border border-slate-700">
-                                            <span className="font-bold">{name}</span>
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-32 h-3 bg-slate-700 rounded-full overflow-hidden">
+                                        <div key={name} className="flex justify-between items-center gap-2 bg-slate-800/50 p-3 sm:p-4 rounded-2xl border border-slate-700">
+                                            <span className="font-bold text-sm sm:text-base truncate">{name}</span>
+                                            <div className="flex items-center gap-3 shrink-0">
+                                                <div className="w-20 sm:w-32 h-2.5 sm:h-3 bg-slate-700 rounded-full overflow-hidden">
                                                     <div className="h-full bg-blue-500" style={{ width: `${(wins / Math.max(1, lastSimulatedCount)) * 100}%` }}></div>
                                                 </div>
-                                                <span className="text-xl font-bold">{wins}</span>
+                                                <span className="text-lg sm:text-xl font-bold">{wins}</span>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                                <button onClick={() => setGameState('start')} className="w-full bg-slate-800 hover:bg-slate-700 text-white py-4 rounded-2xl font-bold text-lg transition-all active:scale-95">Back to menu</button>
+                                <button onClick={() => setGameState('start')} className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3.5 sm:py-4 rounded-2xl font-bold text-base sm:text-lg transition-all active:scale-95 min-h-[48px]">Back to menu</button>
                             </div>
                         </div>
                     )}
 
                     {isPaused && (
-                        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-6">
-                            <div className="bg-slate-900 border border-slate-700 p-10 rounded-3xl max-w-sm w-full text-center animate-fade-in">
-                                <h2 className="text-3xl font-bold mb-8">Game paused</h2>
-                                <div className="flex flex-col gap-4">
-                                    <button onClick={() => setIsPaused(false)} className="bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold transition-all active:scale-95">Resume game</button>
-                                    <button onClick={returnToMenu} className="bg-slate-800 hover:bg-slate-700 text-slate-300 py-4 rounded-2xl font-bold transition-all">Quit to menu</button>
+                        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-6">
+                            <div className="bg-slate-900 border border-slate-700 p-6 sm:p-10 rounded-3xl max-w-sm w-full text-center animate-fade-in">
+                                <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Game paused</h2>
+                                <div className="flex flex-col gap-3 sm:gap-4">
+                                    <button onClick={() => setIsPaused(false)} className="bg-blue-600 hover:bg-blue-500 text-white py-3.5 sm:py-4 rounded-2xl font-bold transition-all active:scale-95 min-h-[48px]">Resume game</button>
+                                    <button onClick={returnToMenu} className="bg-slate-800 hover:bg-slate-700 text-slate-300 py-3.5 sm:py-4 rounded-2xl font-bold transition-all active:scale-95 min-h-[48px]">Quit to menu</button>
                                 </div>
                             </div>
                         </div>

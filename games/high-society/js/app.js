@@ -308,7 +308,7 @@ function App() {
     };
 
     return (
-        <div className="flex flex-col h-screen text-white font-sans selection:bg-yellow-500 selection:text-green-950">
+        <div className="flex flex-col h-[100dvh] w-full overflow-hidden text-white font-sans selection:bg-yellow-500 selection:text-green-950">
             {gameState === 'start' && (
                 <GameStartScreen
                     playerName={playerName} setPlayerName={setPlayerName}
@@ -322,59 +322,44 @@ function App() {
                     isSimulating={isSimulating} simCompleted={simCompleted} simTotal={simTotal} cancelSimulation={cancelSimulation}
                     players={players} turn={turn} deck={deck} darkCardsDrawn={darkCardsDrawn} revealedCard={revealedCard}
                     currentHighestBid={currentHighestBid} highestBidder={highestBidder}
-                    humanPendingBid={humanPendingBid} handleHumanBid={handleHumanBid} executePass={executePass} toggleHumanPendingCard={toggleHumanPendingCard} />
+                    humanPendingBid={humanPendingBid} handleHumanBid={handleHumanBid} executePass={executePass} toggleHumanPendingCard={toggleHumanPendingCard}
+                    fastForward={fastForward} setFastForward={setFastForward}
+                    showLogs={showLogs} setShowLogs={setShowLogs}
+                    setShowRules={setShowRules} setIsPaused={setIsPaused} />
             )}
             {gameState === 'end' && <GameOverScreen players={players} setGameState={setGameState} />}
             {gameState === 'simulationEnd' && <GameSimulationEndScreen simTotal={simTotal} simulationResults={simulationResults} setGameState={setGameState} />}
 
-            {gameState === 'playing' && !isSimulating && (
-                <div className="fixed top-4 right-4 z-50 flex gap-2">
-                    <button
-                        onClick={() => setFastForward(f => !f)}
-                        className={`font-bold px-3.5 py-2 rounded-full shadow-lg border backdrop-blur transition-all active:scale-95 text-xs ${fastForward ? 'bg-yellow-500 text-green-950 border-yellow-400' : 'bg-green-800/80 hover:bg-green-700 text-yellow-400 border-yellow-600/30'}`}
+            {gameState === 'playing' && !isSimulating && showLogs && (
+                <div onClick={() => setShowLogs(false)} className="fixed inset-0 bg-black/50 z-[140] sm:bg-transparent">
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="fixed inset-x-3 top-14 sm:inset-x-auto sm:right-4 sm:top-14 sm:w-80 max-h-[65dvh] bg-emerald-950/95 backdrop-blur-md border border-yellow-500/50 rounded-2xl shadow-2xl overflow-y-auto p-4 animate-fade-in"
                     >
-                        {fastForward ? '⏩ Fast' : '🐢 Normal'}
-                    </button>
-                    <button 
-                        onClick={() => setShowRules(true)} 
-                        className="bg-green-800/80 hover:bg-green-700 text-yellow-400 font-bold px-4 py-2 rounded-full shadow-lg border border-yellow-600/30 backdrop-blur transition-all active:scale-95 text-xs flex items-center justify-center gap-1"
-                    >
-                        Rules ℹ️
-                    </button>
-                    <button 
-                        onClick={() => setIsPaused(true)} 
-                        className="bg-green-800/80 hover:bg-green-700 text-yellow-400 p-2 rounded-full shadow-lg border border-yellow-600/30 backdrop-blur transition-all active:scale-95 text-xs"
-                        aria-label="Pause game"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </button>
-                </div>
-            )}
-
-            {gameState === 'playing' && !isSimulating && (
-                <div className="fixed bottom-4 right-4 z-50">
-                    <button onClick={() => setShowLogs(!showLogs)} className="bg-green-800/80 hover:bg-green-700 text-yellow-400 p-3 rounded-full shadow-lg border border-yellow-600 transition-colors text-xs font-bold">
-                        {showLogs ? '📜 Hide logs' : '📜 Show logs'}
-                    </button>
-                    {showLogs && (
-                        <div className="absolute bottom-16 right-0 w-80 max-h-96 bg-black/90 border border-green-600 rounded-lg shadow-2xl overflow-y-auto p-4">
-                            <h4 className="text-yellow-500 font-bold uppercase tracking-tighter text-xs mb-3 border-b border-green-900 pb-1">Auction history</h4>
-                            <div className="space-y-2">
-                                {logs.map((log, i) => <div key={i} className="text-sm text-gray-300 border-l-2 border-green-700 pl-2 leading-tight">{log}</div>)}
-                            </div>
+                        <div className="flex items-center justify-between border-b border-green-800 pb-2 mb-3">
+                            <h4 className="text-yellow-400 font-bold uppercase tracking-wider text-xs">Auction history</h4>
+                            <button
+                                onClick={() => setShowLogs(false)}
+                                className="text-gray-400 hover:text-white text-xs font-bold px-2 py-0.5 rounded bg-green-900/80"
+                                aria-label="Close auction history"
+                            >
+                                Close ✕
+                            </button>
                         </div>
-                    )}
+                        <div className="space-y-2">
+                            {logs.length === 0 && <div className="text-xs text-gray-400 italic">No auction events yet.</div>}
+                            {logs.map((log, i) => <div key={i} className="text-xs sm:text-sm text-gray-200 border-l-2 border-green-600 pl-2.5 leading-snug">{log}</div>)}
+                        </div>
+                    </div>
                 </div>
             )}
 
             {isPaused && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center">
-                    <div className="bg-emerald-900 border-2 border-yellow-500 p-8 rounded-2xl shadow-2xl text-center max-w-sm w-full mx-4">
-                        <h2 className="text-4xl font-serif text-yellow-400 mb-6">Paused</h2>
-                        <button onClick={() => setIsPaused(false)} className="w-full bg-yellow-500 hover:bg-yellow-400 text-green-950 font-bold py-4 rounded-full text-xl transition transform hover:scale-105 mb-4">Resume game</button>
-                        <button onClick={quitToMenu} className="w-full bg-red-900/50 hover:bg-red-800 text-red-200 font-bold py-3 rounded-full transition">Quit to menu</button>
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] flex items-center justify-center p-4">
+                    <div className="bg-emerald-900 border-2 border-yellow-500 p-6 sm:p-8 rounded-2xl shadow-2xl text-center max-w-sm w-full">
+                        <h2 className="text-3xl sm:text-4xl font-serif text-yellow-400 mb-6">Paused</h2>
+                        <button onClick={() => setIsPaused(false)} className="w-full bg-yellow-500 hover:bg-yellow-400 text-green-950 font-bold py-3.5 rounded-full text-lg sm:text-xl transition active:scale-95 mb-3">Resume game</button>
+                        <button onClick={quitToMenu} className="w-full bg-red-900/60 hover:bg-red-800 text-red-100 font-bold py-3 rounded-full transition active:scale-95">Quit to menu</button>
                     </div>
                 </div>
             )}

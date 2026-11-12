@@ -2,7 +2,7 @@
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: scale(0.9) translateY(-10px);
+        transform: scale(0.96) translateY(-6px);
     }
 
     to {
@@ -12,12 +12,31 @@
 }
 
 .animate-fade-in {
-    animation: fadeIn 0.4s ease-out forwards;
+    animation: fadeIn 0.3s ease-out forwards;
 }
 
+html,
 body {
     margin: 0;
     padding: 0;
     background-color: #022c22;
-    /* Fallback for green-950 */
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.pb-safe {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+.pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
