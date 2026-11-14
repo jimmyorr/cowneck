@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Sketch Pup</title>
+    <!-- sync-start:metadata -->
+    <meta name="description" content="Step-by-step animated cartoon drawing tutorials for paper and pencil, guided by Sketch Pup.">
+    <link rel="canonical" href="https://cowneck.com/games/sketch-pup.html">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <meta name="theme-color" content="#080d1a">
+
+    <!-- Link previews (Open Graph & Twitter/X) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="cowneck games">
+    <meta property="og:title" content="Sketch Pup | cowneck games">
+    <meta property="og:description" content="Step-by-step animated cartoon drawing tutorials for paper and pencil, guided by Sketch Pup.">
+    <meta property="og:url" content="https://cowneck.com/games/sketch-pup.html">
+    <meta property="og:image" content="https://cowneck.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Sketch Pup - cowneck games">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Sketch Pup | cowneck games">
+    <meta name="twitter:description" content="Step-by-step animated cartoon drawing tutorials for paper and pencil, guided by Sketch Pup.">
+    <meta name="twitter:image" content="https://cowneck.com/og-image.jpg">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Sketch Pup",
+  "url": "https://cowneck.com/games/sketch-pup.html",
+  "description": "Step-by-step animated cartoon drawing tutorials for paper and pencil, guided by Sketch Pup.",
+  "image": "https://cowneck.com/og-image.jpg",
+  "gamePlatform": [
+    "Web browser"
+  ],
+  "applicationCategory": "Game",
+  "author": {
+    "@type": "Person",
+    "name": "Miles"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "cowneck",
+    "url": "https://cowneck.com/"
+  }
+}
+    </script>
+    <!-- sync-end:metadata -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-6RNVL7JZVJ');
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+    <style>
+        :root {
+            /* Shared Lofi Pup Tabletop Studio Design Tokens */
+            --bg-room: hsl(34, 28%, 91%);
+            --bg-room-glow: hsla(28, 72%, 68%, 0.26);
+            --chassis-top: hsl(35, 24%, 96%);
+            --chassis-bottom: hsl(33, 20%, 91%);
+            --chassis-edge: hsl(30, 16%, 79%);
+            --panel-recess: hsl(33, 18%, 87%);
+            --panel-surface: hsl(35, 25%, 94%);
+            --panel-border: hsla(28, 18%, 55%, 0.24);
+            --ink-primary: hsl(24, 24%, 17%);
+            --ink-secondary: hsl(25, 14%, 38%);
+            --ink-muted: hsl(26, 11%, 52%);
+            --accent: hsl(24, 78%, 48%);
+            --accent-soft: hsla(24, 78%, 48%, 0.14);
+            --accent-strong: hsl(22, 82%, 41%);
+            --accent-contrast: hsl(36, 50%, 98%);
+            --phosphor: hsl(34, 94%, 68%);
+            --screen-bg: hsl(22, 24%, 12%);
+            --paper-bg: #fffdf9;
+            --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--ink-primary);
+            background-color: var(--bg-room);
+            background-image:
+                radial-gradient(circle at 18% 15%, var(--bg-room-glow), transparent 55%),
+                radial-gradient(circle at 85% 82%, hsla(32, 45%, 72%, 0.22), transparent 52%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 14px;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        button {
+            font: inherit;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.42;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Hardware Tabletop Studio Chassis (matches Lofi Pup) */
+        .studio-shell {
+            width: 100%;
+            max-width: 1120px;
+            background: linear-gradient(180deg, var(--chassis-top) 0%, var(--chassis-bottom) 100%);
+            border-radius: 26px;
+            border: 1px solid var(--chassis-edge);
+            box-shadow:
+                0 26px 56px -18px rgba(32, 22, 14, 0.24),
+                0 6px 16px -4px rgba(32, 22, 14, 0.10),
+                inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
+                inset 0 -3px 0 rgba(120, 98, 76, 0.18);
+            padding: 20px 24px 22px;
+            position: relative;
+        }
+
+        /* Top Bar (matches Lofi Pup .studio-topbar) */
+        .studio-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px 12px;
+            padding-bottom: 14px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .brand-title {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--ink-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .brand-model {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--ink-muted);
+            letter-spacing: 0.04em;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .ghost-btn {
+            appearance: none;
+            border: 1px solid var(--panel-border);
+            background: var(--panel-surface);
+            color: var(--ink-secondary);
+            border-radius: 10px;
+            padding: 6px 11px;
+            height: 32px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+        }
+
+        /* Fixed min-widths so toggling ON/OFF never shifts neighboring buttons */
+        #btn-open-tutorials {
+            min-width: 215px;
+            justify-content: space-between;
+        }
+
+        #btn-toggle-guides {
+            min-width: 122px;
+        }
+
+        #btn-toggle-zoom {
+            min-width: 128px;
+        }
+
+        #btn-peek-color {
+            min-width: 118px;
+        }
+
+        #btn-toggle-ref {
+            min-width: 116px;
+        }
+
+        .ghost-btn:hover:not(:disabled) {
+            background: #ffffff;
+            color: var(--ink-primary);
+        }
+
+        .ghost-btn:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .ghost-btn.active,
+        .ghost-btn[aria-pressed="true"] {
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+            border-color: hsla(24, 50%, 45%, 0.28);
+        }
+
+        /* Recessed Chapter Strip (matches Lofi Pup .scene-strip) */
+        .chapter-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            background: var(--panel-recess);
+            padding: 5px;
+            border-radius: 14px;
+            border: 1px solid var(--panel-border);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+            margin-bottom: 16px;
+        }
+
+        .chapter-pill {
+            appearance: none;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--ink-secondary);
+            border-radius: 10px;
+            padding: 7px 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+        }
+
+        .chapter-pill:hover {
+            color: var(--ink-primary);
+            background: rgba(255, 255, 255, 0.45);
+        }
+
+        .chapter-pill.active {
+            background: var(--chassis-top);
+            color: var(--accent-strong);
+            border-color: var(--panel-border);
+            box-shadow:
+                0 2px 5px rgba(28, 20, 12, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .chapter-pill.completed {
+            color: var(--ink-primary);
+        }
+
+        /* Main Two-Column Console Grid */
+        .studio-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.38fr) 390px;
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        /* Left Column: Recessed Paper Stage Card */
+        .paper-stage-card {
+            background: var(--panel-surface);
+            border: 1px solid var(--panel-border);
+            border-radius: 18px;
+            padding: 14px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .paper-header-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-height: 22px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .legend-badges {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 0.74rem;
+            color: var(--ink-secondary);
+            font-weight: 600;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .paper-orientation-tag {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--ink-muted);
+            font-weight: 500;
+        }
+
+        /* Recessed Drawing Pad (matches Lofi Pup .diorama-frame bezel) */
+        .paper-sheet-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background: var(--paper-bg);
+            border-radius: 14px;
+            overflow: hidden;
+            border: 2px solid rgba(55, 43, 33, 0.24);
+            box-shadow:
+                inset 0 2px 7px rgba(32, 22, 14, 0.12),
+                0 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        #drawing-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #pencil-cursor {
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+        }
+
+        /* HUD-style Zoom Pill on Paper (matches Lofi Pup .hud-badge) */
+        .zoom-status-pill {
+            position: absolute;
+            bottom: 11px;
+            left: 12px;
+            background: rgba(24, 19, 15, 0.74);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 9px;
+            padding: 5px 10px;
+            color: rgba(255, 248, 238, 0.95);
+            font-family: var(--font-mono);
+            font-size: 0.70rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+        }
+
+        .zoom-status-pill:hover {
+            background: rgba(24, 19, 15, 0.88);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--phosphor);
+            box-shadow: 0 0 6px var(--phosphor);
+        }
+
+        /* Reference Image Floating Overlay on Paper (bottom-right) */
+        .ref-overlay-card {
+            position: absolute;
+            bottom: 11px;
+            right: 12px;
+            width: 205px;
+            background: rgba(24, 19, 15, 0.88);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 11px;
+            padding: 6px;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+            z-index: 15;
+        }
+
+        .ref-overlay-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.67rem;
+            font-weight: 600;
+            color: var(--phosphor);
+            margin-bottom: 4px;
+            padding: 0 2px;
+        }
+
+        .ref-overlay-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 7px;
+            display: block;
+        }
+
+        /* Right Column: Stationary Studio Modules */
+        .coach-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .module-card {
+            background: var(--panel-surface);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 14px 15px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        /* Strictly Locked Heights inside #coach-card so buttons NEVER bounce */
+        .step-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            height: 24px;
+            margin-bottom: 6px;
+        }
+
+        .step-counter-badge {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+            white-space: nowrap;
+        }
+
+        .step-chapter-name {
+            font-family: var(--font-mono);
+            font-size: 0.69rem;
+            font-weight: 500;
+            color: var(--ink-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .step-title {
+            font-size: 1.08rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin: 0 0 10px;
+            height: 26px;
+            line-height: 26px;
+            color: var(--ink-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Recessed Pup Coach Well with Strictly Locked 102px Height */
+        .pup-coach-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            height: 102px;
+            min-height: 102px;
+            max-height: 102px;
+            background: var(--panel-recess);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 10px 11px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
+        }
+
+        .pup-coach-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: var(--screen-bg);
+            border: 1px solid rgba(55, 43, 33, 0.28);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.45);
+        }
+
+        .pup-coach-text {
+            font-size: 0.84rem;
+            line-height: 1.44;
+            color: var(--ink-primary);
+            margin: 0;
+        }
+
+        /* Stationary Hardware Transport Controls (matches Lofi Pup .play-btn & .secondary-btn) */
+        .transport-controls {
+            display: grid;
+            grid-template-columns: 1fr 1.25fr 1fr;
+            gap: 8px;
+            height: 44px;
+            margin-top: 12px;
+        }
+
+        .secondary-btn {
+            appearance: none;
+            border: 1px solid var(--panel-border);
+            background: var(--chassis-top);
+            color: var(--ink-primary);
+            border-radius: 12px;
+            height: 44px;
+            padding: 0 11px;
+            font-size: 0.80rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: background-color 0.15s ease, transform 0.08s ease;
+        }
+
+        .secondary-btn:hover:not(:disabled) {
+            background: #ffffff;
+        }
+
+        .secondary-btn:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .play-btn {
+            appearance: none;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            background: var(--accent);
+            color: var(--accent-contrast);
+            border-radius: 12px;
+            height: 44px;
+            padding: 0 14px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow:
+                0 4px 10px -2px rgba(32, 20, 10, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.28);
+            transition: background-color 0.15s ease, transform 0.08s ease;
+        }
+
+        .play-btn:hover:not(:disabled) {
+            background: var(--accent-strong);
+        }
+
+        .play-btn:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        /* Playback Mode Sub-row (matches Lofi Pup .voice-row / .voice-btn) */
+        .playback-subbar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            height: 42px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--panel-border);
+        }
+
+        .sub-pill-btn {
+            appearance: none;
+            border: 1px solid var(--panel-border);
+            background: var(--panel-recess);
+            color: var(--ink-secondary);
+            border-radius: 9px;
+            height: 31px;
+            padding: 0 10px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+            transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .sub-pill-btn:hover {
+            background: #ffffff;
+            color: var(--ink-primary);
+        }
+
+        .sub-pill-btn.active {
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+            border-color: hsla(24, 50%, 45%, 0.32);
+        }
+
+        /* Breakdown Card with Fixed Height so Page Never Bounces */
+        .breakdown-card {
+            height: 248px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .strokes-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 20px;
+            margin: 0 0 9px;
+            flex-shrink: 0;
+        }
+
+        .module-title {
+            margin: 0;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            color: var(--ink-secondary);
+        }
+
+        .module-hint {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--ink-muted);
+        }
+
+        .stroke-items,
+        .palette-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        /* Stroke Items (styled like Lofi Pup .cassette-item) */
+        .stroke-item-btn {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            width: 100%;
+            text-align: left;
+            padding: 7px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--panel-border);
+            background: var(--panel-recess);
+            color: var(--ink-primary);
+            font-size: 0.80rem;
+            font-weight: 600;
+            flex-shrink: 0;
+            transition: background-color 0.14s ease, border-color 0.14s ease;
+        }
+
+        .stroke-item-btn:hover {
+            background: var(--chassis-top);
+            border-color: var(--accent);
+        }
+
+        .stroke-item-btn.playing {
+            background: var(--chassis-top);
+            border-color: var(--accent);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        .stroke-num-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stroke-replay-tag {
+            margin-left: auto;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--accent-strong);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .swatch-btn {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            width: 100%;
+            text-align: left;
+            padding: 7px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--panel-border);
+            background: var(--panel-recess);
+            color: var(--ink-primary);
+            flex-shrink: 0;
+            transition: background-color 0.14s ease, border-color 0.14s ease;
+        }
+
+        .swatch-btn:hover {
+            background: var(--chassis-top);
+        }
+
+        .swatch-btn.checked {
+            opacity: 0.6;
+            background: var(--chassis-top);
+            border-color: var(--accent);
+        }
+
+        .swatch-color-chip {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 1px solid rgba(32, 22, 14, 0.25);
+            flex-shrink: 0;
+        }
+
+        .swatch-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .swatch-name {
+            font-size: 0.80rem;
+            font-weight: 700;
+            color: var(--ink-primary);
+        }
+
+        .swatch-usage {
+            font-size: 0.71rem;
+            color: var(--ink-secondary);
+        }
+
+        .swatch-check {
+            margin-left: auto;
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: var(--accent-strong);
+        }
+
+        /* Tutorial Catalog Modal (matches Lofi Pup modal) */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(24, 18, 14, 0.52);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 100;
+        }
+
+        .modal-dialog {
+            background: linear-gradient(180deg, var(--chassis-top) 0%, var(--chassis-bottom) 100%);
+            border: 1px solid var(--chassis-edge);
+            border-radius: 22px;
+            max-width: 720px;
+            width: 100%;
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: 20px 22px;
+            box-shadow:
+                0 26px 56px -16px rgba(32, 22, 14, 0.35),
+                inset 0 1.5px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--ink-primary);
+        }
+
+        .tutorial-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 10px;
+        }
+
+        .tutorial-choice-card {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--panel-border);
+            background: var(--panel-surface);
+            color: var(--ink-primary);
+            text-align: left;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+        }
+
+        .tutorial-choice-card:hover {
+            background: #ffffff;
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .tutorial-choice-card.selected {
+            border-color: var(--accent);
+            background: var(--chassis-top);
+            box-shadow:
+                0 3px 8px rgba(28, 20, 12, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .tutorial-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .tutorial-card-emoji {
+            font-size: 1.65rem;
+        }
+
+        .tutorial-series-tag {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+        }
+
+        .tutorial-card-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--ink-primary);
+        }
+
+        .tutorial-card-sub {
+            font-size: 0.76rem;
+            color: var(--ink-secondary);
+        }
+
+        .tutorial-card-diff {
+            margin-top: auto;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            font-weight: 500;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: var(--panel-recess);
+            color: var(--ink-secondary);
+        }
+
+        @media (max-width: 960px) {
+            .studio-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 10px 8px;
+            }
+            .studio-shell {
+                padding: 14px;
+                border-radius: 20px;
+            }
+            .chapter-bar {
+                display: flex;
+                overflow-x: auto;
+            }
+            .chapter-pill {
+                flex-shrink: 0;
+            }
+            #btn-open-tutorials,
+            #btn-toggle-guides,
+            #btn-toggle-zoom,
+            #btn-peek-color,
+            #btn-toggle-ref {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="studio-shell" id="studio-shell">
+        <!-- Top Hardware Header Bar (matches Lofi Pup .studio-topbar) -->
+        <header class="studio-topbar">
+            <div class="brand-group">
+                <h1 class="brand-title">
+                    <span aria-hidden="true">🐶</span>
+                    <span>Sketch Pup</span>
+                </h1>
+                <span class="brand-model">SP-101 PAPER COMPANION STUDIO</span>
+            </div>
+
+            <div class="topbar-actions">
+                <button type="button" class="ghost-btn" id="btn-open-tutorials" aria-label="Choose Drawing Tutorial">
+                    <span style="display:inline-flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;">
+                        <span id="current-tutorial-badge">🦢</span>
+                        <span id="current-tutorial-label">Swan Boat (Kris &amp; Ralsei)</span>
+                    </span>
+                    <span>▾</span>
+                </button>
+                <button type="button" class="ghost-btn active" id="btn-toggle-guides" title="Show or hide paper fold crosshairs and light pencil proportion guides">
+                    Guides: On
+                </button>
+                <button type="button" class="ghost-btn active" id="btn-toggle-zoom" title="Switch between auto-zooming on details and viewing the full sheet of paper">
+                    View: Auto-Zoom
+                </button>
+                <button type="button" class="ghost-btn" id="btn-peek-color" title="Peek at the finished colored drawing">
+                    Peek Colors: Off
+                </button>
+                <button type="button" class="ghost-btn" id="btn-toggle-ref" title="Show or hide the original reference image">
+                    Reference: Off
+                </button>
+            </div>
+        </header>
+
+        <!-- Recessed Chapter Preset Strip -->
+        <nav class="chapter-bar" id="chapter-bar" aria-label="Tutorial Chapters"></nav>
+
+        <!-- Main Two-Column Studio Console -->
+        <div class="studio-layout">
+            <!-- Left Column: Recessed Drawing Pad -->
+            <section class="paper-stage-card" aria-label="Drawing Paper View">
+                <div class="paper-header-strip">
+                    <div class="legend-badges">
+                        <span class="legend-item">
+                            <span class="legend-dot" style="background: #0284c7;"></span>
+                            New lines in this step
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-dot" style="background: #0f172a;"></span>
+                            Earlier steps (ink)
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-dot" style="background: #64748b;"></span>
+                            Light pencil guides
+                        </span>
+                    </div>
+                    <span id="paper-orientation-note" class="paper-orientation-tag">
+                        LANDSCAPE PAPER • 4:3
+                    </span>
+                </div>
+
+                <div class="paper-sheet-wrapper" id="paper-sheet-wrapper">
+                    <svg id="drawing-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Step-by-step drawing canvas">
+                        <defs>
+                            <filter id="active-glow" x="-20%" y="-20%" width="140%" height="140%">
+                                <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#38bdf8" flood-opacity="0.55" />
+                            </filter>
+                        </defs>
+
+                        <!-- Layer 0: Optional Scene Background Fills (shown in Color mode) -->
+                        <g id="layer-bg-fills"></g>
+
+                        <!-- Layer 1: Paper Fold Crosshairs & Margin Frame -->
+                        <g id="layer-paper-grid">
+                            <rect x="24" y="24" width="752" height="552" rx="10" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6 6" />
+                            <!-- Vertical & Horizontal Center Fold Lines -->
+                            <line x1="400" y1="16" x2="400" y2="584" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 8" opacity="0.65" />
+                            <line x1="16" y1="300" x2="784" y2="300" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 8" opacity="0.65" />
+                            <circle cx="400" cy="300" r="5" fill="none" stroke="#64748b" stroke-width="1.5" opacity="0.7" />
+                            <text x="408" y="42" fill="#64748b" font-size="12" font-weight="700" opacity="0.75">CENTER LINE</text>
+                            <text x="34" y="293" fill="#64748b" font-size="12" font-weight="700" opacity="0.75">MIDDLE</text>
+                        </g>
+
+                        <!-- Layer 2: Character Color Fills -->
+                        <g id="layer-color-fills"></g>
+
+                        <!-- Layer 3: Light Pencil Placement Guides (Step 1) -->
+                        <g id="layer-guide-strokes" fill="none" stroke-linecap="round" stroke-linejoin="round"></g>
+
+                        <!-- Layer 4: Completed Ink Strokes from Previous Steps -->
+                        <g id="layer-past-strokes" fill="none" stroke-linecap="round" stroke-linejoin="round"></g>
+
+                        <!-- Layer 5: Current Step Active Highlight Strokes -->
+                        <g id="layer-active-strokes" fill="none" stroke-linecap="round" stroke-linejoin="round"></g>
+
+                        <!-- Layer 6: Numbered Stroke Start Badges -->
+                        <g id="layer-stroke-badges"></g>
+
+                        <!-- Layer 7: Animated Virtual Pencil Tip -->
+                        <g id="pencil-cursor" class="hidden">
+                            <circle cx="0" cy="0" r="6" fill="#0284c7" stroke="#ffffff" stroke-width="2" />
+                            <path d="M 0 0 L 14 -20 L 22 -12 L 0 0 Z" fill="#d9793b" stroke="#2b201b" stroke-width="1.8" />
+                            <path d="M 14 -20 L 24 -30 L 32 -22 L 22 -12 Z" fill="#f5dfc3" stroke="#2b201b" stroke-width="1.8" />
+                        </g>
+                    </svg>
+
+                    <!-- Floating HUD Zoom Indicator Pill -->
+                    <button type="button" class="zoom-status-pill" id="btn-paper-zoom-pill">
+                        <span class="status-dot" aria-hidden="true"></span>
+                        <span id="zoom-pill-text">Full Page View</span>
+                    </button>
+
+                    <!-- Floating Reference Screenshot Card -->
+                    <div class="ref-overlay-card hidden" id="ref-overlay-card">
+                        <div class="ref-overlay-header">
+                            <span>ORIGINAL REFERENCE</span>
+                            <button type="button" id="btn-close-ref" style="background:none;border:none;color:#f5dfc3;font-weight:700;padding:0 4px;">✕</button>
+                        </div>
+                        <img id="ref-overlay-img" src="assets/deltarune-swan-boat.jpg" alt="Original Reference Image">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: Stationary Step Coach, Transport & Stroke Breakdown -->
+            <aside class="coach-panel" aria-label="Step Instructions and Controls">
+                <div class="module-card" id="coach-card">
+                    <div class="step-meta-row">
+                        <span class="step-counter-badge" id="step-counter-badge">STEP 1 OF 11</span>
+                        <span class="step-chapter-name" id="step-chapter-name">1. Proportion Guides</span>
+                    </div>
+                    <h2 class="step-title" id="step-title">Light Pencil Placement Guides</h2>
+
+                    <!-- Fixed-height Coach Box with the exact Lofi Pup character SVG -->
+                    <div class="pup-coach-box">
+                        <div class="pup-coach-avatar" aria-hidden="true">
+                            <svg viewBox="146 105 72 60" width="42" height="42">
+                                <!-- Left Back Ear -->
+                                <path d="M163 124 Q148 132 152 152 Q161 154 168 138 Z" fill="#a86a38" />
+                                <!-- Caramel Head Shape (from Lofi Pup) -->
+                                <ellipse cx="187" cy="136" rx="24" ry="20" fill="#de9e63" />
+                                <!-- Cream Snout Patch -->
+                                <ellipse cx="198" cy="143" rx="13" ry="9.5" fill="#f5dfc3" />
+                                <!-- Nose -->
+                                <ellipse cx="206" cy="139" rx="3.8" ry="2.8" fill="#2b201b" />
+                                <!-- Peaceful Curved Eye -->
+                                <path d="M188 134 Q193 138 198 134" fill="none" stroke="#2b201b" stroke-width="2.1" stroke-linecap="round" />
+                                <!-- Warm Cheek Blush -->
+                                <ellipse cx="190" cy="142" rx="4.2" ry="2.2" fill="#e27a66" opacity="0.5" />
+                                <!-- Floppy Ear -->
+                                <path d="M173 126 Q160 140 165 157 Q176 158 181 139 Z" fill="#b6753f" />
+                                <!-- Warm Artist Beret on Pup -->
+                                <path d="M162 121 C164 109, 198 108, 206 119 C194 123, 174 123, 162 121 Z" fill="#d9793b" />
+                            </svg>
+                        </div>
+                        <p class="pup-coach-text" id="step-tip">
+                            Turn your paper sideways! Sketch these light pencil shapes first.
+                        </p>
+                    </div>
+
+                    <div class="transport-controls" id="transport-controls">
+                        <button type="button" class="secondary-btn" id="btn-prev-step">
+                            ◀ Prev
+                        </button>
+                        <button type="button" class="secondary-btn" id="btn-replay-step">
+                            🔄 Replay Stroke
+                        </button>
+                        <button type="button" class="play-btn" id="btn-next-step">
+                            Next ▶
+                        </button>
+                    </div>
+
+                    <div class="playback-subbar">
+                        <button type="button" class="sub-pill-btn" id="btn-auto-loop">
+                            Auto-Loop: Off
+                        </button>
+                        <button type="button" class="sub-pill-btn" id="btn-speed">
+                            Speed: Normal
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sub-strokes or Coloring Swatches Card (Fixed Height) -->
+                <div class="module-card breakdown-card" id="breakdown-card">
+                    <div class="strokes-list-header">
+                        <h3 class="module-title" id="breakdown-heading">STEP STROKES</h3>
+                        <span class="module-hint" id="breakdown-count">Tap line to replay</span>
+                    </div>
+                    <div id="stroke-items-container" class="stroke-items"></div>
+                    <div id="palette-container" class="palette-grid hidden"></div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Tutorial Selector Modal -->
+    <div class="modal-backdrop hidden" id="tutorials-modal" role="dialog" aria-modal="true" aria-labelledby="modal-tutorials-title">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h2 id="modal-tutorials-title">🐶 Sketch Pup Tutorial Library</h2>
+                <button type="button" class="ghost-btn" id="btn-close-tutorials">✕ Close</button>
+            </div>
+            <p style="margin: 0 0 14px; color: var(--ink-secondary); font-size: 0.86rem;">
+                Grab a blank sheet of paper and a pencil! Pick any cartoon tutorial below to draw step by step.
+            </p>
+            <div class="tutorial-cards-grid" id="tutorial-cards-grid"></div>
+        </div>
+    </div>
+
+    <script src="sketch-pup-tutorials.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            const catalog = window.SketchPupTutorials;
+            const tutorials = catalog.TUTORIALS;
+
+            // Application State
+            const state = {
+                tutorial: tutorials[0],
+                stepIndex: 0,
+                showGuides: true,
+                forceFullPage: false,
+                peekColors: false,
+                showRefImage: false,
+                autoLoop: false,
+                slowSpeed: false,
+                checkedSwatches: new Set(),
+                animRafId: null,
+                loopTimeoutId: null,
+                cameraRafId: null,
+                currentViewBox: { x: 0, y: 0, w: 800, h: 600 }
+            };
+
+            // DOM Elements
+            const svgEl = document.getElementById('drawing-svg');
+            const layerBgFills = document.getElementById('layer-bg-fills');
+            const layerPaperGrid = document.getElementById('layer-paper-grid');
+            const layerColorFills = document.getElementById('layer-color-fills');
+            const layerGuideStrokes = document.getElementById('layer-guide-strokes');
+            const layerPastStrokes = document.getElementById('layer-past-strokes');
+            const layerActiveStrokes = document.getElementById('layer-active-strokes');
+            const layerStrokeBadges = document.getElementById('layer-stroke-badges');
+            const pencilCursor = document.getElementById('pencil-cursor');
+
+            const chapterBar = document.getElementById('chapter-bar');
+            const stepCounterBadge = document.getElementById('step-counter-badge');
+            const stepChapterName = document.getElementById('step-chapter-name');
+            const stepTitle = document.getElementById('step-title');
+            const stepTip = document.getElementById('step-tip');
+
+            const btnPrevStep = document.getElementById('btn-prev-step');
+            const btnReplayStep = document.getElementById('btn-replay-step');
+            const btnNextStep = document.getElementById('btn-next-step');
+            const btnAutoLoop = document.getElementById('btn-auto-loop');
+            const btnSpeed = document.getElementById('btn-speed');
+
+            const btnToggleGuides = document.getElementById('btn-toggle-guides');
+            const btnToggleZoom = document.getElementById('btn-toggle-zoom');
+            const btnPeekColor = document.getElementById('btn-peek-color');
+            const btnToggleRef = document.getElementById('btn-toggle-ref');
+            const btnPaperZoomPill = document.getElementById('btn-paper-zoom-pill');
+            const zoomPillText = document.getElementById('zoom-pill-text');
+
+            const refOverlayCard = document.getElementById('ref-overlay-card');
+            const refOverlayImg = document.getElementById('ref-overlay-img');
+            const btnCloseRef = document.getElementById('btn-close-ref');
+
+            const breakdownHeading = document.getElementById('breakdown-heading');
+            const breakdownCount = document.getElementById('breakdown-count');
+            const strokeItemsContainer = document.getElementById('stroke-items-container');
+            const paletteContainer = document.getElementById('palette-container');
+
+            const btnOpenTutorials = document.getElementById('btn-open-tutorials');
+            const btnCloseTutorials = document.getElementById('btn-close-tutorials');
+            const tutorialsModal = document.getElementById('tutorials-modal');
+            const tutorialCardsGrid = document.getElementById('tutorial-cards-grid');
+            const currentTutorialBadge = document.getElementById('current-tutorial-badge');
+            const currentTutorialLabel = document.getElementById('current-tutorial-label');
+
+            const SVG_NS = 'http://www.w3.org/2000/svg';
+
+            function createSvgElement(tag, attrs) {
+                const el = document.createElementNS(SVG_NS, tag);
+                for (const [k, v] of Object.entries(attrs)) {
+                    if (v !== undefined && v !== null) {
+                        el.setAttribute(k, String(v));
+                    }
+                }
+                return el;
+            }
+
+            function stopStrokeAnimation() {
+                if (state.animRafId !== null) {
+                    cancelAnimationFrame(state.animRafId);
+                    state.animRafId = null;
+                }
+                if (state.loopTimeoutId !== null) {
+                    clearTimeout(state.loopTimeoutId);
+                    state.loopTimeoutId = null;
+                }
+                pencilCursor.classList.add('hidden');
+            }
+
+            function animateViewBoxTo(targetBox) {
+                if (state.cameraRafId !== null) {
+                    cancelAnimationFrame(state.cameraRafId);
+                    state.cameraRafId = null;
+                }
+                const startBox = { ...state.currentViewBox };
+                const startTime = performance.now();
+                const duration = 320;
+
+                function tick(now) {
+                    const t = Math.min(1, (now - startTime) / duration);
+                    const ease = 1 - Math.pow(1 - t, 3);
+                    state.currentViewBox = {
+                        x: startBox.x + (targetBox.x - startBox.x) * ease,
+                        y: startBox.y + (targetBox.y - startBox.y) * ease,
+                        w: startBox.w + (targetBox.w - startBox.w) * ease,
+                        h: startBox.h + (targetBox.h - startBox.h) * ease
+                    };
+                    const vb = state.currentViewBox;
+                    svgEl.setAttribute(
+                        'viewBox',
+                        `${vb.x.toFixed(1)} ${vb.y.toFixed(1)} ${vb.w.toFixed(1)} ${vb.h.toFixed(1)}`
+                    );
+                    if (t < 1) {
+                        state.cameraRafId = requestAnimationFrame(tick);
+                    } else {
+                        state.cameraRafId = null;
+                    }
+                }
+
+                state.cameraRafId = requestAnimationFrame(tick);
+            }
+
+            function getStartCoordFromPath(d) {
+                const match = /^\s*M\s*(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)/.exec(d);
+                if (!match) return { x: 400, y: 300 };
+                return { x: parseFloat(match[1]), y: parseFloat(match[2]) };
+            }
+
+            function renderChapters() {
+                const currentStep = state.tutorial.steps[state.stepIndex];
+                const activeChapterIndex = state.tutorial.chapters.findIndex(
+                    (c) => c.id === currentStep.chapter
+                );
+
+                chapterBar.innerHTML = '';
+                state.tutorial.chapters.forEach((chap, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'chapter-pill';
+                    if (idx === activeChapterIndex) {
+                        btn.classList.add('active');
+                    } else if (idx < activeChapterIndex) {
+                        btn.classList.add('completed');
+                    }
+                    btn.textContent = chap.title;
+                    btn.addEventListener('click', () => {
+                        const firstStepIdx = state.tutorial.steps.findIndex(
+                            (s) => s.chapter === chap.id
+                        );
+                        if (firstStepIdx !== -1) {
+                            goToStep(firstStepIdx);
+                        }
+                    });
+                    chapterBar.appendChild(btn);
+                });
+            }
+
+            function renderPaperLayers() {
+                const tutorial = state.tutorial;
+                const step = tutorial.steps[state.stepIndex];
+                const isColorMode = Boolean(step.isColorStep || state.peekColors);
+
+                // 1. Paper grid & guides visibility
+                const showPaperGuidesNow = state.showGuides && !step.isColorStep;
+                layerPaperGrid.classList.toggle('hidden', !showPaperGuidesNow);
+
+                // 2. Background & character color fills
+                layerBgFills.innerHTML = '';
+                layerColorFills.innerHTML = '';
+                if (isColorMode) {
+                    (tutorial.backgroundFills || []).forEach((bg) => {
+                        layerBgFills.appendChild(
+                            createSvgElement('path', {
+                                d: bg.d,
+                                fill: bg.fill,
+                                opacity: bg.opacity !== undefined ? bg.opacity : 1
+                            })
+                        );
+                    });
+                    (tutorial.fills || []).forEach((f) => {
+                        layerColorFills.appendChild(
+                            createSvgElement('path', {
+                                d: f.d,
+                                fill: f.fill,
+                                opacity: f.opacity !== undefined ? f.opacity : 1
+                            })
+                        );
+                    });
+                }
+
+                // 3. Past steps vs Active step strokes
+                layerGuideStrokes.innerHTML = '';
+                layerPastStrokes.innerHTML = '';
+                layerActiveStrokes.innerHTML = '';
+                layerStrokeBadges.innerHTML = '';
+
+                for (let i = 0; i < state.stepIndex; i++) {
+                    const pastStep = tutorial.steps[i];
+                    for (const stroke of pastStep.strokes) {
+                        if (stroke.kind === 'guide') {
+                            if (showPaperGuidesNow) {
+                                layerGuideStrokes.appendChild(
+                                    createSvgElement('path', {
+                                        d: stroke.d,
+                                        stroke: '#94a3b8',
+                                        'stroke-width': 2.5,
+                                        'stroke-dasharray': '8 7',
+                                        opacity: 0.55
+                                    })
+                                );
+                            }
+                        } else {
+                            const inkCol = stroke.inkColor || '#0f172a';
+                            layerPastStrokes.appendChild(
+                                createSvgElement('path', {
+                                    d: stroke.d,
+                                    stroke: inkCol,
+                                    'stroke-width': 4.5,
+                                    fill: stroke.fillInk ? inkCol : 'none'
+                                })
+                            );
+                        }
+                    }
+                }
+
+                // Active step strokes
+                const activeStrokePaths = [];
+                step.strokes.forEach((stroke, sIdx) => {
+                    const isGuide = stroke.kind === 'guide';
+                    const strokeColor = state.peekColors
+                        ? (stroke.inkColor || '#0f172a')
+                        : '#0284c7';
+
+                    const pathEl = createSvgElement('path', {
+                        id: `svg-stroke-${stroke.id}`,
+                        d: stroke.d,
+                        stroke: strokeColor,
+                        'stroke-width': isGuide ? 3.2 : 5.2,
+                        'stroke-dasharray': isGuide ? '9 7' : undefined,
+                        fill: stroke.fillInk ? strokeColor : 'none',
+                        filter: 'url(#active-glow)'
+                    });
+                    layerActiveStrokes.appendChild(pathEl);
+                    activeStrokePaths.push({ stroke, pathEl, index: sIdx });
+
+                    // Numbered start badge on the canvas
+                    const startPt = getStartCoordFromPath(stroke.d);
+                    const badgeGroup = createSvgElement('g', {
+                        transform: `translate(${startPt.x}, ${startPt.y})`,
+                        class: 'stroke-canvas-badge'
+                    });
+                    badgeGroup.appendChild(
+                        createSvgElement('circle', {
+                            cx: -10,
+                            cy: -10,
+                            r: 10,
+                            fill: '#0284c7',
+                            stroke: '#ffffff',
+                            'stroke-width': 2
+                        })
+                    );
+                    const txt = createSvgElement('text', {
+                        x: -10,
+                        y: -6,
+                        'text-anchor': 'middle',
+                        fill: '#ffffff',
+                        'font-size': '11',
+                        'font-weight': '800'
+                    });
+                    txt.textContent = String(sIdx + 1);
+                    badgeGroup.appendChild(txt);
+                    layerStrokeBadges.appendChild(badgeGroup);
+                });
+
+                // Camera target calculation
+                const stepCam = step.camera || catalog.PAPER_VIEWBOX;
+                const isZoomedStep =
+                    stepCam.w < catalog.PAPER_VIEWBOX.w || stepCam.h < catalog.PAPER_VIEWBOX.h;
+                const targetCam =
+                    state.forceFullPage || !isZoomedStep ? catalog.PAPER_VIEWBOX : stepCam;
+
+                animateViewBoxTo(targetCam);
+
+                // Update Zoom status pill on paper
+                if (!isZoomedStep) {
+                    zoomPillText.textContent = 'Full Page View';
+                } else if (state.forceFullPage) {
+                    zoomPillText.textContent = 'Full Page • Tap to Zoom on Detail';
+                } else {
+                    zoomPillText.textContent = 'Zoomed on Detail • Tap for Full Page';
+                }
+
+                return activeStrokePaths;
+            }
+
+            function playStrokesAnimation(activeStrokePaths, singleStrokeIndex = null) {
+                stopStrokeAnimation();
+                if (!activeStrokePaths || activeStrokePaths.length === 0) return;
+
+                const targets =
+                    singleStrokeIndex !== null
+                        ? activeStrokePaths.filter((item) => item.index === singleStrokeIndex)
+                        : activeStrokePaths;
+
+                if (targets.length === 0) return;
+
+                // Measure path lengths safely
+                const measured = targets.map((item) => {
+                    let len;
+                    try {
+                        len = Math.max(20, item.pathEl.getTotalLength());
+                    } catch {
+                        len = 300;
+                    }
+                    const baseMs = Math.min(1300, Math.max(480, len * 2.2));
+                    const duration = state.slowSpeed ? baseMs * 1.85 : baseMs;
+                    return { ...item, len, duration };
+                });
+
+                // Prepare stroke-dasharray for self-drawing animation
+                for (const m of measured) {
+                    m.pathEl.style.strokeDasharray = `${m.len} ${m.len}`;
+                    m.pathEl.style.strokeDashoffset = `${m.len}`;
+                    if (m.stroke.fillInk) {
+                        m.pathEl.setAttribute('fill-opacity', '0');
+                    }
+                }
+
+                // Highlight playing item in breakdown list
+                const listButtons = strokeItemsContainer.querySelectorAll('.stroke-item-btn');
+
+                let currentIdx = 0;
+                let segStart = performance.now();
+                pencilCursor.classList.remove('hidden');
+
+                function restoreStrokeStyle(m) {
+                    if (m.stroke.kind === 'guide') {
+                        m.pathEl.style.strokeDasharray = '9 7';
+                        m.pathEl.style.strokeDashoffset = '0';
+                    } else {
+                        m.pathEl.style.strokeDasharray = '';
+                        m.pathEl.style.strokeDashoffset = '';
+                    }
+                    if (m.stroke.fillInk) {
+                        m.pathEl.setAttribute('fill-opacity', '1');
+                    }
+                }
+
+                function stepAnim(now) {
+                    if (currentIdx >= measured.length) {
+                        pencilCursor.classList.add('hidden');
+                        listButtons.forEach((b) => b.classList.remove('playing'));
+                        state.animRafId = null;
+                        if (state.autoLoop && singleStrokeIndex === null) {
+                            state.loopTimeoutId = setTimeout(() => {
+                                playStrokesAnimation(activeStrokePaths, null);
+                            }, 2200);
+                        }
+                        return;
+                    }
+
+                    const active = measured[currentIdx];
+                    listButtons.forEach((b, idx) => {
+                        b.classList.toggle('playing', idx === active.index);
+                    });
+
+                    const elapsed = now - segStart;
+                    const progress = Math.min(1, elapsed / active.duration);
+                    const ease = 1 - Math.pow(1 - progress, 2.2);
+                    const offset = active.len * (1 - ease);
+                    active.pathEl.style.strokeDashoffset = `${offset}`;
+
+                    try {
+                        const pt = active.pathEl.getPointAtLength(active.len * ease);
+                        pencilCursor.setAttribute('transform', `translate(${pt.x.toFixed(1)}, ${pt.y.toFixed(1)})`);
+                    } catch {
+                        // Ignore geometry lookup errors on fallback environments
+                    }
+
+                    if (progress >= 1) {
+                        restoreStrokeStyle(active);
+                        currentIdx += 1;
+                        segStart = now;
+                    }
+
+                    state.animRafId = requestAnimationFrame(stepAnim);
+                }
+
+                state.animRafId = requestAnimationFrame(stepAnim);
+            }
+
+            function renderCoachAndBreakdown(activeStrokePaths) {
+                const tutorial = state.tutorial;
+                const step = tutorial.steps[state.stepIndex];
+                const totalSteps = tutorial.steps.length;
+                const chapterObj = tutorial.chapters.find((c) => c.id === step.chapter);
+
+                stepCounterBadge.textContent = `STEP ${step.stepNumber} OF ${totalSteps}`;
+                stepChapterName.textContent = chapterObj ? chapterObj.title : '';
+                stepTitle.textContent = step.title;
+                stepTip.textContent = step.tip;
+
+                btnPrevStep.disabled = state.stepIndex === 0;
+                btnNextStep.disabled = state.stepIndex === totalSteps - 1;
+
+                if (step.isColorStep) {
+                    breakdownHeading.textContent = 'COLOR PALETTE CHECKLIST';
+                    breakdownCount.textContent = `${tutorial.palette.length} colors • tap as you color`;
+                    strokeItemsContainer.classList.add('hidden');
+                    paletteContainer.classList.remove('hidden');
+                    paletteContainer.innerHTML = '';
+
+                    tutorial.palette.forEach((swatch) => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        const isChecked = state.checkedSwatches.has(swatch.id);
+                        btn.className = `swatch-btn${isChecked ? ' checked' : ''}`;
+                        btn.innerHTML = `
+                            <span class="swatch-color-chip" style="background: ${swatch.hex};"></span>
+                            <span class="swatch-info">
+                                <span class="swatch-name">${swatch.name}</span>
+                                <span class="swatch-usage">${swatch.usage}</span>
+                            </span>
+                            <span class="swatch-check">${isChecked ? '✓ Done' : '○'}</span>
+                        `;
+                        btn.addEventListener('click', () => {
+                            if (state.checkedSwatches.has(swatch.id)) {
+                                state.checkedSwatches.delete(swatch.id);
+                            } else {
+                                state.checkedSwatches.add(swatch.id);
+                            }
+                            renderCoachAndBreakdown(activeStrokePaths);
+                        });
+                        paletteContainer.appendChild(btn);
+                    });
+                } else {
+                    breakdownHeading.textContent = 'LINES IN THIS STEP';
+                    breakdownCount.textContent = `${step.strokes.length} ${step.strokes.length === 1 ? 'line' : 'lines'} • tap to replay`;
+                    paletteContainer.classList.add('hidden');
+                    strokeItemsContainer.classList.remove('hidden');
+                    strokeItemsContainer.innerHTML = '';
+
+                    step.strokes.forEach((stroke, sIdx) => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'stroke-item-btn';
+                        btn.innerHTML = `
+                            <span class="stroke-num-circle">${sIdx + 1}</span>
+                            <span>${stroke.label}</span>
+                            <span class="stroke-replay-tag">▶ Replay</span>
+                        `;
+                        btn.addEventListener('click', () => {
+                            playStrokesAnimation(activeStrokePaths, sIdx);
+                        });
+                        strokeItemsContainer.appendChild(btn);
+                    });
+                }
+            }
+
+            function updateToolbarButtons() {
+                currentTutorialBadge.textContent = state.tutorial.badgeEmoji;
+                currentTutorialLabel.textContent = state.tutorial.title;
+
+                btnToggleGuides.classList.toggle('active', state.showGuides);
+                btnToggleGuides.textContent = `Guides: ${state.showGuides ? 'On' : 'Off'}`;
+
+                btnToggleZoom.classList.toggle('active', !state.forceFullPage);
+                btnToggleZoom.textContent = state.forceFullPage ? 'View: Full Page' : 'View: Auto-Zoom';
+
+                btnPeekColor.classList.toggle('active', state.peekColors);
+                btnPeekColor.textContent = `Peek Colors: ${state.peekColors ? 'On' : 'Off'}`;
+
+                const hasRef = Boolean(state.tutorial.referenceImage);
+                btnToggleRef.disabled = !hasRef;
+                btnToggleRef.classList.toggle('active', hasRef && state.showRefImage);
+                btnToggleRef.textContent = `Reference: ${hasRef && state.showRefImage ? 'On' : 'Off'}`;
+                refOverlayCard.classList.toggle('hidden', !(hasRef && state.showRefImage));
+                if (hasRef) {
+                    refOverlayImg.src = state.tutorial.referenceImage;
+                }
+
+                btnAutoLoop.classList.toggle('active', state.autoLoop);
+                btnAutoLoop.textContent = `Auto-Loop: ${state.autoLoop ? 'On' : 'Off'}`;
+
+                btnSpeed.classList.toggle('active', state.slowSpeed);
+                btnSpeed.textContent = `Speed: ${state.slowSpeed ? 'Slow' : 'Normal'}`;
+            }
+
+            function goToStep(index, shouldAnimate = true) {
+                const maxIdx = state.tutorial.steps.length - 1;
+                state.stepIndex = Math.max(0, Math.min(maxIdx, index));
+                updateToolbarButtons();
+                renderChapters();
+                const activeStrokePaths = renderPaperLayers();
+                renderCoachAndBreakdown(activeStrokePaths);
+                if (shouldAnimate && activeStrokePaths.length > 0) {
+                    playStrokesAnimation(activeStrokePaths, null);
+                } else {
+                    stopStrokeAnimation();
+                }
+            }
+
+            function selectTutorial(tutorialId) {
+                state.tutorial = catalog.getTutorialById(tutorialId);
+                state.stepIndex = 0;
+                state.peekColors = false;
+                state.checkedSwatches.clear();
+                tutorialsModal.classList.add('hidden');
+                goToStep(0, true);
+            }
+
+            function renderTutorialModalCards() {
+                tutorialCardsGrid.innerHTML = '';
+                tutorials.forEach((tut) => {
+                    const card = document.createElement('button');
+                    card.type = 'button';
+                    card.className = `tutorial-choice-card${tut.id === state.tutorial.id ? ' selected' : ''}`;
+                    card.setAttribute('data-tutorial-id', tut.id);
+                    const seriesTag = tut.series
+                        ? `<span class="tutorial-series-tag">${tut.series}</span>`
+                        : '';
+                    card.innerHTML = `
+                        <div class="tutorial-card-top">
+                            <span class="tutorial-card-emoji">${tut.badgeEmoji}</span>
+                            ${seriesTag}
+                        </div>
+                        <span class="tutorial-card-title">${tut.title}</span>
+                        <span class="tutorial-card-sub">${tut.subtitle}</span>
+                        <span class="tutorial-card-diff">${tut.difficulty} • ${tut.steps.length} Steps</span>
+                    `;
+                    card.addEventListener('click', () => {
+                        selectTutorial(tut.id);
+                    });
+                    tutorialCardsGrid.appendChild(card);
+                });
+            }
+
+            // Event Listeners
+            btnPrevStep.addEventListener('click', () => {
+                if (state.stepIndex > 0) {
+                    goToStep(state.stepIndex - 1, true);
+                }
+            });
+
+            btnNextStep.addEventListener('click', () => {
+                if (state.stepIndex < state.tutorial.steps.length - 1) {
+                    goToStep(state.stepIndex + 1, true);
+                }
+            });
+
+            btnReplayStep.addEventListener('click', () => {
+                const activeStrokePaths = renderPaperLayers();
+                playStrokesAnimation(activeStrokePaths, null);
+            });
+
+            btnToggleGuides.addEventListener('click', () => {
+                state.showGuides = !state.showGuides;
+                updateToolbarButtons();
+                renderPaperLayers();
+            });
+
+            function toggleZoomMode() {
+                state.forceFullPage = !state.forceFullPage;
+                updateToolbarButtons();
+                renderPaperLayers();
+            }
+
+            btnToggleZoom.addEventListener('click', toggleZoomMode);
+            btnPaperZoomPill.addEventListener('click', toggleZoomMode);
+
+            btnPeekColor.addEventListener('click', () => {
+                state.peekColors = !state.peekColors;
+                updateToolbarButtons();
+                renderPaperLayers();
+            });
+
+            btnToggleRef.addEventListener('click', () => {
+                if (!state.tutorial.referenceImage) return;
+                state.showRefImage = !state.showRefImage;
+                updateToolbarButtons();
+            });
+
+            btnCloseRef.addEventListener('click', () => {
+                state.showRefImage = false;
+                updateToolbarButtons();
+            });
+
+            btnAutoLoop.addEventListener('click', () => {
+                state.autoLoop = !state.autoLoop;
+                updateToolbarButtons();
+                if (state.autoLoop && state.animRafId === null) {
+                    const activeStrokePaths = renderPaperLayers();
+                    playStrokesAnimation(activeStrokePaths, null);
+                }
+            });
+
+            btnSpeed.addEventListener('click', () => {
+                state.slowSpeed = !state.slowSpeed;
+                updateToolbarButtons();
+                const activeStrokePaths = renderPaperLayers();
+                playStrokesAnimation(activeStrokePaths, null);
+            });
+
+            btnOpenTutorials.addEventListener('click', () => {
+                renderTutorialModalCards();
+                tutorialsModal.classList.remove('hidden');
+            });
+
+            btnCloseTutorials.addEventListener('click', () => {
+                tutorialsModal.classList.add('hidden');
+            });
+
+            tutorialsModal.addEventListener('click', (e) => {
+                if (e.target === tutorialsModal) {
+                    tutorialsModal.classList.add('hidden');
+                }
+            });
+
+            // Keyboard Shortcuts (Arrow keys, Spacebar/R to replay)
+            window.addEventListener('keydown', (e) => {
+                if (!tutorialsModal.classList.contains('hidden')) {
+                    if (e.key === 'Escape') {
+                        tutorialsModal.classList.add('hidden');
+                    }
+                    return;
+                }
+                if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    if (state.stepIndex < state.tutorial.steps.length - 1) {
+                        goToStep(state.stepIndex + 1, true);
+                    }
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    if (state.stepIndex > 0) {
+                        goToStep(state.stepIndex - 1, true);
+                    }
+                } else if (e.key === 'r' || e.key === 'R' || e.key === ' ') {
+                    if (document.activeElement && document.activeElement.tagName === 'BUTTON' && e.key === ' ') {
+                        return;
+                    }
+                    e.preventDefault();
+                    const activeStrokePaths = renderPaperLayers();
+                    playStrokesAnimation(activeStrokePaths, null);
+                }
+            });
+
+            // Initialize first tutorial
+            goToStep(0, true);
+        })();
+    </script>
+</body>
+
+</html>

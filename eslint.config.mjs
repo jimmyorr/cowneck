@@ -7,12 +7,15 @@ const auditedHtmlFiles = [
     'games/lofi-pup.html',
     'games/donut-chef.html',
     'games/shore-road.html',
+    'games/sketch-pup.html',
 ];
 
 const auditedFiles = [
     ...auditedHtmlFiles,
     'games/donut-chef-logic.js',
     'games/donut-chef.test.js',
+    'games/sketch-pup-tutorials.js',
+    'games/sketch-pup.test.js',
     'eslint.config.mjs',
     'playwright.config.mjs',
     'tests/**/*.{js,mjs}',
@@ -43,7 +46,12 @@ export default [
         },
     },
     {
-        files: ['games/donut-chef-logic.js', 'games/donut-chef.test.js'],
+        files: [
+            'games/donut-chef-logic.js',
+            'games/donut-chef.test.js',
+            'games/sketch-pup-tutorials.js',
+            'games/sketch-pup.test.js',
+        ],
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'commonjs',
@@ -81,6 +89,8 @@ export default [
             'games/*.js',
             '!games/donut-chef-logic.js',
             '!games/donut-chef.test.js',
+            '!games/sketch-pup-tutorials.js',
+            '!games/sketch-pup.test.js',
             'games/high-society/**',
             'music/**',
             'node_modules/',
