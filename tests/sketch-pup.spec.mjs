@@ -56,7 +56,10 @@ test.describe('Sketch Pup — Paper Companion verification & zero layout bounce'
 
         await page.goto('/games/sketch-pup.html');
         await expect(page.getByRole('heading', { name: /Sketch Pup/i })).toBeVisible();
+        await expect(page.locator('#btn-back-games')).toHaveCount(0);
         await expect(page.locator('#step-counter-badge')).toHaveText('STEP 1 OF 11');
+        await expect(page.locator('body')).toHaveAttribute('data-theme', 'light');
+        await expect(page.locator('#theme-toggle-btn')).toHaveText('☀️ Light');
 
         const baselineRects = await measureControlPositions(page);
 
@@ -91,6 +94,14 @@ test.describe('Sketch Pup — Paper Companion verification & zero layout bounce'
         // Verify controls are STILL at the exact same position after switching tutorials!
         const lancerRects = await measureControlPositions(page);
         expect(lancerRects).toEqual(baselineRects);
+
+        // Toggle Dark Mode and verify controls stay stationary + theme persists
+        await page.locator('#theme-toggle-btn').click();
+        await expect(page.locator('body')).toHaveAttribute('data-theme', 'dark');
+        await expect(page.locator('#theme-toggle-btn')).toHaveText('🌙 Dark');
+        await expect(page.locator('#theme-toggle-btn')).toHaveAttribute('aria-pressed', 'true');
+        const darkRects = await measureControlPositions(page);
+        expect(darkRects).toEqual(baselineRects);
 
         expect(errors).toEqual([]);
         await context.close();

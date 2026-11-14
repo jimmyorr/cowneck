@@ -67,11 +67,16 @@
         :root {
             --bg-room: hsl(34, 28%, 91%);
             --bg-room-glow: hsla(28, 72%, 68%, 0.26);
+            --bg-room-glow-alt: hsla(32, 45%, 72%, 0.22);
             --chassis-top: hsl(35, 24%, 96%);
             --chassis-bottom: hsl(33, 20%, 91%);
             --chassis-edge: hsl(30, 16%, 79%);
+            --chassis-bevel-top: rgba(255, 255, 255, 0.85);
+            --chassis-bevel-bottom: rgba(120, 98, 76, 0.18);
             --panel-recess: hsl(33, 18%, 87%);
             --panel-surface: hsl(35, 25%, 94%);
+            --surface-hover: #ffffff;
+            --card-highlight: rgba(255, 255, 255, 0.8);
             --panel-border: hsla(28, 18%, 55%, 0.24);
             --ink-primary: hsl(24, 24%, 17%);
             --ink-secondary: hsl(25, 14%, 38%);
@@ -133,6 +138,54 @@
             --window-glow: rgba(244, 216, 158, 0.30);
         }
 
+        /* Dark Mode Studio Hardware Theme */
+        body[data-theme="dark"] {
+            --bg-room: hsl(24, 15%, 8%);
+            --bg-room-glow: hsla(24, 76%, 48%, 0.15);
+            --bg-room-glow-alt: hsla(28, 50%, 35%, 0.12);
+            --chassis-top: hsl(24, 12%, 15.5%);
+            --chassis-bottom: hsl(24, 14%, 12%);
+            --chassis-edge: hsl(24, 10%, 23%);
+            --chassis-bevel-top: rgba(255, 245, 235, 0.08);
+            --chassis-bevel-bottom: rgba(0, 0, 0, 0.45);
+            --panel-recess: hsl(24, 15%, 9.5%);
+            --panel-surface: hsl(24, 12%, 18%);
+            --surface-hover: hsl(24, 12%, 23%);
+            --card-highlight: rgba(255, 245, 235, 0.05);
+            --panel-border: hsla(32, 24%, 78%, 0.13);
+            --ink-primary: hsl(35, 28%, 92%);
+            --ink-secondary: hsl(32, 14%, 70%);
+            --ink-muted: hsl(28, 10%, 52%);
+            --accent: hsl(24, 82%, 54%);
+            --accent-soft: hsla(24, 82%, 54%, 0.18);
+            --accent-strong: hsl(26, 90%, 66%);
+            --accent-contrast: hsl(36, 50%, 98%);
+        }
+
+        body[data-theme="dark"][data-scene="rainy"] {
+            --bg-room: hsl(215, 20%, 8.5%);
+            --bg-room-glow: hsla(210, 62%, 52%, 0.14);
+            --accent: hsl(206, 72%, 56%);
+            --accent-soft: hsla(206, 72%, 56%, 0.18);
+            --accent-strong: hsl(204, 82%, 68%);
+        }
+
+        body[data-theme="dark"][data-scene="midnight"] {
+            --bg-room: hsl(222, 22%, 7.5%);
+            --bg-room-glow: hsla(34, 78%, 54%, 0.14);
+            --accent: hsl(34, 82%, 54%);
+            --accent-soft: hsla(34, 82%, 54%, 0.18);
+            --accent-strong: hsl(36, 90%, 66%);
+        }
+
+        body[data-theme="dark"][data-scene="cafe"] {
+            --bg-room: hsl(28, 16%, 8.5%);
+            --bg-room-glow: hsla(148, 45%, 45%, 0.13);
+            --accent: hsl(152, 48%, 44%);
+            --accent-soft: hsla(152, 48%, 44%, 0.18);
+            --accent-strong: hsl(150, 58%, 62%);
+        }
+
         *,
         *::before,
         *::after {
@@ -152,12 +205,12 @@
             background-color: var(--bg-room);
             background-image:
                 radial-gradient(circle at 18% 15%, var(--bg-room-glow), transparent 55%),
-                radial-gradient(circle at 85% 82%, hsla(32, 45%, 72%, 0.22), transparent 52%);
+                radial-gradient(circle at 85% 82%, var(--bg-room-glow-alt), transparent 52%);
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 18px 14px;
-            transition: background-color 0.6s ease;
+            transition: background-color 0.45s ease;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -186,10 +239,10 @@
             border-radius: 26px;
             border: 1px solid var(--chassis-edge);
             box-shadow:
-                0 26px 56px -18px rgba(32, 22, 14, 0.24),
-                0 6px 16px -4px rgba(32, 22, 14, 0.10),
-                inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
-                inset 0 -3px 0 rgba(120, 98, 76, 0.18);
+                0 26px 56px -18px rgba(32, 22, 14, 0.28),
+                0 6px 16px -4px rgba(32, 22, 14, 0.12),
+                inset 0 1.5px 0 var(--chassis-bevel-top),
+                inset 0 -3px 0 var(--chassis-bevel-bottom);
             padding: 20px;
             position: relative;
         }
@@ -236,6 +289,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .ghost-btn {
@@ -252,13 +306,18 @@
             cursor: pointer;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 6px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 1px 0 var(--card-highlight);
             transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
         }
 
+        #theme-toggle-btn {
+            min-width: 78px;
+        }
+
         .ghost-btn:hover {
-            background: #ffffff;
+            background: var(--surface-hover);
             color: var(--ink-primary);
         }
 
@@ -584,7 +643,7 @@
 
         .scene-btn:hover {
             color: var(--ink-primary);
-            background: rgba(255, 255, 255, 0.45);
+            background: var(--surface-hover);
         }
 
         .scene-btn.active {
@@ -593,7 +652,7 @@
             border-color: var(--panel-border);
             box-shadow:
                 0 2px 5px rgba(28, 20, 12, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                inset 0 1px 0 var(--card-highlight);
         }
 
         .scene-icon {
@@ -611,7 +670,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 1px 0 var(--card-highlight);
         }
 
         .seed-row {
@@ -651,7 +710,7 @@
         }
 
         .seed-code-btn:hover {
-            background: #ffffff;
+            background: var(--surface-hover);
             border-color: var(--accent);
         }
 
@@ -691,7 +750,7 @@
             padding: 3px 8px;
             border-radius: 8px;
             border: 1px solid var(--accent);
-            background: #ffffff;
+            background: var(--surface-hover);
             color: var(--ink-primary);
         }
 
@@ -725,7 +784,7 @@
         }
 
         .mini-action-btn:hover {
-            background: #ffffff;
+            background: var(--surface-hover);
             color: var(--ink-primary);
         }
 
@@ -803,12 +862,12 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), inset 0 1px 0 var(--card-highlight);
             transition: background-color 0.15s ease, transform 0.08s ease;
         }
 
         .secondary-btn:hover {
-            background: #ffffff;
+            background: var(--surface-hover);
         }
 
         .secondary-btn:active {
@@ -846,7 +905,7 @@
         }
 
         .voice-btn:hover {
-            background: #ffffff;
+            background: var(--surface-hover);
         }
 
         .voice-label {
@@ -868,7 +927,7 @@
             border: 1px solid var(--panel-border);
             border-radius: 16px;
             padding: 14px 15px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 1px 0 var(--card-highlight);
         }
 
         .module-header {
@@ -940,7 +999,7 @@
 
         .v-fader::-webkit-slider-runnable-track {
             width: 5px;
-            background: rgba(60, 46, 34, 0.22);
+            background: hsla(28, 18%, 50%, 0.28);
             border-radius: 999px;
         }
 
@@ -958,7 +1017,7 @@
 
         .v-fader::-moz-range-track {
             width: 5px;
-            background: rgba(60, 46, 34, 0.22);
+            background: hsla(28, 18%, 50%, 0.28);
             border-radius: 999px;
         }
 
@@ -999,7 +1058,7 @@
             width: 12px;
             height: 4px;
             border-radius: 999px;
-            background: rgba(60, 48, 38, 0.2);
+            background: hsla(28, 18%, 50%, 0.25);
             transition: background-color 0.15s ease, box-shadow 0.15s ease;
         }
 
@@ -1008,7 +1067,7 @@
             color: var(--ink-primary);
             box-shadow:
                 0 2px 4px rgba(28, 20, 12, 0.07),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                inset 0 1px 0 var(--card-highlight);
         }
 
         .stem-pad.active .stem-led {
@@ -1086,7 +1145,7 @@
             height: 16px;
             border-radius: 50%;
             background: var(--accent);
-            border: 2px solid #ffffff;
+            border: 2px solid var(--chassis-top);
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.26);
             margin-top: -6px;
         }
@@ -1103,7 +1162,7 @@
             height: 16px;
             border-radius: 50%;
             background: var(--accent);
-            border: 2px solid #ffffff;
+            border: 2px solid var(--chassis-top);
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.26);
         }
 
@@ -1231,7 +1290,7 @@
         .cassette-item.is-active {
             background: var(--chassis-top);
             border-color: var(--accent);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+            box-shadow: inset 0 1px 0 var(--card-highlight);
         }
 
         .cassette-load-btn {
@@ -1251,7 +1310,7 @@
         }
 
         .cassette-load-btn:hover {
-            background: rgba(255, 255, 255, 0.55);
+            background: var(--surface-hover);
         }
 
         .cassette-seed {
@@ -1288,7 +1347,7 @@
 
         .cassette-remove-btn:hover {
             color: var(--ink-primary);
-            background: rgba(255, 255, 255, 0.65);
+            background: var(--surface-hover);
             border-color: var(--panel-border);
         }
 
@@ -1372,6 +1431,9 @@
             <div class="topbar-actions">
                 <button type="button" id="radio-mode-btn" class="ghost-btn" aria-pressed="true" title="Automatically compose a fresh track every 16 bars">
                     Radio flow: On
+                </button>
+                <button type="button" id="theme-toggle-btn" class="ghost-btn" aria-pressed="false" title="Switch between Light and Dark studio themes">
+                    ☀️ Light
                 </button>
                 <button type="button" id="help-btn" class="ghost-btn" aria-haspopup="dialog" aria-controls="help-modal">
                     Studio guide
@@ -1780,7 +1842,25 @@
         // --- Safe Storage Helper ---
         const PREFS_KEY = 'lofi_pup_studio_prefs_v2';
         const TAPES_KEY = 'lofi_pup_saved_tapes_v1';
+        const THEME_KEY = 'pup_studio_theme_v1';
         const MAX_SAVED_TAPES = 12;
+
+        function loadSavedTheme() {
+            try {
+                const raw = window.localStorage.getItem(THEME_KEY);
+                return raw === 'dark' ? 'dark' : 'light';
+            } catch {
+                return 'light';
+            }
+        }
+
+        function saveTheme(theme) {
+            try {
+                window.localStorage.setItem(THEME_KEY, theme);
+            } catch {
+                // Ignore storage errors in restricted contexts
+            }
+        }
 
         function loadSavedPrefs() {
             try {
@@ -2394,6 +2474,7 @@
         const newTrackBtn = document.getElementById('new-track-btn');
         const arrangeBtn = document.getElementById('arrange-btn');
         const radioModeBtn = document.getElementById('radio-mode-btn');
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
         const chordVoiceBtn = document.getElementById('chord-voice-btn');
         const chordVoiceVal = document.getElementById('chord-voice-val');
         const leadVoiceBtn = document.getElementById('lead-voice-btn');
@@ -2409,6 +2490,18 @@
         const helpBtn = document.getElementById('help-btn');
         const helpModal = document.getElementById('help-modal');
         let lastHelpTrigger = null;
+
+        let currentTheme = loadSavedTheme();
+        function applyTheme(theme) {
+            currentTheme = theme === 'dark' ? 'dark' : 'light';
+            bodyEl.dataset.theme = currentTheme;
+            if (themeToggleBtn) {
+                const isDark = currentTheme === 'dark';
+                themeToggleBtn.textContent = isDark ? '🌙 Dark' : '☀️ Light';
+                themeToggleBtn.setAttribute('aria-pressed', String(isDark));
+            }
+        }
+        applyTheme(currentTheme);
 
         // Sync initial lowpass warmth & room space sliders to saved/initial scene preset
         filterSlider.value = String(SCENE_CONFIGS[currentScene].filterPreset);
@@ -5011,6 +5104,18 @@
             persistPrefs();
             syncTrackUi();
             flashBanner(radioMode ? 'Radio flow on' : 'Looping track');
+        });
+
+        themeToggleBtn.addEventListener('click', () => {
+            const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(nextTheme);
+            saveTheme(nextTheme);
+        });
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === THEME_KEY && (e.newValue === 'dark' || e.newValue === 'light')) {
+                applyTheme(e.newValue);
+            }
         });
 
         arrangeBtn.addEventListener('click', () => {

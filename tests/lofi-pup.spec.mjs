@@ -93,6 +93,15 @@ test.describe('Lofi Pup generative studio', () => {
         await wobble.dispatchEvent('input');
         await expect(page.locator('#wobble-val')).toHaveText('Warped');
 
+        // Verify Light / Dark mode toggle
+        await expect(page.locator('body')).toHaveAttribute('data-theme', 'light');
+        await expect(page.locator('#theme-toggle-btn')).toHaveText('☀️ Light');
+        await page.locator('#theme-toggle-btn').click();
+        await expect(page.locator('body')).toHaveAttribute('data-theme', 'dark');
+        await expect(page.locator('#theme-toggle-btn')).toHaveText('🌙 Dark');
+        await page.locator('#theme-toggle-btn').click();
+        await expect(page.locator('body')).toHaveAttribute('data-theme', 'light');
+
         expect(errors).toEqual([]);
     });
 
@@ -118,6 +127,9 @@ test.describe('Lofi Pup generative studio', () => {
 
         await page.locator('#radio-mode-btn').click();
         await expect(page.locator('#radio-mode-btn')).toHaveAttribute('aria-pressed', 'false');
+
+        await page.locator('#theme-toggle-btn').click();
+        await expect(page.locator('body')).toHaveAttribute('data-theme', 'dark');
 
         await page.locator('#play-btn').click();
         await expect(page.locator('#status-text')).toHaveText('Paused');

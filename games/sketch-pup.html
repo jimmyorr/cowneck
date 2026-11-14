@@ -67,11 +67,16 @@
             /* Shared Lofi Pup Tabletop Studio Design Tokens */
             --bg-room: hsl(34, 28%, 91%);
             --bg-room-glow: hsla(28, 72%, 68%, 0.26);
+            --bg-room-glow-alt: hsla(32, 45%, 72%, 0.22);
             --chassis-top: hsl(35, 24%, 96%);
             --chassis-bottom: hsl(33, 20%, 91%);
             --chassis-edge: hsl(30, 16%, 79%);
+            --chassis-bevel-top: rgba(255, 255, 255, 0.85);
+            --chassis-bevel-bottom: rgba(120, 98, 76, 0.18);
             --panel-recess: hsl(33, 18%, 87%);
             --panel-surface: hsl(35, 25%, 94%);
+            --surface-hover: #ffffff;
+            --card-highlight: rgba(255, 255, 255, 0.8);
             --panel-border: hsla(28, 18%, 55%, 0.24);
             --ink-primary: hsl(24, 24%, 17%);
             --ink-secondary: hsl(25, 14%, 38%);
@@ -83,8 +88,48 @@
             --phosphor: hsl(34, 94%, 68%);
             --screen-bg: hsl(22, 24%, 12%);
             --paper-bg: #fffdf9;
+            --paper-prev-ink: #0f172a;
+            --paper-active-ink: #0284c7;
+            --paper-guide-ink: #94a3b8;
+            --paper-grid-ink: #94a3b8;
+            --paper-grid-border: #cbd5e1;
             --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+
+        /* Dark Mode Studio Hardware Theme (matches Lofi Pup) */
+        body[data-theme="dark"] {
+            --bg-room: hsl(24, 15%, 8%);
+            --bg-room-glow: hsla(24, 76%, 48%, 0.15);
+            --bg-room-glow-alt: hsla(28, 50%, 35%, 0.12);
+            --chassis-top: hsl(24, 12%, 15.5%);
+            --chassis-bottom: hsl(24, 14%, 12%);
+            --chassis-edge: hsl(24, 10%, 23%);
+            --chassis-bevel-top: rgba(255, 245, 235, 0.08);
+            --chassis-bevel-bottom: rgba(0, 0, 0, 0.45);
+            --panel-recess: hsl(24, 15%, 9.5%);
+            --panel-surface: hsl(24, 12%, 18%);
+            --surface-hover: hsl(24, 12%, 23%);
+            --card-highlight: rgba(255, 245, 235, 0.05);
+            --panel-border: hsla(32, 24%, 78%, 0.13);
+            --ink-primary: hsl(35, 28%, 92%);
+            --ink-secondary: hsl(32, 14%, 70%);
+            --ink-muted: hsl(28, 10%, 52%);
+            --accent: hsl(24, 82%, 54%);
+            --accent-soft: hsla(24, 82%, 54%, 0.18);
+            --accent-strong: hsl(26, 90%, 66%);
+            --accent-contrast: hsl(36, 50%, 98%);
+            --paper-bg: hsl(24, 14%, 12.5%);
+            --paper-prev-ink: #f4ede2;
+            --paper-active-ink: #38bdf8;
+            --paper-guide-ink: #64748b;
+            --paper-grid-ink: #64748b;
+            --paper-grid-border: #3a332d;
+        }
+
+        body[data-theme="dark"] .paper-sheet-wrapper.is-color-mode {
+            --paper-bg: #f4efe6;
+            --paper-prev-ink: #0f172a;
         }
 
         *,
@@ -107,11 +152,12 @@
             background-color: var(--bg-room);
             background-image:
                 radial-gradient(circle at 18% 15%, var(--bg-room-glow), transparent 55%),
-                radial-gradient(circle at 85% 82%, hsla(32, 45%, 72%, 0.22), transparent 52%);
+                radial-gradient(circle at 85% 82%, var(--bg-room-glow-alt), transparent 52%);
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 16px 14px;
+            transition: background-color 0.45s ease;
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
         }
@@ -138,10 +184,10 @@
             border-radius: 26px;
             border: 1px solid var(--chassis-edge);
             box-shadow:
-                0 26px 56px -18px rgba(32, 22, 14, 0.24),
-                0 6px 16px -4px rgba(32, 22, 14, 0.10),
-                inset 0 1.5px 0 rgba(255, 255, 255, 0.85),
-                inset 0 -3px 0 rgba(120, 98, 76, 0.18);
+                0 26px 56px -18px rgba(32, 22, 14, 0.28),
+                0 6px 16px -4px rgba(32, 22, 14, 0.12),
+                inset 0 1.5px 0 var(--chassis-bevel-top),
+                inset 0 -3px 0 var(--chassis-bevel-bottom);
             padding: 20px 24px 22px;
             position: relative;
         }
@@ -209,7 +255,7 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), inset 0 1px 0 var(--card-highlight);
             transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
         }
 
@@ -220,23 +266,27 @@
         }
 
         #btn-toggle-guides {
-            min-width: 122px;
+            min-width: 112px;
         }
 
         #btn-toggle-zoom {
-            min-width: 128px;
+            min-width: 124px;
         }
 
         #btn-peek-color {
-            min-width: 118px;
+            min-width: 114px;
         }
 
         #btn-toggle-ref {
-            min-width: 116px;
+            min-width: 112px;
+        }
+
+        #theme-toggle-btn {
+            min-width: 78px;
         }
 
         .ghost-btn:hover:not(:disabled) {
-            background: #ffffff;
+            background: var(--surface-hover);
             color: var(--ink-primary);
         }
 
@@ -283,7 +333,7 @@
 
         .chapter-pill:hover {
             color: var(--ink-primary);
-            background: rgba(255, 255, 255, 0.45);
+            background: var(--surface-hover);
         }
 
         .chapter-pill.active {
@@ -292,7 +342,7 @@
             border-color: var(--panel-border);
             box-shadow:
                 0 2px 5px rgba(28, 20, 12, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                inset 0 1px 0 var(--card-highlight);
         }
 
         .chapter-pill.completed {
@@ -313,7 +363,7 @@
             border: 1px solid var(--panel-border);
             border-radius: 18px;
             padding: 14px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 1px 0 var(--card-highlight);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -370,7 +420,8 @@
             border: 2px solid rgba(55, 43, 33, 0.24);
             box-shadow:
                 inset 0 2px 7px rgba(32, 22, 14, 0.12),
-                0 1px 0 rgba(255, 255, 255, 0.85);
+                0 1px 0 var(--card-highlight);
+            transition: background-color 0.25s ease;
         }
 
         #drawing-svg {
@@ -466,7 +517,7 @@
             border: 1px solid var(--panel-border);
             border-radius: 16px;
             padding: 14px 15px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 1px 0 var(--card-highlight);
         }
 
         /* Strictly Locked Heights inside #coach-card so buttons NEVER bounce */
@@ -575,12 +626,12 @@
             align-items: center;
             justify-content: center;
             gap: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), inset 0 1px 0 var(--card-highlight);
             transition: background-color 0.15s ease, transform 0.08s ease;
         }
 
         .secondary-btn:hover:not(:disabled) {
-            background: #ffffff;
+            background: var(--surface-hover);
         }
 
         .secondary-btn:active:not(:disabled) {
@@ -644,7 +695,7 @@
         }
 
         .sub-pill-btn:hover {
-            background: #ffffff;
+            background: var(--surface-hover);
             color: var(--ink-primary);
         }
 
@@ -721,7 +772,7 @@
         .stroke-item-btn.playing {
             background: var(--chassis-top);
             border-color: var(--accent);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+            box-shadow: inset 0 1px 0 var(--card-highlight);
         }
 
         .stroke-num-circle {
@@ -830,7 +881,7 @@
             padding: 20px 22px;
             box-shadow:
                 0 26px 56px -16px rgba(32, 22, 14, 0.35),
-                inset 0 1.5px 0 rgba(255, 255, 255, 0.85);
+                inset 0 1.5px 0 var(--chassis-bevel-top);
         }
 
         .modal-header {
@@ -867,12 +918,12 @@
             background: var(--panel-surface);
             color: var(--ink-primary);
             text-align: left;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            box-shadow: inset 0 1px 0 var(--card-highlight);
             transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
         }
 
         .tutorial-choice-card:hover {
-            background: #ffffff;
+            background: var(--surface-hover);
             border-color: var(--accent);
             transform: translateY(-1px);
         }
@@ -882,7 +933,7 @@
             background: var(--chassis-top);
             box-shadow:
                 0 3px 8px rgba(28, 20, 12, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                inset 0 1px 0 var(--card-highlight);
         }
 
         .tutorial-card-top {
@@ -955,7 +1006,8 @@
             #btn-toggle-guides,
             #btn-toggle-zoom,
             #btn-peek-color,
-            #btn-toggle-ref {
+            #btn-toggle-ref,
+            #theme-toggle-btn {
                 min-width: auto;
             }
         }
@@ -994,6 +1046,9 @@
                 <button type="button" class="ghost-btn" id="btn-toggle-ref" title="Show or hide the original reference image">
                     Reference: Off
                 </button>
+                <button type="button" class="ghost-btn" id="theme-toggle-btn" aria-pressed="false" title="Switch between Light and Dark studio themes">
+                    ☀️ Light
+                </button>
             </div>
         </header>
 
@@ -1007,15 +1062,15 @@
                 <div class="paper-header-strip">
                     <div class="legend-badges">
                         <span class="legend-item">
-                            <span class="legend-dot" style="background: #0284c7;"></span>
+                            <span class="legend-dot" style="background: var(--paper-active-ink);"></span>
                             New lines in this step
                         </span>
                         <span class="legend-item">
-                            <span class="legend-dot" style="background: #0f172a;"></span>
+                            <span class="legend-dot" style="background: var(--paper-prev-ink);"></span>
                             Earlier steps (ink)
                         </span>
                         <span class="legend-item">
-                            <span class="legend-dot" style="background: #64748b;"></span>
+                            <span class="legend-dot" style="background: var(--paper-guide-ink);"></span>
                             Light pencil guides
                         </span>
                     </div>
@@ -1037,13 +1092,13 @@
 
                         <!-- Layer 1: Paper Fold Crosshairs & Margin Frame -->
                         <g id="layer-paper-grid">
-                            <rect x="24" y="24" width="752" height="552" rx="10" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6 6" />
+                            <rect x="24" y="24" width="752" height="552" rx="10" fill="none" stroke="var(--paper-grid-border)" stroke-width="1.5" stroke-dasharray="6 6" />
                             <!-- Vertical & Horizontal Center Fold Lines -->
-                            <line x1="400" y1="16" x2="400" y2="584" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 8" opacity="0.65" />
-                            <line x1="16" y1="300" x2="784" y2="300" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="8 8" opacity="0.65" />
-                            <circle cx="400" cy="300" r="5" fill="none" stroke="#64748b" stroke-width="1.5" opacity="0.7" />
-                            <text x="408" y="42" fill="#64748b" font-size="12" font-weight="700" opacity="0.75">CENTER LINE</text>
-                            <text x="34" y="293" fill="#64748b" font-size="12" font-weight="700" opacity="0.75">MIDDLE</text>
+                            <line x1="400" y1="16" x2="400" y2="584" stroke="var(--paper-grid-ink)" stroke-width="1.5" stroke-dasharray="8 8" opacity="0.65" />
+                            <line x1="16" y1="300" x2="784" y2="300" stroke="var(--paper-grid-ink)" stroke-width="1.5" stroke-dasharray="8 8" opacity="0.65" />
+                            <circle cx="400" cy="300" r="5" fill="none" stroke="var(--paper-grid-ink)" stroke-width="1.5" opacity="0.7" />
+                            <text x="408" y="42" fill="var(--paper-grid-ink)" font-size="12" font-weight="700" opacity="0.75">CENTER LINE</text>
+                            <text x="34" y="293" fill="var(--paper-grid-ink)" font-size="12" font-weight="700" opacity="0.75">MIDDLE</text>
                         </g>
 
                         <!-- Layer 2: Character Color Fills -->
@@ -1196,7 +1251,30 @@
                 currentViewBox: { x: 0, y: 0, w: 800, h: 600 }
             };
 
+            // Shared Theme Persistence across Lofi Pup & Sketch Pup
+            const THEME_KEY = 'pup_studio_theme_v1';
+
+            function loadSavedTheme() {
+                try {
+                    const raw = window.localStorage.getItem(THEME_KEY);
+                    return raw === 'dark' ? 'dark' : 'light';
+                } catch {
+                    return 'light';
+                }
+            }
+
+            function saveTheme(theme) {
+                try {
+                    window.localStorage.setItem(THEME_KEY, theme);
+                } catch {
+                    // Ignore storage errors in restricted contexts
+                }
+            }
+
             // DOM Elements
+            const bodyEl = document.body;
+            const paperSheetWrapper = document.getElementById('paper-sheet-wrapper');
+            const themeToggleBtn = document.getElementById('theme-toggle-btn');
             const svgEl = document.getElementById('drawing-svg');
             const layerBgFills = document.getElementById('layer-bg-fills');
             const layerPaperGrid = document.getElementById('layer-paper-grid');
@@ -1334,10 +1412,23 @@
                 });
             }
 
+            let currentTheme = loadSavedTheme();
+            function applyTheme(theme) {
+                currentTheme = theme === 'dark' ? 'dark' : 'light';
+                bodyEl.dataset.theme = currentTheme;
+                if (themeToggleBtn) {
+                    const isDark = currentTheme === 'dark';
+                    themeToggleBtn.textContent = isDark ? '🌙 Dark' : '☀️ Light';
+                    themeToggleBtn.setAttribute('aria-pressed', String(isDark));
+                }
+            }
+            applyTheme(currentTheme);
+
             function renderPaperLayers() {
                 const tutorial = state.tutorial;
                 const step = tutorial.steps[state.stepIndex];
                 const isColorMode = Boolean(step.isColorStep || state.peekColors);
+                paperSheetWrapper.classList.toggle('is-color-mode', isColorMode);
 
                 // 1. Paper grid & guides visibility
                 const showPaperGuidesNow = state.showGuides && !step.isColorStep;
@@ -1381,7 +1472,7 @@
                                 layerGuideStrokes.appendChild(
                                     createSvgElement('path', {
                                         d: stroke.d,
-                                        stroke: '#94a3b8',
+                                        stroke: 'var(--paper-guide-ink)',
                                         'stroke-width': 2.5,
                                         'stroke-dasharray': '8 7',
                                         opacity: 0.55
@@ -1389,7 +1480,7 @@
                                 );
                             }
                         } else {
-                            const inkCol = stroke.inkColor || '#0f172a';
+                            const inkCol = stroke.inkColor || 'var(--paper-prev-ink)';
                             layerPastStrokes.appendChild(
                                 createSvgElement('path', {
                                     d: stroke.d,
@@ -1407,8 +1498,8 @@
                 step.strokes.forEach((stroke, sIdx) => {
                     const isGuide = stroke.kind === 'guide';
                     const strokeColor = state.peekColors
-                        ? (stroke.inkColor || '#0f172a')
-                        : '#0284c7';
+                        ? (stroke.inkColor || 'var(--paper-prev-ink)')
+                        : 'var(--paper-active-ink)';
 
                     const pathEl = createSvgElement('path', {
                         id: `svg-stroke-${stroke.id}`,
@@ -1433,7 +1524,7 @@
                             cx: -10,
                             cy: -10,
                             r: 10,
-                            fill: '#0284c7',
+                            fill: 'var(--paper-active-ink)',
                             stroke: '#ffffff',
                             'stroke-width': 2
                         })
@@ -1762,6 +1853,18 @@
             btnCloseRef.addEventListener('click', () => {
                 state.showRefImage = false;
                 updateToolbarButtons();
+            });
+
+            themeToggleBtn.addEventListener('click', () => {
+                const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                applyTheme(nextTheme);
+                saveTheme(nextTheme);
+            });
+
+            window.addEventListener('storage', (e) => {
+                if (e.key === THEME_KEY && (e.newValue === 'dark' || e.newValue === 'light')) {
+                    applyTheme(e.newValue);
+                }
             });
 
             btnAutoLoop.addEventListener('click', () => {
