@@ -68,6 +68,19 @@ test('Swan Boat (Kris & Ralsei) featured tutorial has 5 chapters and 11 guided s
     assert.ok(swan.fills.length >= 10);
 });
 
+test('Classic Pikachu tutorial has 5 chapters, 7 guided steps, and complete color fills', () => {
+    const pika = getTutorialById('pikachu-classic');
+    assert.strictEqual(pika.id, 'pikachu-classic');
+    assert.strictEqual(pika.series, 'Pokémon');
+    assert.strictEqual(pika.chapters.length, 5);
+    assert.strictEqual(pika.steps.length, 7);
+    assert.strictEqual(pika.steps[0].chapter, 'guides');
+    assert.ok(pika.steps[0].strokes.every((s) => s.kind === 'guide'));
+    assert.strictEqual(pika.steps[pika.steps.length - 1].isColorStep, true);
+    assert.ok(pika.palette.length >= 5);
+    assert.ok(pika.fills.length >= 6);
+});
+
 test('validateTutorial catches missing Step 1 proportion guides or broken SVG paths', () => {
     const broken = {
         id: 'broken-test',

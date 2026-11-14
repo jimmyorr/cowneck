@@ -829,6 +829,273 @@
                     strokes: []
                 }
             ]
+        },
+
+        // --- TUTORIAL #4: CLASSIC PIKACHU ---
+        {
+            id: 'pikachu-classic',
+            title: 'Classic Pikachu',
+            series: 'Pokémon',
+            subtitle: 'Happy Waving & Lightning Tail Pose',
+            characterTags: ['Pikachu'],
+            difficulty: 'Easy • Character',
+            badgeEmoji: '⚡',
+            featured: false,
+            referenceImage: 'assets/pikachu-classic.jpg',
+            viewBox: PAPER_VIEWBOX,
+            chapters: [
+                { id: 'guides', number: 1, title: '1. Proportion Guides', shortTitle: '1. Guides' },
+                { id: 'head', number: 2, title: '2. Head & Pointed Ears', shortTitle: '2. Head & Ears' },
+                { id: 'face', number: 3, title: '3. Face & Red Cheeks', shortTitle: '3. Face' },
+                { id: 'body', number: 4, title: '4. Body & Lightning Tail', shortTitle: '4. Body & Tail' },
+                { id: 'color', number: 5, title: '5. Coloring', shortTitle: '5. Coloring' }
+            ],
+            palette: [
+                { id: 'pika-yellow', name: 'Electric Pikachu Yellow', hex: '#facc15', usage: 'Head, ears, pear body, arms & lightning tail' },
+                { id: 'pika-gold', name: 'Warm Golden Shading', hex: '#eab308', usage: 'Chin shadow, belly & inner tail lightning' },
+                { id: 'pika-red', name: 'Electric Cheek Red', hex: '#ef4444', usage: 'Both round electric cheek pouches!' },
+                { id: 'pika-black', name: 'Ear Tip & Eye Black', hex: '#18181b', usage: 'Pointed ear tips & big round eyes' },
+                { id: 'pika-brown', name: 'Tail Base Chestnut Brown', hex: '#78350f', usage: 'Zigzag base of Pikachu’s lightning tail' },
+                { id: 'pika-pink', name: 'Happy Tongue Pink', hex: '#f472b6', usage: 'Inside Pikachu’s cheerful open smile' }
+            ],
+            backgroundFills: [
+                {
+                    id: 'bg-pika-glow',
+                    d: 'M 205 35 C 635 35, 675 545, 420 565 C 185 545, 205 35, 205 35 Z',
+                    fill: '#fef9c3',
+                    opacity: 0.65
+                }
+            ],
+            fills: [
+                {
+                    id: 'fill-pika-tail-yellow',
+                    d: 'M 475 246 L 653 157 L 644 271 L 535 307 L 566 365 L 514 396 L 536 434 L 489 463 L 484 438 L 503 412 L 482 384 L 518 355 L 480 292 Z',
+                    fill: '#facc15'
+                },
+                {
+                    id: 'fill-pika-tail-gold-shade',
+                    d: 'M 535 307 L 644 271 L 646 250 L 504 286 L 542 356 L 496 384 L 514 396 L 566 365 Z',
+                    fill: '#eab308'
+                },
+                {
+                    id: 'fill-pika-tail-brown',
+                    d: 'M 498 406 L 508 400 L 514 409 L 522 403 L 536 434 L 489 463 L 484 438 L 503 412 Z',
+                    fill: '#78350f'
+                },
+                {
+                    id: 'fill-pika-feet',
+                    d: 'M 286 527 C 268 542, 256 560, 263 567 C 272 574, 306 558, 324 534 Z M 426 534 C 442 558, 468 574, 477 568 C 484 560, 476 542, 462 528 Z',
+                    fill: '#facc15'
+                },
+                {
+                    id: 'fill-pika-body-head',
+                    d: 'M 281 200 C 260 155, 255 82, 282 18 C 285 13, 290 13, 293 18 C 318 72, 326 135, 314 179 C 342 161, 402 161, 432 180 C 482 142, 545 116, 600 123 C 605 124, 605 128, 601 132 C 562 178, 512 204, 459 210 C 472 232, 476 260, 477 285 C 484 304, 480 326, 466 342 L 462 345 C 468 386, 490 448, 490 488 C 490 508, 480 522, 462 528 L 442 532 C 405 520, 345 520, 308 532 L 286 527 C 270 522, 260 510, 260 492 C 260 462, 276 426, 276 402 C 246 392, 224 362, 212 332 C 206 325, 204 318, 210 315 C 207 309, 211 304, 218 305 C 219 299, 226 296, 232 299 C 238 294, 248 298, 260 306 C 257 294, 260 282, 264 275 C 266 250, 270 222, 281 200 Z',
+                    fill: '#facc15'
+                },
+                {
+                    id: 'fill-pika-belly-shade',
+                    d: 'M 346 376 C 362 382, 378 382, 392 376 C 388 388, 352 388, 346 376 Z M 286 524 C 335 496, 415 496, 462 524 L 442 532 C 405 520, 345 520, 308 532 Z',
+                    fill: '#eab308'
+                },
+                {
+                    id: 'fill-pika-ear-tips',
+                    d: 'M 263 98 C 266 64, 274 36, 282 18 C 285 13, 290 13, 293 18 C 299 30, 303 42, 306 52 C 292 66, 278 82, 263 98 Z M 552 125 C 570 122, 586 122, 600 123 C 605 124, 605 128, 601 132 C 586 149, 568 164, 546 175 C 552 158, 554 140, 552 125 Z',
+                    fill: '#18181b'
+                },
+                {
+                    id: 'fill-pika-cheeks',
+                    d: 'M 264 288 C 276 280, 298 286, 303 304 C 307 320, 294 334, 276 332 C 262 328, 257 306, 264 288 Z M 476 293 C 464 285, 442 291, 435 308 C 431 324, 444 338, 462 336 C 474 332, 481 312, 476 293 Z',
+                    fill: '#ef4444'
+                },
+                {
+                    id: 'fill-pika-eyes',
+                    d: 'M 311 238 C 322 238, 330 246, 330 257 C 330 268, 322 276, 311 276 C 300 276, 292 268, 292 257 C 292 246, 300 238, 311 238 Z M 430 241 C 441 241, 449 249, 449 260 C 449 271, 441 279, 430 279 C 419 279, 411 271, 411 260 C 411 249, 419 241, 430 241 Z',
+                    fill: '#18181b'
+                },
+                {
+                    id: 'fill-pika-eye-shines',
+                    d: 'M 315 241 C 320 241, 323 244, 323 249 C 323 253, 320 256, 315 256 C 310 256, 307 253, 307 249 C 307 244, 310 241, 315 241 Z M 425 244 C 430 244, 433 247, 433 252 C 433 256, 430 259, 425 259 C 420 259, 417 256, 417 252 C 417 247, 420 244, 425 244 Z',
+                    fill: '#ffffff'
+                },
+                {
+                    id: 'fill-pika-mouth-inside',
+                    d: 'M 348 302 C 356 305, 364 303, 369 296 C 374 303, 382 305, 392 302 C 388 326, 380 336, 369 336 C 358 336, 350 326, 348 302 Z',
+                    fill: '#881337'
+                },
+                {
+                    id: 'fill-pika-tongue',
+                    d: 'M 352 319 C 362 312, 376 312, 388 319 C 384 331, 377 336, 369 336 C 361 336, 355 331, 352 319 Z',
+                    fill: '#f472b6'
+                }
+            ],
+            steps: [
+                {
+                    stepNumber: 1,
+                    chapter: 'guides',
+                    title: 'Head Oval, Pear Body & Tail Guides',
+                    tip: 'Lightly sketch a soft head oval and overlapping pear body (no line across the neck!), plus ear and tail guides.',
+                    camera: { x: 0, y: 0, w: 800, h: 600 },
+                    strokes: [
+                        {
+                            id: 'p-guide-head',
+                            label: 'Wide rounded oval for Pikachu’s head',
+                            kind: 'guide',
+                            d: 'M 370 165 C 442 165, 478 212, 478 275 C 478 335, 438 368, 370 368 C 302 368, 262 335, 262 275 C 262 212, 298 165, 370 165'
+                        },
+                        {
+                            id: 'p-guide-body',
+                            label: 'Overlapping pear shape for the body',
+                            kind: 'guide',
+                            d: 'M 276 345 C 262 415, 255 495, 286 527 C 335 536, 415 536, 462 528 C 495 495, 482 415, 462 345'
+                        },
+                        {
+                            id: 'p-guide-ears-tail',
+                            label: 'Guide lines for the ears and big tail',
+                            kind: 'guide',
+                            d: 'M 295 182 L 286 15 M 445 192 L 602 125 M 488 450 L 545 340 L 650 160'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 2,
+                    chapter: 'head',
+                    title: 'Crown & Puffy Cheek Curves',
+                    tip: 'Draw the top head curve between the ears, then curve both cheeks outward—leave the throat open so head and body flow together!',
+                    camera: { x: 185, y: 110, w: 390, h: 290 },
+                    strokes: [
+                        {
+                            id: 'p-head-crown',
+                            label: 'Gentle crown arch between the ears',
+                            kind: 'ink',
+                            d: 'M 308 182 C 342 161, 402 161, 436 182'
+                        },
+                        {
+                            id: 'p-cheek-left',
+                            label: 'Left cheek bulge and short jaw tuck',
+                            kind: 'ink',
+                            d: 'M 281 200 C 270 222, 266 250, 264 275 C 256 294, 258 316, 272 332 C 284 346, 298 356, 312 365'
+                        },
+                        {
+                            id: 'p-cheek-right',
+                            label: 'Right cheek bulge and short jaw tuck',
+                            kind: 'ink',
+                            d: 'M 459 210 C 472 232, 476 260, 477 285 C 484 304, 480 326, 466 342 C 452 355, 438 363, 422 370'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 3,
+                    chapter: 'head',
+                    title: 'Long Pointed Ears & Black Tips',
+                    tip: 'Sweep the left ear straight up and tilt the right ear outward, then add curved lines and dark shading for both ear tips!',
+                    camera: { x: 190, y: 5, w: 455, h: 330 },
+                    strokes: [
+                        {
+                            id: 'p-ear-left',
+                            label: 'Tall upright left ear',
+                            kind: 'ink',
+                            d: 'M 281 200 C 260 155, 255 82, 282 18 C 285 13, 290 13, 293 18 C 318 72, 326 135, 314 179'
+                        },
+                        {
+                            id: 'p-ear-right',
+                            label: 'Playful tilted right ear',
+                            kind: 'ink',
+                            d: 'M 432 180 C 482 142, 545 116, 600 123 C 605 124, 605 128, 601 132 C 562 178, 512 204, 459 210'
+                        },
+                        {
+                            id: 'p-ear-tips',
+                            label: 'Curved diagonal black ear tips',
+                            kind: 'ink',
+                            fillInk: true,
+                            d: 'M 263 98 C 266 64, 274 36, 282 18 C 285 13, 290 13, 293 18 C 299 30, 303 42, 306 52 C 292 66, 278 82, 263 98 Z M 552 125 C 570 122, 586 122, 600 123 C 605 124, 605 128, 601 132 C 586 149, 568 164, 546 175 C 552 158, 554 140, 552 125 Z'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 4,
+                    chapter: 'face',
+                    title: 'Shiny Eyes, W-Smile & Red Cheeks',
+                    tip: 'Draw two wide-set eyes with shine circles, a tiny triangle nose, a happy W-mouth with a tongue, and low round cheek pouches!',
+                    camera: { x: 225, y: 195, w: 295, h: 195 },
+                    strokes: [
+                        {
+                            id: 'p-eyes',
+                            label: 'Round eyes with large top shine ovals',
+                            kind: 'ink',
+                            d: 'M 311 238 C 322 238, 330 246, 330 257 C 330 268, 322 276, 311 276 C 300 276, 292 268, 292 257 C 292 246, 300 238, 311 238 Z M 315 241 C 320 241, 323 244, 323 249 C 323 253, 320 256, 315 256 C 310 256, 307 253, 307 249 C 307 244, 310 241, 315 241 Z M 430 241 C 441 241, 449 249, 449 260 C 449 271, 441 279, 430 279 C 419 279, 411 271, 411 260 C 411 249, 419 241, 430 241 Z M 425 244 C 430 244, 433 247, 433 252 C 433 256, 430 259, 425 259 C 420 259, 417 256, 417 252 C 417 247, 420 244, 425 244 Z'
+                        },
+                        {
+                            id: 'p-nose-mouth',
+                            label: 'Tiny nose, W-lip, open smile & tongue',
+                            kind: 'ink',
+                            d: 'M 363 277 L 375 277 L 369 283 Z M 338 298 C 350 305, 363 304, 369 296 C 375 304, 388 305, 400 298 M 348 302 C 350 326, 358 336, 369 336 C 380 336, 388 326, 392 302 M 352 319 C 362 312, 376 312, 388 319'
+                        },
+                        {
+                            id: 'p-cheeks',
+                            label: 'Round electric pouches low on the cheeks',
+                            kind: 'ink',
+                            d: 'M 264 288 C 276 280, 298 286, 303 304 C 307 320, 294 334, 276 332 M 476 293 C 464 285, 442 291, 435 308 C 431 324, 444 338, 462 336'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 5,
+                    chapter: 'body',
+                    title: 'Waving Paws, Pear Body & Feet',
+                    tip: 'Draw the left paw waving hello and right paw on the belly, then curve the pear-shaped hips down into two little feet!',
+                    camera: { x: 180, y: 275, w: 360, h: 310 },
+                    strokes: [
+                        {
+                            id: 'p-arms',
+                            label: 'Waving left paw and resting right paw',
+                            kind: 'ink',
+                            d: 'M 260 306 C 248 298, 238 294, 232 299 C 226 296, 219 299, 218 305 C 211 304, 207 309, 210 315 C 204 318, 206 325, 212 332 C 224 362, 246 392, 278 408 M 418 386 C 402 406, 392 428, 389 450 C 383 452, 384 458, 390 460 C 388 465, 393 469, 399 467 C 401 472, 408 474, 414 468 C 436 454, 452 434, 462 412'
+                        },
+                        {
+                            id: 'p-torso',
+                            label: 'Chubby pear-shaped hips and lower belly',
+                            kind: 'ink',
+                            d: 'M 276 402 C 276 426, 260 462, 260 492 C 260 510, 270 522, 286 527 M 462 345 C 468 386, 490 448, 490 488 C 490 508, 480 522, 462 528 M 308 532 C 345 520, 405 520, 442 532'
+                        },
+                        {
+                            id: 'p-feet',
+                            label: 'Two narrow oval feet with little toes',
+                            kind: 'ink',
+                            d: 'M 286 527 C 268 542, 256 560, 263 567 C 272 574, 306 558, 324 534 M 266 559 L 280 549 M 273 564 L 288 554 M 426 534 C 442 558, 468 574, 477 568 C 484 560, 476 542, 462 528 M 474 560 L 460 550 M 467 565 L 452 555'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 6,
+                    chapter: 'body',
+                    title: 'Flat-Topped Lightning Bolt Tail!',
+                    tip: 'Draw sharp zigzag steps rising from Pikachu’s lower back out to a wide, flat-edged lightning bolt tip!',
+                    camera: { x: 240, y: 135, w: 445, h: 365 },
+                    strokes: [
+                        {
+                            id: 'p-tail-bolt',
+                            label: 'Wide flat-topped lightning bolt tail',
+                            kind: 'ink',
+                            d: 'M 475 246 L 653 157 L 644 271 L 535 307 L 566 365 L 514 396 L 536 434 L 489 463 M 480 292 L 518 355 L 482 384 L 503 412 L 484 438'
+                        },
+                        {
+                            id: 'p-tail-base',
+                            label: 'Jagged brown stripe near the tail base',
+                            kind: 'ink',
+                            d: 'M 498 406 L 508 400 L 514 409 L 522 403'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 7,
+                    chapter: 'color',
+                    title: 'Color Your Classic Pikachu!',
+                    tip: 'Erase your pencil guides and color Pikachu bright electric yellow with red cheeks, black ear tips, and a brown tail base!',
+                    camera: { x: 0, y: 0, w: 800, h: 600 },
+                    isColorStep: true,
+                    strokes: []
+                }
+            ]
         }
     ];
 
