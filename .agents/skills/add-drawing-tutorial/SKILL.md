@@ -35,6 +35,8 @@ Add a new tutorial object to the `TUTORIALS` array in `games/sketch-pup-tutorial
      - Step 1 MUST use `camera: { x: 0, y: 0, w: 800, h: 600 }` (full page) and contain 2–4 `kind: 'guide'` strokes (light pencil circles/ovals/boxes) so Miles can place the character(s) on his real sheet of paper without running out of room.
    - Chapters 2–4: **Logical Drawing Stages** (e.g., Big Shapes / Vehicle $\rightarrow$ Main Character Head & Face $\rightarrow$ Body, Clothes & Details)
      - Keep each step to **2–4 `kind: 'ink'` strokes** so a single step is never overwhelming.
+     - Keep every `step.tip` **$\le 140$ characters** so it always fits inside the 4-line Pup Coach instruction box without scrolling or clipping (`MAX_TIP_LENGTH = 140` enforced by `validateTutorial`).
+     - Keep every `stroke.label` **$\le 46$ characters** so each line in `LINES IN THIS STEP` fits on a single row without wrapping (`MAX_STROKE_LABEL_LENGTH = 46` enforced by `validateTutorial`).
      - Order strokes within each step in the exact sequence a hand would draw them (`1 -> 2 -> 3`). Every stroke's SVG `d` path is animated automatically using `stroke-dashoffset` and a virtual pencil cursor.
      - Set each step's `camera: { x, y, w, h }` to smoothly auto-zoom onto the area being drawn (keep roughly a `4:3` or comfortable aspect ratio, e.g., `w: 220, h: 170` for a character's face), and zoom back out (`w: 600..800`) for large hulls or full-scene steps.
      - Avoid drawing dark ink lines *through* overlapping foreground characters; leave clean gaps where foreground characters sit.

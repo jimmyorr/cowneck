@@ -63,12 +63,34 @@ test.describe('Sketch Pup — Paper Companion verification & zero layout bounce'
 
         const baselineRects = await measureControlPositions(page);
 
-        // Step through every single step from Step 1 to Step 11 and verify zero vertical/horizontal bounce
+        async function assertNoInstructionOrStrokeScroll() {
+            const boxMetrics = await page.evaluate(() => {
+                const coachBox = document.querySelector('.pup-coach-box');
+                const tipEl = document.getElementById('step-tip');
+                const coachRect = coachBox.getBoundingClientRect();
+                const tipRect = tipEl.getBoundingClientRect();
+                const strokeList = document.getElementById('stroke-items-container');
+                const isDrawingStep = !strokeList.classList.contains('hidden');
+                return {
+                    coachScrollOverflow: coachBox.scrollHeight - coachBox.clientHeight,
+                    tipFitsInsideCoach: tipRect.bottom <= coachRect.bottom - 4,
+                    strokeScrollOverflow: isDrawingStep ? strokeList.scrollHeight - strokeList.clientHeight : 0
+                };
+            });
+            expect(boxMetrics.coachScrollOverflow).toBeLessThanOrEqual(0);
+            expect(boxMetrics.tipFitsInsideCoach).toBe(true);
+            expect(boxMetrics.strokeScrollOverflow).toBeLessThanOrEqual(0);
+        }
+
+        await assertNoInstructionOrStrokeScroll();
+
+        // Step through every single step from Step 1 to Step 11 and verify zero vertical/horizontal bounce and zero text scroll
         for (let stepNum = 2; stepNum <= 11; stepNum++) {
             await page.locator('#btn-next-step').click();
             await expect(page.locator('#step-counter-badge')).toHaveText(`STEP ${stepNum} OF 11`);
             const currentRects = await measureControlPositions(page);
             expect(currentRects).toEqual(baselineRects);
+            await assertNoInstructionOrStrokeScroll();
         }
 
         // Verify Coloring Step checklist works on Step 11

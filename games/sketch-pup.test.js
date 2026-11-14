@@ -2,13 +2,15 @@ const test = require('node:test');
 const assert = require('node:assert');
 const {
     PAPER_VIEWBOX,
+    MAX_TIP_LENGTH,
+    MAX_STROKE_LABEL_LENGTH,
     TUTORIALS,
     getTutorialById,
     validateTutorial,
     validateAllTutorials
 } = require('./sketch-pup-tutorials.js');
 
-test('All Sketch Pup tutorials pass schema validation', () => {
+test('All Sketch Pup tutorials pass schema validation and concise 4-line text bounds', () => {
     assert.ok(TUTORIALS.length >= 3, 'Should include at least 3 starter tutorials');
     const summary = validateAllTutorials();
     for (const res of summary.results) {
@@ -19,6 +21,21 @@ test('All Sketch Pup tutorials pass schema validation', () => {
         );
     }
     assert.strictEqual(summary.valid, true);
+
+    for (const tut of TUTORIALS) {
+        for (const step of tut.steps) {
+            assert.ok(
+                step.tip.length <= MAX_TIP_LENGTH,
+                `${tut.id} step ${step.stepNumber} tip is ${step.tip.length} chars (max ${MAX_TIP_LENGTH})`
+            );
+            for (const stroke of step.strokes || []) {
+                assert.ok(
+                    stroke.label.length <= MAX_STROKE_LABEL_LENGTH,
+                    `${tut.id} stroke ${stroke.id} label is ${stroke.label.length} chars (max ${MAX_STROKE_LABEL_LENGTH})`
+                );
+            }
+        }
+    }
 });
 
 test('Swan Boat (Kris & Ralsei) featured tutorial has 5 chapters and 11 guided steps', () => {

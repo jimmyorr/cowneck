@@ -150,18 +150,18 @@
                     stepNumber: 1,
                     chapter: 'guides',
                     title: 'Light Pencil Placement Guides',
-                    tip: 'Turn your paper sideways (landscape)! With a VERY light pencil, sketch the big boat bowl below the middle line, the swan neck on the right, and two ovals on the deck so you save room for Ralsei and Kris.',
+                    tip: 'Turn your paper sideways! With a light pencil, sketch the wide boat bowl, the curved swan neck on the right, and two ovals on the deck.',
                     camera: { x: 0, y: 0, w: 800, h: 600 },
                     strokes: [
                         {
                             id: 'guide-hull',
-                            label: 'Wide boat bowl just below the center line',
+                            label: 'Wide boat bowl below the middle line',
                             kind: 'guide',
                             d: 'M 170 330 C 170 460, 560 460, 565 330 L 170 330'
                         },
                         {
                             id: 'guide-swan-neck',
-                            label: 'Tall curved neck & head circle on the right',
+                            label: 'Tall swan neck & head on the right',
                             kind: 'guide',
                             d: 'M 476 330 L 480 150 C 480 110, 580 110, 580 165 C 580 198, 525 198, 530 225 L 565 330'
                         },
@@ -173,7 +173,7 @@
                         },
                         {
                             id: 'guide-kris-box',
-                            label: 'Kris oval right on the vertical center line',
+                            label: 'Kris oval right on the center line',
                             kind: 'guide',
                             d: 'M 400 170 C 442 170, 442 250, 424 330 L 372 330 C 356 250, 358 170, 400 170'
                         }
@@ -183,18 +183,18 @@
                     stepNumber: 2,
                     chapter: 'boat',
                     title: 'Swan Head, Neck & Pointed Beak',
-                    tip: 'Now switch to your drawing pencil or marker! Curve the swan’s graceful neck up on the right, tuck under the chin for the proud chest, and add the pointed duck-like beak and eyelash eye.',
+                    tip: 'Switch to your drawing pencil! Curve the swan’s graceful neck up on the right, tuck under the chin, and add the beak and eyelash eye.',
                     camera: { x: 380, y: 80, w: 320, h: 350 },
                     strokes: [
                         {
                             id: 'swan-inner-neck',
-                            label: 'Top of head & inner neck curving to the deck',
+                            label: 'Top of head & inner neck to the deck',
                             kind: 'ink',
                             d: 'M 555 122 C 525 108, 492 115, 480 148 C 472 172, 480 245, 478 282 C 476 312, 462 328, 442 330'
                         },
                         {
                             id: 'swan-outer-neck',
-                            label: 'Forehead, under-chin tuck & proud chest curve',
+                            label: 'Forehead, chin tuck & proud chest curve',
                             kind: 'ink',
                             d: 'M 555 122 C 574 132, 582 152, 582 170 M 552 192 L 516 192 C 522 222, 540 255, 560 302 C 572 332, 570 372, 550 408'
                         },
@@ -206,7 +206,7 @@
                         },
                         {
                             id: 'swan-eye',
-                            label: 'Big dark oval eye with two cute eyelashes',
+                            label: 'Dark oval eye with two cute eyelashes',
                             kind: 'ink',
                             fillInk: true,
                             d: 'M 546 147 C 556 147, 562 153, 562 161 C 562 169, 556 175, 546 175 C 536 175, 530 169, 530 161 C 530 153, 536 147, 546 147 Z M 533 151 L 520 139 M 530 162 L 511 162'
@@ -217,24 +217,24 @@
                     stepNumber: 3,
                     chapter: 'boat',
                     title: 'Boat Hull, Tail Feathers & Deck',
-                    tip: 'Sweep the bottom of the boat all the way to the left, then zig-zag three spiky tail feathers on the back! For the flat top deck, leave two gaps where Ralsei and Kris stand.',
+                    tip: 'Sweep the bottom of the boat to the left and zig-zag three spiky tail feathers on the back! Leave two deck gaps where Ralsei and Kris stand.',
                     camera: { x: 110, y: 200, w: 510, h: 290 },
                     strokes: [
                         {
                             id: 'swan-bottom-hull',
-                            label: 'Long flat bottom hull curving up the back',
+                            label: 'Long bottom hull curving up the back',
                             kind: 'ink',
                             d: 'M 550 408 C 534 436, 504 456, 472 456 L 280 456 C 232 452, 198 432, 178 395 C 156 355, 148 308, 158 255'
                         },
                         {
                             id: 'swan-tail-feathers',
-                            label: 'Three pointed tail feathers fanning up on the left',
+                            label: 'Three pointed tail feathers on the left',
                             kind: 'ink',
                             d: 'M 158 255 C 176 268, 190 286, 200 304 C 198 286, 200 272, 205 262 C 222 276, 234 294, 244 316 C 238 298, 236 284, 240 274 C 250 286, 258 304, 264 330 M 174 328 C 192 346, 214 358, 238 362'
                         },
                         {
                             id: 'swan-deck-line',
-                            label: 'Flat boat deck segments (leaving gaps for Ralsei & Kris)',
+                            label: 'Flat boat deck lines between characters',
                             kind: 'ink',
                             d: 'M 314 330 L 374 330 M 422 330 L 444 330'
                         }
@@ -244,19 +244,19 @@
                     stepNumber: 4,
                     chapter: 'boat',
                     title: 'The Swirly Folded Wing',
-                    tip: 'Right in the middle of the boat hull, draw the folded swan wing! Start with a snail-shell spiral swirl in the middle, then add three wavy feather bumps underneath.',
+                    tip: 'In the middle of the boat hull, draw the folded swan wing! Start with a spiral swirl in the center, then add three wavy feather bumps below.',
                     camera: { x: 205, y: 280, w: 310, h: 185 },
                     strokes: [
                         {
                             id: 'swan-wing-swirl',
-                            label: 'Upper wing curve & spiral swirl in the middle',
+                            label: 'Upper wing curve & center spiral swirl',
                             kind: 'ink',
                             inkColor: '#94a3b8',
                             d: 'M 258 332 C 266 364, 286 386, 312 392 C 338 394, 354 374, 350 352 C 348 338, 336 330, 324 334 C 310 340, 308 358, 318 368 C 326 374, 336 368, 334 358'
                         },
                         {
                             id: 'swan-wing-feathers',
-                            label: 'Three scalloped feather curves along the bottom of the wing',
+                            label: 'Three scalloped feather curves underneath',
                             kind: 'ink',
                             inkColor: '#94a3b8',
                             d: 'M 258 332 C 260 374, 282 406, 318 412 C 338 430, 364 430, 382 416 C 398 428, 416 426, 428 410 C 450 388, 460 360, 462 330'
@@ -267,7 +267,7 @@
                     stepNumber: 5,
                     chapter: 'ralsei',
                     title: 'Ralsei’s Horns, Fluffy Ears & Snout',
-                    tip: 'Let’s zoom in on Ralsei on the left side of the boat! Draw his two curved horns on top, his floppy white goat ear on the left, and his cute snout facing right.',
+                    tip: 'Zoom in on Ralsei on the left! Draw his two curved horns on top, his floppy goat ear on the left, and his rounded snout facing right.',
                     camera: { x: 180, y: 125, w: 200, h: 160 },
                     strokes: [
                         {
@@ -278,13 +278,13 @@
                         },
                         {
                             id: 'ralsei-ears',
-                            label: 'Floppy goat ear with two fluffy fur tufts',
+                            label: 'Floppy goat ear with two fluffy tufts',
                             kind: 'ink',
                             d: 'M 262 184 C 244 190, 230 208, 224 232 C 222 242, 228 248, 236 244 C 234 254, 242 258, 252 250'
                         },
                         {
                             id: 'ralsei-snout',
-                            label: 'Rounded snout facing right & happy little smile',
+                            label: 'Rounded snout & happy little smile',
                             kind: 'ink',
                             d: 'M 304 186 C 308 196, 308 208, 308 214 C 318 216, 322 224, 320 236 C 318 244, 308 248, 294 248 M 304 234 C 309 236, 314 235, 317 232'
                         }
@@ -294,7 +294,7 @@
                     stepNumber: 6,
                     chapter: 'ralsei',
                     title: 'Ralsei’s Round Glasses & Cozy Scarf',
-                    tip: 'Draw a big circle for Ralsei’s glasses with a pupil inside, then wrap his thick cozy scarf around his neck with the scarf tail hanging down in front.',
+                    tip: 'Draw a big circle for Ralsei’s glasses with an oval pupil inside, then wrap his thick scarf around his neck with the end hanging down.',
                     camera: { x: 185, y: 155, w: 195, h: 165 },
                     strokes: [
                         {
@@ -313,7 +313,7 @@
                         },
                         {
                             id: 'ralsei-scarf',
-                            label: 'Snug scarf wrapped around neck & hanging scarf end',
+                            label: 'Snug scarf collar & hanging scarf tail',
                             kind: 'ink',
                             d: 'M 252 248 C 270 250, 292 250, 310 248 C 312 256, 312 264, 308 268 C 290 272, 268 270, 254 266 Z M 298 268 C 306 274, 310 284, 308 294 C 302 296, 296 292, 294 282'
                         }
@@ -323,7 +323,7 @@
                     stepNumber: 7,
                     chapter: 'ralsei',
                     title: 'Ralsei’s Robe, Sleeve & Fluffy Tail',
-                    tip: 'Finish Ralsei by adding his curved sleeve and white paw, his robe reaching down to the boat deck, and his little fluffy goat tail peeking out the back!',
+                    tip: 'Finish Ralsei with his curved sleeve and white paw, his robe reaching down to the deck, and his fluffy goat tail peeking out the back!',
                     camera: { x: 185, y: 195, w: 195, h: 165 },
                     strokes: [
                         {
@@ -334,13 +334,13 @@
                         },
                         {
                             id: 'ralsei-robe',
-                            label: 'Robe flaring down onto the swan boat deck',
+                            label: 'Robe flaring down onto the boat deck',
                             kind: 'ink',
                             d: 'M 262 304 L 258 330 L 316 330 C 314 314, 308 298, 304 292'
                         },
                         {
                             id: 'ralsei-tail',
-                            label: 'Little fluffy white tail peeking out the back',
+                            label: 'Fluffy white tail peeking out the back',
                             kind: 'ink',
                             d: 'M 254 282 C 242 280, 234 286, 236 296 C 238 304, 248 308, 258 308'
                         }
@@ -350,24 +350,24 @@
                     stepNumber: 8,
                     chapter: 'kris',
                     title: 'Kris’s Shaggy Hair & Profile Face',
-                    tip: 'Now let’s move to the center of the boat for Kris! Draw their messy bob hair with a spiky tuft on top, straight bangs that hide their eyes, and their nose and calm mouth.',
+                    tip: 'Now move to the center for Kris! Draw their messy bob hair with a spiky top tuft, straight bangs over the eyes, and nose and mouth.',
                     camera: { x: 315, y: 135, w: 195, h: 165 },
                     strokes: [
                         {
                             id: 'kris-hair-top',
-                            label: 'Spiky hair tuft, rounded crown & shaggy back hair',
+                            label: 'Spiky hair tuft, crown & shaggy back hair',
                             kind: 'ink',
                             d: 'M 380 174 L 384 162 L 394 172 C 418 172, 440 184, 446 210 M 380 174 C 362 182, 354 202, 354 228 C 354 242, 358 252, 366 258'
                         },
                         {
                             id: 'kris-bangs',
-                            label: 'Straight bangs across the eyes, sideburn & ear',
+                            label: 'Straight bangs, sideburn & ear',
                             kind: 'ink',
                             d: 'M 446 210 L 396 210 L 396 238 L 388 236 C 382 234, 380 222, 388 218'
                         },
                         {
                             id: 'kris-face',
-                            label: 'Pointed nose, jawline & straight mouth line',
+                            label: 'Pointed nose, jawline & calm mouth',
                             kind: 'ink',
                             d: 'M 436 210 C 440 218, 444 222, 444 232 C 444 242, 434 248, 412 248 M 428 235 L 440 235'
                         }
@@ -377,7 +377,7 @@
                     stepNumber: 9,
                     chapter: 'kris',
                     title: 'Kris’s Flowing Cape & Chest Armor',
-                    tip: 'Draw Kris’s triangular shoulder cape swooping back toward Ralsei, then add their silver chest plate and armored arm hanging at their side.',
+                    tip: 'Draw Kris’s triangular shoulder cape swooping back toward Ralsei, then add their silver chest plate and armored arm at their side.',
                     camera: { x: 315, y: 205, w: 195, h: 160 },
                     strokes: [
                         {
@@ -409,7 +409,7 @@
                         },
                         {
                             id: 'acid-water-ring',
-                            label: 'Oval water shadow ring under the swan boat',
+                            label: 'Oval water shadow ring under the boat',
                             kind: 'ink',
                             inkColor: '#15803d',
                             d: 'M 202 442 C 185 456, 220 482, 372 484 C 524 482, 558 456, 542 442'
@@ -427,7 +427,7 @@
                     stepNumber: 11,
                     chapter: 'color',
                     title: 'Color Your Swan Boat Scene!',
-                    tip: 'Erase your light pencil guidelines from Step 1, then color in Kris, Ralsei, and the Swan Boat! Tap the color swatches below to check off each color as you finish it.',
+                    tip: 'Erase your light pencil guides from Step 1, then color Kris, Ralsei, and the Swan Boat! Tap each color swatch below as you finish it.',
                     camera: { x: 0, y: 0, w: 800, h: 600 },
                     isColorStep: true,
                     strokes: []
@@ -511,7 +511,7 @@
                     stepNumber: 1,
                     chapter: 'guides',
                     title: 'Head Circle & Robe Triangle Guides',
-                    tip: 'Right along the center vertical line of your paper, lightly sketch a round circle for Ralsei’s head above the middle line and a bell-shaped triangle underneath for his robe.',
+                    tip: 'Along the center line, lightly sketch a round circle for Ralsei’s head above the middle line and a triangle below for his robe.',
                     camera: { x: 0, y: 0, w: 800, h: 600 },
                     strokes: [
                         {
@@ -623,7 +623,7 @@
                     stepNumber: 6,
                     chapter: 'robe',
                     title: 'Robe, Heart Emblem & Waving Paws',
-                    tip: 'Draw Ralsei’s robe with a wavy bottom hem, a dark heart in the middle, one arm resting down, and the other arm waving hello!',
+                    tip: 'Draw Ralsei’s robe with a wavy hem, a dark heart in the middle, one arm resting down, and the other arm waving hello!',
                     camera: { x: 200, y: 230, w: 400, h: 310 },
                     strokes: [
                         {
@@ -634,13 +634,13 @@
                         },
                         {
                             id: 'r-arms-paws',
-                            label: 'Left sleeve, waving right sleeve & cute white paws',
+                            label: 'Left sleeve, waving right sleeve & paws',
                             kind: 'ink',
                             d: 'M 332 326 C 300 342, 286 375, 300 400 L 328 390 M 302 398 C 296 412, 316 420, 324 402 M 468 326 C 500 315, 522 288, 514 266 L 486 276 M 510 266 C 516 250, 492 244, 488 266'
                         },
                         {
                             id: 'r-feet',
-                            label: 'Two fluffy white feet peeking under his robe',
+                            label: 'Two fluffy white feet under his robe',
                             kind: 'ink',
                             d: 'M 335 478 C 335 505, 380 505, 380 478 M 420 478 C 420 505, 465 505, 465 478'
                         }
@@ -650,7 +650,7 @@
                     stepNumber: 7,
                     chapter: 'color',
                     title: 'Color Your Ralsei!',
-                    tip: 'Erase your light pencil guides and color Ralsei with emerald green glasses, a magenta scarf, pink horns, and a mint-green robe!',
+                    tip: 'Erase your light pencil guides and color Ralsei with emerald glasses, a magenta scarf, pink horns, and a mint-green robe!',
                     camera: { x: 0, y: 0, w: 800, h: 600 },
                     isColorStep: true,
                     strokes: []
@@ -732,7 +732,7 @@
                     stepNumber: 1,
                     chapter: 'guides',
                     title: 'Teardrop Head & Bouncy Belly Guides',
-                    tip: 'Right down the center line of your paper, sketch a pointed upside-down spade/teardrop shape for Lancer’s head and a big round circle below it for his bouncy belly!',
+                    tip: 'Down the center line, lightly sketch an upside-down teardrop shape for Lancer’s head and a big round circle below for his belly!',
                     camera: { x: 0, y: 0, w: 800, h: 600 },
                     strokes: [
                         {
@@ -753,7 +753,7 @@
                     stepNumber: 2,
                     chapter: 'hood',
                     title: 'Pointed Spade Hood & Chubby Cheeks',
-                    tip: 'Start at the sharp point at the very top of Lancer’s head and sweep down both sides into his big round cheeks and chin!',
+                    tip: 'Start at the sharp point at the top of Lancer’s head and sweep down both sides into his big round cheeks and chin!',
                     camera: { x: 240, y: 75, w: 320, h: 255 },
                     strokes: [
                         {
@@ -779,14 +779,14 @@
                     strokes: [
                         {
                             id: 'l-visor',
-                            label: 'Spade-shaped shadow visor over upper face',
+                            label: 'Spade shadow visor over upper face',
                             kind: 'ink',
                             fillInk: true,
                             d: 'M 400 148 C 370 175, 352 198, 364 216 C 374 226, 390 220, 400 208 C 410 220, 426 226, 436 216 C 448 198, 430 175, 400 148 Z'
                         },
                         {
                             id: 'l-mouth-tongue',
-                            label: 'Wide grin & big U-shaped tongue sticking out',
+                            label: 'Wide grin & big U-shaped tongue',
                             kind: 'ink',
                             d: 'M 358 246 C 382 260, 418 260, 442 246 M 384 256 C 384 292, 418 292, 418 256 M 401 256 L 401 276'
                         }
@@ -796,7 +796,7 @@
                     stepNumber: 4,
                     chapter: 'body',
                     title: 'Round Belly, Spade Emblem & Boots',
-                    tip: 'Draw Lancer’s round belly with a classic spade symbol right in the center, then add his posed arms and sturdy boots!',
+                    tip: 'Draw Lancer’s round belly with a spade symbol right in the center, then add his posed arms and sturdy boots!',
                     camera: { x: 200, y: 260, w: 400, h: 270 },
                     strokes: [
                         {
@@ -831,6 +831,9 @@
             ]
         }
     ];
+
+    const MAX_TIP_LENGTH = 140;
+    const MAX_STROKE_LABEL_LENGTH = 46;
 
     /**
      * Validates a single tutorial object against the Paper Companion schema.
@@ -880,6 +883,10 @@
                 }
                 if (typeof step.tip !== 'string' || !step.tip.trim()) {
                     errors.push(`Step ${expectedNum} missing kid-friendly tip`);
+                } else if (step.tip.length > MAX_TIP_LENGTH) {
+                    errors.push(
+                        `Step ${expectedNum} tip is ${step.tip.length} chars (max ${MAX_TIP_LENGTH} so it fits in 4 lines without scrolling)`
+                    );
                 }
                 if (
                     !step.camera ||
@@ -904,6 +911,13 @@
                             errors.push(`Duplicate stroke id "${stroke.id}" in ${tutorial.id}`);
                         } else {
                             strokeIds.add(stroke.id);
+                        }
+                        if (typeof stroke.label !== 'string' || !stroke.label.trim()) {
+                            errors.push(`Stroke "${stroke.id}" missing label`);
+                        } else if (stroke.label.length > MAX_STROKE_LABEL_LENGTH) {
+                            errors.push(
+                                `Stroke "${stroke.id}" label is ${stroke.label.length} chars (max ${MAX_STROKE_LABEL_LENGTH} for single-line fit)`
+                            );
                         }
                         if (stroke.kind !== 'guide' && stroke.kind !== 'ink') {
                             errors.push(`Stroke "${stroke.id}" kind must be "guide" or "ink"`);
@@ -948,6 +962,8 @@
 
     const api = {
         PAPER_VIEWBOX,
+        MAX_TIP_LENGTH,
+        MAX_STROKE_LABEL_LENGTH,
         TUTORIALS,
         getTutorialById,
         validateTutorial,
