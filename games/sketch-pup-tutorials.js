@@ -1096,6 +1096,508 @@
                     strokes: []
                 }
             ]
+        },
+
+        // --- TUTORIAL #5: LEMMING (GRIZZY & THE LEMMINGS) ---
+        {
+            id: 'lemming-grizzy',
+            title: 'Cheeky Blue Lemming',
+            series: 'Grizzy & the Lemmings',
+            subtitle: 'Big Buggy Eyes & Buck-Tooth Grin',
+            characterTags: ['Lemming'],
+            difficulty: 'Easy • Character',
+            badgeEmoji: '🐹',
+            featured: false,
+            referenceImage: 'assets/lemming.jpg',
+            viewBox: PAPER_VIEWBOX,
+            chapters: [
+                { id: 'guides', number: 1, title: '1. Proportion Guides', shortTitle: '1. Guides' },
+                { id: 'head', number: 2, title: '2. Head, Ears & Eyes', shortTitle: '2. Head & Eyes' },
+                { id: 'face', number: 3, title: '3. Nose & Buck-Tooth Grin', shortTitle: '3. Grin' },
+                { id: 'body', number: 4, title: '4. Fluffy Body, Paws & Feet', shortTitle: '4. Body & Paws' },
+                { id: 'color', number: 5, title: '5. Coloring', shortTitle: '5. Coloring' }
+            ],
+            palette: [
+                { id: 'lem-blue', name: 'Lemming Sky Blue', hex: '#83a8dc', usage: 'Fluffy head, ears, pear body & arms' },
+                { id: 'lem-belly', name: 'Ice-White Belly Fur', hex: '#dee7f4', usage: 'Fluffy round belly patch, eyes & buck teeth' },
+                { id: 'lem-ear-dark', name: 'Deep Slate Blue', hex: '#3e5e8e', usage: 'Inside both little round ears' },
+                { id: 'lem-mouth-dark', name: 'Charcoal Black', hex: '#1e1e1e', usage: 'Pupils, bean nose & open mouth interior' },
+                { id: 'lem-paws-pink', name: 'Peach-Pink Paws', hex: '#e9af9c', usage: 'Both little hands and three-toed feet' },
+                { id: 'lem-tongue-red', name: 'Berry Tongue Red', hex: '#b64034', usage: 'Happy tongue inside the open grin' }
+            ],
+            backgroundFills: [
+                {
+                    id: 'bg-lem-glow',
+                    d: 'M 210 65 C 580 65, 605 505, 395 515 C 185 505, 210 65, 210 65 Z',
+                    fill: '#eff6ff',
+                    opacity: 0.72
+                }
+            ],
+            fills: [
+                {
+                    id: 'fill-lem-paws-feet',
+                    d: 'M 229 330 C 232 321, 246 322, 248 335 C 249 343, 243 346, 240 342 C 238 346, 233 346, 232 341 C 228 343, 227 337, 229 330 Z M 554 324 C 549 316, 537 318, 538 330 C 539 337, 544 339, 547 335 C 549 339, 553 339, 554 335 C 558 338, 559 332, 554 324 Z M 298 465 C 290 469, 284 473, 286 476 C 288 479, 318 478, 325 475 Z M 439 477 C 448 480, 484 480, 488 476 C 490 473, 480 467, 469 466 Z',
+                    fill: '#e9af9c'
+                },
+                {
+                    id: 'fill-lem-ears-outer',
+                    d: 'M 324 117 C 321 98, 336 88, 352 91 C 361 93, 366 99, 368 104 Z M 441 107 C 449 98, 468 98, 476 110 C 481 118, 481 126, 479 133 Z',
+                    fill: '#83a8dc'
+                },
+                {
+                    id: 'fill-lem-ears-inner',
+                    d: 'M 332 111 C 333 102, 343 99, 351 105 Z M 451 111 C 459 107, 471 111, 472 124 Z',
+                    fill: '#3e5e8e'
+                },
+                {
+                    id: 'fill-lem-body',
+                    d: 'M 303 127 C 322 112, 348 103, 376 104 C 392 104, 404 100, 411 97 L 409 104 L 420 98 L 417 106 L 432 102 L 428 107 C 446 107, 462 115, 474 128 L 486 138 L 481 139 L 494 152 L 488 153 L 500 174 L 495 175 L 505 202 L 499 203 L 508 232 L 502 234 L 522 256 L 529 266 L 523 266 C 538 286, 548 306, 554 324 L 537 330 C 524 316, 512 302, 505 294 L 516 322 L 511 320 L 520 348 L 514 346 L 520 368 L 514 367 L 518 386 L 513 385 L 511 412 L 506 410 C 499 428, 495 438, 494 443 L 490 439 C 483 453, 476 462, 469 468 L 439 477 C 428 458, 414 449, 392 449 C 372 449, 348 456, 325 475 L 298 466 C 288 454, 279 436, 273 412 L 269 415 L 267 392 L 262 394 L 266 371 L 261 372 L 267 346 L 261 348 L 271 320 L 266 322 L 277 297 C 270 304, 258 320, 248 338 L 229 330 C 231 308, 242 286, 257 267 L 251 267 L 258 258 L 278 240 L 272 238 L 284 210 L 279 208 L 289 177 L 284 176 L 295 154 L 289 154 L 301 143 L 294 143 L 303 135 L 300 136 L 308 131 Z',
+                    fill: '#83a8dc'
+                },
+                {
+                    id: 'fill-lem-belly-patch',
+                    d: 'M 395 328 L 404 333 L 412 329 L 420 336 L 432 334 L 436 344 L 448 348 L 446 358 L 458 368 L 452 376 L 463 392 L 456 398 L 461 412 L 452 418 L 454 430 L 442 435 L 438 445 L 422 448 L 406 452 L 385 450 L 366 452 L 352 444 L 340 436 L 336 424 L 329 412 L 334 402 L 327 386 L 336 378 L 332 362 L 344 356 L 348 342 L 364 338 L 376 330 L 388 334 Z',
+                    fill: '#dee7f4'
+                },
+                {
+                    id: 'fill-lem-eyes-white',
+                    d: 'M 342 132 C 369 132, 385 148, 385 168 C 385 186, 369 197, 340 197 C 311 197, 294 184, 294 165 C 294 146, 314 132, 342 132 Z M 439 138 C 466 138, 483 155, 483 175 C 483 193, 466 204, 437 204 C 409 204, 392 191, 392 172 C 392 153, 412 138, 439 138 Z',
+                    fill: '#ffffff'
+                },
+                {
+                    id: 'fill-lem-pupils',
+                    d: 'M 336 154 C 342 154, 347 159, 347 165 C 347 171, 342 176, 336 176 C 330 176, 325 171, 325 165 C 325 159, 330 154, 336 154 Z M 428 160 C 434 160, 439 165, 439 171 C 439 177, 434 182, 428 182 C 422 182, 417 177, 417 171 C 417 165, 422 160, 428 160 Z',
+                    fill: '#18181b'
+                },
+                {
+                    id: 'fill-lem-eye-shines',
+                    d: 'M 332 159 C 334 159, 335 160, 335 162 C 335 164, 334 165, 332 165 C 330 165, 329 164, 329 162 C 329 160, 330 159, 332 159 Z M 424 165 C 426 165, 427 166, 427 168 C 427 170, 426 171, 424 171 C 422 171, 421 170, 421 168 C 421 166, 422 165, 424 165 Z',
+                    fill: '#ffffff'
+                },
+                {
+                    id: 'fill-lem-nose-mouth',
+                    d: 'M 379 191 C 379 184, 391 182, 396 183 C 403 184, 410 188, 409 194 C 408 197, 402 197, 398 194 C 395 198, 391 198, 388 193 C 384 195, 379 194, 379 191 Z M 336 204 C 368 223, 418 225, 449 214 C 438 242, 412 251, 390 250 C 365 249, 344 235, 336 204 Z',
+                    fill: '#1e1e1e'
+                },
+                {
+                    id: 'fill-lem-tongue',
+                    d: 'M 364 241 C 373 238, 382 240, 388 244 C 394 241, 403 242, 409 247 C 396 251, 376 250, 364 241 Z',
+                    fill: '#b64034'
+                },
+                {
+                    id: 'fill-lem-teeth',
+                    d: 'M 375 216 C 386 219, 399 220, 411 219 C 410 232, 403 238, 392 238 C 381 238, 375 231, 375 216 Z',
+                    fill: '#ffffff'
+                }
+            ],
+            steps: [
+                {
+                    stepNumber: 1,
+                    chapter: 'guides',
+                    title: 'Potato Body, Eye & Belly Guides',
+                    tip: 'Lightly sketch one big potato-shaped oval for the Lemming’s body, two big eye ovals near the top, and a circle on the belly!',
+                    camera: { x: 0, y: 0, w: 800, h: 600 },
+                    strokes: [
+                        {
+                            id: 'lem-guide-body',
+                            label: 'Big pear-shaped potato oval for the body',
+                            kind: 'guide',
+                            d: 'M 390 102 C 460 102, 500 185, 514 335 C 522 420, 478 466, 390 462 C 302 466, 258 420, 266 335 C 280 185, 320 102, 390 102'
+                        },
+                        {
+                            id: 'lem-guide-eyes',
+                            label: 'Two huge side-by-side eye ovals',
+                            kind: 'guide',
+                            d: 'M 340 132 C 368 132, 385 147, 385 166 C 385 186, 368 198, 340 198 C 312 198, 294 186, 294 166 C 294 147, 312 132, 340 132 M 438 138 C 466 138, 483 153, 483 172 C 483 192, 466 204, 438 204 C 410 204, 392 192, 392 172 C 392 153, 410 138, 438 138'
+                        },
+                        {
+                            id: 'lem-guide-belly',
+                            label: 'Round circle for the light belly patch',
+                            kind: 'guide',
+                            d: 'M 395 328 C 435 328, 462 356, 462 392 C 462 428, 435 454, 395 454 C 355 454, 328 428, 328 392 C 328 356, 355 328, 395 328'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 2,
+                    chapter: 'head',
+                    title: 'Fluffy Crown, Round Ears & Cheeks',
+                    tip: 'Draw spiky fur tufts on top of the head, two tiny round ears peeking up, and jagged fur down both sides of the cheeks!',
+                    camera: { x: 220, y: 65, w: 345, h: 215 },
+                    strokes: [
+                        {
+                            id: 'lem-crown-fur',
+                            label: 'Spiky fur tuft across the top of the head',
+                            kind: 'ink',
+                            d: 'M 300 136 L 308 131 L 303 127 C 322 112, 348 103, 376 104 C 392 104, 404 100, 411 97 L 409 104 L 420 98 L 417 106 L 432 102 L 428 107 C 446 107, 462 115, 474 128'
+                        },
+                        {
+                            id: 'lem-ears',
+                            label: 'Two small round ears with inner curves',
+                            kind: 'ink',
+                            d: 'M 324 117 C 321 98, 336 88, 352 91 C 361 93, 366 99, 368 104 M 332 111 C 333 102, 343 99, 351 105 M 339 107 C 342 104, 346 104, 349 106 M 441 107 C 449 98, 468 98, 476 110 C 481 118, 481 126, 479 133 M 451 111 C 459 107, 471 111, 472 124 M 456 113 C 462 112, 466 115, 468 120'
+                        },
+                        {
+                            id: 'lem-upper-cheeks',
+                            label: 'Fluffy jagged fur down both cheeks',
+                            kind: 'ink',
+                            d: 'M 303 135 L 294 143 L 301 143 L 289 154 L 295 154 L 284 176 L 289 177 L 279 208 L 284 210 L 272 238 L 278 240 L 258 258 M 474 128 L 486 138 L 481 139 L 494 152 L 488 153 L 500 174 L 495 175 L 505 202 L 499 203 L 508 232 L 502 234 L 522 256'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 3,
+                    chapter: 'head',
+                    title: 'Giant Buggy Eyes & Pupils',
+                    tip: 'Draw two huge round eyes with little cheek crinkles underneath, then add round pupils with tiny shine dots inside!',
+                    camera: { x: 245, y: 105, w: 295, h: 170 },
+                    strokes: [
+                        {
+                            id: 'lem-eye-outlines',
+                            label: 'Two huge round eyes & cheek crinkle lines',
+                            kind: 'ink',
+                            d: 'M 342 132 C 369 132, 385 148, 385 168 C 385 186, 369 197, 340 197 C 311 197, 294 184, 294 165 C 294 146, 314 132, 342 132 Z M 439 138 C 466 138, 483 155, 483 175 C 483 193, 466 204, 437 204 C 409 204, 392 191, 392 172 C 392 153, 412 138, 439 138 Z M 294 191 C 308 190, 322 195, 332 203 M 446 208 C 458 202, 472 201, 486 205'
+                        },
+                        {
+                            id: 'lem-pupils',
+                            label: 'Dark pupils with tiny white shine dots',
+                            kind: 'ink',
+                            d: 'M 336 154 C 342 154, 347 159, 347 165 C 347 171, 342 176, 336 176 C 330 176, 325 171, 325 165 C 325 159, 330 154, 336 154 Z M 332 159 C 334 159, 335 160, 335 162 C 335 164, 334 165, 332 165 C 330 165, 329 164, 329 162 C 329 160, 330 159, 332 159 Z M 428 160 C 434 160, 439 165, 439 171 C 439 177, 434 182, 428 182 C 422 182, 417 177, 417 171 C 417 165, 422 160, 428 160 Z M 424 165 C 426 165, 427 166, 427 168 C 427 170, 426 171, 424 171 C 422 171, 421 170, 421 168 C 421 166, 422 165, 424 165 Z'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 4,
+                    chapter: 'face',
+                    title: 'Bean Nose & Buck-Tooth Grin!',
+                    tip: 'Add the little bean nose between the eyes, a wide open smile with dimples, and two big buck teeth right in the middle!',
+                    camera: { x: 265, y: 155, w: 255, h: 155 },
+                    strokes: [
+                        {
+                            id: 'lem-nose',
+                            label: 'Little dark bean nose between the eyes',
+                            kind: 'ink',
+                            fillInk: true,
+                            d: 'M 379 191 C 379 184, 391 182, 396 183 C 403 184, 410 188, 409 194 C 408 197, 402 197, 398 194 C 395 198, 391 198, 388 193 C 384 195, 379 194, 379 191 Z'
+                        },
+                        {
+                            id: 'lem-mouth',
+                            label: 'Wide goofy smile and corner dimples',
+                            kind: 'ink',
+                            d: 'M 329 213 C 332 206, 336 203, 340 202 M 446 211 C 450 213, 453 217, 455 222 M 336 204 C 368 223, 418 225, 449 214 C 438 242, 412 251, 390 250 C 365 249, 344 235, 336 204 Z'
+                        },
+                        {
+                            id: 'lem-teeth-tongue',
+                            label: 'Two big center buck teeth & curved tongue',
+                            kind: 'ink',
+                            d: 'M 375 216 C 375 231, 381 238, 392 238 C 403 238, 410 232, 411 219 M 393 215 L 392 238 M 364 241 C 373 238, 382 240, 388 244 C 394 241, 403 242, 409 247'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 5,
+                    chapter: 'body',
+                    title: 'Outstretched Arms & Little Pink Hands',
+                    tip: 'Draw both furry arms reaching out to the sides and add a cute little three-fingered paw at the end of each arm.',
+                    camera: { x: 185, y: 210, w: 410, h: 205 },
+                    strokes: [
+                        {
+                            id: 'lem-arm-left',
+                            label: 'Fluffy left arm reaching out',
+                            kind: 'ink',
+                            d: 'M 258 258 L 251 267 L 257 267 C 242 286, 231 308, 229 330 M 248 338 C 258 320, 270 304, 277 297 C 279 292, 279 287, 279 285'
+                        },
+                        {
+                            id: 'lem-arm-right',
+                            label: 'Fluffy right arm reaching out',
+                            kind: 'ink',
+                            d: 'M 522 256 L 529 266 L 523 266 C 538 286, 548 306, 554 324 M 537 330 C 524 316, 512 302, 505 294 C 503 289, 502 284, 502 282'
+                        },
+                        {
+                            id: 'lem-hands',
+                            label: 'Little rounded paws with curled fingers',
+                            kind: 'ink',
+                            d: 'M 229 330 C 232 321, 246 322, 248 335 C 249 343, 243 346, 240 342 C 238 346, 233 346, 232 341 C 228 343, 227 337, 229 330 Z M 235 335 C 234 338, 234 341, 233 342 M 240 335 C 240 338, 240 341, 240 342 M 554 324 C 549 316, 537 318, 538 330 C 539 337, 544 339, 547 335 C 549 339, 553 339, 554 335 C 558 338, 559 332, 554 324 Z M 546 328 C 546 331, 547 334, 547 335 M 551 328 C 552 331, 553 334, 554 335'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 6,
+                    chapter: 'body',
+                    title: 'Fluffy Pear Hips & Three-Toed Feet',
+                    tip: 'Add spiky fur tufts down both round hips, curve the bottom arch between the legs, and draw two flat three-toed feet!',
+                    camera: { x: 220, y: 270, w: 345, h: 235 },
+                    strokes: [
+                        {
+                            id: 'lem-fluffy-sides',
+                            label: 'Fluffy jagged fur down both round hips',
+                            kind: 'ink',
+                            d: 'M 277 297 L 266 322 L 271 320 L 261 348 L 267 346 L 261 372 L 266 371 L 262 394 L 267 392 L 269 415 L 273 412 C 279 436, 288 454, 298 466 M 505 294 L 516 322 L 511 320 L 520 348 L 514 346 L 520 368 L 514 367 L 518 386 L 513 385 L 511 412 L 506 410 C 499 428, 495 438, 494 443 L 490 439 C 483 453, 476 462, 469 468 M 298 466 L 325 475 C 348 456, 372 449, 392 449 C 414 449, 428 458, 439 477 L 469 468'
+                        },
+                        {
+                            id: 'lem-feet',
+                            label: 'Two wide three-toed feet at the bottom',
+                            kind: 'ink',
+                            d: 'M 298 465 C 290 469, 284 473, 286 476 C 288 479, 318 478, 325 475 M 292 477 C 294 471, 299 469, 303 469 M 301 477 C 303 472, 308 470, 312 471 M 439 477 C 448 480, 484 480, 488 476 C 490 473, 480 467, 469 466 M 479 478 C 476 472, 470 469, 464 469 M 469 479 C 466 473, 460 471, 454 472'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 7,
+                    chapter: 'color',
+                    title: 'Color Your Cheeky Lemming!',
+                    tip: 'Erase your pencil guides and color the Lemming sky blue with a fluffy ice-white belly circle, pink paws, and white buck teeth!',
+                    camera: { x: 0, y: 0, w: 800, h: 600 },
+                    isColorStep: true,
+                    strokes: []
+                }
+            ]
+        },
+
+        // --- TUTORIAL #6: GRIZZY BEAR (GRIZZY & THE LEMMINGS) ---
+        {
+            id: 'grizzy-bear',
+            title: 'Grizzy Bear',
+            series: 'Grizzy & the Lemmings',
+            subtitle: 'Grumpy Brows & Forest Ranger Medallion',
+            characterTags: ['Grizzy'],
+            difficulty: 'Medium • Character',
+            badgeEmoji: '🐻',
+            featured: false,
+            referenceImage: 'assets/grizzy.jpg',
+            viewBox: PAPER_VIEWBOX,
+            chapters: [
+                { id: 'guides', number: 1, title: '1. Proportion Guides', shortTitle: '1. Guides' },
+                { id: 'head', number: 2, title: '2. Bear Head & Ears', shortTitle: '2. Head & Ears' },
+                { id: 'face', number: 3, title: '3. Muzzle & Grumpy Eyes', shortTitle: '3. Face' },
+                { id: 'body', number: 4, title: '4. Medallion, Arms & Belly', shortTitle: '4. Body & Badge' },
+                { id: 'color', number: 5, title: '5. Coloring', shortTitle: '5. Coloring' }
+            ],
+            palette: [
+                { id: 'griz-rust', name: 'Grizzly Cinnamon Brown', hex: '#ea580c', usage: 'Head, ears, broad furry shoulders & arms' },
+                { id: 'griz-tan', name: 'Warm Honey Tan', hex: '#fbb040', usage: 'Pear-shaped muzzle & big round belly patch' },
+                { id: 'griz-nose-black', name: 'Bear Nose Charcoal', hex: '#231f20', usage: 'Big round bear nose, pupils & necklace cord' },
+                { id: 'griz-badge-light', name: 'Ranger Shield Lime', hex: '#76b852', usage: 'Inner face of the Forest Ranger shield' },
+                { id: 'griz-badge-dark', name: 'Pine Tree Forest Green', hex: '#2d6a3e', usage: 'Pine tree emblem & outer shield rim' }
+            ],
+            backgroundFills: [
+                {
+                    id: 'bg-griz-glow',
+                    d: 'M 190 55 C 610 55, 640 520, 405 525 C 170 520, 190 55, 190 55 Z',
+                    fill: '#ffedd5',
+                    opacity: 0.65
+                }
+            ],
+            fills: [
+                {
+                    id: 'fill-griz-coat',
+                    d: 'M 332 107 C 322 98, 325 80, 339 79 C 348 79, 353 86, 353 94 C 370 86, 388 86, 404 91 C 408 80, 422 74, 429 82 C 435 89, 431 98, 424 101 C 438 106, 449 114, 454 120 L 449 119 C 458 130, 464 142, 467 151 L 461 150 C 466 159, 469 169, 470 176 L 467 175 C 474 198, 481 218, 489 236 L 493 241 C 526 258, 558 276, 571 286 L 564 285 L 581 297 L 575 297 L 589 309 L 583 309 L 598 327 L 592 326 L 605 360 L 605 518 L 202 518 C 211 464, 221 416, 232 372 L 226 376 L 233 360 L 226 362 L 239 339 L 233 340 L 246 323 L 240 325 C 254 308, 278 286, 305 266 L 310 260 C 312 246, 312 226, 310 206 L 302 197 L 297 199 L 298 186 L 293 188 L 296 176 L 291 178 C 290 173, 292 164, 298 154 L 292 155 C 294 149, 299 138, 309 127 L 303 128 C 308 122, 318 114, 332 107 Z',
+                    fill: '#ea580c'
+                },
+                {
+                    id: 'fill-griz-belly-tan',
+                    d: 'M 303 518 C 316 492, 334 474, 353 462 L 348 470 C 378 452, 418 448, 456 460 C 476 467, 492 477, 504 490 L 494 486 C 504 496, 512 507, 519 518 Z',
+                    fill: '#fbb040'
+                },
+                {
+                    id: 'fill-griz-muzzle-tan',
+                    d: 'M 380 137 C 402 137, 420 162, 420 184 C 420 198, 403 204, 382 204 C 360 204, 344 198, 344 182 C 344 158, 358 137, 380 137 Z',
+                    fill: '#fbb040'
+                },
+                {
+                    id: 'fill-griz-eyes-white',
+                    d: 'M 365 117 C 372 117, 377 122, 377 128 C 377 135, 372 140, 365 140 C 358 140, 354 135, 354 128 C 354 122, 358 117, 365 117 Z M 393 116 C 400 116, 404 121, 404 127 C 404 134, 400 139, 393 139 C 386 139, 381 134, 381 127 C 381 121, 386 116, 393 116 Z',
+                    fill: '#ffffff'
+                },
+                {
+                    id: 'fill-griz-nose-pupils',
+                    d: 'M 365 126 C 367 126, 368 127, 368 129 C 368 131, 367 132, 365 132 C 363 132, 362 131, 362 129 C 362 127, 363 126, 365 126 Z M 392 125 C 394 125, 395 126, 395 128 C 395 130, 394 131, 392 131 C 390 131, 389 130, 389 128 C 389 126, 390 125, 392 125 Z M 380 142 C 393 142, 400 150, 399 160 C 398 170, 389 176, 380 176 C 370 176, 361 170, 360 160 C 359 150, 367 142, 380 142 Z',
+                    fill: '#231f20'
+                },
+                {
+                    id: 'fill-griz-shield-outer',
+                    d: 'M 398 370 L 414 370 L 418 379 L 427 380 L 436 390 C 431 402, 432 414, 435 424 C 433 433, 422 438, 412 445 C 402 438, 389 434, 386 424 C 388 412, 388 402, 380 392 L 389 382 L 397 381 Z',
+                    fill: '#2d6a3e'
+                },
+                {
+                    id: 'fill-griz-shield-inner',
+                    d: 'M 405 379 C 414 385, 422 387, 430 392 C 426 403, 427 414, 430 423 C 427 430, 419 434, 411 439 C 403 434, 394 430, 391 422 C 393 412, 393 402, 387 393 C 394 389, 400 385, 405 379 Z',
+                    fill: '#76b852'
+                },
+                {
+                    id: 'fill-griz-pine',
+                    d: 'M 408 392 L 399 406 L 404 406 L 398 416 L 404 416 L 397 426 L 406 426 L 406 432 L 412 432 L 412 426 L 421 426 L 414 416 L 419 416 L 413 406 L 418 406 Z',
+                    fill: '#2d6a3e'
+                }
+            ],
+            steps: [
+                {
+                    stepNumber: 1,
+                    chapter: 'guides',
+                    title: 'Head Oval, Broad Shoulders & Badge Guides',
+                    tip: 'Lightly sketch a round head oval at the top, huge sloping bear shoulders below, and a V-line for Grizzy’s necklace!',
+                    camera: { x: 0, y: 0, w: 800, h: 600 },
+                    strokes: [
+                        {
+                            id: 'griz-guide-head',
+                            label: 'Round oval near the top for Grizzy’s head',
+                            kind: 'guide',
+                            d: 'M 384 86 C 436 86, 468 118, 468 162 C 468 205, 434 226, 384 226 C 334 226, 298 205, 298 162 C 298 118, 332 86, 384 86'
+                        },
+                        {
+                            id: 'griz-guide-shoulders',
+                            label: 'Wide sloping guide lines for his shoulders',
+                            kind: 'guide',
+                            d: 'M 311 226 L 308 262 L 232 340 L 202 518 L 604 518 L 598 345 L 492 238 L 465 186'
+                        },
+                        {
+                            id: 'griz-guide-necklace-belly',
+                            label: 'V-necklace guide and lower belly arch',
+                            kind: 'guide',
+                            d: 'M 307 262 L 407 368 L 490 236 M 407 368 L 408 442 M 303 518 C 336 462, 400 448, 446 456 C 482 464, 506 492, 519 518'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 2,
+                    chapter: 'head',
+                    title: 'Round Bear Ears & Fluffy Cheeks',
+                    tip: 'Draw two small round bear ears at the top, then sketch jagged fur tufts down both cheeks and the sides of his neck.',
+                    camera: { x: 245, y: 55, w: 285, h: 215 },
+                    strokes: [
+                        {
+                            id: 'griz-crown-ears',
+                            label: 'Two small round bear ears & top head arch',
+                            kind: 'ink',
+                            d: 'M 332 107 C 322 98, 325 80, 339 79 C 348 79, 353 86, 353 94 M 336 102 C 333 93, 338 86, 345 92 C 341 94, 340 97, 341 101 M 353 94 C 370 86, 388 86, 404 91 M 404 91 C 408 80, 422 74, 429 82 C 435 89, 431 98, 424 101 M 412 95 C 416 86, 424 86, 423 94 C 419 93, 416 95, 415 98'
+                        },
+                        {
+                            id: 'griz-cheek-left',
+                            label: 'Fluffy left cheek tufts and neck side',
+                            kind: 'ink',
+                            d: 'M 332 107 C 318 114, 308 122, 303 128 L 309 127 C 299 138, 294 149, 292 155 L 298 154 C 292 164, 290 173, 291 178 L 296 176 L 293 188 L 298 186 L 297 199 L 302 197 C 308 206, 315 213, 321 217 L 320 209 C 329 219, 339 227, 349 232 M 310 206 C 312 226, 312 246, 310 260'
+                        },
+                        {
+                            id: 'griz-cheek-right',
+                            label: 'Fluffy right cheek tufts and neck side',
+                            kind: 'ink',
+                            d: 'M 424 101 C 438 106, 449 114, 454 120 L 449 119 C 458 130, 464 142, 467 151 L 461 150 C 466 159, 469 169, 470 176 L 465 174 C 464 188, 459 201, 452 211 L 453 203 C 447 212, 440 219, 434 224 M 467 175 C 474 198, 481 218, 489 236'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 3,
+                    chapter: 'face',
+                    title: 'Furrowed Brows & Wide Eyes',
+                    tip: 'Draw two close-set oval eyes with small pupils in the middle, and add furrowed eyebrows angled up in the center!',
+                    camera: { x: 295, y: 85, w: 185, h: 140 },
+                    strokes: [
+                        {
+                            id: 'griz-brows',
+                            label: 'Furrowed eyebrows with center frown lines',
+                            kind: 'ink',
+                            d: 'M 349 118 L 378 114 L 378 109 M 382 108 L 382 113 L 402 116'
+                        },
+                        {
+                            id: 'griz-eyes',
+                            label: 'Two oval eyes with small dark pupils',
+                            kind: 'ink',
+                            d: 'M 365 117 C 372 117, 377 122, 377 128 C 377 135, 372 140, 365 140 C 358 140, 354 135, 354 128 C 354 122, 358 117, 365 117 Z M 365 126 C 367 126, 368 127, 368 129 C 368 131, 367 132, 365 132 C 363 132, 362 131, 362 129 C 362 127, 363 126, 365 126 Z M 393 116 C 400 116, 404 121, 404 127 C 404 134, 400 139, 393 139 C 386 139, 381 134, 381 127 C 381 121, 386 116, 393 116 Z M 392 125 C 394 125, 395 126, 395 128 C 395 130, 394 131, 392 131 C 390 131, 389 130, 389 128 C 389 126, 390 125, 392 125 Z'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 4,
+                    chapter: 'face',
+                    title: 'Pear Muzzle, Big Nose & Grumpy Frown',
+                    tip: 'Outline Grizzy’s pear-shaped muzzle right under his eyes, fill in his big dark bear nose, and curve his grumpy frown!',
+                    camera: { x: 295, y: 115, w: 185, h: 140 },
+                    strokes: [
+                        {
+                            id: 'griz-muzzle',
+                            label: 'Pear-shaped muzzle under the eyes',
+                            kind: 'ink',
+                            d: 'M 380 137 C 402 137, 420 162, 420 184 C 420 198, 403 204, 382 204 C 360 204, 344 198, 344 182 C 344 158, 358 137, 380 137 Z'
+                        },
+                        {
+                            id: 'griz-nose',
+                            label: 'Big dark oval bear nose',
+                            kind: 'ink',
+                            fillInk: true,
+                            d: 'M 380 142 C 393 142, 400 150, 399 160 C 398 170, 389 176, 380 176 C 370 176, 361 170, 360 160 C 359 150, 367 142, 380 142 Z'
+                        },
+                        {
+                            id: 'griz-frown',
+                            label: 'Short nose line and grumpy downturned mouth',
+                            kind: 'ink',
+                            d: 'M 380 176 L 381 185 M 360 191 C 374 185, 398 180, 411 188'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 5,
+                    chapter: 'body',
+                    title: 'Ranger Shield Medallion & Pine Tree',
+                    tip: 'Draw the V-shaped necklace strap around Grizzy’s neck, the double-bordered shield badge, and the pine tree inside!',
+                    camera: { x: 270, y: 215, w: 265, h: 255 },
+                    strokes: [
+                        {
+                            id: 'griz-cord',
+                            label: 'V-shaped necklace cord and metal clasp',
+                            kind: 'ink',
+                            d: 'M 307 260 C 334 304, 368 338, 403 363 M 305 266 C 332 310, 366 344, 402 368 M 489 236 C 466 286, 438 328, 407 363 M 493 241 C 470 291, 442 333, 408 368 M 402 358 L 408 358 L 408 375 L 402 375 Z'
+                        },
+                        {
+                            id: 'griz-shield',
+                            label: 'Double-bordered Forest Ranger shield badge',
+                            kind: 'ink',
+                            d: 'M 398 370 L 414 370 L 418 379 L 427 380 L 436 390 C 431 402, 432 414, 435 424 C 433 433, 422 438, 412 445 C 402 438, 389 434, 386 424 C 388 412, 388 402, 380 392 L 389 382 L 397 381 Z M 405 379 C 414 385, 422 387, 430 392 C 426 403, 427 414, 430 423 C 427 430, 419 434, 411 439 C 403 434, 394 430, 391 422 C 393 412, 393 402, 387 393 C 394 389, 400 385, 405 379 Z'
+                        },
+                        {
+                            id: 'griz-pine-tree',
+                            label: 'Three-pointed pine tree inside the shield',
+                            kind: 'ink',
+                            d: 'M 408 392 L 399 406 L 404 406 L 398 416 L 404 416 L 397 426 L 406 426 L 406 432 L 412 432 L 412 426 L 421 426 L 414 416 L 419 416 L 413 406 L 418 406 Z'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 6,
+                    chapter: 'body',
+                    title: 'Broad Furry Shoulders, Arms & Belly',
+                    tip: 'Sweep Grizzy’s massive furry shoulders and arms down both sides, then add the big round belly arch at the bottom!',
+                    camera: { x: 175, y: 225, w: 455, h: 315 },
+                    strokes: [
+                        {
+                            id: 'griz-left-shoulder-arm',
+                            label: 'Broad furry left shoulder and inner arm',
+                            kind: 'ink',
+                            d: 'M 305 266 C 278 286, 254 308, 240 325 L 246 323 L 233 340 L 239 339 L 226 362 L 233 360 L 226 376 L 232 372 C 221 416, 211 464, 202 518 M 300 368 C 292 382, 289 392, 288 397 L 294 394 L 289 414 L 294 411 C 289 432, 285 446, 282 454 L 288 451 L 281 472 L 287 470 L 280 486 L 286 485 C 280 498, 275 509, 272 518'
+                        },
+                        {
+                            id: 'griz-right-shoulder-arm',
+                            label: 'Broad furry right shoulder and inner arm',
+                            kind: 'ink',
+                            d: 'M 493 241 C 526 258, 558 276, 571 286 L 564 285 L 581 297 L 575 297 L 589 309 L 583 309 L 598 327 L 592 326 L 605 360 M 510 352 C 522 365, 530 378, 534 385 L 528 383 L 543 414 L 538 412 L 546 441 L 541 439 L 556 474 L 551 472 L 565 500 L 560 499 L 570 518'
+                        },
+                        {
+                            id: 'griz-belly-arch',
+                            label: 'Curved furry belly arch at the bottom',
+                            kind: 'ink',
+                            d: 'M 303 518 C 316 492, 334 474, 353 462 L 348 470 C 378 452, 418 448, 456 460 C 476 467, 492 477, 504 490 L 494 486 C 504 496, 512 507, 519 518'
+                        }
+                    ]
+                },
+                {
+                    stepNumber: 7,
+                    chapter: 'color',
+                    title: 'Color Your Grizzy Bear!',
+                    tip: 'Erase your pencil guides and color Grizzy cinnamon brown with a warm tan muzzle and belly, plus his green Ranger shield!',
+                    camera: { x: 0, y: 0, w: 800, h: 600 },
+                    isColorStep: true,
+                    strokes: []
+                }
+            ]
         }
     ];
 

@@ -81,6 +81,34 @@ test('Classic Pikachu tutorial has 5 chapters, 7 guided steps, and complete colo
     assert.ok(pika.fills.length >= 6);
 });
 
+test('Cheeky Blue Lemming tutorial has 5 chapters, 7 guided steps, and reference image', () => {
+    const lemming = getTutorialById('lemming-grizzy');
+    assert.strictEqual(lemming.id, 'lemming-grizzy');
+    assert.strictEqual(lemming.series, 'Grizzy & the Lemmings');
+    assert.strictEqual(lemming.referenceImage, 'assets/lemming.jpg');
+    assert.strictEqual(lemming.chapters.length, 5);
+    assert.strictEqual(lemming.steps.length, 7);
+    assert.strictEqual(lemming.steps[0].chapter, 'guides');
+    assert.ok(lemming.steps[0].strokes.every((s) => s.kind === 'guide'));
+    assert.strictEqual(lemming.steps[lemming.steps.length - 1].isColorStep, true);
+    assert.ok(lemming.palette.length >= 5);
+    assert.ok(lemming.fills.length >= 6);
+});
+
+test('Grizzy Bear tutorial has 5 chapters, 7 guided steps, and reference image', () => {
+    const grizzy = getTutorialById('grizzy-bear');
+    assert.strictEqual(grizzy.id, 'grizzy-bear');
+    assert.strictEqual(grizzy.series, 'Grizzy & the Lemmings');
+    assert.strictEqual(grizzy.referenceImage, 'assets/grizzy.jpg');
+    assert.strictEqual(grizzy.chapters.length, 5);
+    assert.strictEqual(grizzy.steps.length, 7);
+    assert.strictEqual(grizzy.steps[0].chapter, 'guides');
+    assert.ok(grizzy.steps[0].strokes.every((s) => s.kind === 'guide'));
+    assert.strictEqual(grizzy.steps[grizzy.steps.length - 1].isColorStep, true);
+    assert.ok(grizzy.palette.length >= 5);
+    assert.ok(grizzy.fills.length >= 6);
+});
+
 test('validateTutorial catches missing Step 1 proportion guides or broken SVG paths', () => {
     const broken = {
         id: 'broken-test',
