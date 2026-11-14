@@ -1456,13 +1456,16 @@
                         );
                     });
                     (tutorial.fills || []).forEach((f) => {
-                        layerColorFills.appendChild(
-                            createSvgElement('path', {
-                                d: f.d,
-                                fill: f.fill,
-                                opacity: f.opacity !== undefined ? f.opacity : 1
-                            })
-                        );
+                        if (!f.aboveInk) {
+                            layerColorFills.appendChild(
+                                createSvgElement('path', {
+                                    d: f.d,
+                                    fill: f.fill,
+                                    'fill-rule': 'evenodd',
+                                    opacity: f.opacity !== undefined ? f.opacity : 1
+                                })
+                            );
+                        }
                     });
                 }
 
@@ -1493,12 +1496,28 @@
                                 createSvgElement('path', {
                                     d: stroke.d,
                                     stroke: inkCol,
-                                    'stroke-width': 4.5,
-                                    fill: stroke.fillInk ? inkCol : 'none'
+                                    'stroke-width': stroke.strokeWidth !== undefined ? stroke.strokeWidth : 4.5,
+                                    fill: stroke.fillInk ? inkCol : 'none',
+                                    'fill-rule': 'evenodd'
                                 })
                             );
                         }
                     }
+                }
+
+                if (isColorMode) {
+                    (tutorial.fills || []).forEach((f) => {
+                        if (f.aboveInk) {
+                            layerPastStrokes.appendChild(
+                                createSvgElement('path', {
+                                    d: f.d,
+                                    fill: f.fill,
+                                    stroke: 'none',
+                                    opacity: f.opacity !== undefined ? f.opacity : 1
+                                })
+                            );
+                        }
+                    });
                 }
 
                 // Active step strokes
@@ -1513,9 +1532,12 @@
                         id: `svg-stroke-${stroke.id}`,
                         d: stroke.d,
                         stroke: strokeColor,
-                        'stroke-width': isGuide ? 3.2 : 5.2,
+                        'stroke-width': isGuide
+                            ? 3.2
+                            : (stroke.strokeWidth !== undefined ? stroke.strokeWidth : 5.2),
                         'stroke-dasharray': isGuide ? '9 7' : undefined,
                         fill: stroke.fillInk ? strokeColor : 'none',
+                        'fill-rule': 'evenodd',
                         filter: 'url(#active-glow)'
                     });
                     layerActiveStrokes.appendChild(pathEl);

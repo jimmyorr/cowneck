@@ -81,9 +81,10 @@ test('Classic Pikachu tutorial has 5 chapters, 7 guided steps, and complete colo
     assert.ok(pika.fills.length >= 6);
 });
 
-test('Cheeky Blue Lemming tutorial has 5 chapters, 7 guided steps, and reference image', () => {
+test('Lemming tutorial has 5 chapters, 7 guided steps, and reference image', () => {
     const lemming = getTutorialById('lemming-grizzy');
     assert.strictEqual(lemming.id, 'lemming-grizzy');
+    assert.strictEqual(lemming.title, 'Lemming');
     assert.strictEqual(lemming.series, 'Grizzy & the Lemmings');
     assert.strictEqual(lemming.referenceImage, 'assets/lemming.jpg');
     assert.strictEqual(lemming.chapters.length, 5);
