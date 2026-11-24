@@ -272,6 +272,7 @@ def generate_sitemap():
         "https://cowneck.com/",
         "https://cowneck.com/games/",
         "https://cowneck.com/projects/",
+        "https://cowneck.com/palettes/",
         "https://cowneck.com/mcu/",
         "https://cowneck.com/music/",
         "https://cowneck.com/math/bernoulli.html",
