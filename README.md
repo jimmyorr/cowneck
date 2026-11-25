@@ -9,7 +9,6 @@ Source code for [cowneck.com](https://cowneck.com) — interactive web games, ge
 - `math/` — Interactive mathematics essays and visualizations.
 - `music/` — Music collection explorer.
 - `mcu/` — Marvel Cinematic Universe tracker.
-- `palettes/` — Interactive palette browser, live simulator, and contrast lab for Counters.
 - `projects/` — Software and creative projects hub.
 - `scripts/` — Repository maintenance and asset generation scripts:
   - `scripts/sync-games-metadata.py` — Syncs Open Graph, Twitter Card, canonical URL, Google Analytics (`gtag.js`), and Schema.org `VideoGame` JSON-LD blocks from `games/index.html` into each game file, and regenerates `sitemap.xml`.

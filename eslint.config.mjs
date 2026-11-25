@@ -8,7 +8,6 @@ const auditedHtmlFiles = [
     'games/donut-chef.html',
     'games/shore-road.html',
     'games/sketch-pup.html',
-    'palettes/index.html',
 ];
 
 const auditedFiles = [
@@ -17,9 +16,6 @@ const auditedFiles = [
     'games/donut-chef.test.js',
     'games/sketch-pup-tutorials.js',
     'games/sketch-pup.test.js',
-    'palettes/palettes-engine.js',
-    'palettes/palettes.test.js',
-    'palettes/app.js',
     'eslint.config.mjs',
     'playwright.config.mjs',
     'tests/**/*.{js,mjs}',
@@ -55,9 +51,6 @@ export default [
             'games/donut-chef.test.js',
             'games/sketch-pup-tutorials.js',
             'games/sketch-pup.test.js',
-            'palettes/palettes-engine.js',
-            'palettes/palettes.test.js',
-            'palettes/app.js',
         ],
         languageOptions: {
             ecmaVersion: 'latest',
