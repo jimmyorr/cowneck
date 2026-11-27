@@ -206,13 +206,12 @@
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid var(--glass-border);
         border-radius: 20px;
-        padding: 2.25rem;
+        padding: 2rem;
         text-decoration: none;
         color: inherit;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        gap: 2rem;
+        gap: 0.85rem;
         transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
         overflow: hidden;
@@ -236,24 +235,33 @@
         transition: opacity 0.4s ease;
       }
 
+      .project-card-header {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem;
+      }
+
       .project-card-content {
         position: relative;
         z-index: 2;
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.6rem;
       }
 
       .project-icon {
-        font-size: 2.25rem;
-        margin-bottom: 0.5rem;
+        font-size: 2.1rem;
+        line-height: 1;
         display: inline-block;
         transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
 
       .project-title {
         font-family: var(--font-heading);
-        font-size: 1.6rem;
+        font-size: 1.55rem;
         font-weight: 700;
         color: #ffffff;
         letter-spacing: -0.01em;
@@ -267,34 +275,6 @@
         transition: color 0.3s ease;
       }
 
-      .project-footer {
-        position: relative;
-        z-index: 2;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      /* Tech Tags list */
-      .tech-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-
-      .tech-tag {
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        color: var(--text-muted);
-        padding: 4px 8px;
-        border-radius: 6px;
-        transition: all 0.3s ease;
-      }
-
       .project-link-arrow {
         color: var(--text-muted);
         display: flex;
@@ -302,6 +282,7 @@
         justify-content: center;
         width: 36px;
         height: 36px;
+        flex-shrink: 0;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.06);
@@ -321,18 +302,16 @@
           0 0 25px -5px var(--glow-shadow, rgba(99, 102, 241, 0.15));
       }
 
+      .project-card:hover::before {
+        opacity: 1;
+      }
+
       .project-card:hover .project-icon {
         transform: scale(1.15) rotate(5deg);
       }
 
       .project-card:hover .project-description {
         color: #e2e8f0;
-      }
-
-      .project-card:hover .tech-tag {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(255, 255, 255, 0.15);
-        color: #ffffff;
       }
 
       .project-card:hover .project-link-arrow {
@@ -470,19 +449,8 @@
           id="project-card-counters"
           role="listitem"
         >
-          <div class="project-card-content">
+          <div class="project-card-header">
             <span class="project-icon" aria-hidden="true">🔢</span>
-            <h2 class="project-title">Counters</h2>
-            <p class="project-description">
-              A minimalist app designed for counting things, like scores in
-              games.
-            </p>
-          </div>
-          <div class="project-footer">
-            <div class="tech-tags">
-              <span class="tech-tag">Web App</span>
-              <span class="tech-tag">Utility</span>
-            </div>
             <div class="project-link-arrow" aria-hidden="true">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -499,6 +467,13 @@
                 <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
             </div>
+          </div>
+          <div class="project-card-content">
+            <h2 class="project-title">Counters</h2>
+            <p class="project-description">
+              A minimalist app designed for counting things, like scores in
+              games.
+            </p>
           </div>
         </a>
 
@@ -509,19 +484,8 @@
           id="project-card-dislikes"
           role="listitem"
         >
-          <div class="project-card-content">
+          <div class="project-card-header">
             <span class="project-icon" aria-hidden="true">👎</span>
-            <h2 class="project-title">YouTube Dislikes</h2>
-            <p class="project-description">
-              Search, sort, and filter your disliked (and liked) video history.
-              Kept secure entirely inside your browser.
-            </p>
-          </div>
-          <div class="project-footer">
-            <div class="tech-tags">
-              <span class="tech-tag">YouTube API</span>
-              <span class="tech-tag">PWA</span>
-            </div>
             <div class="project-link-arrow" aria-hidden="true">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -538,6 +502,13 @@
                 <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
             </div>
+          </div>
+          <div class="project-card-content">
+            <h2 class="project-title">YouTube Dislikes</h2>
+            <p class="project-description">
+              Search, sort, and filter your disliked (and liked) video history.
+              Kept secure entirely inside your browser.
+            </p>
           </div>
         </a>
 
@@ -548,18 +519,8 @@
           id="project-card-birds"
           role="listitem"
         >
-          <div class="project-card-content">
+          <div class="project-card-header">
             <span class="project-icon" aria-hidden="true">🪶</span>
-            <h2 class="project-title">Birds of PW</h2>
-            <p class="project-description">
-              A curated guide to birds of Port Washington, NY.
-            </p>
-          </div>
-          <div class="project-footer">
-            <div class="tech-tags">
-              <span class="tech-tag">Naturalist Guide</span>
-              <span class="tech-tag">Gallery</span>
-            </div>
             <div class="project-link-arrow" aria-hidden="true">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -576,6 +537,12 @@
                 <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
             </div>
+          </div>
+          <div class="project-card-content">
+            <h2 class="project-title">Birds of PW</h2>
+            <p class="project-description">
+              A curated guide to birds of Port Washington, NY.
+            </p>
           </div>
         </a>
 
@@ -586,19 +553,8 @@
           id="project-card-paumanok"
           role="listitem"
         >
-          <div class="project-card-content">
+          <div class="project-card-header">
             <span class="project-icon" aria-hidden="true">🏞️</span>
-            <h2 class="project-title">Paumanok</h2>
-            <p class="project-description">
-              A Long Island-themed reskin of the tactical card game 'Air, Land &
-              Sea'.
-            </p>
-          </div>
-          <div class="project-footer">
-            <div class="tech-tags">
-              <span class="tech-tag">Game Reskin</span>
-              <span class="tech-tag">Gallery</span>
-            </div>
             <div class="project-link-arrow" aria-hidden="true">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -615,6 +571,13 @@
                 <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
             </div>
+          </div>
+          <div class="project-card-content">
+            <h2 class="project-title">Paumanok</h2>
+            <p class="project-description">
+              A Long Island-themed reskin of the tactical card game 'Air, Land &
+              Sea'.
+            </p>
           </div>
         </a>
 
@@ -625,19 +588,8 @@
           id="project-card-kidli"
           role="listitem"
         >
-          <div class="project-card-content">
+          <div class="project-card-header">
             <span class="project-icon" aria-hidden="true">👑</span>
-            <h2 class="project-title">King Is Dead - LI</h2>
-            <p class="project-description">
-              A Long Island-themed reskin of the strategic board game 'The King
-              Is Dead'.
-            </p>
-          </div>
-          <div class="project-footer">
-            <div class="tech-tags">
-              <span class="tech-tag">Game Reskin</span>
-              <span class="tech-tag">Gallery</span>
-            </div>
             <div class="project-link-arrow" aria-hidden="true">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -654,6 +606,13 @@
                 <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
             </div>
+          </div>
+          <div class="project-card-content">
+            <h2 class="project-title">King Is Dead - LI</h2>
+            <p class="project-description">
+              A Long Island-themed reskin of the strategic board game 'The King
+              Is Dead'.
+            </p>
           </div>
         </a>
 
@@ -664,19 +623,8 @@
           id="project-card-mcu"
           role="listitem"
         >
-          <div class="project-card-content">
+          <div class="project-card-header">
             <span class="project-icon" aria-hidden="true">🛡️</span>
-            <h2 class="project-title">MCU Checklist</h2>
-            <p class="project-description">
-              Follow your journey through the Marvel Cinematic Universe with a
-              checklist tracker, featuring IMDb scores, budgets, and earnings.
-            </p>
-          </div>
-          <div class="project-footer">
-            <div class="tech-tags">
-              <span class="tech-tag">Dashboard</span>
-              <span class="tech-tag">Analytics</span>
-            </div>
             <div class="project-link-arrow" aria-hidden="true">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -693,6 +641,13 @@
                 <polyline points="12 5 19 12 12 19"></polyline>
               </svg>
             </div>
+          </div>
+          <div class="project-card-content">
+            <h2 class="project-title">MCU Checklist</h2>
+            <p class="project-description">
+              A Marvel Cinematic Universe watch checklist with IMDb scores,
+              budgets, and box office totals.
+            </p>
           </div>
         </a>
       </main>
