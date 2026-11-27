@@ -17,3 +17,6 @@ venv/
 # Test artifacts
 playwright-report/
 test-results/
+
+# Private book notes (kept out of version control)
+book/private/
