@@ -263,16 +263,16 @@ spot-check against the primary pages directly.
 9. **US sterilization total:** "more than 60,000" is the conservative standard
    figure (to about 1963). Some estimates are higher.
 
-## Bryson check
+## Overlap check
 - *A Short History of Nearly Everything* doesn't, to my knowledge, tell
   Quetelet, Nightingale's statistics, Galton's ox, Gosset or the tea test.
   Darwin is kept to one clause ("which is as much as we shall say about
-  that"). Bryson's *The Body* discusses Ancel Keys and, I believe, BMI. The
+  that"). The popular book *The Body* discusses Ancel Keys and, I believe, BMI. The
   BMI mention here is a single clause about Quetelet's index being renamed,
   with no shared phrasing, but the editing pass may want to cut it if that
   overlap matters.
 - The opening's Twain/Disraeli material is commonplace and not, as far as I
-  know, a Bryson set piece.
+  know, another book's set piece.
 
 ## Ownership
 - Pearson appears only as Galton's biographer and Fisher's enemy. He isn't

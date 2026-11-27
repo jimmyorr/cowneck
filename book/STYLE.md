@@ -1,9 +1,8 @@
 # Style Guide
 
 Every chapter session reads this file and `OUTLINE.md` before writing anything.
-The goal is a book that reads as if one person wrote it, in the manner of Bill
-Bryson: a curious, amused, well-read amateur telling you about the people behind
-mathematics. It is never a textbook.
+The goal is a book that reads as if one person wrote it: a curious, amused,
+well-read amateur telling you about the people behind mathematics. It is never a textbook.
 
 The two finished chapters are the reference standard. Read at least one before
 you start:
@@ -26,7 +25,7 @@ you start:
   "he solved it astonishingly fast."
 - **Wry asides and brief digressions** are welcome. A good digression is a
   single sentence or a short paragraph, and it comes back to the story.
-- **Sympathy.** Bryson laughs *with* his subjects more often than at them.
+- **Sympathy.** Laugh *with* the subjects more often than at them.
   Johann Bernoulli can be a villain. Most people should come out of a chapter
   looking human rather than ridiculous.
 - **End each chapter on a quiet, slightly rueful note.** Never on a moral
@@ -50,7 +49,7 @@ Do not use: "without a doubt," "without hyperbole," "literally" (as an
 intensifier), "very cool," "mind-blowing," "fun fact," "buckle up," "let that
 sink in," "spoiler alert," "game-changer," "dive into," "it's important to note,"
 "in today's world." These are the tics that made the first drafts sound like a
-blog rather than Bryson.
+blog rather than a book.
 
 Use sparingly: exclamation marks (essentially never), rhetorical questions, pop
 culture references (one per chapter at most, and nothing that will date
@@ -64,7 +63,7 @@ The jokes only work if the facts underneath them are solid.
   use. Prefer MacTutor (mathshistory.st-andrews.ac.uk), Wikipedia (with its
   citations), museum and university pages, and published histories over
   quote sites and listicles.
-- **Hedge apocrypha in Bryson's way.** Do not cut a good story because it is
+- **Hedge apocrypha.** Do not cut a good story because it is
   doubtful. Tell it, and then say how doubtful it is. Examples:
   - "He is often said to have shrugged that he would now have fewer
     distractions, and it is a lovely line, though there's no very good evidence
@@ -80,10 +79,9 @@ The jokes only work if the facts underneath them are solid.
   sources used for each major claim, plus any claim you could not verify and
   how the text hedges it. The editing pass relies on this file.
 
-## Stay out of Bryson's books
+## Stay out of other popular histories
 
-This book borrows Bill Bryson's manner. It must not borrow his material.
-Above all, avoid *A Short History of Nearly Everything*, which already
+This book has its own material. Above all, avoid *A Short History of Nearly Everything*, which already
 covers a lot of the history of science. Do not retell, beyond a passing
 clause or a cross-reference:
 
@@ -101,13 +99,13 @@ clause or a cross-reference:
 
 Also:
 
-- Never reuse Bryson's jokes, phrasings or chapter titles, and never
-  paraphrase a passage of his. If you remember how he told an anecdote, tell
-  it differently or drop it.
-- Never mention Bryson in the published text. "In the style of" is for us,
-  not the reader.
-- If research turns up a story that you suspect is a Bryson set piece,
-  leave it out and record it in the chapter's notes file.
+- Never reuse another popular book's jokes, phrasings or chapter titles, and
+  never paraphrase a passage of one. If you remember how a known book told an
+  anecdote, tell it differently or drop it.
+- Never name any other author as a model, in the text, the notes or commit
+  messages.
+- If research turns up a story that you suspect is another popular book's set
+  piece, leave it out and record it in the chapter's notes file.
 
 ## The mathematics
 

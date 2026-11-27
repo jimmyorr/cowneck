@@ -137,7 +137,7 @@ Each chapter entry lists:
 - **Owns:** Leibniz, the calculus priority dispute, Newton only as a combatant
   in it.
 - **Angle:** tell it from **Leibniz's side**. See `STYLE.md` ("Stay out of
-  Bryson's books"): Newton's personal life (alchemy, the eye-poking
+  other popular histories"): Newton's personal life (alchemy, the eye-poking
   experiments, the plague years and the apple, Halley's visit and the
   *Principia*, the Hooke feud, the Mint) is off-limits beyond a passing clause.
 - **Material:** Leibniz as a court librarian in Hanover, commissioned to write

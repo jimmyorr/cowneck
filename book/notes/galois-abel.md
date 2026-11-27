@@ -203,8 +203,8 @@ Galois* (EMS, 2011), which is the best modern source on the manuscripts.
 - **Abel's Berlin letter**: confirmed. Crelle's letter is dated 8 April 1829,
   two days after Abel's death.
 
-## Bryson check
-I know of no Galois or Abel set piece in Bryson's books (*A Short History of
-Nearly Everything* does not cover them). The chessboard example is a
+## Overlap check
+I know of no Galois or Abel set piece in other popular histories (*A Short
+History of Nearly Everything* does not cover them). The chessboard example is a
 standard textbook illustration, not drawn from any popular book in
 particular.

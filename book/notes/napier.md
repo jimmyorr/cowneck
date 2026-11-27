@@ -76,9 +76,9 @@ Prose length: about 2,970 words.
 - The outline's end-of-world dates are right: proposition 14 gives 1688–1700.
 - The quarter-of-an-hour silence is accurate to Lilly's text. It is the source that is shaky, not the outline.
 
-## Bryson check
+## Overlap check
 
-I don't recall Napier, Briggs or logarithms in *A Short History of Nearly Everything*. Nothing here is knowingly drawn from Bryson. Nothing from Newton's life is used.
+I don't recall Napier, Briggs or logarithms in *A Short History of Nearly Everything*. Nothing here is knowingly drawn from it. Nothing from Newton's life is used.
 
 ## Ownership check
 
