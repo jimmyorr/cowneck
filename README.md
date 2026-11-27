@@ -7,7 +7,6 @@ Source code for [cowneck.com](https://cowneck.com) — interactive web games, ge
 - `index.html` — Main landing page.
 - `games/` — Standalone HTML5 web games (including **🐶 Lofi Pup** at `games/lofi-pup.html`, **High Society** at `games/high-society/`, and **Wizard** at `games/wizard.html`) and the games catalog (`games/index.html`).
 - `math/` — Interactive mathematics essays and visualizations.
-- `music/` — Music collection explorer.
 - `mcu/` — Marvel Cinematic Universe tracker.
 - `projects/` — Software and creative projects hub.
 - `scripts/` — Repository maintenance and asset generation scripts:

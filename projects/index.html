@@ -403,14 +403,6 @@
         );
         --glow-shadow: rgba(147, 51, 234, 0.25);
       }
-      .card-collatz {
-        --hover-gradient: linear-gradient(
-          135deg,
-          rgba(56, 189, 248, 0.25) 0%,
-          rgba(129, 140, 248, 0.05) 100%
-        );
-        --glow-shadow: rgba(56, 189, 248, 0.25);
-      }
       .card-counters {
         --hover-gradient: linear-gradient(
           135deg,
@@ -418,14 +410,6 @@
           rgba(217, 119, 6, 0.05) 100%
         );
         --glow-shadow: rgba(245, 158, 11, 0.25);
-      }
-      .card-music {
-        --hover-gradient: linear-gradient(
-          135deg,
-          rgba(16, 185, 129, 0.25) 0%,
-          rgba(4, 120, 87, 0.05) 100%
-        );
-        --glow-shadow: rgba(16, 185, 129, 0.25);
       }
 
       /* Custom Scrollbar */
@@ -534,24 +518,25 @@
           </div>
         </a>
 
-        <!-- Card: Birds -->
+        <!-- Card: Dislikes -->
         <a
-          href="https://birds.cowneck.com/"
-          class="project-card card-birds"
-          id="project-card-birds"
+          href="https://dislikes.cowneck.com/"
+          class="project-card card-dislikes"
+          id="project-card-dislikes"
           role="listitem"
         >
           <div class="project-card-content">
-            <span class="project-icon" aria-hidden="true">🪶</span>
-            <h2 class="project-title">Birds of PW</h2>
+            <span class="project-icon" aria-hidden="true">👎</span>
+            <h2 class="project-title">YouTube Dislikes</h2>
             <p class="project-description">
-              A curated guide to birds of Port Washington, NY.
+              Search, sort, and filter your disliked (and liked) video history.
+              Kept secure entirely inside your browser.
             </p>
           </div>
           <div class="project-footer">
             <div class="tech-tags">
-              <span class="tech-tag">Naturalist Guide</span>
-              <span class="tech-tag">Gallery</span>
+              <span class="tech-tag">YouTube API</span>
+              <span class="tech-tag">PWA</span>
             </div>
             <div class="project-link-arrow" aria-hidden="true">
               <svg
@@ -572,25 +557,24 @@
           </div>
         </a>
 
-        <!-- Card: Dislikes -->
+        <!-- Card: Birds -->
         <a
-          href="https://dislikes.cowneck.com/"
-          class="project-card card-dislikes"
-          id="project-card-dislikes"
+          href="https://birds.cowneck.com/"
+          class="project-card card-birds"
+          id="project-card-birds"
           role="listitem"
         >
           <div class="project-card-content">
-            <span class="project-icon" aria-hidden="true">👎</span>
-            <h2 class="project-title">YouTube Dislikes</h2>
+            <span class="project-icon" aria-hidden="true">🪶</span>
+            <h2 class="project-title">Birds of PW</h2>
             <p class="project-description">
-              Search, sort, and filter your disliked (and liked) video history.
-              Kept secure entirely inside your browser.
+              A curated guide to birds of Port Washington, NY.
             </p>
           </div>
           <div class="project-footer">
             <div class="tech-tags">
-              <span class="tech-tag">YouTube API</span>
-              <span class="tech-tag">PWA</span>
+              <span class="tech-tag">Naturalist Guide</span>
+              <span class="tech-tag">Gallery</span>
             </div>
             <div class="project-link-arrow" aria-hidden="true">
               <svg
@@ -689,44 +673,6 @@
           </div>
         </a>
 
-        <!-- Card: Music -->
-        <a
-          href="../music/"
-          class="project-card card-music"
-          id="project-card-music"
-          role="listitem"
-        >
-          <div class="project-card-content">
-            <span class="project-icon" aria-hidden="true">🎧</span>
-            <h2 class="project-title">Jimmy's Liked Music</h2>
-            <p class="project-description">
-              An interactive gallery of my favorite tracks, albums, and artists.
-            </p>
-          </div>
-          <div class="project-footer">
-            <div class="tech-tags">
-              <span class="tech-tag">Audio</span>
-              <span class="tech-tag">Gallery</span>
-            </div>
-            <div class="project-link-arrow" aria-hidden="true">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </div>
-          </div>
-        </a>
-
         <!-- Card: Bernoulli (Calculus of Dysfunction) -->
         <a
           href="../math/bernoulli.html"
@@ -785,44 +731,6 @@
             <div class="tech-tags">
               <span class="tech-tag">Math Essay</span>
               <span class="tech-tag">History</span>
-            </div>
-            <div class="project-link-arrow" aria-hidden="true">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </div>
-          </div>
-        </a>
-
-        <!-- Card: Collatz Visualizer -->
-        <a
-          href="../math/collatz.html"
-          class="project-card card-collatz"
-          id="project-card-collatz"
-          role="listitem"
-        >
-          <div class="project-card-content">
-            <span class="project-icon" aria-hidden="true">📈</span>
-            <h2 class="project-title">Hailstone Visualizer</h2>
-            <p class="project-description">
-              An interactive graph and sequence tracker for the 3n+1 Collatz Conjecture.
-            </p>
-          </div>
-          <div class="project-footer">
-            <div class="tech-tags">
-              <span class="tech-tag">Interactive Graph</span>
-              <span class="tech-tag">Simulation</span>
             </div>
             <div class="project-link-arrow" aria-hidden="true">
               <svg

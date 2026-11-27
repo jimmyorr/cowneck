@@ -92,7 +92,6 @@ export default [
             '!games/sketch-pup-tutorials.js',
             '!games/sketch-pup.test.js',
             'games/high-society/**',
-            'music/**',
             'node_modules/',
             'playwright-report/',
             'test-results/',
