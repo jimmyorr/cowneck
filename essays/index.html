@@ -307,6 +307,24 @@
         transform: translateX(2px) rotate(-45deg);
       }
 
+      .card-imaginary {
+        --hover-gradient: linear-gradient(
+          135deg,
+          rgba(236, 72, 153, 0.22) 0%,
+          rgba(251, 146, 60, 0.05) 100%
+        );
+        --glow-shadow: rgba(236, 72, 153, 0.25);
+      }
+
+      .card-napier {
+        --hover-gradient: linear-gradient(
+          135deg,
+          rgba(245, 158, 11, 0.22) 0%,
+          rgba(250, 204, 21, 0.05) 100%
+        );
+        --glow-shadow: rgba(245, 158, 11, 0.25);
+      }
+
       .card-bernoulli {
         --hover-gradient: linear-gradient(
           135deg,
@@ -316,13 +334,22 @@
         --glow-shadow: rgba(99, 102, 241, 0.25);
       }
 
-      .card-imaginary {
+      .card-galois-abel {
         --hover-gradient: linear-gradient(
           135deg,
-          rgba(236, 72, 153, 0.22) 0%,
-          rgba(251, 146, 60, 0.05) 100%
+          rgba(14, 165, 233, 0.22) 0%,
+          rgba(59, 130, 246, 0.05) 100%
         );
-        --glow-shadow: rgba(236, 72, 153, 0.25);
+        --glow-shadow: rgba(14, 165, 233, 0.25);
+      }
+
+      .card-statistics {
+        --hover-gradient: linear-gradient(
+          135deg,
+          rgba(16, 185, 129, 0.22) 0%,
+          rgba(20, 184, 166, 0.05) 100%
+        );
+        --glow-shadow: rgba(16, 185, 129, 0.25);
       }
 
       ::-webkit-scrollbar {
@@ -388,6 +415,78 @@
 
       <!-- Essays List -->
       <main class="essays-list" role="list">
+        <!-- Essay: An Imaginary Problem -->
+        <a
+          href="./imaginary.html"
+          class="essay-card card-imaginary"
+          id="essay-card-imaginary"
+          role="listitem"
+        >
+          <div class="essay-card-content">
+            <div class="essay-header">
+              <span class="essay-icon" aria-hidden="true">🔮</span>
+              <h2 class="essay-title">An Imaginary Problem</h2>
+            </div>
+            <p class="essay-description">
+              How mathematicians ended up with numbers called natural,
+              irrational, real, and imaginary—and why René Descartes should
+              never have named them.
+            </p>
+          </div>
+          <div class="essay-link-arrow" aria-hidden="true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </div>
+        </a>
+
+        <!-- Essay: The Wizard of Merchiston -->
+        <a
+          href="./napier.html"
+          class="essay-card card-napier"
+          id="essay-card-napier"
+          role="listitem"
+        >
+          <div class="essay-card-content">
+            <div class="essay-header">
+              <span class="essay-icon" aria-hidden="true">🔭</span>
+              <h2 class="essay-title">The Wizard of Merchiston</h2>
+            </div>
+            <p class="essay-description">
+              How a Scottish laird with a reputation for sorcery invented
+              logarithms, turned multiplication into addition, and gave
+              astronomers back years of their lives.
+            </p>
+          </div>
+          <div class="essay-link-arrow" aria-hidden="true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </div>
+        </a>
+
         <!-- Essay: The Calculus of Dysfunction -->
         <a
           href="./bernoulli.html"
@@ -423,22 +522,58 @@
           </div>
         </a>
 
-        <!-- Essay: An Imaginary Problem -->
+        <!-- Essay: Young Men in a Hurry -->
         <a
-          href="./imaginary.html"
-          class="essay-card card-imaginary"
-          id="essay-card-imaginary"
+          href="./galois-abel.html"
+          class="essay-card card-galois-abel"
+          id="essay-card-galois-abel"
           role="listitem"
         >
           <div class="essay-card-content">
             <div class="essay-header">
-              <span class="essay-icon" aria-hidden="true">🔮</span>
-              <h2 class="essay-title">An Imaginary Problem</h2>
+              <span class="essay-icon" aria-hidden="true">🕯️</span>
+              <h2 class="essay-title">Young Men in a Hurry</h2>
             </div>
             <p class="essay-description">
-              How mathematicians ended up with numbers called natural,
-              irrational, real, and imaginary—and why René Descartes should
-              never have named them.
+              How Niels Henrik Abel and Évariste Galois, both dead before
+              thirty, proved that the quintic equation has no formula, and how
+              the legend of Galois outgrew the record.
+            </p>
+          </div>
+          <div class="essay-link-arrow" aria-hidden="true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </div>
+        </a>
+
+        <!-- Essay: Lies, Damned Lies -->
+        <a
+          href="./statistics.html"
+          class="essay-card card-statistics"
+          id="essay-card-statistics"
+          role="listitem"
+        >
+          <div class="essay-card-content">
+            <div class="essay-header">
+              <span class="essay-icon" aria-hidden="true">🍵</span>
+              <h2 class="essay-title">Lies, Damned Lies</h2>
+            </div>
+            <p class="essay-description">
+              How Quetelet, Florence Nightingale, Francis Galton, William
+              Gosset, and Ronald Fisher turned counting people into the science
+              of statistics, for better and for much worse.
             </p>
           </div>
           <div class="essay-link-arrow" aria-hidden="true">

@@ -12,8 +12,44 @@
 </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lies, Damned Lies</title>
+    <title>Lies, Damned Lies | cowneck</title>
     <meta name="description" content="How Quetelet, Florence Nightingale, Francis Galton, William Gosset and Ronald Fisher turned counting people into the science of statistics, for better and, at times, for much worse.">
+    <link rel="canonical" href="https://cowneck.com/essays/statistics.html">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <meta name="theme-color" content="#0b1120">
+
+    <!-- Link previews (Open Graph & Twitter/X) -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="cowneck">
+    <meta property="og:title" content="Lies, Damned Lies | cowneck">
+    <meta property="og:description" content="How Quetelet, Florence Nightingale, Francis Galton, William Gosset and Ronald Fisher turned counting people into the science of statistics, for better and, at times, for much worse.">
+    <meta property="og:url" content="https://cowneck.com/essays/statistics.html">
+    <meta property="og:image" content="https://cowneck.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Lies, Damned Lies - An essay on cowneck.com">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Lies, Damned Lies | cowneck">
+    <meta name="twitter:description" content="How Quetelet, Florence Nightingale, Francis Galton, William Gosset and Ronald Fisher turned counting people into the science of statistics, for better and, at times, for much worse.">
+    <meta name="twitter:image" content="https://cowneck.com/og-image.jpg">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "Lies, Damned Lies",
+      "description": "How Quetelet, Florence Nightingale, Francis Galton, William Gosset and Ronald Fisher turned counting people into the science of statistics, for better and, at times, for much worse.",
+      "url": "https://cowneck.com/essays/statistics.html",
+      "image": "https://cowneck.com/og-image.jpg",
+      "publisher": {
+        "@type": "Organization",
+        "name": "cowneck",
+        "url": "https://cowneck.com/"
+      },
+      "mainEntityOfPage": "https://cowneck.com/essays/statistics.html"
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
@@ -223,10 +259,34 @@
                 font-size: 1.2rem;
             }
         }
+
+        .essay-nav {
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            opacity: 0.85;
+            transition: opacity 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <article class="container">
+        <nav class="essay-nav">
+            <a href="./" class="back-link">← cowneck essays</a>
+        </nav>
         <h1>Lies, Damned Lies</h1>
 
         <p>The most famous remark ever made about statistics is that there are three kinds of lies: lies, damned lies and statistics. Mark Twain popularized it in 1907, crediting it to the British prime minister Benjamin Disraeli. The difficulty is that nobody has ever found it in Disraeli's speeches or writings, and the earliest known printed version turned up in 1891, ten years after his death. So the best-known line about unreliable figures comes with an unreliable source, which seems about right.</p>

@@ -273,12 +273,18 @@ def generate_sitemap():
         "https://cowneck.com/games/",
         "https://cowneck.com/projects/",
         "https://cowneck.com/essays/",
-        "https://cowneck.com/essays/bernoulli.html",
-        "https://cowneck.com/essays/imaginary.html",
-        "https://cowneck.com/mcu/",
-        "https://cowneck.com/games/kirby.html",
-        "https://cowneck.com/games/high-society/",
     ]
+    for p in sorted((REPO_ROOT / "essays").glob("*.html")):
+        if p.name == "index.html":
+            continue
+        urls.append(f"https://cowneck.com/essays/{p.name}")
+    urls.extend(
+        [
+            "https://cowneck.com/mcu/",
+            "https://cowneck.com/games/kirby.html",
+            "https://cowneck.com/games/high-society/",
+        ]
+    )
     for p in sorted((REPO_ROOT / "games").glob("*.html")):
         fname = p.name
         if fname in SKIP_FILES:

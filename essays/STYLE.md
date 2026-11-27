@@ -86,7 +86,7 @@ The jokes only work if the facts underneath them are solid.
 - **Do not overclaim firsts.** "Popularized" is usually safer than "invented."
 - **Quotations:** use the wording the best source gives. Where there is no
   agreed wording, paraphrase rather than quoting.
-- Write a notes file for each chapter at `book/notes/<slug>.md`. It lists the
+- Write a notes file for each chapter at `essays/notes/<slug>.md`. It lists the
   sources used for each major claim, plus any claim you could not verify and
   how the text hedges it. The editing pass relies on this file.
 
@@ -138,16 +138,19 @@ owns it.
 
 ## HTML template
 
-- Copy the `<head>` (Google tag, fonts, full `<style>` block) and page shell
-  from `essays/imaginary.html` exactly, so every chapter looks the same. Change
-  only the `<title>`, the meta description and the `<article>` contents.
-- `<title>` is the chapter title alone. The meta description is one plain
-  sentence about the chapter.
+- Copy the `<head>` (Google tag, metadata, fonts, full `<style>` block) and page
+  shell (including `<nav class="essay-nav">`) from `essays/imaginary.html`
+  exactly, so every chapter looks the same. Update the `<title>`, canonical URL,
+  meta description, Open Graph / Twitter tags, JSON-LD `Article` block and
+  `<article>` contents for the new chapter.
+- `<title>` is `<Chapter Title> | cowneck` (and JSON-LD `headline` is the
+  chapter title alone). The meta description is one plain sentence about the
+  chapter.
 - Link each person's first mention to Wikipedia with
   `target="_blank" rel="noopener noreferrer"` and wrap the name in `<strong>`.
   Put `class="accent-text"` on the link for the chapter's central subject (once).
 - The opening paragraph is the hook. The CSS styles the first `<p>` larger, so
   make it count.
-- Save the chapter as `book/<slug>.html`, with the slug taken from `OUTLINE.md`.
+- Save the chapter as `essays/<slug>.html`, with the slug taken from `OUTLINE.md`.
 - Check the page at 360px width: no horizontal scroll, and any formula card
   fits.

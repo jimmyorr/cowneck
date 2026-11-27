@@ -12,8 +12,44 @@
 </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Wizard of Merchiston</title>
+    <title>The Wizard of Merchiston | cowneck</title>
     <meta name="description" content="How a Scottish laird with a reputation for sorcery invented logarithms, turned multiplication into addition, and gave astronomers back years of their lives.">
+    <link rel="canonical" href="https://cowneck.com/essays/napier.html">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <meta name="theme-color" content="#0b1120">
+
+    <!-- Link previews (Open Graph & Twitter/X) -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="cowneck">
+    <meta property="og:title" content="The Wizard of Merchiston | cowneck">
+    <meta property="og:description" content="How a Scottish laird with a reputation for sorcery invented logarithms, turned multiplication into addition, and gave astronomers back years of their lives.">
+    <meta property="og:url" content="https://cowneck.com/essays/napier.html">
+    <meta property="og:image" content="https://cowneck.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="The Wizard of Merchiston - An essay on cowneck.com">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Wizard of Merchiston | cowneck">
+    <meta name="twitter:description" content="How a Scottish laird with a reputation for sorcery invented logarithms, turned multiplication into addition, and gave astronomers back years of their lives.">
+    <meta name="twitter:image" content="https://cowneck.com/og-image.jpg">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "The Wizard of Merchiston",
+      "description": "How a Scottish laird with a reputation for sorcery invented logarithms, turned multiplication into addition, and gave astronomers back years of their lives.",
+      "url": "https://cowneck.com/essays/napier.html",
+      "image": "https://cowneck.com/og-image.jpg",
+      "publisher": {
+        "@type": "Organization",
+        "name": "cowneck",
+        "url": "https://cowneck.com/"
+      },
+      "mainEntityOfPage": "https://cowneck.com/essays/napier.html"
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
@@ -223,10 +259,34 @@
                 font-size: 1.2rem;
             }
         }
+
+        .essay-nav {
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            opacity: 0.85;
+            transition: opacity 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <article class="container">
+        <nav class="essay-nav">
+            <a href="./" class="back-link">← cowneck essays</a>
+        </nav>
         <h1>The Wizard of Merchiston</h1>
 
         <p>Suppose, for the sake of argument, that you are a servant in a Scottish tower house in about 1600, and something has gone missing. Your master gathers the household together and explains that he owns a black cockerel with a particular talent: it can tell an honest person from a thief. One by one, you are each to go into a darkened room and stroke the bird, and when the guilty party touches it, it will crow. You go in, you stroke it, it says nothing, and you come out again. Your master then looks closely at everyone's hands. The cockerel, it turns out, has been dusted all over with soot, and the one person whose palms are perfectly clean is the one who was too frightened to touch it.</p>

@@ -7,7 +7,7 @@ Source code for [cowneck.com](https://cowneck.com) — interactive web games, ge
 - `index.html` — Main landing page.
 - `games/` — Standalone HTML5 web games (including **🐶 Lofi Pup** at `games/lofi-pup.html`, **High Society** at `games/high-society/`, and **Wizard** at `games/wizard.html`) and the games catalog (`games/index.html`).
 - `projects/` — Software and creative projects hub.
-- `essays/` — Long-form essays (`essays/index.html`, `essays/bernoulli.html`, `essays/imaginary.html`).
+- `essays/` — Long-form math history essays (`essays/index.html` and chapter pages), outline (`essays/OUTLINE.md`), style guide (`essays/STYLE.md`), and research notes (`essays/notes/`).
 - `math/` — Legacy redirect stubs forwarding old `/math/` URLs to `/essays/`.
 - `mcu/` — Marvel Cinematic Universe tracker.
 - `scripts/` — Repository maintenance and asset generation scripts:

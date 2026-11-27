@@ -24,7 +24,7 @@ Each chapter entry lists:
 
 ## Part One: Counting Sheep
 
-### 1. Notches — `book/notches.html`
+### 1. Notches — `essays/notches.html`
 - **Owns:** prehistoric tallies, Babylonian and Egyptian mathematics.
 - **Material:** the Ishango bone (Congo, about 20,000 years old, found by
   Belgian geologist Jean de Heinzelin in 1950; theories that it records primes
@@ -40,7 +40,7 @@ Each chapter entry lists:
 - **Central idea:** place value. Why "60" and "1" can be written with the same
   wedge, and why that's both clever and confusing.
 
-### 2. Beans and Diagonals — `book/beans.html`
+### 2. Beans and Diagonals — `essays/beans.html`
 - **Owns:** Pythagoras and the Pythagoreans, Hippasus, Euclid, the library at
   Alexandria, Eratosthenes, Hypatia.
 - **Material:** Pythagoras as cult leader. The bean prohibition, and the story
@@ -55,7 +55,7 @@ Each chapter entry lists:
 - **Central idea:** why &radic;2 can't be a fraction (the proof is short enough
   to sketch in prose).
 
-### 3. Eureka — `book/eureka.html`
+### 3. Eureka — `essays/eureka.html`
 - **Owns:** Archimedes, the Archimedes Palimpsest.
 - **Material:** the bath and the crown (from Vitruvius, two centuries later;
   hedge). The siege of Syracuse: the "claw" that lifted ships, and burning
@@ -69,7 +69,7 @@ Each chapter entry lists:
   X-rays at the Walters in Baltimore.
 - **Central idea:** the method of exhaustion: squeezing &pi; between polygons.
 
-### 4. Nothing Doing — `book/zero.html`
+### 4. Nothing Doing — `essays/zero.html`
 - **Owns:** zero, Brahmagupta, al-Khwarizmi, Fibonacci, the arrival of
   Hindu-Arabic numerals in Europe.
 - **Material:** Brahmagupta's rules for zero (628), including his wrong answer
@@ -95,7 +95,7 @@ Each chapter entry lists:
   a sentence or a pointer each. Rework the opening so it doesn't repeat ch. 2's
   material on natural and rational numbers.
 
-### 6. Signs of the Times — `book/notation.html`
+### 6. Signs of the Times — `essays/notation.html`
 - **Owns:** the history of mathematical symbols.
 - **Material:** + and &minus; in German commercial arithmetic (Widmann, 1489).
   Robert Recorde's = in *The Whetstone of Witte* (1557): "no two things can be
@@ -109,7 +109,7 @@ Each chapter entry lists:
 - **Central idea:** notation as technology. Try doing long division in Roman
   numerals.
 
-### 7. The Wizard of Merchiston — `book/napier.html` *(drafted)*
+### 7. The Wizard of Merchiston — `essays/napier.html` *(drafted)*
 - **Owns:** John Napier, Henry Briggs, logarithms, the slide rule.
 - **Material:** Napier's reputation as a sorcerer: the black rooster dusted
   with soot to catch a thieving servant, and the spider he kept in a box
@@ -122,7 +122,7 @@ Each chapter entry lists:
   on Apollo as a backup.
 - **Central idea:** turning multiplication into addition.
 
-### 8. Dice and the Devil — `book/probability.html`
+### 8. Dice and the Devil — `essays/probability.html`
 - **Owns:** Pascal, Fermat (except his Last Theorem, which belongs to ch. 22),
   the Chevalier de Méré, the problem of points, Huygens.
 - **Material:** a gambler's question about an interrupted game leads to the
@@ -133,7 +133,7 @@ Each chapter entry lists:
   back to ch. 5).
 - **Central idea:** expected value: how to divide the pot fairly.
 
-### 9. Gentlemen, This Is War — `book/newton-leibniz.html`
+### 9. Gentlemen, This Is War — `essays/newton-leibniz.html`
 - **Owns:** Leibniz, the calculus priority dispute, Newton only as a combatant
   in it.
 - **Angle:** tell it from **Leibniz's side**. See `STYLE.md` ("Off-limits
@@ -163,7 +163,7 @@ Each chapter entry lists:
 - **To do in the editing pass:** check that nothing later retells Euler's
   blindness, the house fire or his death.
 
-### 11. The Witch of Agnesi — `book/agnesi.html`
+### 11. The Witch of Agnesi — `essays/agnesi.html`
 - **Owns:** Émilie du Châtelet, Maria Gaetana Agnesi, Laura Bassi: how
   calculus and Newton reached continental Europe, often through women
   translating and teaching it.
@@ -187,7 +187,7 @@ Each chapter entry lists:
 
 ## Part Three: Prodigies, Rebels and Lost Causes
 
-### 12. Few, but Ripe — `book/gauss.html`
+### 12. Few, but Ripe — `essays/gauss.html`
 - **Owns:** Gauss.
 - **Material:** summing 1 to 100 as a schoolboy: Sartorius's original account
   has no numbers and no trick, and the familiar details were added much later
@@ -201,7 +201,7 @@ Each chapter entry lists:
 - **Central idea:** constructing the 17-gon, or modular arithmetic.
   Pick the one that tells better.
 
-### 13. Young Men in a Hurry — `book/galois-abel.html` *(drafted)*
+### 13. Young Men in a Hurry — `essays/galois-abel.html` *(drafted)*
 - **Owns:** Galois, Abel, and the impossibility of solving the quintic.
 - **Material:** Abel, poor in Norway, proved the quintic unsolvable, had his
   paper ignored or mislaid in Paris, and died of tuberculosis in 1829 at 26. A
@@ -217,7 +217,7 @@ Each chapter entry lists:
   story.
 - **Central idea:** what it means to prove that something is *impossible*.
 
-### 14. Parallel Lives — `book/non-euclidean.html`
+### 14. Parallel Lives — `essays/non-euclidean.html`
 - **Owns:** Euclid's fifth postulate, Saccheri, Farkas and János Bolyai,
   Lobachevsky, Riemann.
 - **Material:** two thousand years of attempts to prove the parallel postulate.
@@ -230,7 +230,7 @@ Each chapter entry lists:
 - **Central idea:** triangles whose angles don't add up to 180&deg;, shown on a
   sphere or a saddle.
 
-### 15. The Engine Men — `book/babbage-lovelace.html`
+### 15. The Engine Men — `essays/babbage-lovelace.html`
 - **Owns:** Charles Babbage, Ada Lovelace.
 - **Material:** Babbage's crusade against street musicians. His reported
   letter to Tennyson correcting "every moment dies a man, every moment one is
@@ -242,7 +242,7 @@ Each chapter entry lists:
 - **Central idea:** the method of differences: computing tables using only
   addition.
 
-### 16. Lies, Damned Lies — `book/statistics.html` *(drafted)*
+### 16. Lies, Damned Lies — `essays/statistics.html` *(drafted)*
 - **Owns:** Quetelet, Florence Nightingale, Galton, Gosset, Fisher.
 - **Material:** Quetelet's "average man." Nightingale's rose diagrams; she was
   the first woman elected to the Royal Statistical Society (1858). Galton
@@ -254,7 +254,7 @@ Each chapter entry lists:
   Fisher and the lady tasting tea (Muriel Bristol).
 - **Central idea:** averages and variation, or why one test proves little.
 
-### 17. Paradise — `book/cantor.html`
+### 17. Paradise — `essays/cantor.html`
 - **Owns:** Cantor, Kronecker's hostility, Russell's paradox, Frege.
 - **Material:** some infinities are bigger than others (the diagonal argument).
   Kronecker's campaign against Cantor. Cantor's depression and repeated stays in
@@ -270,7 +270,7 @@ Each chapter entry lists:
 
 ## Part Four: The Modern Muddle
 
-### 18. Not a Bathhouse — `book/women.html`
+### 18. Not a Bathhouse — `essays/women.html`
 - **Owns:** Sophie Germain, Sofia Kovalevskaya, Emmy Noether (Hilbert appears
   here as her champion).
 - **Material:** Germain taught herself by candlelight against her parents'
@@ -285,7 +285,7 @@ Each chapter entry lists:
 - **Central idea:** Noether's theorem in plain words: symmetry gives
   conservation laws.
 
-### 19. A Letter from Madras — `book/ramanujan.html`
+### 19. A Letter from Madras — `essays/ramanujan.html`
 - **Owns:** Ramanujan, Hardy, Littlewood.
 - **Material:** the 1913 letter of about 120 theorems, which Hardy nearly
   dismissed. Hardy's private feud with God: the Riemann postcard sent before a
@@ -295,7 +295,7 @@ Each chapter entry lists:
   Infinity*.
 - **Central idea:** 1729 and partitions, or why "dull" numbers aren't.
 
-### 20. Incomplete — `book/godel.html`
+### 20. Incomplete — `essays/godel.html`
 - **Owns:** Hilbert's program and the 1900 problems, Gödel, the Einstein
   friendship.
 - **Material:** Hilbert's 23 problems (Paris, 1900). His 1930 radio address,
@@ -307,7 +307,7 @@ Each chapter entry lists:
 - **Central idea:** "This statement cannot be proved." Incompleteness in plain
   words.
 
-### 21. The Imitation Game — `book/turing.html`
+### 21. The Imitation Game — `essays/turing.html`
 - **Owns:** Alan Turing.
 - **Material:** the 1936 paper and the halting problem. Bletchley Park and
   Enigma. He ran marathon-standard times (about 2:46), chained his mug to a
@@ -318,7 +318,7 @@ Each chapter entry lists:
   title, since *The Imitation Game* is a film.
 - **Central idea:** why no program can decide whether every program halts.
 
-### 22. Unclaimed Prizes — `book/fermat-perelman.html`
+### 22. Unclaimed Prizes — `essays/fermat-perelman.html`
 - **Owns:** Fermat's Last Theorem, Wiles, Wolfskehl, Erdős, Perelman.
 - **Material:** Fermat's 1637 margin note, published by his son in 1670. The
   Wolfskehl Prize of 1908, and the story that it saved its founder from
@@ -339,11 +339,11 @@ Each chapter entry lists:
 
 1. **Chapter sessions.** One session per chapter. Each one reads `STYLE.md`,
    this outline and one finished chapter. It researches with web searches,
-   writes `book/<slug>.html` and `book/notes/<slug>.md`, and pushes them to
+   writes `essays/<slug>.html` and `essays/notes/<slug>.md`, and pushes them to
    `main`. Sessions can run in parallel because each touches only its own two
    files.
 2. **Editing pass.** One session reads every chapter in order. It cuts
    repetition, enforces ownership, adds back-references, trims ch. 5 as noted,
    and reads every hedge in the notes files.
-3. **Front matter.** A contents page (`book/index.html`), probably a short
+3. **Front matter.** A contents page (`essays/index.html`), probably a short
    preface, and a projects-page card.

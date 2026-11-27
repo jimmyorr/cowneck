@@ -1,4 +1,4 @@
-# Notes: ch. 7, "The Wizard of Merchiston" (`book/napier.html`)
+# Notes: ch. 7, "The Wizard of Merchiston" (`essays/napier.html`)
 
 Prose length: about 2,970 words.
 

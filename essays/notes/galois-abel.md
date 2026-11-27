@@ -1,4 +1,4 @@
-# Notes: ch. 13, "Young Men in a Hurry" (`book/galois-abel.html`)
+# Notes: ch. 13, "Young Men in a Hurry" (`essays/galois-abel.html`)
 
 Prose length: about 3,000 words (excluding title and formula card).
 

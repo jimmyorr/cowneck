@@ -1,4 +1,4 @@
-# Notes: ch. 16, "Lies, Damned Lies" (`book/statistics.html`)
+# Notes: ch. 16, "Lies, Damned Lies" (`essays/statistics.html`)
 
 Prose length: about 3,000 words. There's no formula card. The central idea
 (why one test proves little) is explained in prose through the tea-tasting
