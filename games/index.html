@@ -121,9 +121,18 @@
 
       /* --- HEADER & HERO --- */
       header {
+        max-width: calc(1100px + 4rem);
+        margin: 0 auto;
         text-align: center;
-        padding: 80px 20px 40px;
-        position: relative;
+        padding: 4rem 2rem 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .back-nav {
+        align-self: flex-start;
+        margin-bottom: 3rem;
       }
 
       h1 {
@@ -132,6 +141,7 @@
         font-weight: 800;
         text-transform: lowercase;
         letter-spacing: -1px;
+        line-height: 1.1;
         background: linear-gradient(
           135deg,
           #a1c4fd 0%,
@@ -142,7 +152,7 @@
         background-clip: text;
         -webkit-text-fill-color: transparent;
         text-shadow: 0px 0px 40px rgba(194, 233, 251, 0.2);
-        margin-bottom: 8px;
+        margin-bottom: 12px;
       }
 
       p.subtitle {
@@ -155,28 +165,26 @@
 
       /* --- BACK LINK --- */
       .back-to-home {
-        position: absolute;
-        top: 30px;
-        left: 30px;
-        color: #64748b;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #94a3b8;
         text-decoration: none;
         font-size: 0.95rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.2s ease;
-        padding: 8px 16px;
+        font-weight: 500;
+        line-height: 1.6;
+        transition: all 0.3s ease;
+        padding: 6px 12px;
         border-radius: 20px;
-        background: rgba(255, 255, 255, 0.02);
+        background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.05);
       }
 
       .back-to-home:hover {
-        color: #f1f5f9;
-        background: rgba(255, 255, 255, 0.06);
+        color: #f8fafc;
+        background: rgba(255, 255, 255, 0.08);
         border-color: rgba(255, 255, 255, 0.15);
-        transform: translateX(-3px);
+        transform: translateX(-4px);
       }
 
       /* --- FILTER BAR --- */
@@ -267,9 +275,9 @@
 
       /* --- GRID CONTAINER --- */
       main {
-        max-width: 1200px;
+        max-width: calc(1100px + 4rem);
         margin: 0 auto;
-        padding: 0 24px 80px;
+        padding: 0 2rem 5rem;
       }
 
       .games-container {
@@ -491,17 +499,15 @@
       /* --- MOBILE RESPONSIVENESS --- */
       @media (max-width: 768px) {
         header {
-          padding: 60px 20px 30px;
+          padding: 3rem 1.5rem 0;
+        }
+
+        main {
+          padding: 0 1.5rem 4rem;
         }
 
         h1 {
-          font-size: 2.6rem;
-        }
-
-        .back-to-home {
-          position: static;
-          display: inline-flex;
-          margin-bottom: 20px;
+          font-size: 2.75rem;
         }
 
         .filter-bar {
@@ -529,7 +535,25 @@
 
   <body>
     <header>
-      <a href="/" class="back-to-home">← cowneck</a>
+      <nav class="back-nav" aria-label="Back">
+        <a href="../" class="back-to-home" id="btn-back-home">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>cowneck</span>
+        </a>
+      </nav>
       <h1>cowneck games</h1>
       <p class="subtitle">
         Filter by creator or explore our combined collection.
