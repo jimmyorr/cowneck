@@ -272,10 +272,10 @@ def generate_sitemap():
         "https://cowneck.com/",
         "https://cowneck.com/games/",
         "https://cowneck.com/projects/",
+        "https://cowneck.com/essays/",
+        "https://cowneck.com/essays/bernoulli.html",
+        "https://cowneck.com/essays/imaginary.html",
         "https://cowneck.com/mcu/",
-        "https://cowneck.com/math/bernoulli.html",
-        "https://cowneck.com/math/imaginary.html",
-        "https://cowneck.com/math/gemini-math-history.html",
         "https://cowneck.com/games/kirby.html",
         "https://cowneck.com/games/high-society/",
     ]

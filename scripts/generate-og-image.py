@@ -133,12 +133,12 @@ def create_og_image():
     # 2. Frosted glass buttons matching index.html (.links a)
     # padding: 10px 18px; border: 1px solid rgba(255, 255, 255, 0.1);
     # border-radius: 12px; background: rgba(255, 255, 255, 0.05); color: #f8fafc;
-    buttons = ["games", "projects"]
+    buttons = ["games", "projects", "essays"]
     btn_x = left_x + 4 * SCALE
     btn_y = 355 * SCALE
-    pad_x = 24 * SCALE
+    pad_x = 22 * SCALE
     pad_y = 13 * SCALE
-    btn_gap = 20 * SCALE
+    btn_gap = 18 * SCALE
     radius = 12 * SCALE
 
     # Measure x-height once so both buttons share the exact same baseline

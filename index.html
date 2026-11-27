@@ -80,8 +80,10 @@
             color: #94a3b8;
             font-size: 1.2rem;
             display: flex;
+            flex-wrap: wrap;
             gap: 20px;
             justify-content: center;
+            padding: 0 16px;
         }
 
         .links a {
@@ -114,9 +116,14 @@
             border-color: transparent;
         }
 
+        .links a.link-essays:hover {
+            background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%);
+            border-color: transparent;
+        }
+
         #chester-link {
             display: inline-block;
-            width: 400px;
+            width: min(400px, 85vw);
             max-width: 400px;
             transition: transform 0.2s ease;
             margin: 0 auto;
@@ -132,59 +139,6 @@
             -webkit-mask-image: -webkit-radial-gradient(circle, white 100%, black 100%);
             box-shadow: 0 10px 40px rgba(0,0,0,0.4), 0 0 30px rgba(99, 102, 241, 0.2);
         }
-
-        #chester-link.bouncing-chester {
-            position: fixed;
-            width: 150px;
-            max-width: 150px;
-            height: auto;
-            top: 20px;
-            left: 20px;
-            z-index: 9999;
-            transform: translate(0, 0);
-            transition: none;
-            cursor: pointer;
-        }
-
-        #drop-button {
-            position: fixed;
-            left: 50%;
-            bottom: 20px;
-            transform: translateX(-50%);
-            padding: 14px 30px;
-            border: none;
-            border-radius: 999px;
-            color: white;
-            font-size: 1rem;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            cursor: pointer;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.22), 0 0 30px rgba(255,255,255,0.18), inset 0 0 20px rgba(255,255,255,0.12);
-            background: linear-gradient(135deg, #f43f5e, #fb7185, #facc15, #22c55e, #0ea5e9, #a855f7);
-            background-size: 350% 350%;
-            animation: rainbow-glow 3s ease infinite, drop-glow 1.8s ease-in-out infinite;
-            border: 1px solid rgba(255, 255, 255, 0.32);
-            display: none;
-            z-index: 10000;
-        }
-
-        @keyframes rainbow-glow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        @keyframes drop-glow {
-            0%, 100% {
-                box-shadow: 0 22px 48px rgba(0,0,0,0.26), 0 0 32px rgba(255,255,255,0.22), inset 0 0 20px rgba(255,255,255,0.14);
-                transform: translateX(-50%) scale(1);
-            }
-            50% {
-                box-shadow: 0 26px 60px rgba(0,0,0,0.28), 0 0 48px rgba(255,255,255,0.32), inset 0 0 28px rgba(255,255,255,0.18);
-                transform: translateX(-50%) scale(1.04);
-            }
-        }
     </style>
 </head>
 
@@ -196,117 +150,9 @@
         <div class="links">
             <a href="games/" class="link-games">games</a>
             <a href="projects/" class="link-projects">projects</a>
+            <a href="essays/" class="link-essays">essays</a>
         </div>
     </div>
-    <button id="drop-button">DROP</button>
-    <script>
-        const initChesterBounce = () => {
-            const chester = document.getElementById('chester-link');
-            const dropButton = document.getElementById('drop-button');
-            if (!chester || !dropButton) return;
-
-            const cleanup = () => {
-                if (chester._chesterRafId != null) {
-                    cancelAnimationFrame(chester._chesterRafId);
-                    chester._chesterRafId = null;
-                }
-                chester.classList.remove('bouncing-chester');
-                chester.style.position = '';
-                chester.style.top = '';
-                chester.style.left = '';
-                chester.style.width = '';
-                chester.style.transform = '';
-                chester.style.pointerEvents = '';
-                dropButton.style.display = 'none';
-                dropButton.onclick = null;
-            };
-
-            cleanup();
-
-            const shouldBounce = Math.random() < 0.1;
-            if (!shouldBounce) return;
-
-            const rect = chester.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) return;
-
-            dropButton.style.display = 'block';
-            dropButton.onclick = () => {
-                dropButton.style.display = 'none';
-                startDvdAnimation();
-            };
-
-            const startDvdAnimation = () => {
-                const startX = rect.left;
-                const startY = rect.top;
-                const dropDistance = 120;
-                const duration = 500;
-                let startTime = null;
-                let x = startX;
-                let y = startY - dropDistance;
-                let vx = 4 + Math.random() * 2;
-                let vy = 4 + Math.random() * 2;
-
-                chester.classList.add('bouncing-chester');
-                chester.style.position = 'fixed';
-                chester.style.width = '150px';
-                chester.style.left = `${startX}px`;
-                chester.style.top = `${y}px`;
-                chester.style.pointerEvents = 'auto';
-
-                const easeOut = t => 1 - Math.pow(1 - t, 3);
-
-                const update = timestamp => {
-                    if (chester._chesterRafId == null) return;
-                    if (startTime === null) startTime = timestamp;
-                    const elapsed = timestamp - startTime;
-
-                    const viewportWidth = window.innerWidth;
-                    const viewportHeight = window.innerHeight;
-                    const currentRect = chester.getBoundingClientRect();
-                    const imgWidth = currentRect.width;
-                    const imgHeight = currentRect.height;
-
-                    if (elapsed < duration) {
-                        const progress = easeOut(Math.min(elapsed / duration, 1));
-                        y = startY - dropDistance + progress * dropDistance;
-                        chester.style.top = `${y}px`;
-                        chester._chesterRafId = requestAnimationFrame(update);
-                        return;
-                    }
-
-                    x += vx;
-                    y += vy;
-
-                    if (x <= 0) {
-                        x = 0;
-                        vx = Math.abs(vx);
-                    } else if (x + imgWidth >= viewportWidth) {
-                        x = viewportWidth - imgWidth;
-                        vx = -Math.abs(vx);
-                    }
-
-                    if (y <= 0) {
-                        y = 0;
-                        vy = Math.abs(vy);
-                    } else if (y + imgHeight >= viewportHeight) {
-                        y = viewportHeight - imgHeight;
-                        vy = -Math.abs(vy);
-                    }
-
-                    chester.style.left = `${x}px`;
-                    chester.style.top = `${y}px`;
-                    chester._chesterRafId = requestAnimationFrame(update);
-                };
-
-                chester._chesterRafId = requestAnimationFrame(update);
-            };
-
-            window.addEventListener('pagehide', cleanup, { once: true });
-            window.addEventListener('beforeunload', cleanup, { once: true });
-        };
-
-        window.addEventListener('pageshow', initChesterBounce);
-    </script>
 </body>
 
 </html>
