@@ -39,10 +39,12 @@ title. Find its entry in `OUTLINE.md`; the slug is the file name it gives.
 2. Read `essays/STYLE.md` and `essays/OUTLINE.md` in full. Note this chapter's
    **Owns**, **Material** and **Central idea**, and also what every other
    chapter owns, so you know what you may only mention in passing.
-3. Read the private notes: `essays/private/influences.md` in a local clone
-   (git-ignored), or `/mnt/project-files/book-private/influences.md` in a
-   Claude project session. They hold the voice model and material to stay
-   away from. If neither file exists, stop and ask for it.
+3. Read the private notes: `essays/private/influences.md`. `essays/private/`
+   is git-ignored and holds a clone of the separate private notes repo; its
+   README explains setup. If it is missing but that repo is checked out next
+   to this one, symlink it into place; otherwise stop and ask for it. Run
+   `git -C essays/private pull --rebase` first. They hold the voice model and
+   material to stay away from.
 4. Read both reference chapters in full, `essays/bernoulli.html` and
    `essays/imaginary.html`, to calibrate the voice.
 5. Read the **opening paragraph of every drafted chapter** (every
@@ -163,8 +165,8 @@ description, Open Graph and Twitter tags, JSON-LD `Article` block, and the
 
 Add a short `### <slug>` section to the private notes' "Overlap checks"
 list, saying what you checked against the off-limits material and what you
-left out. Edit whichever copy you read in step 1; this file is never
-committed. If you can't write to it, put the text in your final report so it
+left out. Commit and push that change from inside `essays/private/` (the
+private repo), never from the book repo. If you can't write to it, put the text in your final report so it
 can be pasted in.
 
 ## 7. Commit and push
