@@ -1,12 +1,12 @@
 # Notes: ch. 3, "Eureka" (`essays/eureka.html`)
 
-Prose length: about 3,000 words (excluding title, back-link and formula card).
+Prose length: about 3,100 words (excluding title, back-link and formula card).
 
 ## Sources by claim
 
 ### The bath, the golden wreath and Galileo's balance
 - **Vitruvius's account of the bath and votive wreath.** Vitruvius, *De architectura*, Book IX, Preface 9–12 (written 1st century BC, roughly two centuries after Archimedes' death in 212 BC). Hiero II supplied pure gold for a votive wreath for a temple, suspected silver adulteration, and asked Archimedes to investigate. Archimedes stepped into a bath, noticed water overflowing as he sank in, ran home naked crying *heurēka* ("I have found it"), and compared the water displaced by equal weights of gold and the wreath. Sources: Wikipedia ("Archimedes", "Hiero II of Syracuse"); Chris Rorres, *The Golden Crown (Sources)*, NYU (`math.nyu.edu/Archimedes/Crown/Vitruvius.html`).
-- **Galileo's critique (1586) and the hydrostatic balance.** Galileo Galilei, *La Bilancetta* ("The Little Balance", 1586; written when Galileo was 22). Numerical check on overflow volume: gold density ≈ 19.32 g/cm³, silver ≈ 10.49 g/cm³. For a 2 lb (~907 g) crown with 25% (~227 g) silver substituted for gold, pure gold volume is 907 / 19.32 ≈ 46.95 cm³, while the adulterated crown volume is 680 / 19.32 + 227 / 10.49 ≈ 35.20 + 21.64 = 56.84 cm³, an increase of ~9.9 cm³ (roughly two teaspoons, ~10 mL). Across a 20 cm circular basin (area ≈ 314 cm²), 10 cm³ raises the water level by ~0.32 mm ("less than half a millimeter"). Sources: Rice University Galileo Project (`galileo.library.rice.edu/sci/instruments/balance.html`); Chris Rorres, NYU Archimedes Crown analysis; Wikipedia ("Archimedes").
+- **Galileo's critique (1586) and the hydrostatic balance.** Galileo Galilei, *La Bilancetta* ("The Little Balance", 1586; written when Galileo was 22). Galileo judged the overflow test too crude and proposed the balance; he gave no figures. The numbers below are a modern estimate (after Rorres), and the text says so ("modern arithmetic bears him out"). Numerical check on overflow volume: gold density ≈ 19.32 g/cm³, silver ≈ 10.49 g/cm³. For a 2 lb (~907 g) crown with 25% (~227 g) silver substituted for gold, pure gold volume is 907 / 19.32 ≈ 46.95 cm³, while the adulterated crown volume is 680 / 19.32 + 227 / 10.49 ≈ 35.20 + 21.64 = 56.84 cm³, an increase of ~9.9 cm³ (roughly two teaspoons, ~10 mL). Across a 20 cm circular basin (area ≈ 314 cm²), 10 cm³ raises the water level by ~0.32 mm ("less than half a millimeter"). Sources: Rice University Galileo Project (`galileo.library.rice.edu/sci/instruments/balance.html`); Chris Rorres, NYU Archimedes Crown analysis; Wikipedia ("Archimedes").
 - **Archimedes' principle.** *On Floating Bodies*, Book I, Proposition 7 (upthrust equals weight of displaced fluid). Source: Wikipedia ("Archimedes").
 
 ### Life, family, Alexandria, the *On Spirals* trap and levers
@@ -52,6 +52,12 @@ Prose length: about 3,000 words (excluding title, back-link and formula card).
 
 ## Ownership check
 
-- **Library of Alexandria and Eratosthenes (ch. 2):** Receive one-clause pointers to the previous chapter only; Eratosthenes' measurement of the Earth is not told here.
-- **Calculus, Newton and Leibniz (ch. 9 & ch. 10):** *The Method* gets a single forward pointer ("the calculus we shall meet in chapters 9 and 10") without naming Newton or Leibniz or explaining derivatives/integrals.
+- **Library of Alexandria and Eratosthenes (ch. 2):** Get one-clause mentions only; Eratosthenes' measurement of the Earth is not told here.
+- **Calculus, Newton and Leibniz (ch. 9 & ch. 10):** *The Method* gets a single clause ("calculus might have had a two-century head start") without naming Newton or Leibniz or explaining derivatives/integrals.
 - **Galileo:** Not owned by any chapter in `OUTLINE.md`; appears solely for his 1586 critique of the crown story.
+
+## Editing pass (2026-11-28)
+
+- Opening now starts with Cicero finding the tomb in 75 BC (*Tusculan Disputations* V.64–66, sourced above); the later tomb paragraph is cut to a back-reference. 212 − 75 = 137 years.
+- Uwe Bergmann: softened to "usually used X-rays to study proteins" and "learned from a magazine article" about the iron-gall ink. Sources: SLAC press release, 16 June 2005 (`www6.slac.stanford.edu/news/2005-06-16-archimedes-manuscript-yields-secrets-under-x-ray-gaze`); *Stanford Magazine*, "New Light on an Old Subject". Only search snippets were reachable, so confirm the magazine detail before publication.
+- Sirieix's custody: "French cellar" and "purple mold" removed; the text now says only that mold damaged it in his care in Paris (Walters Art Museum; Wikipedia, "Archimedes Palimpsest").
