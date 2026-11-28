@@ -120,7 +120,8 @@ clause or a cross-reference:
 
 ## Length and shape
 
-- Aim for 2,000–3,000 words of prose per chapter.
+- Aim for 2,000–3,000 words of prose per chapter. This is a soft limit: a
+  chapter that runs a little over is fine if every paragraph earns its place.
 - Paragraphs: mostly 3–7 sentences. The occasional one-line paragraph is
   allowed for a turn in the story ("Then someone divided a sheep.").
 - Chapter titles should be short and wry. Avoid reusing the titles of
@@ -135,6 +136,10 @@ briefly, if at all, and may point back ("as we saw with the Bernoullis…" or
 "whom we shall meet properly later"). Do not retell Euler going blind, Hippasus
 being drowned or Cardano stealing the cubic in any chapter except the one that
 owns it.
+
+Point to other chapters by subject, never by position. Write "the Bernoullis'
+feud" or "when we come to Gauss," not "the previous chapter" or "chapters 9
+and 10". The order of chapters may change.
 
 ## HTML template
 
