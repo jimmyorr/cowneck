@@ -84,6 +84,10 @@ Prose length: about N words (excluding title, back-link and formula card).
 ## Ownership check
 
 - <Each person or story another chapter owns, and how briefly it appears here.>
+
+## Spot-checks for editing pass
+
+- <The 2–3 claims resting on search snippets, secondary quotation, or uninspected print pages, so an editor in a separate session sees them here as well as in the chat report.>
 ```
 
 Rules for the notes:
@@ -142,24 +146,18 @@ description, Open Graph and Twitter tags, JSON-LD `Article` block, and the
 
 ## 5. Check
 
-1. Run the mechanical checks, passing the writer's name and book titles from
-   the private notes as `--forbid` terms (on the command line only, never in a
-   file):
+1. Run the mechanical checks, passing the writer's surname and distinctive book-title phrases from the private notes as `--forbid` terms (on the command line only, never in a file; skip short titles made of everyday words that occur in ordinary lowercase prose, or verify from the printed context snippet):
 
    ```bash
    python3 .agents/skills/write-chapter/scripts/check_chapter.py essays/<slug>.html --forbid "<name>" --forbid "<title>"
    ```
 
-   It prints the prose word count and flags banned phrases, em dashes,
-   exclamation marks and position references. Fix every flag, or be sure it is
-   inside a quotation. Put the word count in the notes file.
+   It prints the prose word count, validates `<head>` metadata and JSON-LD against `<h1>` and `essays/<slug>.html`, and flags banned phrases, em dashes, exclamation marks and position references. Fix every flag, or be sure it is inside a quotation. Put the final word count in the notes file.
 2. Search everything you are about to commit for the same names:
    `git diff --cached | grep -i -E "<name>|<title>"` must print nothing.
-3. Run `npx eslint essays/<slug>.html essays/index.html`.
-4. Open the page at 360px width (a Playwright screenshot is fine): no
-   horizontal scroll, and the formula card fits.
-5. Reread the chapter once against the notes file, claim by claim. Anything
-   in the text that is not in the notes gets a source or comes out.
+3. Run `npm run lint` to confirm repo-wide lint passes with zero warnings (`eslint.config.mjs` does not lint `essays/*.html` directly; `check_chapter.py` checks the chapter's metadata and JSON-LD).
+4. Open both `essays/<slug>.html` and `essays/index.html` at 360px width (a Playwright check is fine): no horizontal scroll, the formula card fits, and the new numbered card aligns cleanly.
+5. Reread the chapter once against the notes file, claim by claim. Anything in the text that is not in the notes gets a source or comes out. If you trimmed or rephrased the chapter after drafting, re-sync `essays/notes/<slug>.md` too (word count, cut claims, and verbatim cross-reference quotes in `## Ownership check`).
 
 ## 6. Record the private overlap check
 
@@ -177,8 +175,9 @@ message such as `Add <Title> chapter on <subject>`. Push to `main`.
 
 ## 8. Report
 
-Reply with: the chapter title and word count; the two or three claims that
-most need a human spot-check (quotations from snippets, disputed numbers);
-anything from the Material list you left out and why; and the overlap-check
-text if you could not write it to the private notes. Suggest an editing pass
-as the next step.
+Reply with: the chapter title and word count; the two or three claims from
+`## Spot-checks for editing pass` in `essays/notes/<slug>.md` that most need a
+human spot-check (never report a spot-check in chat without also recording it
+in the notes file); anything from the Material list you left out and why; and
+the overlap-check text if you could not write it to the private notes. Suggest
+an editing pass as the next step.

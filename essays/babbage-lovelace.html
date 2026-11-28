@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6RNVL7JZVJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-6RNVL7JZVJ');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Engine Men | cowneck</title>
+    <meta name="description" content="How Charles Babbage and Ada Lovelace designed the modern computer in brass and steam a century early, and why nobody built it until 1991.">
+    <link rel="canonical" href="https://cowneck.com/essays/babbage-lovelace.html">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <meta name="theme-color" content="#0b1120">
+
+    <!-- Link previews (Open Graph & Twitter/X) -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="cowneck">
+    <meta property="og:title" content="The Engine Men | cowneck">
+    <meta property="og:description" content="How Charles Babbage and Ada Lovelace designed the modern computer in brass and steam a century early, and why nobody built it until 1991.">
+    <meta property="og:url" content="https://cowneck.com/essays/babbage-lovelace.html">
+    <meta property="og:image" content="https://cowneck.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="The Engine Men - An essay on cowneck.com">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Engine Men | cowneck">
+    <meta name="twitter:description" content="How Charles Babbage and Ada Lovelace designed the modern computer in brass and steam a century early, and why nobody built it until 1991.">
+    <meta name="twitter:image" content="https://cowneck.com/og-image.jpg">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "The Engine Men",
+      "description": "How Charles Babbage and Ada Lovelace designed the modern computer in brass and steam a century early, and why nobody built it until 1991.",
+      "url": "https://cowneck.com/essays/babbage-lovelace.html",
+      "image": "https://cowneck.com/og-image.jpg",
+      "publisher": {
+        "@type": "Organization",
+        "name": "cowneck",
+        "url": "https://cowneck.com/"
+      },
+      "mainEntityOfPage": "https://cowneck.com/essays/babbage-lovelace.html"
+    }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b1120;
+            --text-color: #f8fafc;
+            --accent-color: #6366f1;
+            --glass-bg: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(244, 114, 182, 0.15) 0%, transparent 50%);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            line-height: 1.8;
+            font-size: 1.125rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 3rem 1rem;
+        }
+
+        .container {
+            max-width: 680px;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            margin-bottom: 1.6rem;
+            color: #cbd5e1;
+            font-weight: 400;
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        p:first-of-type {
+            font-size: 1.25rem;
+            color: #f8fafc;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        em {
+            color: #f1f5f9;
+            font-style: italic;
+        }
+
+        .accent-text {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        /* Links styling */
+        a {
+            color: #818cf8;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(129, 140, 248, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        a:hover {
+            color: #c084fc;
+            border-bottom-color: #c084fc;
+            background: rgba(192, 132, 252, 0.05);
+            border-radius: 2px;
+        }
+
+        /* Micro-interactions */
+        p {
+            transition: color 0.2s ease;
+        }
+
+        p:hover {
+            color: #f1f5f9;
+        }
+
+        /* Formula display card */
+        .formula-card {
+            margin: 2.2rem auto;
+            padding: 1.75rem 2rem;
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(129, 140, 248, 0.25);
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .formula-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.6), #818cf8, transparent);
+        }
+
+        .formula-display {
+            font-family: 'STIX Two Text', 'Cambria Math', 'Times New Roman', serif;
+            font-size: 2.5rem;
+            color: #ffffff;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.4rem;
+            text-shadow: 0 0 25px rgba(129, 140, 248, 0.45);
+        }
+
+        .formula-display em {
+            font-style: italic;
+            color: #f8fafc;
+        }
+
+        .formula-display sup {
+            font-size: 1.5rem;
+            top: -0.6em;
+            position: relative;
+        }
+
+        .formula-display .math-operator,
+        .caption-math .math-operator {
+            color: #c084fc;
+            margin: 0 0.25rem;
+            font-style: normal;
+        }
+
+        .formula-caption {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #94a3b8;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem 0.75rem;
+                font-size: 1.05rem;
+            }
+            .container {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+            h1 {
+                font-size: 2.25rem;
+                margin-bottom: 1.5rem;
+            }
+            p:first-of-type {
+                font-size: 1.15rem;
+            }
+            .formula-display {
+                font-size: 1.9rem;
+            }
+            .formula-display sup {
+                font-size: 1.2rem;
+            }
+        }
+
+        .essay-nav {
+            margin-bottom: 2rem;
+        }
+
+        .back-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            opacity: 0.85;
+            transition: opacity 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <article class="container">
+        <nav class="essay-nav">
+            <a href="./" class="back-link">← cowneck essays</a>
+        </nav>
+        <h1>The Engine Men</h1>
+
+        <p>One day in London, the sculptor <a href="https://en.wikipedia.org/wiki/Francis_Leggatt_Chantrey" target="_blank" rel="noopener noreferrer"><strong>Francis Chantrey</strong></a> mentioned that he had built a room-sized brick oven for drying the molds of a large bronze statue. Most visitors would have nodded politely and asked after the statue. <a href="https://en.wikipedia.org/wiki/Charles_Babbage" target="_blank" rel="noopener noreferrer" class="accent-text"><strong>Charles Babbage</strong></a> asked whether he might get in. With his friend <a href="https://en.wikipedia.org/wiki/Henry_Kater" target="_blank" rel="noopener noreferrer"><strong>Henry Kater</strong></a>, an army captain and physicist, Babbage stepped through the iron folding doors and had them shut behind him. The stone paving in the far corner glowed a dull red, and the thermometer stood at 265 degrees Fahrenheit, well past the boiling point of water. The two men stood sweating for five or six minutes "without very great discomfort," and came out unharmed. Recalling the outing years later, Babbage had only one small regret: his pulse had quickened, and "I ought to have counted but did not count the number of inspirations per minute."</p>
+
+        <p>That was Babbage all over. Born in London on 26 December 1791, the son of a wealthy banker, he went through seventy-nine years wanting to count, time and pry open everything within reach. Handed a new toy as a small boy, he invariably asked, "Mamma, what is inside of it?", and broke the toy open if the answer seemed vague. As an adult, he climbed down into the active crater of Mount Vesuvius in 1828 to watch molten lava up close, designed cow-catchers for locomotives, lighthouse signals and colored theater lights, cracked ciphers, and in 1857 published a statistical table of 464 broken plate-glass windows, recording that fourteen had been smashed by "drunken men, women or boys."</p>
+
+        <p>So nobody blinked when a story began circulating about Babbage and <a href="https://en.wikipedia.org/wiki/Alfred,_Lord_Tennyson" target="_blank" rel="noopener noreferrer"><strong>Alfred, Lord Tennyson</strong></a>. In 1842 Tennyson published "The Vision of Sin," in which a tavern cynic sings, "Every minute dies a man, / Every minute one is born" (later altered by Tennyson to "Every moment"). According to the tale, Babbage wrote to warn the poet that equal births and deaths would leave world population at a standstill, and proposed for the next edition, "Every moment dies a man, / Every moment 1 1/16 is born," adding that the true figure was too long for the meter, "but I believe the figure 1 1/16 will be sufficiently accurate for poetry." It is a glorious letter, and it is almost a pity Babbage never wrote it. The joke first appeared in an 1863 magazine piece by <a href="https://en.wikipedia.org/wiki/Sir_George_Trevelyan,_2nd_Baronet" target="_blank" rel="noopener noreferrer"><strong>George Otto Trevelyan</strong></a> about an unnamed enthusiast for sanitary statistics, was attached to Babbage in <em>Harper's Magazine</em> in 1890 as a yarn that deserved to be true even if it wasn't, and acquired the "sufficiently accurate for poetry" flourish in the twentieth century. Still, it says everything about Babbage, who really had written an 1826 book on life-insurance tables, that for more than a century hardly anyone thought to check.</p>
+
+        <p>At Cambridge, which he entered in 1810, Babbage was already restless and hard to please. Finding his tutors still wedded to British calculus notation long after Europe had moved on (a hangover from the Newton and Leibniz quarrel that we explore elsewhere), he joined two fellow undergraduates in 1812, <a href="https://en.wikipedia.org/wiki/John_Herschel" target="_blank" rel="noopener noreferrer"><strong>John Herschel</strong></a> and <a href="https://en.wikipedia.org/wiki/George_Peacock" target="_blank" rel="noopener noreferrer"><strong>George Peacock</strong></a>, to drag the curriculum onto the Continent. He skipped the final honors exam rather than finish second to Herschel, and later held Cambridge's Lucasian chair of mathematics from 1828 to 1839 without once delivering a lecture. Learned bodies fared no better with him: the Council of the Royal Society, he wrote, was "a collection of men who elect each other to office and then dine together at the expense of this society to praise each other over wine and give each other medals."</p>
+
+        <p>What turned this prickly polymath into the prophet of modern computing was bad paperwork. In the early nineteenth century, anyone navigating a ship, surveying a railway, pricing an annuity or tracking a planet relied on thick printed books of trigonometric and logarithm tables, the labor-saving tables we met with John Napier. Every line in them had been worked out, copied and set in lead type by hand, by clerks whose job title, long before the word meant a machine, was "computer." Clerks grew tired, copyists swapped digits, and typesetters turned a 3 into an 8. Babbage estimated that table errors had cost the British government two or three million pounds and run ships aground. Dozing over a book of logarithms at Cambridge around 1812, he had already daydreamed about calculating tables by machinery. Then in 1821, proofreading hand-calculated astronomical tables aloud with Herschel and finding error after error, Babbage lost his temper and cried, "I wish to God these calculations had been executed by steam." Herschel thought a moment and said it was quite possible.</p>
+
+        <p>At first glance it is hard to see how brass gearwheels could compute logarithms or sines, since even plain multiplication is awkward to build out of cogs. Babbage knew, however, about a French project from the 1790s. Asked to produce vast new tables for the French land registry, the engineer <a href="https://en.wikipedia.org/wiki/Gaspard_de_Prony" target="_blank" rel="noopener noreferrer"><strong>Gaspard de Prony</strong></a> had opened Adam Smith's chapter on pin-making and decided to "manufacture logarithms as easily as one manufactures pins." At the top of his hierarchy sat a few leading mathematicians who chose the formulas; in the middle sat seven or eight algebraists who turned those formulas into starting values; and at the bottom sat sixty to ninety workers who knew nothing beyond addition and subtraction (according to a story historians repeat with fond caution, many were unemployed Parisian hairdressers whose aristocratic clients had lately lost either the taste for powdered wigs or their heads). Babbage saw the next step: if the bottom tier was doing nothing but routine addition, you could replace the hairdressers with brass.</p>
+
+        <p>The mathematical trick behind this is called <strong>the method of finite differences</strong>, and it is a small piece of arithmetic magic. Suppose you want a table of squares without ever multiplying. Write down the first five squares: 1, 4, 9, 16, 25. Subtract each from the next to get the first differences: 3, 5, 7, 9. Subtract each of those from the next to get the second differences: 2, 2, 2. Every one of them is 2, and one more subtraction gives nothing but zeros.</p>
+
+        <p>Now run the cascade backward using only addition. To find 6 squared after 25, add that constant 2 to the last first-difference, 9, giving 11, and add 11 to 25 to get 36. Do it again: 11 plus 2 is 13, and 36 plus 13 is 49, which is 7 squared; then 13 plus 2 is 15, and 49 plus 15 is 64, which is 8 squared. You can march into the thousands without once multiplying. Cubes (1, 8, 27, 64) hit a constant 6 on the third round of subtractions, and any sixth-degree polynomial hits a constant on the sixth round, meaning its seventh differences vanish. Because smooth curves like logarithms and sines can be closely matched over short stretches by polynomials, a machine that merely adds neighboring columns can tabulate almost anything a navigator needs. Asked to state his machine's principle in two words, Babbage remarked dryly that four would do ("the method of differences"), or six characters:</p>
+
+        <div class="formula-card">
+            <div class="formula-display">
+                &Delta;<sup>7</sup><em>u</em><sub><em>x</em></sub> <span class="math-operator">=</span> 0
+            </div>
+            <div class="formula-caption">Seventh differences vanish</div>
+        </div>
+
+        <p>By June 1822 Babbage had a small model cranking out values of <em>n</em><sup>2</sup> + <em>n</em> + 41 at sixty answers every five minutes. Backed by the Royal Society, the Treasury granted him £1,500 in 1823 to build a full <a href="https://en.wikipedia.org/wiki/Difference_engine" target="_blank" rel="noopener noreferrer"><strong>Difference Engine</strong></a>: twenty-five thousand parts weighing four tons, stacking ten-toothed decimal wheels to twenty digits across six orders of differences, and stamping answers straight into soft metal printing plates so no typesetter could muddle them. Babbage thought it might take three years.</p>
+
+        <p>Instead it ate twenty years and everybody's patience. In 1827 Babbage lost his father, his wife Georgiana and two of his children within months (inheriting about £100,000 from his father's estate and settling at 1 Dorset Street in Marylebone, where he built workshops behind the house). Meanwhile, cutting twenty-five thousand precision parts pushed Regency engineering to its limit. Babbage's master toolmaker, <a href="https://en.wikipedia.org/wiki/Joseph_Clement" target="_blank" rel="noopener noreferrer"><strong>Joseph Clement</strong></a>, had to invent new lathes and jigs simply to shape the gears, lifting British machine-tool accuracy for a generation while sending bills that made Treasury clerks turn pale.</p>
+
+        <p>In 1832 Clement assembled a jewel-like working section of roughly two thousand parts, one-seventh of the calculating mechanism. Babbage displayed it in his drawing room beside a clockwork silver dancing girl he had bought at auction, noting ruefully that most guests preferred the dancer. The next year he and Clement fell out over expenses for moving Clement's workshop closer to Dorset Street. Clement downed tools, dismissed his men and, as English law then allowed, kept his specialized tools and working drawings. Roughly twelve thousand finished parts were eventually melted for scrap.</p>
+
+        <p>Worse, while ministers dithered for eight years over whether to rescue the project, Babbage cheerily told them he had invented a far grander machine that made the Difference Engine obsolete, rather like a bridge builder announcing halfway across the river that he now had lovely plans for a tunnel. In November 1842 Prime Minister <a href="https://en.wikipedia.org/wiki/Robert_Peel" target="_blank" rel="noopener noreferrer"><strong>Robert Peel</strong></a> killed the grant. Whitehall had spent £17,500, the price in 1831 of twenty-two brand-new steam locomotives from Robert Stephenson's works, and Babbage had spent £6,000 of his own. Dealing with Westminster left a scar. "On two occasions I have been asked," he wrote, "'Pray, Mr. Babbage, if you put into the machine wrong figures, will the right answers come out?' In one case a member of the Upper, and in the other a member of the Lower, House put this question. I am not able rightly to apprehend the kind of confusion of ideas that could provoke such a question."</p>
+
+        <p>Yet the machine he had conceived in 1834, the <a href="https://en.wikipedia.org/wiki/Analytical_engine" target="_blank" rel="noopener noreferrer"><strong>Analytical Engine</strong></a>, really did belong to another century. Driven by steam, it was a general-purpose mechanical computer with the exact logical layout of modern machines. Borrowing factory terms, Babbage separated memory from processor: a "store" of gear columns holding a thousand fifty-digit numbers, and a "mill" where numbers were brought to be added, subtracted, multiplied or divided, complete with conditional branching and loops. To instruct the mill, he borrowed from the French weaver <a href="https://en.wikipedia.org/wiki/Joseph_Marie_Jacquard" target="_blank" rel="noopener noreferrer"><strong>Joseph Marie Jacquard</strong></a>, whose 1804 loom steered silk threads with chains of perforated cards; Babbage owned a woven silk portrait of Jacquard made from 24,000 punched cards that visitors mistook for an engraving. His engine would read operation cards for instructions and variable cards for addresses in the store. Tired of British ministers, he gave his one full public presentation in Turin in 1840, where a young Italian military engineer and future prime minister, <a href="https://en.wikipedia.org/wiki/Luigi_Federico_Menabrea" target="_blank" rel="noopener noreferrer"><strong>Luigi Menabrea</strong></a>, wrote it up in French in October 1842.</p>
+
+        <p>Which was when <a href="https://en.wikipedia.org/wiki/Ada_Lovelace" target="_blank" rel="noopener noreferrer"><strong>Ada Lovelace</strong></a> stepped in and made the machine immortal.</p>
+
+        <p>Born Augusta Ada Byron on 10 December 1815, she was the only legitimate child of the poet <a href="https://en.wikipedia.org/wiki/Lord_Byron" target="_blank" rel="noopener noreferrer"><strong>Lord Byron</strong></a> and <a href="https://en.wikipedia.org/wiki/Lady_Byron" target="_blank" rel="noopener noreferrer"><strong>Anne Isabella Milbanke</strong></a>. Byron had dubbed his mathematically minded bride "the Princess of Parallelograms," confessing in 1812 that "I know that two and two make four, and should be glad to prove it too if I could, though I must say if by any sort of process I could convert two and two into five it would give me much greater pleasure." Five weeks after Ada's birth, Lady Byron fled her husband's rages for good; Byron sailed from England that spring and died in Greece at thirty-six, when Ada was eight. Lady Byron schooled her briskly in arithmetic (when six-year-old Ada preferred geography to sums, geography was replaced with more arithmetic), though historians Christopher Hollings, Ursula Martin and Adrian Rice note that the popular tale of mathematics used solely as a vaccine against poetry is overstated, since Ada loved music too and at twelve studied bird wings to design a steam flying machine.</p>
+
+        <p>On 5 June 1833, at seventeen, Ada met the forty-one-year-old Babbage at a party, and two weeks later visited Dorset Street to see the working piece of the Difference Engine; while others stared at it like a conjuring trick, a friend recalled, she understood its working and saw its beauty. Guided by the science writer <a href="https://en.wikipedia.org/wiki/Mary_Somerville" target="_blank" rel="noopener noreferrer"><strong>Mary Somerville</strong></a>, she married William King in 1835 (becoming Countess of Lovelace in 1838), had three children in four years, and in 1840 persuaded the logician <a href="https://en.wikipedia.org/wiki/Augustus_De_Morgan" target="_blank" rel="noopener noreferrer"><strong>Augustus De Morgan</strong></a> to coach her by post through advanced algebra and calculus. De Morgan told her mother she had the makings of "an original mathematical investigator, perhaps of first-rate eminence."</p>
+
+        <p>In 1843 Lovelace translated Menabrea's French paper into English, and at Babbage's urging added seven appendices of her own. Signed "A. A. L." in <em>Taylor's Scientific Memoirs</em> that September, Notes A to G took up forty-one of the article's sixty-six pages, about three times the length of Menabrea's text. Babbage called her "the Enchantress of Number."</p>
+
+        <p>Two insights in those Notes saw further than anyone else in Victorian science. In Note A, Lovelace summed up the machine in one unforgettable line ("the Analytical Engine weaves algebraical patterns just as the Jacquard-loom weaves flowers and leaves") and saw something Babbage himself had barely glimpsed: because the gears merely followed abstract rules, the symbols did not have to stand for numbers at all. Express the relations of pitch and harmony in its notation, she wrote, and "the engine might compose elaborate and scientific pieces of music of any degree of complexity or extent." Yet in Note G she paired that vision with a warning that we shall meet again with Alan Turing: "The Analytical Engine has no pretensions whatever to <em>originate</em> anything. It can do whatever we <em>know how to order it</em> to perform."</p>
+
+        <p>Beside it in Note G unfolded a large table tracing how twenty-five operation cards, with operations 13 to 23 repeating in a loop, would compute the Bernoulli numbers, a tricky sequence of fractions named for Jacob Bernoulli, whom we met feuding with his brother in Basel. Calling Lovelace "the first computer programmer" without qualification flattens a true collaboration: Babbage had drafted unpublished sample programs in his notebooks by 1837, Menabrea's paper held simpler tables, and Babbage recalled in 1864 that he had worked out the Bernoulli algebra "to save Lady Lovelace the trouble." In the very next sentence, though, he added that she sent it back for repair, "having detected a grave mistake which I had made in the process." Whether first programmer or first debugger, she published the first complex looping algorithm ever written for a general-purpose computer, and did it for hardware that existed only in ink.</p>
+
+        <p>She never got to write a sequel. Chronic illness closed in soon after 1843; she lost heavily betting on horses with a syndicate, pawning family jewels and dying £2,000 in debt from uterine cancer on 27 November 1852. Like the father she never knew, she died at thirty-six, and at her own wish was buried beside him in Nottinghamshire. In 1980 the United States Department of Defense named its programming language Ada in her honor, numbering the standard MIL-STD-1815 for her birth year.</p>
+
+        <p>Babbage lived nineteen crankier years at 1 Dorset Street, tinkering with the Analytical Engine, drafting a sleeker, eight-thousand-part Difference Engine No. 2 between 1847 and 1849 (one-third the parts of his first engine, good to thirty-one digits) that Whitehall declined to touch, and waging war on London's street musicians. In a chapter of his 1864 memoirs titled "Street Nuisances," he reckoned that organ-grinders, brass bands and penny whistles had destroyed a quarter of his working power, "an additional income-tax upon the brain," logging 165 interruptions in eighty days. Neighbors bought damaged wind instruments to blow beneath his windows; jeering crowds of a hundred people and ragged-school children trailed him down Marylebone streets; dead cats landed in his area; and at one in the morning after he underwent a painful surgical operation, a brass band conferred in Manchester Square and marched up his street to blast him awake. He died on 18 October 1871, aged seventy-nine, leaving half his brain in a jar at London's Science Museum.</p>
+
+        <p>For more than a century, the sensible verdict was that Victorian metalwork simply could not build his designs; even a Swedish father and son, <a href="https://en.wikipedia.org/wiki/Per_Georg_Scheutz" target="_blank" rel="noopener noreferrer"><strong>Georg Scheutz</strong></a> and his son Edvard, who built smaller difference engines in the 1850s, died bankrupt. Then in 1985 a Science Museum team led by curator <a href="https://en.wikipedia.org/wiki/Doron_Swade" target="_blank" rel="noopener noreferrer"><strong>Doron Swade</strong></a> set out to build Difference Engine No. 2 from Babbage's 1847 drawings, machining nothing more finely than a nineteenth-century workshop could manage. They finished the four-thousand-part calculating section in June 1991 for his bicentenary and added his four-thousand-part self-inking printer in 2002: five tons of iron, steel and bronze, eleven feet long, worked by a hand crank. Once a few small slips in the drawings were corrected, it turned smoothly and stamped out thirty-one-digit answers without a murmur. The gears had been ready all along. It was only the century that wasn't.</p>
+    </article>
+</body>
+</html>

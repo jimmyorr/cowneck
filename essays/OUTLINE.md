@@ -230,7 +230,7 @@ Each chapter entry lists:
 - **Central idea:** triangles whose angles don't add up to 180&deg;, shown on a
   sphere or a saddle.
 
-### 15. The Engine Men — `essays/babbage-lovelace.html`
+### 15. The Engine Men — `essays/babbage-lovelace.html` *(drafted)*
 - **Owns:** Charles Babbage, Ada Lovelace.
 - **Material:** Babbage's crusade against street musicians. His reported
   letter to Tennyson correcting "every moment dies a man, every moment one is
