@@ -1,6 +1,6 @@
 # cowneck
 
-Source code for [cowneck.com](https://cowneck.com) — interactive web games, generative audio toys, and side projects by Jimmy Orr, Oliver, and Miles.
+Source code for [cowneck.com](https://cowneck.com) — interactive web games, generative audio toys, and side projects (the math essays live at [essays.cowneck.com](https://essays.cowneck.com)) by Jimmy Orr, Oliver, and Miles.
 
 ## Project structure
 
