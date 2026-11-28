@@ -18,5 +18,3 @@ venv/
 playwright-report/
 test-results/
 
-# Private essay notes: a separate private repo cloned (or symlinked) here
-essays/private

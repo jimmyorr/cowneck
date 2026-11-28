@@ -1,14 +1,13 @@
 # cowneck
 
-Source code for [cowneck.com](https://cowneck.com) — interactive web games, generative audio toys, math essays, and side projects by Jimmy Orr, Oliver, and Miles.
+Source code for [cowneck.com](https://cowneck.com) — interactive web games, generative audio toys, and side projects by Jimmy Orr, Oliver, and Miles.
 
 ## Project structure
 
 - `index.html` — Main landing page.
 - `games/` — Standalone HTML5 web games (including **🐶 Lofi Pup** at `games/lofi-pup.html`, **High Society** at `games/high-society/`, and **Wizard** at `games/wizard.html`) and the games catalog (`games/index.html`).
 - `projects/` — Software and creative projects hub.
-- `essays/` — Long-form math history essays (`essays/index.html` and chapter pages), outline (`essays/OUTLINE.md`), style guide (`essays/STYLE.md`), and research notes (`essays/notes/`).
-- `math/` — Legacy redirect stubs forwarding old `/math/` URLs to `/essays/`.
+- `essays/`, `math/` — Redirect stubs sending old essay URLs to the home page.
 - `mcu/` — Marvel Cinematic Universe tracker.
 - `scripts/` — Repository maintenance and asset generation scripts:
   - `scripts/sync-games-metadata.py` — Syncs Open Graph, Twitter Card, canonical URL, Google Analytics (`gtag.js`), and Schema.org `VideoGame` JSON-LD blocks from `games/index.html` into each game file, and regenerates `sitemap.xml`.

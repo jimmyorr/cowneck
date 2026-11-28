@@ -272,12 +272,7 @@ def generate_sitemap():
         "https://cowneck.com/",
         "https://cowneck.com/games/",
         "https://cowneck.com/projects/",
-        "https://cowneck.com/essays/",
     ]
-    for p in sorted((REPO_ROOT / "essays").glob("*.html")):
-        if p.name == "index.html":
-            continue
-        urls.append(f"https://cowneck.com/essays/{p.name}")
     urls.extend(
         [
             "https://cowneck.com/mcu/",
