@@ -7,7 +7,7 @@ Source code for [cowneck.com](https://cowneck.com) — interactive web games, ge
 - `index.html` — Main landing page.
 - `games/` — Standalone HTML5 web games (including **🐶 Lofi Pup** at `games/lofi-pup.html`, **High Society** at `games/high-society/`, and **Wizard** at `games/wizard.html`) and the games catalog (`games/index.html`).
 - `projects/` — Software and creative projects hub.
-- `essays/`, `math/` — Redirect stubs sending old essay URLs to the home page.
+- `essays/`, `math/` — Redirect stubs sending old essay URLs to essays.cowneck.com.
 - `mcu/` — Marvel Cinematic Universe tracker.
 - `scripts/` — Repository maintenance and asset generation scripts:
   - `scripts/sync-games-metadata.py` — Syncs Open Graph, Twitter Card, canonical URL, Google Analytics (`gtag.js`), and Schema.org `VideoGame` JSON-LD blocks from `games/index.html` into each game file, and regenerates `sitemap.xml`.
