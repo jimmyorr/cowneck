@@ -55,7 +55,7 @@ Each chapter entry lists:
 - **Central idea:** why &radic;2 can't be a fraction (the proof is short enough
   to sketch in prose).
 
-### 3. Eureka — `essays/eureka.html`
+### 3. Eureka — `essays/eureka.html` *(drafted)*
 - **Owns:** Archimedes, the Archimedes Palimpsest.
 - **Material:** the bath and the crown (from Vitruvius, two centuries later;
   hedge). The siege of Syracuse: the "claw" that lifted ships, and burning
